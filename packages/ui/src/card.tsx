@@ -1,4 +1,5 @@
-import type { JSX } from "react";
+import { Card as MantineCard, Text, Title } from "@mantine/core";
+import type { ReactNode } from "react";
 
 export function Card({
   className,
@@ -8,20 +9,23 @@ export function Card({
 }: {
   className?: string;
   title: string;
-  children: React.ReactNode;
+  children: ReactNode;
   href: string;
-}): JSX.Element {
+}) {
   return (
-    <a
+    <MantineCard
+      component="a"
       className={className}
-      href={`${href}?utm_source=create-turbo&utm_medium=basic&utm_campaign=create-turbo"`}
+      href={`${href}?utm_source=create-turbo&utm_medium=basic&utm_campaign=create-turbo`}
       rel="noopener noreferrer"
       target="_blank"
+      withBorder
+      padding="md"
     >
-      <h2>
+      <Title order={2} size="h4">
         {title} <span>-&gt;</span>
-      </h2>
-      <p>{children}</p>
-    </a>
+      </Title>
+      <Text>{children}</Text>
+    </MantineCard>
   );
 }

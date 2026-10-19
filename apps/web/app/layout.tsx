@@ -1,3 +1,4 @@
+import { htmlProps, UIHead, UIProvider } from "@repo/ui/provider";
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
@@ -22,9 +23,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" {...htmlProps}>
+      <head>
+        <UIHead />
+      </head>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        {children}
+        <UIProvider>{children}</UIProvider>
       </body>
     </html>
   );
