@@ -1,0 +1,19 @@
+{
+  "name": "@repo/hubworld-api-client",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "generate": "orval",
+    "check-types": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@repo/typescript-config": "workspace:*",
+    "hubworld-api": "workspace:*",
+    "orval": "8.43.0",
+    "typescript": "7.0.2"
+  }
+}

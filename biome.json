@@ -8,6 +8,8 @@
       "!**/.turbo",
       "!**/dist",
       "!**/public",
+      "!**/generated",
+      "!apps/hubworld-api/openapi.json",
       "!pnpm-lock.yaml"
     ]
   },

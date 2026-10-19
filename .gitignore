@@ -36,3 +36,8 @@ yarn-error.log*
 # Misc
 .DS_Store
 *.pem
+.pnpm-store
+
+# Generated from apps/hubworld-api (pnpm generate)
+apps/hubworld-api/openapi.json
+packages/hubworld-api-client/src/generated
