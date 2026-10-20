@@ -9,34 +9,31 @@ import { grades } from "./site";
 export const comparison = {
   /** Spread onto `ComparisonTable`. */
   labels: {
-    rowsLabel: "What matters",
     typicalLabel: "Typical learning games",
   },
   rows: {
     mechanic: {
       label: "Learning is how you win",
       note: "The skill is the gameplay, not a quiz in front of it.",
-      kindling: "Built into every game",
       typical: "Questions interrupt the game",
     },
     store: {
       label: "Kids never see a store",
-      kindling: "No store, ever",
       typical: "Memberships and paid extras are common",
     },
     earned: {
       label: "Rewards come from effort",
-      kindling: "Earned by trying and improving",
+      note: "Earned by trying and improving.",
       typical: "Random prize boxes are common",
     },
     world: {
       label: "One shared class world",
-      kindling: "Your class, all year",
+      note: "Your class builds it together, all year.",
       typical: "Separate games and sessions",
     },
     streaks: {
       label: "No pressure to log in",
-      kindling: "No streaks or daily rewards",
+      note: "No streaks or daily rewards.",
       typical: "Streaks and daily rewards are common",
     },
   } satisfies Record<string, ComparisonRow>,

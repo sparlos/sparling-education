@@ -10,10 +10,16 @@ export const home = {
         <TitleHighlight>is how you win</TitleHighlight>
       </>
     ),
-    lead: "Kindling gives your class a shared 3D world full of curriculum games. Students get better at the game by getting better at the concept, with no quiz questions bolted on.",
+    lead: (
+      <>
+        Kindling gives your class a shared 3D world. Kids practice the skill as
+        a <i>part</i> of the curriculum games - it's not a bolted on quiz
+        completely separate of everything else.
+      </>
+    ),
     primaryAction: { label: "Join the teacher pilot", href: "#pilot" },
     secondaryAction: { label: "See how it works", href: "#how-it-works" },
-    note: "Free for teachers, always. Students and parents never pay.",
+    note: "Free for teachers. Students and parents are never asked to pay anything.",
     image: {
       alt: "A colourful low-poly class world with houses, trees and glowing portals",
       placeholderLabel: "Class hub render coming soon",
