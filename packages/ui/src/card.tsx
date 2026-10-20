@@ -1,31 +1,37 @@
-import { Card as MantineCard, Text, Title } from "@mantine/core";
+import { Card as MantineCard } from "@mantine/core";
 import type { ReactNode } from "react";
+import type { ButtonTone } from "./button";
+import classes from "./tone.module.css";
 
-export function Card({
-  className,
-  title,
-  children,
-  href,
-}: {
-  className?: string;
-  title: string;
+interface CardProps {
   children: ReactNode;
-  href: string;
-}) {
+  /** `soft` tints the card with its tone; `raised` is plain white. */
+  variant?: "raised" | "soft";
+  tone?: ButtonTone;
+  padding?: "md" | "lg" | "xl";
+  className?: string;
+}
+
+/** A static content card. For clickable cards use `marketing/role-card`. */
+export function Card({
+  children,
+  variant = "raised",
+  tone,
+  padding = "xl",
+  className,
+}: CardProps) {
   return (
     <MantineCard
-      component="a"
-      className={className}
-      href={`${href}?utm_source=create-turbo&utm_medium=basic&utm_campaign=create-turbo`}
-      rel="noopener noreferrer"
-      target="_blank"
-      withBorder
-      padding="md"
+      data-tone={tone}
+      padding={padding}
+      className={[
+        variant === "soft" ? classes.cardSoft : classes.card,
+        className,
+      ]
+        .filter(Boolean)
+        .join(" ")}
     >
-      <Title order={2} size="h4">
-        {title} <span>-&gt;</span>
-      </Title>
-      <Text>{children}</Text>
+      {children}
     </MantineCard>
   );
 }

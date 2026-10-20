@@ -1,0 +1,29 @@
+.root {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--k-ink);
+  text-decoration: none;
+  font-family: var(--k-font-heading-stack);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1;
+}
+
+.root[data-inverse] {
+  color: var(--k-ink-inverse);
+}
+
+.root[data-size="md"] {
+  font-size: 1.5rem;
+}
+
+.root[data-size="lg"] {
+  font-size: 2.25rem;
+}
+
+.mark {
+  flex-shrink: 0;
+  width: 1.15em;
+  height: 1.15em;
+}

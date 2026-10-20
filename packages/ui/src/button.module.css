@@ -1,0 +1,52 @@
+.root {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-family: var(--k-font-heading-stack);
+  font-weight: 800;
+  line-height: 1.2;
+  text-align: center;
+  text-decoration: none;
+  white-space: normal;
+  border-radius: var(--mantine-radius-md);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.root[data-size="md"] {
+  min-height: 2.75rem;
+  padding: 0.625rem 1.25rem;
+  font-size: var(--mantine-font-size-md);
+}
+
+.root[data-size="lg"] {
+  min-height: 3.375rem;
+  padding: 0.875rem 1.75rem;
+  font-size: var(--mantine-font-size-lg);
+}
+
+.root[data-full-width] {
+  display: flex;
+  width: 100%;
+}
+
+.subtle {
+  padding-inline: 0.25rem;
+  color: var(--tone-text);
+  background: transparent;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.25em;
+  text-decoration-color: color-mix(in srgb, currentColor 35%, transparent);
+  transition: text-decoration-color var(--k-duration-fast)
+    var(--k-ease-standard);
+}
+
+.subtle:hover {
+  text-decoration-color: currentColor;
+}
+
+.section {
+  display: inline-flex;
+  flex-shrink: 0;
+}

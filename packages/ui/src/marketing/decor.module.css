@@ -1,0 +1,37 @@
+.layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.shape {
+  position: absolute;
+  display: block;
+}
+
+.float {
+  animation: float 6s var(--k-ease-standard) infinite alternate;
+}
+
+@keyframes float {
+  from {
+    transform: translateY(0) rotate(0deg);
+  }
+  to {
+    transform: translateY(-10px) rotate(6deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .float {
+    animation: none;
+  }
+}
+
+@media (--k-sm-down) {
+  .hideMobile {
+    display: none;
+  }
+}

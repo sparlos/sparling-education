@@ -1,0 +1,65 @@
+/* The card is white with a tone-coloured edge; it tints on hover. Tone
+   variables come from the wrapper, so the card can override fill colours. */
+.card {
+  --tone-fill: var(--k-surface-raised);
+  --tone-on-fill: var(--k-ink);
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-sm);
+  height: 100%;
+  padding: var(--mantine-spacing-xl);
+  border-radius: var(--mantine-radius-lg);
+  text-decoration: none;
+  text-align: left;
+}
+
+.wrapper {
+  height: 100%;
+}
+
+.wrapper > .card {
+  --tone-fill-hover: var(--tone-soft);
+}
+
+.icon {
+  margin-bottom: var(--mantine-spacing-xs);
+}
+
+.title {
+  font-family: var(--k-font-heading-stack);
+  font-weight: 800;
+  font-size: var(--mantine-h3-font-size, 1.625rem);
+  line-height: 1.2;
+}
+
+.body {
+  color: var(--k-ink-muted);
+  font-size: var(--mantine-font-size-md);
+  line-height: 1.55;
+  flex: 1;
+}
+
+.cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  margin-top: var(--mantine-spacing-xs);
+  font-family: var(--k-font-heading-stack);
+  font-weight: 800;
+  color: var(--tone-text);
+}
+
+.arrow {
+  display: inline-flex;
+  transition: transform var(--k-duration-base) var(--k-ease-springy);
+}
+
+.card:hover .arrow {
+  transform: translateX(4px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card:hover .arrow {
+    transform: none;
+  }
+}

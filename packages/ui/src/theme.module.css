@@ -1,0 +1,4 @@
+.focus:focus-visible {
+  outline: 3px solid var(--k-focus);
+  outline-offset: 3px;
+}

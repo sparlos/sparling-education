@@ -1,0 +1,50 @@
+/* Shared by every 3D-pressable element (buttons, role cards). Colours come
+   from the `--tone-*` variables set by `data-tone`. */
+
+/* A solid edge sits down-right of the element. Hover lifts the element away
+   from it, press sinks the element onto it. The edge itself never
+   moves, so translate and shadow offset always change together. */
+.press {
+  background-color: var(--tone-fill);
+  color: var(--tone-on-fill);
+  border: var(--k-press-border) solid var(--tone-edge);
+  box-shadow: var(--k-press-rest) var(--k-press-rest) 0 0 var(--tone-edge);
+  transition:
+    transform var(--k-duration-base) var(--k-ease-springy),
+    box-shadow var(--k-duration-base) var(--k-ease-springy),
+    background-color var(--k-duration-fast) var(--k-ease-standard);
+}
+
+@media (hover: hover) {
+  .press:where(:not(:disabled, [data-disabled])):hover {
+    background-color: var(--tone-fill-hover);
+    transform: translate(
+      calc(var(--k-press-rest) - var(--k-press-hover)),
+      calc(var(--k-press-rest) - var(--k-press-hover))
+    );
+    box-shadow: var(--k-press-hover) var(--k-press-hover) 0 0 var(--tone-edge);
+  }
+}
+
+.press:where(:not(:disabled, [data-disabled])):active {
+  transform: translate(var(--k-press-rest), var(--k-press-rest));
+  box-shadow: var(--k-press-active) var(--k-press-active) 0 0 var(--tone-edge);
+  transition-duration: var(--k-duration-fast);
+}
+
+/* Same selectors as above, so these win by source order. */
+@media (prefers-reduced-motion: reduce) {
+  .press,
+  .press:where(:not(:disabled, [data-disabled])):hover,
+  .press:where(:not(:disabled, [data-disabled])):active {
+    transform: none;
+    box-shadow: var(--k-press-rest) var(--k-press-rest) 0 0 var(--tone-edge);
+    transition: background-color var(--k-duration-fast) linear;
+  }
+}
+
+.press:disabled,
+.press[data-disabled] {
+  cursor: not-allowed;
+  opacity: 0.6;
+}

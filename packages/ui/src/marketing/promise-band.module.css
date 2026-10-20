@@ -1,0 +1,51 @@
+.panel {
+  position: relative;
+  overflow: hidden;
+  padding: clamp(2rem, 5vw, 4rem);
+  border-radius: var(--mantine-radius-xl);
+  background-color: var(--k-surface-inverse);
+  color: var(--k-ink-inverse);
+  text-align: center;
+}
+
+.content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--mantine-spacing-lg);
+}
+
+.body {
+  max-width: 40rem;
+  font-size: var(--mantine-font-size-lg);
+  color: var(--k-ink-inverse-muted);
+}
+
+.items {
+  list-style: none;
+  padding: 0;
+  margin: var(--mantine-spacing-xs) 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--mantine-spacing-sm);
+}
+
+.item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  border: 2px solid color-mix(in srgb, var(--k-ink-inverse) 22%, transparent);
+  font-family: var(--k-font-heading-stack);
+  font-weight: 800;
+  color: var(--k-ink-inverse);
+}
+
+.itemIcon {
+  display: inline-flex;
+  color: var(--k-student-fill);
+}

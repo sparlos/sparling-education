@@ -1,0 +1,31 @@
+/* Shared tone-aware styles for small wrappers. */
+.badge {
+  background-color: var(--tone-soft);
+  color: var(--tone-text);
+  border: 1px solid color-mix(in srgb, var(--tone-edge) 25%, transparent);
+  font-family: var(--k-font-heading-stack);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+
+.icon {
+  background-color: var(--tone-soft);
+  color: var(--tone-text);
+}
+
+.iconFilled {
+  background-color: var(--tone-fill);
+  color: var(--tone-on-fill);
+}
+
+.card {
+  background-color: var(--k-surface-raised);
+  border-color: var(--k-border-subtle);
+  box-shadow: var(--mantine-shadow-sm);
+}
+
+.cardSoft {
+  background-color: var(--tone-soft);
+  border-color: color-mix(in srgb, var(--tone-edge) 18%, transparent);
+}

@@ -1,0 +1,36 @@
+.input {
+  background-color: var(--k-surface-raised);
+  border: 2px solid var(--k-border);
+  color: var(--k-ink);
+  transition: border-color var(--k-duration-fast) var(--k-ease-standard);
+}
+
+.input:hover {
+  border-color: var(--k-border-strong);
+}
+
+.input:focus,
+.input:focus-within {
+  border-color: var(--k-focus);
+  outline: 3px solid color-mix(in srgb, var(--k-focus) 30%, transparent);
+  outline-offset: 0;
+}
+
+.input[data-error] {
+  border-color: var(--mantine-color-error);
+}
+
+.label {
+  font-family: var(--k-font-heading-stack);
+  font-weight: 800;
+  margin-bottom: 0.375rem;
+  color: var(--k-ink);
+}
+
+.description {
+  color: var(--k-ink-muted);
+}
+
+.required {
+  color: var(--k-brand-text);
+}

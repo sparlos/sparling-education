@@ -41,3 +41,6 @@ yarn-error.log*
 # Generated from apps/hubworld-api (pnpm generate)
 apps/hubworld-api/openapi.json
 packages/hubworld-api-client/src/generated
+
+# Generated from @repo/tokens (pnpm generate)
+packages/tokens/src/generated

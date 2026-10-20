@@ -1,0 +1,92 @@
+/* Site-wide defaults for Kindling. Loaded once by UIProvider. */
+
+/* `data-tone` re-points the `--tone-*` variables at an audience or the brand,
+   so any component can be recoloured by an ancestor. Brand is the default. */
+:root,
+[data-tone="brand"] {
+  --tone-fill: var(--k-brand-fill);
+  --tone-fill-hover: var(--k-brand-fill-hover);
+  --tone-on-fill: var(--k-brand-on-fill);
+  --tone-edge: var(--k-brand-edge);
+  --tone-soft: var(--k-brand-soft);
+  --tone-text: var(--k-brand-text);
+}
+
+[data-tone="neutral"] {
+  --tone-fill: var(--k-neutral-fill);
+  --tone-fill-hover: var(--k-neutral-fill-hover);
+  --tone-on-fill: var(--k-neutral-on-fill);
+  --tone-edge: var(--k-neutral-edge);
+  --tone-soft: var(--k-neutral-soft);
+  --tone-text: var(--k-neutral-text);
+}
+
+[data-tone="educator"] {
+  --tone-fill: var(--k-educator-fill);
+  --tone-fill-hover: var(--k-educator-fill-hover);
+  --tone-on-fill: var(--k-educator-on-fill);
+  --tone-edge: var(--k-educator-edge);
+  --tone-soft: var(--k-educator-soft);
+  --tone-text: var(--k-educator-text);
+}
+
+[data-tone="parent"] {
+  --tone-fill: var(--k-parent-fill);
+  --tone-fill-hover: var(--k-parent-fill-hover);
+  --tone-on-fill: var(--k-parent-on-fill);
+  --tone-edge: var(--k-parent-edge);
+  --tone-soft: var(--k-parent-soft);
+  --tone-text: var(--k-parent-text);
+}
+
+[data-tone="student"] {
+  --tone-fill: var(--k-student-fill);
+  --tone-fill-hover: var(--k-student-fill-hover);
+  --tone-on-fill: var(--k-student-on-fill);
+  --tone-edge: var(--k-student-edge);
+  --tone-soft: var(--k-student-soft);
+  --tone-text: var(--k-student-text);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+body {
+  background-color: var(--k-surface-page);
+  color: var(--k-ink);
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background-color: var(--k-brand-soft);
+  color: var(--k-ink);
+}
+
+/* Components own their spacing (via gap), so drop browser margins. */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+figure,
+blockquote {
+  margin: 0;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+/* Keep in-page anchor targets clear of the sticky header. */
+[id] {
+  scroll-margin-top: 6rem;
+}
