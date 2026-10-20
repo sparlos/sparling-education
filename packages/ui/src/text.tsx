@@ -5,35 +5,13 @@ import { type InkColor, inkVar } from "./ink";
 interface TextProps {
   children: ReactNode;
   size?: "xs" | "sm" | "md" | "lg" | "xl";
-  fw?: 400 | 600 | 700 | 800;
   c?: InkColor;
-  ta?: "left" | "center";
-  component?: "p" | "span" | "div";
-  /** Use the rounded heading face, e.g. for eyebrows and labels. */
-  heading?: boolean;
   className?: string;
 }
 
-export function Text({
-  children,
-  size = "md",
-  fw,
-  c,
-  ta,
-  component = "p",
-  heading,
-  className,
-}: TextProps) {
+export function Text({ children, size = "md", c, className }: TextProps) {
   return (
-    <MantineText
-      component={component}
-      size={size}
-      fw={fw}
-      c={inkVar(c)}
-      ta={ta}
-      ff={heading ? "var(--k-font-heading-stack)" : undefined}
-      className={className}
-    >
+    <MantineText component="p" size={size} c={inkVar(c)} className={className}>
       {children}
     </MantineText>
   );

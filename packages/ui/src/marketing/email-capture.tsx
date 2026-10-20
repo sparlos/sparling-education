@@ -1,18 +1,11 @@
 "use client";
 
-import { type ReactNode, useActionState } from "react";
-import { Button, type ButtonTone } from "../button";
-import { Icon } from "../icon";
+import type { ReactNode } from "react";
+import { Button } from "../button";
 import { TextInput } from "../text-input";
+import type { Tone } from "../tone";
+import { type FormAction, FormSuccess, useFormAction } from "./form-action";
 import classes from "./forms.module.css";
-
-/** What a form's server action reports back. */
-export interface FormResult {
-  ok: boolean;
-  message: string;
-}
-
-export type FormAction = (formData: FormData) => Promise<FormResult>;
 
 interface EmailCaptureProps {
   action: FormAction;
@@ -22,7 +15,7 @@ interface EmailCaptureProps {
   pendingLabel: string;
   /** Reassurance under the field, e.g. what you'll send and how often. */
   fineprint?: ReactNode;
-  tone?: ButtonTone;
+  tone?: Tone;
   /** Extra values sent with the form, e.g. which page it came from. */
   hidden?: Record<string, string>;
 }
@@ -38,19 +31,9 @@ export function EmailCapture({
   tone,
   hidden,
 }: EmailCaptureProps) {
-  const [result, submit, pending] = useActionState<FormResult | null, FormData>(
-    (_previous, formData) => action(formData),
-    null,
-  );
+  const [result, submit, pending] = useFormAction(action);
 
-  if (result?.ok) {
-    return (
-      <p className={classes.status} role="status">
-        <Icon name="check" size={24} />
-        {result.message}
-      </p>
-    );
-  }
+  if (result?.ok) return <FormSuccess message={result.message} />;
 
   return (
     <form action={submit} className={classes.form}>

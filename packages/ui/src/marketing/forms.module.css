@@ -42,6 +42,34 @@
   font-size: var(--mantine-font-size-lg);
 }
 
+.check {
+  position: relative;
+  flex-shrink: 0;
+  display: inline-grid;
+  place-items: center;
+}
+
+.checkIcon {
+  display: inline-flex;
+}
+
+.confetti {
+  position: absolute;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+  background-color: var(--k-student-fill);
+  pointer-events: none;
+}
+
+.confetti[data-color="1"] {
+  background-color: var(--k-brand-fill);
+}
+
+.confetti[data-color="2"] {
+  background-color: var(--k-educator-fill);
+}
+
 .error {
   color: var(--mantine-color-error);
   font-size: var(--mantine-font-size-sm);

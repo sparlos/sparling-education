@@ -1,11 +1,11 @@
 "use client";
 
-import { type ReactNode, useActionState } from "react";
-import { Button, type ButtonTone } from "../button";
-import { Icon } from "../icon";
+import type { ReactNode } from "react";
+import { Button } from "../button";
 import { Select } from "../select";
 import { TextInput } from "../text-input";
-import type { FormAction, FormResult } from "./email-capture";
+import type { Tone } from "../tone";
+import { type FormAction, FormSuccess, useFormAction } from "./form-action";
 import classes from "./forms.module.css";
 
 interface PilotSignupFormProps {
@@ -19,7 +19,7 @@ interface PilotSignupFormProps {
   submitLabel: string;
   pendingLabel: string;
   fineprint?: ReactNode;
-  tone?: ButtonTone;
+  tone?: Tone;
 }
 
 /** Teacher pilot signup: work email plus the grade they teach. */
@@ -35,19 +35,9 @@ export function PilotSignupForm({
   fineprint,
   tone = "educator",
 }: PilotSignupFormProps) {
-  const [result, submit, pending] = useActionState<FormResult | null, FormData>(
-    (_previous, formData) => action(formData),
-    null,
-  );
+  const [result, submit, pending] = useFormAction(action);
 
-  if (result?.ok) {
-    return (
-      <p className={classes.status} role="status">
-        <Icon name="check" size={24} />
-        {result.message}
-      </p>
-    );
-  }
+  if (result?.ok) return <FormSuccess message={result.message} />;
 
   return (
     <form action={submit} className={classes.form}>

@@ -10,7 +10,6 @@ export const educators = {
       "Curriculum games mapped to Ontario expectations, built for short periods and old Chromebooks. Free for teachers, always.",
   },
   hero: {
-    eyebrow: "For educators",
     title: (
       <>
         Games that teach the <TitleHighlight>expectation</TitleHighlight>, not

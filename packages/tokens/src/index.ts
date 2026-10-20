@@ -322,6 +322,13 @@ export const motion = {
     /** Slight overshoot for playful lifts. */
     springy: "cubic-bezier(0.34, 1.56, 0.64, 1)",
   },
+  /** Physics springs for JS animation; `bouncy` overshoots noticeably. */
+  spring: {
+    gentle: { stiffness: 220, damping: 26 },
+    bouncy: { stiffness: 420, damping: 15 },
+  },
+  /** Scroll-in entrances: rise distance (px) and gap between siblings (ms). */
+  reveal: { distance: 28, stagger: 70 },
 } as const;
 
 /** Breakpoints in px. */

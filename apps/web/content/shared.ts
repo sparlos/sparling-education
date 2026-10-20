@@ -1,5 +1,5 @@
-import type { IconName } from "@repo/ui/icon";
 import type { ComparisonRow } from "@repo/ui/marketing/comparison-table";
+import type { PromiseItem } from "@repo/ui/marketing/promise-band";
 import type { Step } from "@repo/ui/marketing/steps";
 import { grades } from "./site";
 
@@ -7,8 +7,11 @@ import { grades } from "./site";
 // competitors are never named (see apps/web/GLOSSARY.md, "Typical learning games").
 
 export const comparison = {
-  rowsLabel: "What matters",
-  typicalLabel: "Typical learning games",
+  /** Spread onto `ComparisonTable`. */
+  labels: {
+    rowsLabel: "What matters",
+    typicalLabel: "Typical learning games",
+  },
   rows: {
     mechanic: {
       label: "Learning is how you win",
@@ -48,7 +51,8 @@ export const comparisonShort: ComparisonRow[] = [
 
 export const comparisonFull: ComparisonRow[] = Object.values(comparison.rows);
 
-export const promiseItems: { icon: IconName; label: string }[] = [
+/** The first three are the ones the students page shows. */
+export const promiseItems: PromiseItem[] = [
   { icon: "no-money", label: "No store" },
   { icon: "ban", label: "No ads" },
   { icon: "gift", label: "No loot boxes" },

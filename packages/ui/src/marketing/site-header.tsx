@@ -6,18 +6,17 @@ import { Burger } from "../burger";
 import { Button } from "../button";
 import { Container } from "../container";
 import { Drawer } from "../drawer";
+import type { LinkItem } from "../link-item";
 import classes from "./site-header.module.css";
 import { Wordmark } from "./wordmark";
 
-export interface NavLink {
-  label: string;
-  href: string;
+export interface NavLink extends LinkItem {
   tone?: Audience;
 }
 
 interface SiteHeaderProps {
   links: NavLink[];
-  cta: { label: string; href: string };
+  cta: LinkItem;
   /** The current path, to mark the active link. */
   activeHref?: string;
   skipLinkLabel: string;

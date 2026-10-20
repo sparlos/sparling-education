@@ -1,6 +1,6 @@
 "use server";
 
-import type { FormResult } from "@repo/ui/marketing/email-capture";
+import type { FormResult } from "@repo/ui/marketing/form-action";
 
 /** Lets the design page show form success states without sending anything. */
 export async function demoSubmit(): Promise<FormResult> {

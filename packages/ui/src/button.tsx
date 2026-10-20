@@ -1,21 +1,20 @@
 import { UnstyledButton } from "@mantine/core";
 import type { ReactNode } from "react";
 import classes from "./button.module.css";
+import { cx } from "./cx";
 import press from "./press.module.css";
-
-export type ButtonTone = "brand" | "educator" | "parent" | "student";
+import type { Tone } from "./tone";
 
 interface ButtonProps {
   children: ReactNode;
   /** `primary` and `secondary` get the 3D press; `subtle` reads as a link. */
   variant?: "primary" | "secondary" | "subtle";
   /** Colour of a primary or subtle button. Secondary is always neutral. */
-  tone?: ButtonTone;
+  tone?: Tone;
   size?: "md" | "lg";
   /** Renders a link instead of a button. */
   href?: string;
   type?: "button" | "submit";
-  onClick?: () => void;
   disabled?: boolean;
   fullWidth?: boolean;
   leftSection?: ReactNode;
@@ -30,7 +29,6 @@ export function Button({
   size = "md",
   href,
   type = "button",
-  onClick,
   disabled,
   fullWidth,
   leftSection,
@@ -38,17 +36,14 @@ export function Button({
   className,
 }: ButtonProps) {
   const shared = {
-    className: [
+    className: cx(
       classes.root,
       variant === "subtle" ? classes.subtle : press.press,
       className,
-    ]
-      .filter(Boolean)
-      .join(" "),
+    ),
     "data-size": size,
     "data-tone": variant === "secondary" ? "neutral" : tone,
     "data-full-width": fullWidth || undefined,
-    onClick,
   };
   const content = (
     <>

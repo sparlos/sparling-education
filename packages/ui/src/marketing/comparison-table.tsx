@@ -3,6 +3,7 @@ import { Icon } from "../icon";
 import { Table } from "../table";
 import { VisuallyHidden } from "../visually-hidden";
 import classes from "./comparison-table.module.css";
+import { Reveal } from "./reveal";
 import { Wordmark } from "./wordmark";
 
 /**
@@ -27,6 +28,24 @@ interface ComparisonTableProps {
   caption?: ReactNode;
 }
 
+function Verdict({
+  row,
+  kind,
+}: {
+  row: ComparisonRow;
+  kind: "kindling" | "typical";
+}) {
+  const yes = kind === "kindling";
+  return (
+    <span className={`${classes.verdict} ${yes ? classes.yes : classes.no}`}>
+      <span className={classes.mark}>
+        <Icon name={yes ? "check" : "x"} size={18} />
+      </span>
+      {row[kind]}
+    </span>
+  );
+}
+
 /**
  * Kindling vs typical learning games, row by row. Below `sm` the table is
  * swapped for one card per row (label, then both verdicts stacked), so
@@ -38,22 +57,6 @@ export function ComparisonTable({
   typicalLabel,
   caption,
 }: ComparisonTableProps) {
-  const kindlingVerdict = (row: ComparisonRow) => (
-    <span className={`${classes.verdict} ${classes.yes}`}>
-      <span className={classes.mark}>
-        <Icon name="check" size={18} />
-      </span>
-      {row.kindling}
-    </span>
-  );
-  const typicalVerdict = (row: ComparisonRow) => (
-    <span className={`${classes.verdict} ${classes.no}`}>
-      <span className={classes.mark}>
-        <Icon name="x" size={18} />
-      </span>
-      {row.typical}
-    </span>
-  );
   const rowLabel = (row: ComparisonRow) => (
     <>
       {row.label}
@@ -63,7 +66,7 @@ export function ComparisonTable({
 
   return (
     <>
-      <div className={classes.scroller}>
+      <Reveal className={classes.scroller}>
         <Table
           caption={caption}
           classNames={{
@@ -89,24 +92,26 @@ export function ComparisonTable({
             key: row.label,
             cells: [
               <span key="label">{rowLabel(row)}</span>,
-              <span key="k">{kindlingVerdict(row)}</span>,
-              <span key="t">{typicalVerdict(row)}</span>,
+              <Verdict key="k" row={row} kind="kindling" />,
+              <Verdict key="t" row={row} kind="typical" />,
             ],
           }))}
         />
-      </div>
+      </Reveal>
       <div className={classes.stacked}>
         {caption && <p className={classes.caption}>{caption}</p>}
         <ul className={classes.cards}>
           {rows.map((row) => (
-            <li key={row.label} className={classes.card}>
+            <Reveal as="li" key={row.label} className={classes.card}>
               <p className={classes.cardLabel}>{rowLabel(row)}</p>
               <dl className={classes.cardVerdicts}>
                 <div className={classes.cardKindling}>
                   <dt className={classes.cardTerm}>
                     <Wordmark />
                   </dt>
-                  <dd>{kindlingVerdict(row)}</dd>
+                  <dd>
+                    <Verdict row={row} kind="kindling" />
+                  </dd>
                 </div>
                 <div className={classes.cardTypical}>
                   <dt
@@ -114,10 +119,12 @@ export function ComparisonTable({
                   >
                     {typicalLabel}
                   </dt>
-                  <dd>{typicalVerdict(row)}</dd>
+                  <dd>
+                    <Verdict row={row} kind="typical" />
+                  </dd>
                 </div>
               </dl>
-            </li>
+            </Reveal>
           ))}
         </ul>
       </div>

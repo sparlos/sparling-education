@@ -23,7 +23,7 @@ import { PilotSignupForm } from "@repo/ui/marketing/pilot-signup-form";
 import { PricingTiers } from "@repo/ui/marketing/pricing-tiers";
 import { PromiseBand } from "@repo/ui/marketing/promise-band";
 import { RoleChooser } from "@repo/ui/marketing/role-chooser";
-import { Section, SectionHeading } from "@repo/ui/marketing/section";
+import { Section } from "@repo/ui/marketing/section";
 import { Steps } from "@repo/ui/marketing/steps";
 import { Wordmark } from "@repo/ui/marketing/wordmark";
 import { SimpleGrid } from "@repo/ui/simple-grid";
@@ -31,8 +31,10 @@ import { Stack } from "@repo/ui/stack";
 import { Text } from "@repo/ui/text";
 import { ThemeIcon } from "@repo/ui/theme-icon";
 import { Title } from "@repo/ui/title";
+import { tones } from "@repo/ui/tone";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { PilotCta } from "../../components/pilot-cta";
 import { educators } from "../../content/educators";
 import { home } from "../../content/home";
 import { parents } from "../../content/parents";
@@ -40,7 +42,6 @@ import {
   classroomSteps,
   comparison,
   comparisonFull,
-  pilotCta,
   pilotForm,
   promiseItems,
 } from "../../content/shared";
@@ -51,8 +52,6 @@ export const metadata: Metadata = {
   title: "Design system",
   robots: { index: false, follow: false },
 };
-
-const tones = ["brand", "educator", "parent", "student"] as const;
 
 const toneTokens: Record<string, ToneTokens> = {
   brand: color.brand,
@@ -309,28 +308,29 @@ export default function DesignPage() {
       <Hero {...home.hero} />
       <Hero {...parents.hero} tone="parent" />
       <RoleChooser {...home.roles} />
-      <Section aria-labelledby="d-pillars">
-        <SectionHeading id="d-pillars" {...home.pillars} />
+      <Section heading={{ id: "d-pillars", ...home.pillars }}>
         <PillarRow pillars={home.pillars.pillars} />
       </Section>
-      <Section surface="sunken" aria-labelledby="d-features">
-        <SectionHeading id="d-features" {...educators.features} />
+      <Section
+        surface="sunken"
+        heading={{ id: "d-features", ...educators.features }}
+      >
         <FeatureGrid features={educators.features.items} tone="educator" />
       </Section>
-      <Section aria-labelledby="d-steps">
-        <SectionHeading id="d-steps" {...home.howItWorks} />
+      <Section heading={{ id: "d-steps", ...home.howItWorks }}>
         <Steps steps={classroomSteps} />
       </Section>
-      <Section surface="sunken" aria-labelledby="d-compare">
-        <SectionHeading id="d-compare" {...home.comparison} />
-        <ComparisonTable
-          rows={comparisonFull}
-          rowsLabel={comparison.rowsLabel}
-          typicalLabel={comparison.typicalLabel}
-        />
+      <Section
+        surface="sunken"
+        heading={{ id: "d-compare", ...home.comparison }}
+      >
+        <ComparisonTable rows={comparisonFull} {...comparison.labels} />
       </Section>
-      <Section surface="tone" tone="educator" aria-labelledby="d-pricing">
-        <SectionHeading id="d-pricing" {...educators.pricing} />
+      <Section
+        surface="tone"
+        tone="educator"
+        heading={{ id: "d-pricing", ...educators.pricing }}
+      >
         <PricingTiers
           tiers={educators.pricing.tiers}
           footnote={educators.pricing.footnote}
@@ -339,15 +339,12 @@ export default function DesignPage() {
       <Section spacing="compact">
         <PromiseBand {...home.promise} items={promiseItems} />
       </Section>
-      <Section prose aria-labelledby="d-faq">
-        <SectionHeading id="d-faq" title={educators.faq.title} />
+      <Section prose heading={{ id: "d-faq", title: educators.faq.title }}>
         <Faq items={educators.faq.items} />
       </Section>
       <Section>
         <Stack gap="xl">
-          <CtaBand tone="educator" {...pilotCta}>
-            <PilotSignupForm action={demoSubmit} {...pilotForm} />
-          </CtaBand>
+          <PilotCta action={demoSubmit} />
           <CtaBand tone="student" layout="stacked" title="Stacked CTA band">
             <Button tone="student" size="lg">
               Student action

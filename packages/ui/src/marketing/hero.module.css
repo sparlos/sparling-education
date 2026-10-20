@@ -86,3 +86,57 @@
 [data-tone="student"] .highlight {
   color: var(--k-ink);
 }
+
+/* Entrance: copy rises in sequence, the image pops in, the swash draws.
+   Only runs when the visitor hasn't asked for reduced motion. */
+@media (prefers-reduced-motion: no-preference) {
+  .copy > * {
+    animation: rise var(--k-duration-slow) var(--k-ease-standard) backwards;
+  }
+
+  .copy > :nth-child(2) {
+    animation-delay: 80ms;
+  }
+
+  .copy > :nth-child(3) {
+    animation-delay: 160ms;
+  }
+
+  .copy > :nth-child(4) {
+    animation-delay: 240ms;
+  }
+
+  .copy > :nth-child(5) {
+    animation-delay: 320ms;
+  }
+
+  .media {
+    animation: pop 520ms var(--k-ease-springy) 160ms backwards;
+  }
+
+  .highlight {
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+    animation: swash 640ms var(--k-ease-standard) 420ms backwards;
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.96) rotate(-1.5deg);
+  }
+}
+
+@keyframes swash {
+  from {
+    background-size: 0% 100%;
+  }
+}

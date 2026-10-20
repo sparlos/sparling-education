@@ -4,6 +4,11 @@
   gap: var(--mantine-spacing-sm);
 }
 
+.icon {
+  align-self: flex-start;
+  display: inline-flex;
+}
+
 .title {
   font-family: var(--k-font-heading-stack);
   font-weight: 800;
@@ -18,20 +23,15 @@
   line-height: 1.6;
 }
 
+.pillarCard {
+  height: 100%;
+}
+
 .pillar {
   display: flex;
   flex-direction: column;
   gap: var(--mantine-spacing-md);
   height: 100%;
-}
-
-.pillarNumber {
-  font-family: var(--k-font-heading-stack);
-  font-weight: 800;
-  font-size: var(--mantine-font-size-sm);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--tone-text);
 }
 
 .pillarTitle {
@@ -40,4 +40,11 @@
   font-size: var(--mantine-h3-font-size, 1.625rem);
   line-height: 1.2;
   color: var(--k-ink);
+}
+
+/* Side by side, reserve two heading lines so descriptions line up. */
+@media (min-width: 62em) {
+  .pillarTitle {
+    min-height: 2.4em;
+  }
 }

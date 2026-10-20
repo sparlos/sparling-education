@@ -1,11 +1,12 @@
 import { Badge as MantineBadge } from "@mantine/core";
 import type { ReactNode } from "react";
-import type { ButtonTone } from "./button";
+import { cx } from "./cx";
+import type { Tone } from "./tone";
 import classes from "./tone.module.css";
 
 interface BadgeProps {
   children: ReactNode;
-  tone?: ButtonTone;
+  tone?: Tone;
   leftSection?: ReactNode;
   size?: "md" | "lg";
   className?: string;
@@ -23,7 +24,7 @@ export function Badge({
       data-tone={tone}
       size={size}
       leftSection={leftSection}
-      className={[classes.badge, className].filter(Boolean).join(" ")}
+      className={cx(classes.badge, className)}
     >
       {children}
     </MantineBadge>

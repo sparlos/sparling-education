@@ -8,25 +8,17 @@ interface TableProps {
   /** Each row; its first cell is rendered as the row header. */
   body: { key: string; cells: ReactNode[] }[];
   caption?: ReactNode;
-  className?: string;
   classNames?: Partial<
     Record<"table" | "thead" | "th" | "td" | "tr" | "caption", string>
   >;
 }
 
-export function Table({
-  head,
-  body,
-  caption,
-  className,
-  classNames,
-}: TableProps) {
+export function Table({ head, body, caption, classNames }: TableProps) {
   return (
     <MantineTable
       captionSide="top"
       verticalSpacing="md"
       horizontalSpacing="lg"
-      className={className}
       classNames={classNames}
     >
       {caption && <MantineTable.Caption>{caption}</MantineTable.Caption>}

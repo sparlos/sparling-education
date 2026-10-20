@@ -4,7 +4,6 @@ import type { RoleCardProps } from "@repo/ui/marketing/role-card";
 
 export const home = {
   hero: {
-    eyebrow: "For Grades 1–8 · Built for Ontario classrooms",
     title: (
       <>
         Learning games where the skill{" "}
@@ -54,7 +53,6 @@ export const home = {
     title: "Three ideas we won't compromise on",
     pillars: [
       {
-        label: "01",
         title: "Learning is the mechanic",
         body: "In a fractions game, you cut planks to exact lengths to finish a bridge. When the wrong idea fails, kids can see why.",
         image: {
@@ -64,7 +62,6 @@ export const home = {
         tone: "brand",
       },
       {
-        label: "02",
         title: "One world for the whole class",
         body: "Every class shares a 3D hub. Games open through portals, and the world grows as the class completes units together.",
         image: {
@@ -74,7 +71,6 @@ export const home = {
         tone: "educator",
       },
       {
-        label: "03",
         title: "Rewards are earned, never bought",
         body: "Outfits and furniture come from effort, retrying and improving. No store, no loot boxes, no ads.",
         image: {

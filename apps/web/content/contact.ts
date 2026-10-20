@@ -1,4 +1,5 @@
 import type { IconName } from "@repo/ui/icon";
+import type { Tone } from "@repo/ui/tone";
 
 export const contact = {
   meta: {
@@ -32,7 +33,7 @@ export const contact = {
     },
   ] satisfies {
     icon: IconName;
-    tone: "educator" | "parent" | "brand";
+    tone: Tone;
     title: string;
     body: string;
     action?: { label: string; href: string };

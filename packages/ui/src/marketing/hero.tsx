@@ -1,34 +1,28 @@
 import type { ReactNode } from "react";
-import { Badge } from "../badge";
-import { Button, type ButtonTone } from "../button";
+import { Button } from "../button";
 import { Container } from "../container";
+import type { LinkItem } from "../link-item";
 import { Title } from "../title";
+import type { Tone } from "../tone";
 import { Blob, DecorLayer, Ember, Sparkle } from "./decor";
 import classes from "./hero.module.css";
-import { ImageSlot } from "./image-slot";
-
-export interface HeroAction {
-  label: string;
-  href: string;
-}
+import { ImageSlot, type ImageSlotImage } from "./image-slot";
 
 interface HeroProps {
   title: ReactNode;
   lead: ReactNode;
-  eyebrow?: ReactNode;
-  primaryAction?: HeroAction;
-  secondaryAction?: HeroAction;
+  primaryAction?: LinkItem;
+  secondaryAction?: LinkItem;
   /** Small reassurance line under the actions. */
   note?: ReactNode;
-  image: { alt: string; src?: string; placeholderLabel?: string };
-  tone?: ButtonTone;
+  image: ImageSlotImage;
+  tone?: Tone;
 }
 
 /** The page-opening band: big title, lead, actions and a product image. */
 export function Hero({
   title,
   lead,
-  eyebrow,
   primaryAction,
   secondaryAction,
   note,
@@ -60,7 +54,6 @@ export function Hero({
       <Container>
         <div className={classes.grid}>
           <div className={classes.copy}>
-            {eyebrow && <Badge tone={tone}>{eyebrow}</Badge>}
             <Title order={1} size="display">
               {title}
             </Title>

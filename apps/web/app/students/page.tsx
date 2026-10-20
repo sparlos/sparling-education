@@ -3,7 +3,7 @@ import { CtaBand } from "@repo/ui/marketing/cta-band";
 import { FeatureGrid } from "@repo/ui/marketing/feature-grid";
 import { Hero } from "@repo/ui/marketing/hero";
 import { PromiseBand } from "@repo/ui/marketing/promise-band";
-import { Section, SectionHeading } from "@repo/ui/marketing/section";
+import { Section } from "@repo/ui/marketing/section";
 import { Steps } from "@repo/ui/marketing/steps";
 import type { Metadata } from "next";
 import { students } from "../../content/students";
@@ -17,17 +17,19 @@ export default function StudentsPage() {
     <>
       <Hero {...hero} tone="student" />
 
-      <Section id="things-to-do" aria-labelledby="features" tone="student">
-        <SectionHeading id="features" {...features} />
+      <Section
+        id="things-to-do"
+        heading={{ id: "features", ...features }}
+        tone="student"
+      >
         <FeatureGrid features={features.items} tone="student" />
       </Section>
 
-      <Section surface="tone" tone="student" aria-labelledby="start">
-        <SectionHeading
-          id="start"
-          eyebrow={steps.eyebrow}
-          title={steps.title}
-        />
+      <Section
+        surface="tone"
+        tone="student"
+        heading={{ id: "start", eyebrow: steps.eyebrow, title: steps.title }}
+      >
         <Steps steps={steps.steps} tone="student" />
       </Section>
 

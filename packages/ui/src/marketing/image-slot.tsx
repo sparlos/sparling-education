@@ -1,17 +1,19 @@
-import type { ButtonTone } from "../button";
+import type { Tone } from "../tone";
 import classes from "./image-slot.module.css";
 
-interface ImageSlotProps {
+export interface ImageSlotImage {
   /** Describes the image for screen readers, placeholder or not. */
   alt: string;
   /** The real image. Without it a branded low-poly placeholder is shown. */
   src?: string;
   /** Shown on the placeholder, e.g. "Class hub render". */
   placeholderLabel?: string;
+}
+
+interface ImageSlotProps extends ImageSlotImage {
   ratio?: "16/10" | "4/3" | "1/1" | "4/5";
-  tone?: ButtonTone;
+  tone?: Tone;
   shadow?: boolean;
-  className?: string;
 }
 
 /** A fixed-ratio image frame so layouts don't shift when renders arrive. */
@@ -22,11 +24,10 @@ export function ImageSlot({
   ratio = "16/10",
   tone,
   shadow,
-  className,
 }: ImageSlotProps) {
   return (
     <div
-      className={[classes.root, className].filter(Boolean).join(" ")}
+      className={classes.root}
       style={{ aspectRatio: ratio }}
       data-tone={tone}
       data-shadow={shadow || undefined}

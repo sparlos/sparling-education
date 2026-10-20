@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode } from "react";
+import { cx } from "../cx";
 import classes from "./decor.module.css";
 
 /** Decorative colours: an audience/brand tone or a fixed accent. */
@@ -47,13 +48,11 @@ function shapeStyle(p: ShapeProps): CSSProperties {
 }
 
 function shapeClass(p: ShapeProps) {
-  return [
+  return cx(
     classes.shape,
     p.float && classes.float,
     p.hideOnMobile && classes.hideMobile,
-  ]
-    .filter(Boolean)
-    .join(" ");
+  );
 }
 
 /** Absolutely positioned, non-interactive layer for decorative shapes. */

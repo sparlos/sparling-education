@@ -3,25 +3,25 @@
   "version": "0.0.0",
   "private": true,
   "exports": {
+    "./tone": "./src/tone.ts",
     "./*": "./src/*.tsx"
   },
   "scripts": {
-    "generate:component": "turbo gen react-component",
     "check-types": "tsc --noEmit"
   },
   "devDependencies": {
     "@repo/typescript-config": "workspace:*",
-    "@types/node": "26.4.1",
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.5",
     "typescript": "7.0.2"
   },
   "dependencies": {
+    "@mantine/core": "9.7.3",
+    "@mantine/hooks": "9.7.3",
     "@repo/tokens": "workspace:*",
     "@tabler/icons-react": "3.48.0",
+    "motion": "14.0.0",
     "react": "19.2.8",
-    "react-dom": "19.2.8",
-    "@mantine/core": "9.7.3",
-    "@mantine/hooks": "9.7.3"
+    "react-dom": "19.2.8"
   }
 }

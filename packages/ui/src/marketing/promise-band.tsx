@@ -3,12 +3,18 @@ import { Icon, type IconName } from "../icon";
 import { Title } from "../title";
 import { DecorLayer, Ember, Sparkle } from "./decor";
 import classes from "./promise-band.module.css";
+import { Reveal } from "./reveal";
+
+export interface PromiseItem {
+  icon: IconName;
+  label: string;
+}
 
 interface PromiseBandProps {
   title: ReactNode;
   body: ReactNode;
   /** Short promises shown as chips, e.g. "No ads". */
-  items: { icon: IconName; label: string }[];
+  items: PromiseItem[];
 }
 
 /** A dark, high-emphasis panel for Kindling's "never pays" promise. */
@@ -27,13 +33,19 @@ export function PromiseBand({ title, body, items }: PromiseBandProps) {
         </Title>
         <p className={classes.body}>{body}</p>
         <ul className={classes.items}>
-          {items.map((item) => (
-            <li key={item.label} className={classes.item}>
+          {items.map((item, index) => (
+            <Reveal
+              key={item.label}
+              as="li"
+              variant="pop"
+              index={index}
+              className={classes.item}
+            >
               <span className={classes.itemIcon}>
                 <Icon name={item.icon} size={20} />
               </span>
               {item.label}
-            </li>
+            </Reveal>
           ))}
         </ul>
       </div>

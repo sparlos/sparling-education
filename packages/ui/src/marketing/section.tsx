@@ -1,21 +1,23 @@
 import type { ReactNode } from "react";
-import type { ButtonTone } from "../button";
 import { Container } from "../container";
 import { Title } from "../title";
+import type { Tone } from "../tone";
+import { Reveal } from "./reveal";
 import classes from "./section.module.css";
 
 interface SectionProps {
   children: ReactNode;
   /** `tone` tints the band with the section's audience colour. */
   surface?: "page" | "raised" | "sunken" | "tone" | "inverse";
-  tone?: ButtonTone;
+  tone?: Tone;
   spacing?: "default" | "compact";
   /** Narrow the content to a readable text column. */
   prose?: boolean;
   id?: string;
   /** Decorative shapes rendered behind the content. */
   decoration?: ReactNode;
-  "aria-labelledby"?: string;
+  /** Rendered above the content; its `id` labels the section. */
+  heading?: SectionHeadingProps;
 }
 
 /** A full-width page band with consistent vertical rhythm. */
@@ -27,7 +29,7 @@ export function Section({
   prose,
   id,
   decoration,
-  "aria-labelledby": labelledBy,
+  heading,
 }: SectionProps) {
   return (
     <section
@@ -36,17 +38,20 @@ export function Section({
       data-surface={surface}
       data-tone={tone}
       data-spacing={spacing}
-      aria-labelledby={labelledBy}
+      aria-labelledby={heading?.id}
     >
       {decoration}
       <div className={classes.inner}>
-        <Container size={prose ? "prose" : "page"}>{children}</Container>
+        <Container size={prose ? "prose" : "page"}>
+          {heading && <SectionHeading {...heading} />}
+          {children}
+        </Container>
       </div>
     </section>
   );
 }
 
-interface SectionHeadingProps {
+export interface SectionHeadingProps {
   title: ReactNode;
   eyebrow?: ReactNode;
   lead?: ReactNode;
@@ -65,12 +70,19 @@ export function SectionHeading({
   id,
 }: SectionHeadingProps) {
   return (
-    <div className={classes.heading} data-align={align}>
-      {eyebrow && <p className={classes.eyebrow}>{eyebrow}</p>}
-      <Title order={order} size={order === 2 ? "h2" : "h3"} c="inherit" id={id}>
-        {title}
-      </Title>
-      {lead && <p className={classes.lead}>{lead}</p>}
-    </div>
+    <Reveal>
+      <div className={classes.heading} data-align={align}>
+        {eyebrow && <p className={classes.eyebrow}>{eyebrow}</p>}
+        <Title
+          order={order}
+          size={order === 2 ? "h2" : "h3"}
+          c="inherit"
+          id={id}
+        >
+          {title}
+        </Title>
+        {lead && <p className={classes.lead}>{lead}</p>}
+      </div>
+    </Reveal>
   );
 }

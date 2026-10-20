@@ -6,28 +6,20 @@ interface DrawerProps {
   onClose: () => void;
   title?: ReactNode;
   children: ReactNode;
-  position?: "left" | "right" | "top";
   id?: string;
 }
 
-export function Drawer({
-  opened,
-  onClose,
-  title,
-  children,
-  position = "right",
-  id,
-}: DrawerProps) {
+export function Drawer({ opened, onClose, title, children, id }: DrawerProps) {
   return (
     <MantineDrawer
       opened={opened}
       onClose={onClose}
       title={title}
-      position={position}
+      position="right"
       id={id}
       size="xs"
       padding="lg"
-      radius={position === "top" ? 0 : "lg"}
+      radius="lg"
       styles={{
         content: { backgroundColor: "var(--k-surface-page)" },
         header: { backgroundColor: "var(--k-surface-page)" },

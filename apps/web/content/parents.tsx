@@ -9,7 +9,6 @@ export const parents = {
       "A learning game your child plays at school, where every reward is earned. No store, no ads, no memberships. Families never pay.",
   },
   hero: {
-    eyebrow: "For parents",
     title: (
       <>
         A learning game with <TitleHighlight>nothing to buy</TitleHighlight>

@@ -1,0 +1,6 @@
+/* The element selector outranks Mantine's own `.root` font-size rule. */
+.display:is(h1, h2, h3, h4, h5, h6) {
+  font-size: var(--k-font-size-display);
+  line-height: var(--k-line-height-display);
+  letter-spacing: -0.015em;
+}

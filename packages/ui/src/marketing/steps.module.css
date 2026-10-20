@@ -26,6 +26,7 @@
 }
 
 .number {
+  align-self: flex-start;
   display: inline-grid;
   place-items: center;
   width: 2.75rem;

@@ -1,7 +1,6 @@
 import { SimpleGrid as MantineSimpleGrid } from "@mantine/core";
 import type { ReactNode } from "react";
-
-type Space = "xs" | "sm" | "md" | "lg" | "xl";
+import type { Space } from "./space";
 
 interface SimpleGridProps {
   children: ReactNode;

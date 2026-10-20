@@ -1,11 +1,10 @@
 import { Stack as MantineStack } from "@mantine/core";
 import type { ReactNode } from "react";
-
-type Space = "xs" | "sm" | "md" | "lg" | "xl" | 0;
+import type { Space } from "./space";
 
 interface StackProps {
   children: ReactNode;
-  gap?: Space;
+  gap?: Space | 0;
   align?: "stretch" | "flex-start" | "center" | "flex-end";
   className?: string;
 }

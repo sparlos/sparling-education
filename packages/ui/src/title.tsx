@@ -1,6 +1,8 @@
 import { Title as MantineTitle } from "@mantine/core";
 import type { ReactNode } from "react";
+import { cx } from "./cx";
 import { type InkColor, inkVar } from "./ink";
+import classes from "./title.module.css";
 
 interface TitleProps {
   children: ReactNode;
@@ -8,7 +10,6 @@ interface TitleProps {
   /** Visual size, independent of `order`. `display` is the hero size. */
   size?: "display" | "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
   c?: InkColor;
-  ta?: "left" | "center";
   id?: string;
   className?: string;
 }
@@ -18,7 +19,6 @@ export function Title({
   order = 2,
   size,
   c = "ink",
-  ta,
   id,
   className,
 }: TitleProps) {
@@ -28,18 +28,8 @@ export function Title({
       order={order}
       size={display ? undefined : size}
       c={inkVar(c)}
-      ta={ta}
       id={id}
-      className={className}
-      style={
-        display
-          ? {
-              fontSize: "var(--k-font-size-display)",
-              lineHeight: "var(--k-line-height-display)",
-              letterSpacing: "-0.015em",
-            }
-          : undefined
-      }
+      className={cx(display && classes.display, className)}
     >
       {children}
     </MantineTitle>

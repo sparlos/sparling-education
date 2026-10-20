@@ -11,9 +11,7 @@ export function Header() {
       links={site.nav}
       cta={site.navCta}
       activeHref={pathname}
-      skipLinkLabel="Skip to content"
-      openMenuLabel="Open menu"
-      menuTitle="Main"
+      {...site.header}
     />
   );
 }

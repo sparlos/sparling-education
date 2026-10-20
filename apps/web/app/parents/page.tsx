@@ -5,7 +5,7 @@ import { Faq } from "@repo/ui/marketing/faq";
 import { FeatureGrid } from "@repo/ui/marketing/feature-grid";
 import { Hero } from "@repo/ui/marketing/hero";
 import { PromiseBand } from "@repo/ui/marketing/promise-band";
-import { Section, SectionHeading } from "@repo/ui/marketing/section";
+import { Section } from "@repo/ui/marketing/section";
 import type { Metadata } from "next";
 import { parents } from "../../content/parents";
 import { comparison, comparisonFull, promiseItems } from "../../content/shared";
@@ -19,8 +19,11 @@ export default function ParentsPage() {
     <>
       <Hero {...hero} tone="parent" />
 
-      <Section id="rewards" aria-labelledby="features" tone="parent">
-        <SectionHeading id="features" {...features} />
+      <Section
+        id="rewards"
+        heading={{ id: "features", ...features }}
+        tone="parent"
+      >
         <FeatureGrid features={features.items} tone="parent" />
       </Section>
 
@@ -28,26 +31,19 @@ export default function ParentsPage() {
         <PromiseBand {...promise} items={promiseItems} />
       </Section>
 
-      <Section aria-labelledby="compare" tone="parent">
-        <SectionHeading id="compare" {...parents.comparison} />
-        <ComparisonTable
-          rows={comparisonFull}
-          rowsLabel={comparison.rowsLabel}
-          typicalLabel={comparison.typicalLabel}
-        />
+      <Section heading={{ id: "compare", ...parents.comparison }} tone="parent">
+        <ComparisonTable rows={comparisonFull} {...comparison.labels} />
       </Section>
 
-      <Section surface="tone" tone="parent" aria-labelledby="at-home">
-        <SectionHeading
-          id="at-home"
-          eyebrow={home.eyebrow}
-          title={home.title}
-        />
+      <Section
+        surface="tone"
+        tone="parent"
+        heading={{ id: "at-home", eyebrow: home.eyebrow, title: home.title }}
+      >
         <FeatureGrid features={home.items} tone="parent" />
       </Section>
 
-      <Section prose aria-labelledby="faq" tone="parent">
-        <SectionHeading id="faq" title={faq.title} />
+      <Section prose heading={{ id: "faq", title: faq.title }} tone="parent">
         <Faq items={faq.items} />
       </Section>
 

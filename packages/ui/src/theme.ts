@@ -48,11 +48,17 @@ function headingStyle(size: { min?: number; max: number; lineHeight: number }) {
   };
 }
 
-const px = (value: number) => rem(value);
-const pxScale = <K extends string>(values: Record<K, number>) =>
-  Object.fromEntries(
-    Object.entries(values).map(([key, value]) => [key, px(value as number)]),
+function mapValues<K extends string>(
+  values: Record<K, number>,
+  map: (value: number) => string,
+): Record<K, string> {
+  return Object.fromEntries(
+    Object.entries<number>(values).map(([key, value]) => [key, map(value)]),
   ) as Record<K, string>;
+}
+
+const remScale = <K extends string>(values: Record<K, number>) =>
+  mapValues(values, rem);
 const em = (value: number) => `${value / 16}em`;
 
 export const theme = createTheme({
@@ -80,7 +86,7 @@ export const theme = createTheme({
       h6: { ...headingStyle(headingSize.h6), fontWeight: "700" },
     },
   },
-  fontSizes: pxScale(fontSize),
+  fontSizes: remScale(fontSize),
   lineHeights: {
     xs: String(lineHeight.snug),
     sm: String(lineHeight.normal),
@@ -88,7 +94,7 @@ export const theme = createTheme({
     lg: String(lineHeight.normal),
     xl: String(lineHeight.snug),
   },
-  radius: pxScale({
+  radius: remScale({
     xs: radius.xs,
     sm: radius.sm,
     md: radius.md,
@@ -96,7 +102,7 @@ export const theme = createTheme({
     xl: radius.xl,
   }),
   defaultRadius: "md",
-  spacing: pxScale({
+  spacing: remScale({
     xs: space.xs,
     sm: space.sm,
     md: space.md,
@@ -104,19 +110,13 @@ export const theme = createTheme({
     xl: space.xl,
   }),
   shadows: { ...shadow },
-  breakpoints: {
-    xs: em(breakpoint.xs),
-    sm: em(breakpoint.sm),
-    md: em(breakpoint.md),
-    lg: em(breakpoint.lg),
-    xl: em(breakpoint.xl),
-  },
+  breakpoints: mapValues(breakpoint, em),
   respectReducedMotion: true,
   cursorType: "pointer",
   focusClassName: classes.focus,
   components: {
     Container: {
-      defaultProps: { size: px(contentWidth.page) },
+      defaultProps: { size: rem(contentWidth.page) },
     },
     Title: {
       defaultProps: { c: color.ink.default },
@@ -190,13 +190,13 @@ export const cssVariablesResolver: CSSVariablesResolver = () => {
         headingSize.display.max,
       ),
       "--k-line-height-display": String(headingSize.display.lineHeight),
-      "--k-space-section": px(space.section),
-      "--k-space-section-compact": px(space.sectionCompact),
-      "--k-width-prose": px(contentWidth.prose),
-      "--k-press-border": px(press.borderWidth),
-      "--k-press-rest": px(press.offset.rest),
-      "--k-press-hover": px(press.offset.hover),
-      "--k-press-active": px(press.offset.active),
+      "--k-space-section": rem(space.section),
+      "--k-space-section-compact": rem(space.sectionCompact),
+      "--k-width-prose": rem(contentWidth.prose),
+      "--k-press-border": rem(press.borderWidth),
+      "--k-press-rest": rem(press.offset.rest),
+      "--k-press-hover": rem(press.offset.hover),
+      "--k-press-active": rem(press.offset.active),
       "--k-duration-fast": `${motion.duration.fast}ms`,
       "--k-duration-base": `${motion.duration.base}ms`,
       "--k-duration-slow": `${motion.duration.slow}ms`,

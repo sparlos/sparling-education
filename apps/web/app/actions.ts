@@ -1,8 +1,13 @@
 "use server";
 
-import type { FormResult } from "@repo/ui/marketing/email-capture";
+import type { FormResult } from "@repo/ui/marketing/form-action";
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const INVALID_EMAIL: FormResult = {
+  ok: false,
+  message: "Please enter a valid email address.",
+};
 
 function readEmail(formData: FormData): string | null {
   const email = String(formData.get("email") ?? "").trim();
@@ -16,7 +21,7 @@ export async function joinPilot(formData: FormData): Promise<FormResult> {
   const email = readEmail(formData);
   const grade = String(formData.get("grade") ?? "").trim();
   if (!email) {
-    return { ok: false, message: "Please enter a valid email address." };
+    return INVALID_EMAIL;
   }
   if (!grade) {
     return { ok: false, message: "Please choose the grade you teach." };
@@ -33,7 +38,7 @@ export async function subscribeUpdates(
 ): Promise<FormResult> {
   const email = readEmail(formData);
   if (!email) {
-    return { ok: false, message: "Please enter a valid email address." };
+    return INVALID_EMAIL;
   }
   console.info("[updates signup]", {
     email,

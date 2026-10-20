@@ -11,8 +11,13 @@
   display: block;
 }
 
-.float {
-  animation: float 6s var(--k-ease-standard) infinite alternate;
+/* Floating shapes drift and gently twinkle; still for reduced motion. */
+@media (prefers-reduced-motion: no-preference) {
+  .float {
+    animation:
+      float 6s var(--k-ease-standard) infinite alternate,
+      twinkle 3.2s ease-in-out infinite;
+  }
 }
 
 @keyframes float {
@@ -24,9 +29,9 @@
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .float {
-    animation: none;
+@keyframes twinkle {
+  50% {
+    scale: 1.15;
   }
 }
 

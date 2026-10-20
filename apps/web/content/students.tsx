@@ -1,7 +1,7 @@
-import type { IconName } from "@repo/ui/icon";
 import type { Feature } from "@repo/ui/marketing/feature-grid";
 import { TitleHighlight } from "@repo/ui/marketing/hero";
 import type { Step } from "@repo/ui/marketing/steps";
+import { promiseItems } from "./shared";
 
 // Written for students aged about 9–13: short sentences, talking to "you".
 // This page never collects any information from students.
@@ -12,7 +12,6 @@ export const students = {
       "Design your character, build your house and explore your class world. Ask your teacher about Kindling!",
   },
   hero: {
-    eyebrow: "For students",
     title: (
       <>
         Your world. Your class. <TitleHighlight>Your adventure.</TitleHighlight>
@@ -82,11 +81,7 @@ export const students = {
   promise: {
     title: "Everything is earned. Nothing is for sale.",
     body: "Nobody can buy stuff in Kindling, so everything you have, you earned by playing and learning.",
-    items: [
-      { icon: "no-money", label: "No store" },
-      { icon: "ban", label: "No ads" },
-      { icon: "gift", label: "No loot boxes" },
-    ] satisfies { icon: IconName; label: string }[],
+    items: promiseItems.slice(0, 3),
   },
   cta: {
     title: "Want to play Kindling?",

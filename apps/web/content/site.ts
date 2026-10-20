@@ -6,6 +6,11 @@ export const contactEmail = "hello@example.com";
 
 export const site = {
   name: brandName,
+  header: {
+    skipLinkLabel: "Skip to content",
+    openMenuLabel: "Open menu",
+    menuTitle: "Main",
+  },
   title: `${brandName}: learning games where the skill is how you win`,
   description:
     "A learning game for Grades 1–8 where each class shares a 3D world, the curriculum is the game mechanic, and every reward is earned. Free for teachers. Students and parents never pay.",

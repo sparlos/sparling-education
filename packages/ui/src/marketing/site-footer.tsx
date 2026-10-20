@@ -1,11 +1,12 @@
 import type { CSSProperties, ReactNode } from "react";
 import { Container } from "../container";
+import type { LinkItem } from "../link-item";
 import classes from "./site-footer.module.css";
 import { Wordmark } from "./wordmark";
 
 interface FooterColumn {
   title: string;
-  links: { label: string; href: string }[];
+  links: LinkItem[];
 }
 
 interface SiteFooterProps {

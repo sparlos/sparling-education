@@ -63,3 +63,19 @@
     transform: none;
   }
 }
+
+/* The icon gives a little wave when the card is hovered. */
+@media (prefers-reduced-motion: no-preference) and (hover: hover) {
+  .card:hover .icon {
+    animation: wiggle 420ms var(--k-ease-springy);
+  }
+}
+
+@keyframes wiggle {
+  30% {
+    transform: rotate(-10deg) scale(1.1);
+  }
+  65% {
+    transform: rotate(6deg) scale(1.05);
+  }
+}

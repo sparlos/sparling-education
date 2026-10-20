@@ -1,13 +1,14 @@
 import { Card as MantineCard } from "@mantine/core";
 import type { ReactNode } from "react";
-import type { ButtonTone } from "./button";
+import { cx } from "./cx";
+import type { Tone } from "./tone";
 import classes from "./tone.module.css";
 
 interface CardProps {
   children: ReactNode;
   /** `soft` tints the card with its tone; `raised` is plain white. */
   variant?: "raised" | "soft";
-  tone?: ButtonTone;
+  tone?: Tone;
   padding?: "md" | "lg" | "xl";
   className?: string;
 }
@@ -24,12 +25,10 @@ export function Card({
     <MantineCard
       data-tone={tone}
       padding={padding}
-      className={[
+      className={cx(
         variant === "soft" ? classes.cardSoft : classes.card,
         className,
-      ]
-        .filter(Boolean)
-        .join(" ")}
+      )}
     >
       {children}
     </MantineCard>

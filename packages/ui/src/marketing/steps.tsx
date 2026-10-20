@@ -1,5 +1,6 @@
 import type { CSSProperties, ReactNode } from "react";
-import type { ButtonTone } from "../button";
+import type { Tone } from "../tone";
+import { Reveal, RevealPop } from "./reveal";
 import classes from "./steps.module.css";
 
 export interface Step {
@@ -9,7 +10,7 @@ export interface Step {
 
 interface StepsProps {
   steps: Step[];
-  tone?: ButtonTone;
+  tone?: Tone;
 }
 
 /** A numbered "how it works" sequence. */
@@ -21,13 +22,11 @@ export function Steps({ steps, tone = "brand" }: StepsProps) {
       style={{ "--steps-count": steps.length } as CSSProperties}
     >
       {steps.map((step, index) => (
-        <li key={step.title} className={classes.step}>
-          <span className={classes.number} aria-hidden="true">
-            {index + 1}
-          </span>
+        <Reveal key={step.title} as="li" index={index} className={classes.step}>
+          <RevealPop className={classes.number}>{index + 1}</RevealPop>
           <h3 className={classes.title}>{step.title}</h3>
           <p className={classes.body}>{step.body}</p>
-        </li>
+        </Reveal>
       ))}
     </ol>
   );

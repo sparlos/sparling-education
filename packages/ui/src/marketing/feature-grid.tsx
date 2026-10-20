@@ -1,12 +1,12 @@
-import type { Audience } from "@repo/tokens";
 import type { ReactNode } from "react";
-import type { ButtonTone } from "../button";
 import { Card } from "../card";
 import { Icon, type IconName } from "../icon";
 import { SimpleGrid } from "../simple-grid";
 import { ThemeIcon } from "../theme-icon";
+import type { Tone } from "../tone";
 import classes from "./feature-grid.module.css";
-import { ImageSlot } from "./image-slot";
+import { ImageSlot, type ImageSlotImage } from "./image-slot";
+import { Reveal, RevealPop } from "./reveal";
 
 export interface Feature {
   icon: IconName;
@@ -17,7 +17,7 @@ export interface Feature {
 interface FeatureGridProps {
   features: Feature[];
   columns?: 2 | 3;
-  tone?: ButtonTone;
+  tone?: Tone;
 }
 
 /** A grid of Kindling features, each with an icon, title and short body. */
@@ -32,14 +32,16 @@ export function FeatureGrid({
       spacing="xl"
       verticalSpacing="xl"
     >
-      {features.map((feature) => (
-        <div key={feature.title} className={classes.item}>
-          <ThemeIcon tone={tone}>
-            <Icon name={feature.icon} size={28} />
-          </ThemeIcon>
+      {features.map((feature, index) => (
+        <Reveal key={feature.title} index={index} className={classes.item}>
+          <RevealPop className={classes.icon}>
+            <ThemeIcon tone={tone}>
+              <Icon name={feature.icon} size={28} />
+            </ThemeIcon>
+          </RevealPop>
           <h3 className={classes.title}>{feature.title}</h3>
           <p className={classes.body}>{feature.body}</p>
-        </div>
+        </Reveal>
       ))}
     </SimpleGrid>
   );
@@ -48,25 +50,16 @@ export function FeatureGrid({
 export interface PillarProps {
   title: string;
   body: ReactNode;
-  image: { alt: string; src?: string; placeholderLabel?: string };
-  tone?: Audience | "brand";
-  /** Small label above the title, e.g. "01". */
-  label?: string;
+  image: ImageSlotImage;
+  tone?: Tone;
 }
 
 /** One of the big product ideas, shown as a card with an image. */
-export function Pillar({
-  title,
-  body,
-  image,
-  tone = "brand",
-  label,
-}: PillarProps) {
+export function Pillar({ title, body, image, tone = "brand" }: PillarProps) {
   return (
-    <Card tone={tone} padding="lg">
-      <div className={classes.pillar} data-tone={tone}>
+    <Card tone={tone} padding="lg" className={classes.pillarCard}>
+      <div className={classes.pillar}>
         <ImageSlot {...image} tone={tone} ratio="4/3" />
-        {label && <span className={classes.pillarNumber}>{label}</span>}
         <h3 className={classes.pillarTitle}>{title}</h3>
         <p className={classes.body}>{body}</p>
       </div>
@@ -81,8 +74,10 @@ export function PillarRow({ pillars }: { pillars: PillarProps[] }) {
       cols={{ base: 1, md: pillars.length >= 3 ? 3 : 2 }}
       spacing="xl"
     >
-      {pillars.map((pillar) => (
-        <Pillar key={pillar.title} {...pillar} />
+      {pillars.map((pillar, index) => (
+        <Reveal key={pillar.title} index={index} fill>
+          <Pillar {...pillar} />
+        </Reveal>
       ))}
     </SimpleGrid>
   );

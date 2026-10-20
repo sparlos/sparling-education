@@ -1,11 +1,12 @@
 import { ThemeIcon as MantineThemeIcon } from "@mantine/core";
 import type { ReactNode } from "react";
-import type { ButtonTone } from "./button";
+import { cx } from "./cx";
+import type { Tone } from "./tone";
 import classes from "./tone.module.css";
 
 interface ThemeIconProps {
   children: ReactNode;
-  tone?: ButtonTone;
+  tone?: Tone;
   /** `soft` tints the background; `filled` uses the solid tone colour. */
   variant?: "soft" | "filled";
   size?: "md" | "lg" | "xl";
@@ -27,12 +28,10 @@ export function ThemeIcon({
       size={sizes[size]}
       radius="lg"
       aria-hidden
-      className={[
+      className={cx(
         variant === "filled" ? classes.iconFilled : classes.icon,
         className,
-      ]
-        .filter(Boolean)
-        .join(" ")}
+      )}
     >
       {children}
     </MantineThemeIcon>
