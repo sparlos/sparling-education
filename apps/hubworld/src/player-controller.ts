@@ -1,13 +1,15 @@
 import { type Entity, math, Script, type Vec3 } from "playcanvas";
-import { ISLAND_RADIUS, type Obstacle } from "./landscape";
+import { type Obstacle, pushOut } from "./collision";
+import type { Ground } from "./ground";
 
-/** Walks the entity across the XZ plane toward a target, sliding around obstacles. */
+/** Walks the entity over the terrain toward a target, sliding around obstacles and the shoreline. */
 export class PlayerController extends Script {
   static scriptName = "playerController";
 
   speed = 6;
   radius = 0.5;
   obstacles: Obstacle[] = [];
+  ground: Ground | null = null;
   /** Child mesh that bobs while walking; the root stays on the ground for the camera. */
   body: Entity | null = null;
 
@@ -24,21 +26,8 @@ export class PlayerController extends Script {
 
   setTarget(point: Vec3) {
     const target = point.clone();
-    target.y = 0;
-    // Pull targets inside an obstacle (or off the island) back to its edge.
-    for (const o of this.obstacles) {
-      const dx = target.x - o.x;
-      const dz = target.z - o.z;
-      const dist = Math.hypot(dx, dz);
-      const min = o.radius + this.radius;
-      if (dist < min && dist > 1e-4) {
-        target.x = o.x + (dx / dist) * min;
-        target.z = o.z + (dz / dist) * min;
-      }
-    }
-    const edge = ISLAND_RADIUS - 1;
-    const fromCentre = Math.hypot(target.x, target.z);
-    if (fromCentre > edge) target.mulScalar(edge / fromCentre);
+    // Pull targets inside an obstacle back to its edge.
+    for (const o of this.obstacles) pushOut(o, target, this.radius);
     this.target = target;
     this.lastDist = Infinity;
     this.stallTime = 0;
@@ -49,6 +38,8 @@ export class PlayerController extends Script {
     let moving = false;
 
     if (this.target) {
+      const fromX = pos.x;
+      const fromZ = pos.z;
       const dx = this.target.x - pos.x;
       const dz = this.target.z - pos.z;
       const dist = Math.hypot(dx, dz);
@@ -64,15 +55,29 @@ export class PlayerController extends Script {
         this.yaw = math.lerpAngle(this.yaw, targetYaw, Math.min(1, dt * 12));
         moving = true;
       }
-      this.resolveCollisions(pos);
+      for (const o of this.obstacles) pushOut(o, pos, this.radius);
+      this.keepOnLand(pos, fromX, fromZ);
       this.checkStall(pos, dt);
     }
 
     this.walkTime = moving ? this.walkTime + dt : 0;
     const bob = moving ? Math.abs(Math.sin(this.walkTime * 12)) * 0.12 : 0;
-    this.entity.setPosition(pos.x, 0, pos.z);
+    const y = this.ground?.height(pos.x, pos.z) ?? 0;
+    this.entity.setPosition(pos.x, Number.isFinite(y) ? y : 0, pos.z);
     this.entity.setEulerAngles(0, this.yaw, 0);
     this.body?.setLocalPosition(0, 1 + bob, 0);
+  }
+
+  // The sea is an invisible wall: slide along the shore, or stay put.
+  private keepOnLand(pos: Vec3, fromX: number, fromZ: number) {
+    const ground = this.ground;
+    if (!ground || ground.isDry(pos.x, pos.z)) return;
+    if (ground.isDry(pos.x, fromZ)) pos.z = fromZ;
+    else if (ground.isDry(fromX, pos.z)) pos.x = fromX;
+    else {
+      pos.x = fromX;
+      pos.z = fromZ;
+    }
   }
 
   // Give up when an obstacle blocks the way instead of walking into it forever.
@@ -83,18 +88,5 @@ export class PlayerController extends Script {
       dist < this.lastDist - this.speed * dt * 0.2 ? 0 : this.stallTime + dt;
     this.lastDist = dist;
     if (this.stallTime > 0.25) this.target = null;
-  }
-
-  private resolveCollisions(pos: Vec3) {
-    for (const o of this.obstacles) {
-      const dx = pos.x - o.x;
-      const dz = pos.z - o.z;
-      const dist = Math.hypot(dx, dz);
-      const min = o.radius + this.radius;
-      if (dist < min && dist > 1e-4) {
-        pos.x = o.x + (dx / dist) * min;
-        pos.z = o.z + (dz / dist) * min;
-      }
-    }
   }
 }

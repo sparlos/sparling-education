@@ -1,16 +1,15 @@
-import type { Obstacle, Zone } from "../landscape";
+import { type Circle, type Obstacle, overlaps, type Zone } from "../collision";
 
 /** Everything a placement is checked against. Pure data, so the rules stay testable. */
 export interface PlacementWorld {
-  islandRadius: number;
-  /** Margin kept clear between a footprint and the island's edge. */
-  edgeMargin: number;
+  /** Whether the ground at (x, z) is land rather than water. */
+  isDry: (x: number, z: number) => boolean;
   noBuildZones: Zone[];
-  /** Walk-blocking obstacles, from the landscape and from solid placed items. */
+  /** Walk-blocking obstacles, from the island and from solid placed items. */
   obstacles: Obstacle[];
   /** Footprints of everything placed so far, solid or not. */
-  placed: Obstacle[];
-  player: Obstacle;
+  placed: Circle[];
+  player: Circle;
 }
 
 export type PlacementResult = { ok: true } | { ok: false; reason: string };
@@ -26,8 +25,14 @@ function zoneOverlaps(zone: Zone, x: number, z: number, r: number) {
   return nx * nx + nz * nz < 1;
 }
 
-const overlaps = (o: Obstacle, x: number, z: number, r: number) =>
-  Math.hypot(x - o.x, z - o.z) < o.radius + r;
+/** The footprint's centre plus four points on its rim. */
+const footprintPoints = (x: number, z: number, r: number) => [
+  [x, z],
+  [x + r, z],
+  [x - r, z],
+  [x, z + r],
+  [x, z - r],
+];
 
 /** Checks whether a footprint of `radius` can be placed at (x, z). */
 export function checkPlacement(
@@ -36,10 +41,14 @@ export function checkPlacement(
   radius: number,
   world: PlacementWorld,
 ): PlacementResult {
-  if (Math.hypot(x, z) + radius > world.islandRadius - world.edgeMargin)
-    return { ok: false, reason: "Too close to the edge" };
+  if (
+    !footprintPoints(x, z, radius).every(([px = 0, pz = 0]) =>
+      world.isDry(px, pz),
+    )
+  )
+    return { ok: false, reason: "Too close to the water" };
   if (world.noBuildZones.some((zone) => zoneOverlaps(zone, x, z, radius)))
-    return { ok: false, reason: "Can't build on paths or water" };
+    return { ok: false, reason: "Keep doorways and portals clear" };
   if (
     world.obstacles.some((o) => overlaps(o, x, z, radius)) ||
     world.placed.some((o) => overlaps(o, x, z, radius))

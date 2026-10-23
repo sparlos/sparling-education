@@ -16,7 +16,7 @@ import {
 import { createAvatar } from "./avatar";
 import { CameraFollow } from "./camera-follow";
 import { createInventory, screenToGround } from "./inventory";
-import { buildLandscape } from "./landscape";
+import { type Island, loadIsland } from "./island";
 import { connectMultiplayer } from "./multiplayer";
 import { PlayerController } from "./player-controller";
 
@@ -43,8 +43,8 @@ export function createHubWorld(canvas: HTMLCanvasElement) {
   app.scene.ambientLight = new Color(0.55, 0.6, 0.7);
   app.scene.fog.type = FOG_LINEAR;
   app.scene.fog.color = SKY;
-  app.scene.fog.start = 30;
-  app.scene.fog.end = 70;
+  app.scene.fog.start = 60;
+  app.scene.fog.end = 140;
 
   const sun = new Entity("sun");
   sun.addComponent("light", {
@@ -53,7 +53,7 @@ export function createHubWorld(canvas: HTMLCanvasElement) {
     intensity: 1.1,
     castShadows: true,
     shadowType: SHADOW_PCF3_32F,
-    shadowDistance: 45,
+    shadowDistance: 90,
     shadowResolution: 2048,
     shadowBias: 0.3,
     normalOffsetBias: 0.05,
@@ -61,16 +61,40 @@ export function createHubWorld(canvas: HTMLCanvasElement) {
   sun.setEulerAngles(50, 30, 0);
   app.root.addChild(sun);
 
-  const { obstacles, noBuildZones } = buildLandscape(app);
+  app.start();
+
+  let teardown: (() => void) | null = null;
+  let destroyed = false;
+  loadIsland(app)
+    .then((island) => {
+      if (!destroyed) teardown = populate(app, canvas, island);
+    })
+    .catch((err) => console.error("Failed to load the hub island", err));
+
+  return {
+    app,
+    destroy() {
+      destroyed = true;
+      teardown?.();
+      window.removeEventListener("resize", onResize);
+      app.destroy();
+    },
+  };
+}
+
+/** Adds the player, camera and interaction once the island has loaded. */
+function populate(app: Application, canvas: HTMLCanvasElement, island: Island) {
+  const { ground, obstacles, noBuildZones } = island;
 
   const { root: player, body } = createAvatar("player", "#ffb347");
   app.root.addChild(player);
-  player.setPosition(0, 0, 8);
+  player.setPosition(0, 0, 12);
   player.addComponent("script");
   const controller = player.script?.create(PlayerController);
   if (!(controller instanceof PlayerController))
     throw new Error("PlayerController failed to start");
   controller.obstacles = obstacles;
+  controller.ground = ground;
   controller.body = body;
 
   const multiplayer = connectMultiplayer(app, player, () => controller.heading);
@@ -80,7 +104,7 @@ export function createHubWorld(canvas: HTMLCanvasElement) {
     clearColor: SKY,
     fov: 35,
     nearClip: 1,
-    farClip: 150,
+    farClip: 300,
   });
   camera.addComponent("script");
   app.root.addChild(camera);
@@ -95,6 +119,7 @@ export function createHubWorld(canvas: HTMLCanvasElement) {
     camera,
     player,
     getHeading: () => controller.heading,
+    ground,
     obstacles,
     noBuildZones,
   });
@@ -113,9 +138,9 @@ export function createHubWorld(canvas: HTMLCanvasElement) {
   const hit = new Vec3();
   const moveTo = (x: number, y: number) => {
     if (inventory.pointerDown(x, y)) return;
-    if (!screenToGround(camera, x, y, hit)) return;
+    if (!screenToGround(camera, ground, x, y, hit)) return;
     controller.setTarget(hit);
-    marker.setPosition(hit.x, 0.1, hit.z);
+    marker.setPosition(hit.x, hit.y + 0.1, hit.z);
     marker.enabled = true;
     markerLife = 1;
   };
@@ -145,18 +170,11 @@ export function createHubWorld(canvas: HTMLCanvasElement) {
   };
   app.on("update", onUpdate);
 
-  app.start();
-
-  return {
-    app,
-    destroy() {
-      window.removeEventListener("resize", onResize);
-      app.mouse?.off("mousedown", onMouseDown);
-      app.touch?.off("touchstart", onTouchStart);
-      app.off("update", onUpdate);
-      multiplayer.destroy();
-      inventory.destroy();
-      app.destroy();
-    },
+  return () => {
+    app.mouse?.off("mousedown", onMouseDown);
+    app.touch?.off("touchstart", onTouchStart);
+    app.off("update", onUpdate);
+    multiplayer.destroy();
+    inventory.destroy();
   };
 }

@@ -1,5 +1,6 @@
 import { type AppBase, type Entity, Vec3 } from "playcanvas";
-import type { Obstacle, Zone } from "../landscape";
+import type { Obstacle, Zone } from "../collision";
+import type { Ground } from "../ground";
 import { ITEMS } from "./catalog";
 import { createMenu } from "./menu";
 import { Placement } from "./placement";
@@ -12,6 +13,7 @@ interface InventoryOptions {
   player: Entity;
   /** Player facing around Y in degrees, where 0 faces +Z. */
   getHeading: () => number;
+  ground: Ground;
   /** Shared with the player controller; solid placed items are added to it. */
   obstacles: Obstacle[];
   noBuildZones: Zone[];
@@ -30,6 +32,7 @@ export function createInventory(opts: InventoryOptions) {
     opts.camera,
     opts.player,
     opts.getHeading,
+    opts.ground,
     opts.obstacles,
     opts.noBuildZones,
   );

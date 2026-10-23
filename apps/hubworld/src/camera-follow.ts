@@ -8,7 +8,7 @@ export class CameraFollow extends Script {
   static scriptName = "cameraFollow";
 
   target: Entity | null = null;
-  offset = new Vec3(0, 11, 13);
+  offset = new Vec3(0, 22, 26);
   /** Point above the target's feet the camera looks at. */
   lookHeight = 1;
   smoothing = 6;

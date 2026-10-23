@@ -7,7 +7,8 @@ export interface Connection {
   send(message: ServerMessage): void;
 }
 
-const SPAWN: Vec3 = { x: 0, y: 0, z: 8 };
+// On the ring of spawn markers around the hub island's fountain.
+const SPAWN: Vec3 = { x: 0, y: 1.35, z: 12 };
 
 function originOf(event: WorldEvent): string {
   return event.type === "player_joined" ? event.player.id : event.playerId;

@@ -3,13 +3,13 @@ import {
   BLEND_NORMAL,
   Color,
   Entity,
-  Plane,
   Ray,
   type RenderComponent,
   StandardMaterial,
   Vec3,
 } from "playcanvas";
-import { ISLAND_RADIUS, type Obstacle, type Zone } from "../landscape";
+import type { Circle, Obstacle, Zone } from "../collision";
+import type { Ground } from "../ground";
 import type { ItemDef } from "./catalog";
 import {
   checkPlacement,
@@ -30,10 +30,10 @@ export interface PlacedItem {
   def: ItemDef;
   entity: Entity;
   yaw: number;
-  /** Height of the model's top, for anchoring UI above it. */
+  /** Height of the model's top above its base, for anchoring UI above it. */
   height: number;
-  footprint: Obstacle;
-  obstacle: Obstacle | null;
+  footprint: Circle;
+  obstacle: Circle | null;
 }
 
 /** An item being positioned: shown as a ghost until confirmed. */
@@ -55,7 +55,6 @@ type Action =
   | { kind: "remove"; item: PlacedItem }
   | { kind: "rotate"; item: PlacedItem; from: number };
 
-const ground = new Plane(Vec3.UP, 0);
 const ray = new Ray();
 const rayHit = new Vec3();
 
@@ -69,14 +68,15 @@ function screenRay(camera: Entity, x: number, y: number, out: Ray): boolean {
   return true;
 }
 
-/** Projects a screen point onto the ground plane. */
+/** Projects a screen point onto the terrain or sea surface. */
 export function screenToGround(
   camera: Entity,
+  ground: Ground,
   x: number,
   y: number,
   out: Vec3,
 ): boolean {
-  return screenRay(camera, x, y, ray) && ground.intersectsRay(ray, out);
+  return screenRay(camera, x, y, ray) && ground.raycast(ray, out);
 }
 
 function overlayMaterial(hex: string, opacity: number) {
@@ -100,12 +100,13 @@ function setMaterial(entity: Entity, mat: StandardMaterial) {
   }
 }
 
+/** Height of the entity's meshes above its origin. */
 function topOf(entity: Entity) {
   let height = 0;
   for (const render of renders(entity))
     for (const mi of render.meshInstances)
       height = Math.max(height, mi.aabb.getMax().y);
-  return height;
+  return height - entity.getPosition().y;
 }
 
 const snap = (v: number) => Math.round(v / GRID) * GRID;
@@ -139,6 +140,7 @@ export class Placement {
     private player: Entity,
     /** Player facing around Y in degrees, where 0 faces +Z. */
     private getHeading: () => number,
+    private ground: Ground,
     private obstacles: Obstacle[],
     private noBuildZones: Zone[],
   ) {
@@ -212,7 +214,10 @@ export class Placement {
   /** Moves the draft to the ground under a screen point. */
   moveDraft(screenX: number, screenY: number) {
     const draft = this.draftItem;
-    if (!draft || !screenToGround(this.camera, screenX, screenY, this.point))
+    if (
+      !draft ||
+      !screenToGround(this.camera, this.ground, screenX, screenY, this.point)
+    )
       return;
     draft.x = snap(this.point.x);
     draft.z = snap(this.point.z);
@@ -316,7 +321,11 @@ export class Placement {
           }
         : null;
     if (!target) return false;
-    out.set(target.x, target.h + 0.3, target.z);
+    out.set(
+      target.x,
+      this.groundY(target.x, target.z) + target.h + 0.3,
+      target.z,
+    );
     return true;
   }
 
@@ -359,7 +368,7 @@ export class Placement {
     const mat = draft.result.ok ? this.valid : this.invalid;
     if (mat !== draft.mat) setMaterial(draft.entity, mat);
     draft.mat = mat;
-    draft.entity.setPosition(draft.x, 0, draft.z);
+    draft.entity.setPosition(draft.x, this.groundY(draft.x, draft.z), draft.z);
     draft.entity.setEulerAngles(0, draft.yaw, 0);
     this.showRing(draft.x, draft.z, draft.def.footprint, mat);
     const reason = (r: PlacementResult) => (r.ok ? null : r.reason);
@@ -369,15 +378,14 @@ export class Placement {
   private showRing(x: number, z: number, r: number, mat: StandardMaterial) {
     this.ring.enabled = true;
     if (this.ring.render) this.ring.render.material = mat;
-    this.ring.setPosition(x, 0.05, z);
+    this.ring.setPosition(x, this.groundY(x, z) + 0.05, z);
     this.ring.setLocalScale(r * 2, 0.02, r * 2);
   }
 
   private world(): PlacementWorld {
     const pos = this.player.getPosition();
     return {
-      islandRadius: ISLAND_RADIUS,
-      edgeMargin: 1,
+      isDry: (x, z) => this.ground.isDry(x, z),
       noBuildZones: this.noBuildZones,
       obstacles: this.obstacles,
       placed: this.placed.map((p) => p.footprint),
@@ -387,7 +395,7 @@ export class Placement {
 
   private create(def: ItemDef, x: number, z: number, yaw: number) {
     const entity = def.build();
-    entity.setPosition(x, 0, z);
+    entity.setPosition(x, this.groundY(x, z), z);
     const item: PlacedItem = {
       def,
       entity,
@@ -401,6 +409,11 @@ export class Placement {
     this.attach(item);
     item.height = topOf(entity);
     return item;
+  }
+
+  private groundY(x: number, z: number) {
+    const y = this.ground.height(x, z);
+    return Number.isFinite(y) ? y : 0;
   }
 
   private setYaw(item: PlacedItem, yaw: number) {

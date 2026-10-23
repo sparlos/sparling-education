@@ -1,5 +1,5 @@
 import { Entity } from "playcanvas";
-import { material, shape } from "../landscape";
+import { material, shape } from "../shapes";
 
 /** Something the player can place in the world. */
 export interface ItemDef {
@@ -51,7 +51,7 @@ const flowers = (id: string, name: string, petals = mats.pink): ItemDef => ({
   },
 });
 
-// Shapes mirror the scattered props in landscape.ts at scale 1.
+// Simple primitive props, sized to sit alongside the island scenery.
 export const ITEMS: ItemDef[] = [
   {
     id: "tree",

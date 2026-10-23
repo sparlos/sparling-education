@@ -44,7 +44,7 @@ export function connectMultiplayer(
   const remotes = new Map<string, Remote>();
 
   const place = (remote: Remote, position: PlayerVec3, yaw: number) => {
-    remote.target.set(position.x, 0, position.z);
+    remote.target.set(position.x, position.y, position.z);
     remote.targetYaw = yaw;
   };
 
@@ -56,12 +56,12 @@ export function connectMultiplayer(
       colorFor(player.id),
     );
     app.root.addChild(root);
-    root.setPosition(player.position.x, 0, player.position.z);
+    root.setPosition(player.position.x, player.position.y, player.position.z);
     root.setEulerAngles(0, player.yaw, 0);
     remotes.set(player.id, {
       entity: root,
       body,
-      target: new Vec3(player.position.x, 0, player.position.z),
+      target: new Vec3(player.position.x, player.position.y, player.position.z),
       yaw: player.yaw,
       targetYaw: player.yaw,
       walkTime: 0,
@@ -86,7 +86,7 @@ export function connectMultiplayer(
   })
     .on("welcome", ({ self, players }) => {
       selfId = self.id;
-      local.setPosition(self.position.x, 0, self.position.z);
+      local.setPosition(self.position.x, self.position.y, self.position.z);
       for (const p of players) upsert(p);
     })
     .on("player_joined", ({ player }) => upsert(player))
