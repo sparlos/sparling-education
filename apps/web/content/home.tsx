@@ -32,7 +32,7 @@ export const home = {
         tone: "educator",
         icon: "teacher",
         title: "I'm a teacher",
-        body: "Assign curriculum games, watch your class world grow and see what each student has learned.",
+        body: "Turn on curriculum games, recognise your students and see what each one has learned.",
         href: "/educators",
         cta: "For educators",
       },
@@ -48,7 +48,7 @@ export const home = {
         tone: "student",
         icon: "student",
         title: "I'm a student",
-        body: "Design your character, build your house and help your class build something amazing.",
+        body: "Design your character, decorate your house and invite your classmates over.",
         href: "/students",
         cta: "For students",
       },
@@ -69,7 +69,7 @@ export const home = {
       },
       {
         title: "One world for the whole class",
-        body: "Every class shares a 3D hub. Games open through portals, and the world grows as the class completes units together.",
+        body: "Every class shares a 3D world. Games open through portals, and every student has a house to decorate and invite classmates to.",
         image: {
           alt: "Students' avatars gathered around a portal in their class hub",
           placeholderLabel: "Class hub render",
@@ -80,7 +80,7 @@ export const home = {
         title: "Rewards are earned, never bought",
         body: "Outfits and furniture come from effort, retrying and improving. No store, no loot boxes, no ads.",
         image: {
-          alt: "A student's house decorated with furniture earned from learning units",
+          alt: "A student's house decorated with furniture earned by practising",
           placeholderLabel: "Student house render",
         },
         tone: "parent",
@@ -89,7 +89,7 @@ export const home = {
   },
   howItWorks: {
     eyebrow: "How it works",
-    title: "From class code to class world",
+    title: "From class link to report card",
   },
   comparison: {
     eyebrow: "What makes it different",

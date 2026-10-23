@@ -28,7 +28,7 @@ export const comparison = {
     },
     world: {
       label: "One shared class world",
-      note: "Your class builds it together, all year.",
+      note: "A house for every student, open to classmates by invite.",
       typical: "Separate games and sessions",
     },
     streaks: {
@@ -60,19 +60,19 @@ export const promiseItems: PromiseItem[] = [
 export const classroomSteps: Step[] = [
   {
     title: "Create your class",
-    body: "Students join with a class code and a nickname. No student emails, no full names.",
+    body: "Share a class link. Students sign in with their school account and pick a nickname.",
   },
   {
-    title: "Assign a unit",
-    body: "Pick games mapped to Ontario curriculum expectations and set due dates.",
+    title: "Turn on games",
+    body: "Pick games mapped to Ontario curriculum expectations that fit what you're teaching. No due dates.",
   },
   {
-    title: "Students jump through portals",
-    body: "Assigned games wait right where students arrive, so no class time is lost wandering.",
+    title: "Students play",
+    body: "Games you turn on wait as portals in the class world, or drop a game link straight into Google Classroom.",
   },
   {
-    title: "Watch your world grow",
-    body: "Results feed personal rewards and a shared class build, like a bridge after fractions.",
+    title: "Assess with evidence",
+    body: "See understanding and effort for every student, and print a quick assess summary for report cards.",
   },
 ];
 

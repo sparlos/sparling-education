@@ -7,7 +7,7 @@ The public Kindling website. It explains the product to each audience and routes
 ### People
 
 **Teacher**:
-A person who runs a class in Kindling and assigns its games. The product term everywhere outside marketing audience labels.
+A person who runs a class in Kindling and turns its games on. The product term everywhere outside marketing audience labels.
 _Avoid_: Instructor, educator (when meaning the individual product user)
 
 **Educator**:

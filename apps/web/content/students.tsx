@@ -40,18 +40,18 @@ export const students = {
       },
       {
         icon: "users",
-        title: "Visit your friends",
-        body: "Drop by your classmates' houses and see what they've built.",
+        title: "Invite your friends over",
+        body: "Invite classmates to your house, and visit theirs when they invite you.",
       },
       {
         icon: "world",
         title: "Explore your class world",
-        body: "Jump through portals to play games. Your world grows as your class learns together.",
+        body: "Hang out with your class and jump through portals to play games.",
       },
       {
-        icon: "bridge",
-        title: "Build big things together",
-        body: "Finish a unit and your class might build a bridge, a tower or something even bigger.",
+        icon: "trophy",
+        title: "Get noticed for being kind",
+        body: "Your teacher can give you special items for being kind, never giving up and helping others.",
       },
       {
         icon: "star",
@@ -69,8 +69,8 @@ export const students = {
         body: "Your teacher sets up Kindling for your class.",
       },
       {
-        title: "Type your class code",
-        body: "Your teacher gives you a code. Then pick a nickname.",
+        title: "Join your class",
+        body: "Open the link your teacher shares, sign in with your school account and pick a nickname.",
       },
       {
         title: "Start playing!",

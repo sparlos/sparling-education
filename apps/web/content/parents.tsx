@@ -18,7 +18,7 @@ export const parents = {
     primaryAction: { label: "Get updates", href: "#updates" },
     secondaryAction: { label: "How rewards work", href: "#rewards" },
     image: {
-      alt: "A child's cosy low-poly house filled with furniture earned from school units",
+      alt: "A child's cosy low-poly house filled with furniture earned by practising",
       placeholderLabel: "Student house render coming soon",
     },
   },
@@ -35,12 +35,12 @@ export const parents = {
       {
         icon: "house",
         title: "A house that shows what they learned",
-        body: "Furniture is earned from units, like a sundial after learning to tell time, so their house becomes a record of their learning.",
+        body: "Furniture is earned by practising and improving in games, so their house becomes a record of their effort.",
       },
       {
         icon: "users",
         title: "A class they belong to",
-        body: "Classmates visit each other's houses and build a shared world together over the year.",
+        body: "Classmates share a world and invite each other over to see what they've earned.",
       },
       {
         icon: "star",
@@ -55,7 +55,7 @@ export const parents = {
       {
         icon: "privacy",
         title: "Safe by design",
-        body: "Nicknames instead of names, and preset phrases instead of open chat with strangers.",
+        body: "Classmates only see nicknames, houses are invite-only, and preset phrases replace open chat.",
       },
     ] satisfies Feature[],
   },
@@ -75,7 +75,7 @@ export const parents = {
       {
         icon: "smile",
         title: "Play at home, if you like",
-        body: "Kids can decorate, visit friends' houses and replay games. New rewards stay tied to class work, so kids without a device at home aren't left behind.",
+        body: "Kids can decorate, visit friends and replay games. New rewards have a weekly limit kids reach in class, so kids without a device at home aren't left behind.",
       },
       {
         icon: "clock",
@@ -100,12 +100,12 @@ export const parents = {
       {
         question: "Is it safe for my child?",
         answer:
-          "Children join with a class code and a nickname, with no email or full name needed. There's no free chat, only preset phrases and emotes, and student data will be hosted in Canada.",
+          "Children sign in with their school account, and we keep only their first name and last initial, never their email. Classmates only see a nickname. There's no free chat, only preset phrases and emotes, and student data will be hosted in Canada.",
       },
       {
         question: "Can my child play at home?",
         answer:
-          "Yes, on any computer with a web browser. At home they can decorate, visit and replay. New rewards mostly come from class work, so kids without a device at home aren't left behind.",
+          "Yes, on any computer with a web browser. At home they can decorate, visit and replay. New rewards have a weekly limit kids reach in class, so kids without a device at home aren't left behind.",
       },
       {
         question: "How can my child's class start using Kindling?",

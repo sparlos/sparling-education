@@ -16,7 +16,7 @@ export const educators = {
         just test it
       </>
     ),
-    lead: "Every Kindling game is mapped to Ontario curriculum expectations, and the concept is the core mechanic. Assign a unit, set due dates and see what each student has actually learned.",
+    lead: "Every Kindling game is mapped to Ontario curriculum expectations, and the concept is the core mechanic. Turn on the games that fit what you're teaching, share them in Google Classroom and see what each student has actually learned.",
     primaryAction: { label: "Join the teacher pilot", href: "#pilot" },
     secondaryAction: { label: "Talk to us", href: "/contact" },
     note: "Free for teachers, always.",
@@ -43,12 +43,12 @@ export const educators = {
       {
         icon: "clock",
         title: "Quick starts",
-        body: "Class codes and nicknames get everyone in fast. Assigned games are waiting the moment students arrive.",
+        body: "A class link and one-click school sign-in get everyone in fast. Game links drop students straight into a game.",
       },
       {
         icon: "chart",
         title: "Progress you can act on",
-        body: "See who's improving, who's stuck and which misconceptions are showing up across the class.",
+        body: "See who's stuck and which misconceptions are showing up, then print a quick assess summary for report cards.",
       },
       {
         icon: "trophy",
@@ -58,13 +58,13 @@ export const educators = {
       {
         icon: "path",
         title: "Room for every pace",
-        body: "Early finishers get mastery challenges and creative time. Absent students can go back and contribute to past units.",
+        body: "Each game adjusts to the student's grade, so split classes just work. No due dates, so absent students never fall behind.",
       },
     ] satisfies Feature[],
   },
   howItWorks: {
     eyebrow: "How it works",
-    title: "Four steps from sign-up to a growing class world",
+    title: "Four steps from sign-up to report cards",
   },
   comparison: {
     eyebrow: "What makes it different",
@@ -81,9 +81,9 @@ export const educators = {
         price: "Free, always",
         description: "Everything you need to run Kindling with your class.",
         features: [
-          "Class codes and student nicknames",
-          "Assign any game to your class",
-          "Due dates and unit locking",
+          "Class links and student nicknames",
+          "Turn on any game for your class",
+          "Game links for Google Classroom",
           "Basic progress for every student",
         ],
         cta: { label: "Join the pilot", href: "#pilot" },
@@ -99,7 +99,7 @@ export const educators = {
           "Results mapped to curriculum expectations",
           "Detailed class and student analytics",
           "Evidence for report cards",
-          "Custom assignments and multiple classes",
+          "Multiple classes",
           "Teacher-awarded items",
         ],
         cta: { label: "Talk to us", href: "/contact" },
@@ -118,7 +118,7 @@ export const educators = {
       {
         icon: "privacy",
         title: "Privacy by design",
-        body: "A class code plus a nickname. No student emails or full names, and preset phrases instead of free chat.",
+        body: "We keep a first name and last initial, never student emails. Classmates only see nicknames, and preset phrases replace free chat.",
       },
       {
         icon: "secure",
@@ -128,7 +128,7 @@ export const educators = {
       {
         icon: "clipboard",
         title: "Evidence for reporting",
-        body: "Results tied to expectation codes give teachers evidence they can use for report cards.",
+        body: "Results show which expectations and learning skills they speak to. Kindling never assigns a level: that judgement stays with the teacher.",
       },
     ] satisfies Feature[],
     cta: { label: "Talk to us about your board", href: "/contact" },
@@ -139,7 +139,7 @@ export const educators = {
       {
         question: "Is Kindling really free for teachers?",
         answer:
-          "Yes. Class codes, assigning games and basic progress are free, always. Paid licences add deeper analytics, curriculum-mapped results and more.",
+          "Yes. Class links, turning on games and basic progress are free, always. Paid licences add deeper analytics, curriculum-mapped results and more.",
       },
       {
         question: "What grades and subjects will it cover?",
@@ -159,7 +159,12 @@ export const educators = {
       {
         question: "How is student data protected?",
         answer:
-          "Students join with a class code and a nickname, with no emails or full names. There's no free chat, data will be hosted in Canada, and we'll delete it when you ask.",
+          "Students sign in with their school account, and we keep only a first name and last initial, never their email. Classmates only see nicknames, there's no free chat, data will be hosted in Canada, and we'll delete it when you ask.",
+      },
+      {
+        question: "Does Kindling replace my unit?",
+        answer:
+          "No. Kindling supplements your teaching: you teach the concept, turn on the games that reinforce it, and use the results as extra evidence when you assess.",
       },
       {
         question: "What does the pilot involve?",
