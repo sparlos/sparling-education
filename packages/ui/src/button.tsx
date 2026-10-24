@@ -15,6 +15,7 @@ interface ButtonProps {
   /** Renders a link instead of a button. */
   href?: string;
   type?: "button" | "submit";
+  onClick?: () => void;
   disabled?: boolean;
   fullWidth?: boolean;
   leftSection?: ReactNode;
@@ -29,6 +30,7 @@ export function Button({
   size = "md",
   href,
   type = "button",
+  onClick,
   disabled,
   fullWidth,
   leftSection,
@@ -44,6 +46,7 @@ export function Button({
     "data-size": size,
     "data-tone": variant === "secondary" ? "neutral" : tone,
     "data-full-width": fullWidth || undefined,
+    onClick,
   };
   const content = (
     <>

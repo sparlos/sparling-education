@@ -10,6 +10,7 @@
       "!**/public",
       "!**/generated",
       "!apps/hubworld-api/openapi.json",
+      "!packages/curriculum/reference",
       "!pnpm-lock.yaml"
     ]
   },

@@ -9,6 +9,7 @@
     "check-types": "tsc --noEmit"
   },
   "dependencies": {
+    "@repo/avatar": "workspace:*",
     "@repo/hubworld-api-client": "workspace:*",
     "playcanvas": "2.23.3"
   },

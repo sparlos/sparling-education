@@ -1,0 +1,18 @@
+.root {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-radius: var(--mantine-radius-lg);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.root[data-size="lg"] {
+  width: 3rem;
+  height: 3rem;
+}
+
+.root[data-size="xl"] {
+  width: 4rem;
+  height: 4rem;
+}

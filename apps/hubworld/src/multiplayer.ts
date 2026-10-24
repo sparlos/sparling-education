@@ -1,21 +1,14 @@
+import { lookFromSeed } from "@repo/avatar";
+import { createAvatar } from "@repo/avatar/playcanvas";
 import {
   type Player,
   type Vec3 as PlayerVec3,
   WorldSocket,
 } from "@repo/hubworld-api-client";
 import { type AppBase, type Entity, math, Vec3 } from "playcanvas";
-import { createAvatar } from "./avatar";
 
 const SEND_INTERVAL = 0.1;
 const SMOOTHING = 12;
-const COLORS = [
-  "#7fb3ff",
-  "#ff7f9e",
-  "#b48cff",
-  "#6fdc9b",
-  "#ffd166",
-  "#5ce1e6",
-];
 
 interface Remote {
   entity: Entity;
@@ -24,12 +17,6 @@ interface Remote {
   yaw: number;
   targetYaw: number;
   walkTime: number;
-}
-
-function colorFor(id: string) {
-  let hash = 0;
-  for (const ch of id) hash = (hash * 31 + ch.charCodeAt(0)) | 0;
-  return COLORS[Math.abs(hash) % COLORS.length] ?? "#7fb3ff";
 }
 
 /**
@@ -51,9 +38,10 @@ export function connectMultiplayer(
   const upsert = (player: Player) => {
     const existing = remotes.get(player.id);
     if (existing) return place(existing, player.position, player.yaw);
+    // Until looks are stored, each player's look comes from their ID.
     const { root, body } = createAvatar(
       `remote-${player.name}`,
-      colorFor(player.id),
+      lookFromSeed(player.id),
     );
     app.root.addChild(root);
     root.setPosition(player.position.x, player.position.y, player.position.z);

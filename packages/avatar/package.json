@@ -1,0 +1,37 @@
+{
+  "name": "@repo/avatar",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./portrait": "./src/portrait.tsx",
+    "./playcanvas": "./src/playcanvas.ts"
+  },
+  "scripts": {
+    "check-types": "tsc --noEmit",
+    "test": "node --test 'src/**/*.test.ts'"
+  },
+  "dependencies": {
+    "@repo/tokens": "workspace:*"
+  },
+  "peerDependencies": {
+    "playcanvas": "2.23.3",
+    "react": "19.2.8"
+  },
+  "peerDependenciesMeta": {
+    "playcanvas": {
+      "optional": true
+    },
+    "react": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@repo/typescript-config": "workspace:*",
+    "@types/node": "24.19.2",
+    "@types/react": "19.2.18",
+    "playcanvas": "2.23.3",
+    "typescript": "7.0.2"
+  }
+}

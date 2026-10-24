@@ -25,6 +25,14 @@
     },
     "test": {
       "dependsOn": ["^generate"]
+    },
+    "check-voice": {
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/games/*/src/**",
+        "$TURBO_ROOT$/games/*/voice/**",
+        "voices/**"
+      ]
     }
   }
 }

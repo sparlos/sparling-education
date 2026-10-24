@@ -1,0 +1,21 @@
+/* The shell is a full-screen touch app, not a page. */
+html,
+body,
+#root {
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+body {
+  /* No double-tap zoom delay, no long-press callouts or text selection while dragging. */
+  touch-action: manipulation;
+  -webkit-touch-callout: none;
+  user-select: none;
+}
+
+/* The self-hosted fonts loaded in main.tsx; names match `fontVariables` in @repo/ui. */
+:root {
+  --k-font-heading: "Nunito Variable";
+  --k-font-body: "Nunito Sans Variable";
+}

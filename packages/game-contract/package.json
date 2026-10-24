@@ -1,0 +1,24 @@
+{
+  "name": "@repo/game-contract",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@repo/avatar": "workspace:*",
+    "@repo/curriculum": "workspace:*"
+  },
+  "peerDependencies": {
+    "react": "19.2.8"
+  },
+  "devDependencies": {
+    "@repo/typescript-config": "workspace:*",
+    "@types/react": "19.2.18",
+    "typescript": "7.0.2"
+  }
+}

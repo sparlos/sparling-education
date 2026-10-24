@@ -14,6 +14,10 @@ _Avoid_: Full name, display name
 The name a student is known by in the class world and to classmates. The only student name other students ever see. Built by picking from curated word lists (e.g. "Cosmic Otter"), never typed freely, and a teacher can re-roll it.
 _Avoid_: Username, handle, display name
 
+**Avatar**:
+A student's character, designed by them and the same everywhere: in the class world and in every game. Games always show it, at least as a reacting portrait, and some also make it a character in the game.
+_Avoid_: Character, player, skin
+
 ### Classes
 
 **Class join link**:
@@ -60,6 +64,14 @@ _Avoid_: Hangout, playdate
 A self-contained curriculum activity where the concept being taught is the core mechanic. The heart of Kindling. A game teaches one concept across a range of grades (e.g. fractions, Grades 3–8) and can be played on its own, without the class world. A teacher turns games on or off for their class.
 _Avoid_: Quiz, activity, minigame, level, unit
 
+**Game spec**:
+The approved design of a game, written before it is built: its concept, tiers and the curriculum expectations each evidences, its core mechanic, the misconceptions the mechanic surfaces, what counts as an attempt, and how the avatar appears. A game is built only from an approved game spec.
+_Avoid_: Design doc, brief, GDD
+
+**Teacher card**:
+A game's summary for teachers: what it teaches and for which grades, the curriculum expectations it evidences, its mechanic in brief, the misconceptions it can reveal and how they show up in results, and when to use it alongside instruction. Derived from the game spec.
+_Avoid_: Teacher guide, lesson plan
+
 **Tier**:
 One grade's worth of content within a game. A student plays the tier for their grade.
 _Avoid_: Level, difficulty, stage
@@ -67,6 +79,14 @@ _Avoid_: Level, difficulty, stage
 **Result**:
 The record of a student's play of a game, always including the tier it was played at. Captures both understanding and effort. What teachers use as assessment evidence. Students never see a result as a score.
 _Avoid_: Score, grade, mark
+
+**Attempt**:
+One try at one task within a game: what was asked, which curriculum expectation it evidences, whether it succeeded, and which misconception it revealed, if any. Games record attempts; Kindling turns a play's attempts into its result.
+_Avoid_: Answer, response, question, event (unqualified)
+
+**Misconception**:
+A specific, named wrong idea an attempt can reveal (e.g. "thinks a larger denominator means a larger fraction"). Each game defines the misconceptions its mechanic can surface.
+_Avoid_: Mistake, error (when the underlying idea is meant)
 
 **Understanding**:
 How well a result shows the student grasps the concept at that tier. Evidence of curriculum achievement.

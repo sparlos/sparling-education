@@ -44,3 +44,9 @@ packages/hubworld-api-client/src/generated
 
 # Generated from @repo/tokens (pnpm generate)
 packages/tokens/src/generated
+
+# Voice review page (pnpm voice)
+packages/voice/.review
+
+# Voice synth worker's Python env (uv sync)
+packages/voice/.venv

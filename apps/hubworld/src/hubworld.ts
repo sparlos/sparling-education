@@ -1,3 +1,5 @@
+import { defaultLook } from "@repo/avatar";
+import { createAvatar } from "@repo/avatar/playcanvas";
 import {
   Application,
   Color,
@@ -13,7 +15,6 @@ import {
   type TouchEvent,
   Vec3,
 } from "playcanvas";
-import { createAvatar } from "./avatar";
 import { CameraFollow } from "./camera-follow";
 import { createInventory, screenToGround } from "./inventory";
 import { type Island, loadIsland } from "./island";
@@ -86,7 +87,7 @@ export function createHubWorld(canvas: HTMLCanvasElement) {
 function populate(app: Application, canvas: HTMLCanvasElement, island: Island) {
   const { ground, obstacles, noBuildZones } = island;
 
-  const { root: player, body } = createAvatar("player", "#ffb347");
+  const { root: player, body } = createAvatar("player", defaultLook);
   app.root.addChild(player);
   player.setPosition(0, 0, 12);
   player.addComponent("script");

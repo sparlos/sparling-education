@@ -1,0 +1,242 @@
+# Build log
+
+Raw material for the `build-game`, `review-game` and `add-curriculum` skills (build-order step 7). For each step: what was decided, where the founder had to step in, and what a skill or doc could have settled up front.
+
+## Step 3: play shell (2026-10-23)
+
+### Decisions
+
+- **Backend first or shell first?** Shell first, against stand-ins. Results storage depends on the scoring rules, which are still open, and the fractions game is the bigger unknown. The platform backend (sign-in, classes and grades, storing attempts, the demo class) gets its own spec once Plank Bridge is playable.
+- **Platform seam.** Four ports (`session`, `attempts`, `links.signIn`, `links.hub`) in `apps/play/src/platform/ports.ts`. Stand-ins sit in `platform/stand-ins/`, each with a `STAND-IN` header, and log a warning on start-up. Shared contract suites in `platform/contract.ts` run against the stand-ins now and the real adapters later. `src/main.tsx` is the only file that picks a platform. The backend's brief is `platform/README.md`.
+- **Attempt records** carry a shell-made `id` as the idempotency key, and a `play` ID that groups one play into its result. The backend must check `student` against the session.
+- **Outbox.** One storage key per play (`kindling.play.outbox.<student>.<play>`), so two tabs never overwrite each other. Attempts left on the device go out on the student's next play. Retries use backoff, attempts made while offline wait for it, and the shell flushes when the connection comes back and when the tab is hidden. Finishing waits up to 4 s for sends, then leaves anyway.
+- **Tier choice.** The student's grade if a tier matches. Otherwise the closest tier, the lower one on a tie.
+- **Exit.** A student in a class who came through a portal goes to `hub({ portal, play })`. Anyone else gets the shell's game-complete screen, with play again.
+- **Game packages default-export `defineGame(...)`.** The registry (`src/games.ts`) lazy-loads each game by slug.
+- **The shell's controls sit in the left-hand corners:** "leave" at top-left, "hear it again" at bottom-left. Games must keep both corners clear.
+- **Students can leave a game at any time** (founder's call). Tapping "leave" asks first, aloud, with a play icon and the door icon as the answers, so a stray tap doesn't end a play and it works without reading. Leaving goes the same way finishing does (back to the portal, or the end screen), but the end screen says "See you next time!" instead of "Well done!". Attempts made before leaving are kept and sent. `Play.end(ending)` replaced `finish()`.
+- **The backend is told how each play ended** (founder's call). The attempts port became `PlayRecordsPort`, which sends `PlayRecord`s: attempts, then one `end` record (`finished`, `left` or `crashed`), through the same outbox so they arrive in order and survive going offline. A crash is recorded separately from leaving, so scoring never counts a broken game against a student's effort. A play with no end record was abandoned. Attempts after a play ends are dropped.
+- **UI is `@repo/ui` (Mantine), chosen by the founder over tokens and plain CSS,** so games can use `@repo/ui` without it counting against their 250 KB. This added `IconButton` (48/64 px), `Loader`, `onClick` on `Button`, and the `speaker` and `replay` icons.
+- **Fonts are self-hosted** (`@fontsource-variable`). Google Fonts would send students' IPs to Google, which matters for board privacy review.
+- **Tests use Vitest, React Testing Library and jsdom.** Mantine needs a `matchMedia` stub in jsdom (`src/test/setup.ts`).
+- **Shell size (first build):** 86 KB gzipped JS, 38 KB gzipped CSS (all of Mantine's `styles.css`), and about 70 KB of latin fonts.
+
+### Where the founder stepped in
+
+1. Asked whether endpoints and a database should come before the shell. **Avoidable?** Partly. The spec's build order assumed it without saying why. Specs that put work on a seam before the other side exists should say so and give the reason.
+2. Asked for stand-ins to be clearly separated, with an obvious contract to build the backend against. **Avoidable:** yes. Make it a standing rule: "every unbuilt dependency is a port with stand-ins and a contract suite".
+3. Asked for React test tooling and production-ready quality. **Avoidable:** yes. The spec's testing decisions didn't name a tool, and "production ready" was implied but not written down.
+4. Asked for every skill to end in a retro. Done: `docs/agents/skill-retro.md`, linked from `design-game`.
+5. Decided students can leave mid-game. **Avoidable?** Partly. The spec covered finishing but never leaving. A shell spec should list every way a student can exit.
+6. Chose `@repo/ui` over tokens and plain CSS. **Avoidable?** No, this was a judgement call. But `.claude/rules/ui.md` only came into context when files under `packages/ui` were opened. Read `.claude/rules/` before any UI work.
+
+### Gotchas
+
+- **`pnpm install` can't run in the shared sandbox `node_modules`.** It works in a scratch copy of the repo (rsync without `node_modules`, `pnpm install --store-dir <scratch>/store`). There you can run type checks, tests and builds, then copy back the source and `pnpm-lock.yaml`. The founder still runs `pnpm install` on the host.
+- **`crypto.randomUUID` is missing outside secure contexts,** e.g. a Chromebook hitting a dev server over the LAN. Use `src/play/ids.ts`.
+- **Tests passed on the first run, and breaking the code on purpose showed gaps:** one timing-flaky test, and one rule (backoff while offline) with no test. Breaking each key rule on purpose once caught both. This belongs in `build-game` and `review-game`.
+
+### Left open
+
+- The class world doesn't read `?portal=&play=` yet. Spawning at the portal and the reward reveal are class-world work.
+- The avatar portrait is a stand-in until step 4. Voice recordings (`lineUrl`) come in step 6, and until then every line uses browser speech.
+- The shell's own strings are English only.
+- Mantine's full `styles.css` could be cut to the components in use if the shell's size becomes a problem.
+- The game contract's type checks are still the throwaway example from step 1. Check in a type test when the starter kit is extracted.
+- The Chromebook budget checks (throttled CPU, Fast 3G) come in step 6.
+
+## Step 4: avatar portrait (2026-10-23)
+
+### Decisions
+
+- **Part slots over colour only** (founder's call). New package `@repo/avatar`. A look is `{ body, eyes, headwear }`: a body colour ID and an item ID per slot (`headwear` can be null). IDs are what gets stored, so the illustrator's art replaces placeholders without touching stored looks.
+- **One package, three entry points.** `@repo/avatar` holds the data with no React or PlayCanvas, so the backend can validate looks with `parseLook`. `@repo/avatar/portrait` is the 2D React portrait. `@repo/avatar/playcanvas` is the 3D avatar, moved out of `apps/hubworld/src/avatar.ts`. React and PlayCanvas are optional peer dependencies.
+- **2D and 3D parity is enforced by types.** Both renderers key their art as `Record<EyesId | HeadwearId, …>`, so adding an item to the catalogue fails type checks until it has both 2D and 3D art. Answers the founder's question "does every new asset need both?": only avatar items do. Furniture and the hub stay 3D only, and game art stays 2D only. A future body-clothing slot that doesn't show in the head-only portrait may need a "hidden in portrait" option.
+- **The portrait's art frame is documented** in `portrait.tsx`: a 100×100 viewBox, the head circle at (50, 56) with r 38, eye anchors, and headwear above y 34 so the brows show in every expression. Each part carries `data-slot`/`data-item`.
+- **`AvatarExpression` now lives in `@repo/avatar`.** `@repo/game-contract` re-exports it.
+- **Looks come from a seed until they're stored.** `lookFromSeed(id)` gives stand-in students and other players in the hub distinct, stable looks. The local hub player uses `defaultLook`.
+- **Body colours are tokens.** A test keeps ink at 3:1 or better against each one (WCAG 1.4.11).
+- **Shell size:** 87 KB gzipped JS, up from 86 KB.
+
+### Where the founder stepped in
+
+1. Chose what the look data covers: part slots, colour only, or designing the avatar first. **Avoidable?** Partly. The spec said both "build from the same avatar data" and "the look is still to be designed" without saying how provisional the data could be. Specs should say when a step has to invent a provisional model, and how far it should go.
+2. Asked whether every new asset needs 2D and 3D art. **Avoidable:** yes. The spec's "each new cosmetic item" was clear, but it didn't say that hub and game art are exempt.
+
+### Gotchas
+
+- **`git rm` fails on untracked files** (`apps/play` isn't committed yet). Use `rm`.
+- **Hubworld's tsconfig needed `allowImportingTsExtensions`** to type-check workspace packages that import with `.ts` extensions.
+- **The first render of every look × expression caught two overlaps** (the beanie band and the cap brim covered the brows) that no test would catch. Rendering a gallery to PNG (esbuild + `renderToStaticMarkup` + Playwright's headless shell) should be part of the starter kit's art checks.
+- **Old stand-in sessions** stored `{ color }` looks. `parseLook` rejects those, so such a student is signed out and picks again. There's a test for it.
+
+### Left open
+
+- The 3D avatar's new parts (eyes, cap, beanie, crown) are type-checked and built, but **nobody has looked at them in the hub yet**.
+- There's no avatar customisation UI yet (MVP: "Hub with portals, avatar customisation"). Looks aren't stored, and the hub doesn't sync looks between players; each player's look comes from their ID.
+- No avatar character API, because Plank Bridge only uses the portrait.
+
+## Step 5: Plank Bridge (in progress, started 2026-10-24)
+
+### Part 1: the rules (`games/plank-bridge/src/rules/`)
+
+Plain TypeScript with no React: `fraction.ts` (exact lengths), `random.ts` (seeded, so a bridge can be regenerated), `tasks.ts` (task types, which expectation each evidences, and each misconception's prediction), `generate.ts` (one bridge per tier), `judge.ts` (success, misconception, feedback) and `help.ts` (the help ladder). 60 Vitest tests.
+
+### Decisions
+
+- **Misconceptions are matched by length, not by the pieces used.** Asked for 3/4, any load totalling 4/3 counts as `numerator-denominator-swapped`, whether it's 4 thirds or a whole and a third. This is what the cart measures, and it keeps detection to one rule.
+- **A ramp misconception is an ordering feature.** Each one is a key (top number, bottom number, value with the whole dropped), and a ramp order matches it when the order is sorted by that key, with ties in any order. The generator tries every ordering (at most 24): each misconception must own at least one ordering, no ordering may match two misconceptions or the right answer, and the steps may not arrive already in order.
+- **If an attempt matches two misconceptions, none is recorded.** Guessing would put wrong evidence in front of a teacher. The generator makes this impossible, and a test covers it anyway.
+- **Every prediction must be something the student can actually make with the chips on offer.** So combine patches use denominators up to sixths, where the summed denominator (up to twelfths) is a chip. 3/8 + 2/8 as 5/16 can't be cut, so it would never be revealed.
+- **Orders are in lowest terms and never a whole number of planks.** The whole plank on the bench would answer those without any fractions. Fair shares are the exception: 4 planks for 2 gaps is allowed (the spec says shares can be whole).
+- **Every task in a bridge is different, and a plain fraction order always comes first.** The rest are shuffled, and the first task of each type gets the demonstration.
+
+### Spec gaps found
+
+1. **The spoken "how far off" amount can fall outside the voice-line families.** 3/8 laid as 8/3 is over by 55/24, and families only go up to twelfths. The spec's own example is off too: 3/4 laid as 4/3 is over by 7/12, not "one third". **Founder's call:** Pip says the amount when there's a string for it, and otherwise just "Too short." or "Too long." (`result.short.plain`, `result.long.plain`), and the outline shows how far off it was. The spec has been updated.
+2. **"12/5 against 2⅖" are equal,** so they can't both be steps on a rising ramp. Built as an improper fraction against a nearby mixed number instead.
+3. **`numerator-denominator-swapped` is only revealable when the top number is a split chip,** so unit fractions (n = 1) and "eleven fourths" never reveal it. Not forced: forcing it would drop unit fractions.
+4. **"Fill the rest" patches can't reveal any misconception,** because `adds-denominators` only predicts for combining. They're plain practice that evidences `g5.B2.5`.
+
+### Where the founder stepped in
+
+1. Decided what Pip says when a miss has no amount string. **Avoidable?** Partly. `design-game` should check that every amount the game speaks, differences included, falls within its string families.
+
+### Gotchas
+
+- **Breaking each key rule on purpose found 4 untested rules out of 10:** a dead branch in fair-share feedback (removed), the 1-plank share guard (it silently stopped 1-plank shares being generated), the "two matches records none" rule and the "makeable" check. Each now has a test. This confirms the step 3 lesson: mutation checks belong in `build-game`.
+
+### Part 2: manifest and strings (`src/manifest.ts`, `src/strings.ts`)
+
+### Decisions
+
+- **The manifest's tiers and misconceptions are built from the rules** (`evidence`, `misconceptions` in `rules/tasks.ts`), so the expectations a game records and the ones it declares can't drift apart.
+- **The string families are typed with template literals** (`frac.${number}-${number}` and so on). `t("frac.3-4")` type-checks, and `t("hint.nope")` doesn't. The catch: the pattern also accepts `frac.99-1`, so a test checks that every amount a generated bridge can speak has a string. This settles the spec's first open question.
+- **Spreading records with template-literal keys drops those keys from the type.** So `strings` has its type written out. Without it, every family ID fails to type-check.
+- **Tests read `SPEC.md`** and compare it with the manifest: slug, version, each tier's expectations, each misconception's expectations, and every fixed string word for word. Changing the spec without the code (or the reverse) fails the tests.
+- **Added `planks.1`–`planks.3`** ("one plank" and so on) for misses off by whole planks, such as leaving out the whole of 1¾. The spec has been updated.
+- **397 strings**: 39 fixed, 198 fractions, 112 mixed numbers, 35 shares, 10 rulers, 3 whole planks.
+- **A swapped fraction usually gets the plain "Too long."** 6/5 laid as 5/6 is off by 11/30, which has no string. Every other misconception's miss has a spoken amount, and a test checks that.
+
+### For part 3
+
+- **The shell's `say()` can't speak a sequence.** Each call stops the line before it, and "hear it again" replays only the last line. Orders are two or three lines ("This gap needs" + "three fourths" + "of a plank."), so the contract needs `say(...ids)`, spoken in a row and replayed together.
+
+### Gotchas
+
+- **The session's working directory was deleted twice** (the folder was replaced on the host while the session ran), and Bash then failed on every command until a restart. File reads and edits kept working.
+- **Breaking rules on purpose:** a wrong plural for n = 2 ("two half") passed until `frac.2-3` got its own test.
+
+### Part 3: the game screen (`src/game/`), playable at `/play/plank-bridge`
+
+### Decisions
+
+- **The contract's `say` takes several lines: `say(...ids)`** (founder's call). They're spoken in a row as one instruction, and "hear it again" replays all of them. With browser speech they're joined into one utterance, which sounds more natural. With recordings they play one after another, and if a recording fails, the rest falls back to browser speech. This changed `@repo/game-contract`, `apps/play/src/play/voice.ts` and the shell's App, with 4 new voice tests.
+- **The screen holds no game rules.** `flow.ts` (order, misses, help, what each commit records and says) and `bench.ts` (splitting, cutting, loading) are plain state with their own tests. The components render them.
+- **Tap to pick up, tap to place, or drag.** A tap picks up a plank, piece or ramp step, and a tap on the cart or a slot places it. Dragging does the same with Pointer Events (`drag.ts`). Taps make every action testable in jsdom and usable without fine motor control. Drags were checked in headless Chrome.
+- **Cut marks are tabs above the plank, not lines on it.** The first version put mark buttons on the plank, and on a short piece (two fifths) they covered it, so it couldn't be picked up. Only the browser tour caught this.
+- **While a piece is picked up, the whole bay takes the tap**, including over pieces already loaded. Before this, a tap on a full cart unloaded a piece instead of placing one. Also found only in the browser.
+- **The result scene covers the work area only,** so Pip's caption ("Too long. It's over by: one twelfth.") stays visible while the gap shows the miss.
+- **Captions add a full stop after an amount** when a new sentence follows ("…one twelfth. Let's try again."). Speech still joins the raw strings.
+- **Demonstrations by task type.** Length orders use the ghost hand on a spare plank: a different example to open the first order of a type, and after the third miss the right split without the cut. The first ramp shows two wrapped examples placed shortest first, then unwrapped. After a third ramp miss, the hand points at the first misplaced step and its slot (the spec's demonstration is about split chips, so this is my reading). After a fourth miss, that step is moved into its slot.
+- **A ramp keeps its order after a miss**, so the student fixes it rather than starting again. Length orders send the load back to the bench, as the spec says.
+- **Screen-reader labels use the amount strings:** a chip is "fourths", a mark or piece is "three fourths", a whole plank is "one plank". Five `label.*` strings cover the rest (bench, cart, gap, step, saw). The spec has been updated.
+- **Art slots** (`art.tsx`): placeholder SVG for Pip's poses, the ghost hand, the cart with its portrait-window anchor, and icons, each in a fixed frame. Planks, pieces and gaps are CSS from `theme.ts` colours (all from `@repo/tokens`), stretched to length.
+- **Plank length** is the window width over the most planks an order can need (2 at G3, 3 at G4 and G5), clamped to 160–520 px.
+- **Size:** the game's chunk is 13 KB gzipped JS and 3 KB CSS, against a 250 KB budget.
+
+### Where the founder stepped in
+
+1. Approved changing the contract's `say` to take a sequence. **Avoidable?** Yes. The spec chose "no interpolation, the amount is its own string" without checking the contract could speak two strings in a row. `design-game` should check every string decision against the contract.
+
+### Gotchas
+
+- **All 13 play-through tests passed on the first run, again.** Breaking 14 rules on purpose found 4 gaps (a non-demo order never spoken, the amount never spoken, no caption, re-splitting cut pieces) and one redundant rule (help ranking, since the ladder only climbs). All fixed.
+- **Two real usability bugs were invisible to the jsdom tests**: marks covering short pieces, and taps on a full cart unloading. A scripted headless-Chrome tour through each task type caught both. **The starter kit needs a browser tour**, not just jsdom: Playwright's `chrome-headless-shell` is already on the sandbox at `~/.cache/ms-playwright/`, and `playwright-core` installs into a scratch folder.
+- **Rules tests run in plain Node** (`// @vitest-environment node`) because `new URL(…, import.meta.url)` isn't a file URL under jsdom. The shared setup file guards its `window` stub.
+- **Biome's `biome-ignore` comments must sit right before the flagged statement**, and the formatter can move them. The `!important` blanket for reduced motion was replaced with explicit `animation: none` rules, matching `@repo/ui`.
+
+### Left open
+
+- **Touch targets below 48 px at G5:** a twelfths cut tab on a 365 px plank is about 26 px wide. The saw drag is the alternative there. Recalibrate when the budgets are checked on a real Chromebook.
+- **Animation is minimal:** the cart rolls across on a fit and wobbles on a short load, and a long load tilts. The cart doesn't climb or roll back on ramps, and there's no drive to the bridge before the drop.
+- **Timing is fixed, not tied to speech:** the contract's `say` has no "finished" signal, so the opening demonstration and results use fixed durations (4.5 s and 2.8 s).
+- **The Chromebook budgets aren't measured yet** (throttled CPU, Fast 3G, drag frame rate). Step 6.
+- **Art is placeholder** throughout, and Pip's poses are simple.
+
+### Founder's verdict after playing (2026-10-24)
+
+**"Not fun, bad concept."** The founder rejected Plank Bridge as a concept, not only as a build. The spec was approved through `design-game`, then built for 3 parts, with tests proving it teaches. Nobody checked whether it was fun until it was playable.
+
+**Lesson for `design-game`:** pedagogy was approved on paper, but fun can't be. Before a game spec is approved, play throwaway prototypes of 2–3 candidate mechanics (minutes each, no rules engine, no art) and let the founder pick the one that's fun. A spec should record why the mechanic is fun, not only why it teaches.
+
+**What carries over:** the contract change (`say(...ids)`), the patterns (rules as plain TypeScript with misconception predictions that are guaranteed distinct, tests that read the spec, breaking rules on purpose, a headless-Chrome tour), and the friction recorded above. The Plank Bridge code itself probably doesn't.
+
+**Deleted (2026-10-24).** At the founder's request, `games/plank-bridge` (code and spec) was deleted and unregistered from `apps/play`. The patterns above survive only as descriptions here and in `spec.md`.
+
+## Step 6: prototype lab (2026-10-24)
+
+### Decisions
+
+- **Routing:** `isLabUrl` in `play/routes.ts` matches `/play/lab` and `/play/lab/<slug>`. `main.tsx` lazy-loads `lab/index.tsx` only when `import.meta.env.DEV`, so production builds drop it. Checked: no lab code in `dist`, and the shell is still 87 KB gzipped JS.
+- **A prototype is a folder.** `lab/<slug>/index.tsx` exports `meta` and a default component. `lab/registry.ts` finds them with `import.meta.glob`, so there's no registry to edit. The list and the grounding test both read it.
+- **What the lab passes:** `grade` (1–8, picked on the list and remembered in localStorage, Grade 3 by default), `Avatar` (the portrait in `defaultLook`) and `speak(text)`. `speak` goes through the shell's `createVoice` with an identity text lookup, so "hear it again" works the same way as in games. It's a stable callback, so a prototype can speak from an effect.
+- **The grounding test** (`lab/grounding.test.ts`, node environment) reads `packages/curriculum/reference/<edition>.json` by path (the package's exports exclude the reference layer) and fails on an unknown code, an edition that isn't imported (telling the agent to ask a human), no misconceptions, a misconception with no visible failure, or a sample task citing an expectation the prototype doesn't target. Breaking it on purpose (a fake code, an unimported edition) failed as expected.
+- **A model prototype, `clothesline`** (G1–2 ordering whole numbers on a number line, from the G2 B1.2 clothesline sample task), so the lab is playable now and `design-game` has an example of how rough to be. It's deliberately not fractions, so it doesn't anchor the fractions session.
+
+### Gotchas
+
+- **`apps/play/src/test/setup.ts` assumed `window`,** so node-environment tests crashed. It's guarded now.
+- **Each `speak` call cuts off the one before** (the voice stops the current line). The first clothesline build said the feedback, then immediately the next question over it. Say feedback and the next prompt as one line. Only the browser tour (spying on `speechSynthesis.speak`) showed this.
+- Biome rejects `role="group"`; use a `fieldset`.
+
+### Left open
+
+- The lab doesn't pick a look or a locale. Add them if a prototype needs them.
+
+## Step 7: design-game for the fractions game (2026-10-24)
+
+### Prototypes played
+
+- **Picked: Hop Code** (`lab/hop-code`). The founder's words: the fun is "plan a route, press the button, and see what happens". The plan → run → reveal loop is the hook.
+- **Archived: Spring Run** (`lab/spring-run`, `isArchived: true`), kept playable in the lab's Archive tab at the founder's request. Why it lost: less to explore (fixed cards on fixed springs), and each spring starting from a different point on the number line was "kind of weird". It wasn't obvious what the fractions were doing. **Lesson:** keep each fraction's effect visible as a distance from where you are, building from 0.
+
+### Open for grilling: what counts as an attempt
+
+A failed run is not a failed attempt. Playing Hop Code, the founder built routes one hop at a time, pressing play after each to see where it landed, until they reached the flag. That's exploring, and it **must not count as failure**. The spec has to define what one attempt is (the task, a committed plan, or something else) and when a run is evidence of a misconception rather than a probe.
+
+### Decided while grilling
+
+- **Runs are probes, misses or solves.** Stopping short on grass is a probe and never counts. A splash (before or past the flag) or an overshoot on grass is a miss. A splash before the flag counts only when the hop that fell was the one just added, not a known mistake run again. Landing on the flag solves the task. Each task emits **one attempt**: solved or not, the most help used, and at most one misconception matched from its misses. Misses alone never make a task a failure.
+- **The teacher sees distilled results, never runs.** Critical for this game: the founder wants assessable data without reading every press of play.
+- **Ticks split each whole by the largest denominator on offer, at every grade.** The prototype had G5 ticks at halves only. That was a prototype choice, not the curriculum's (G5 B1.3 says "using appropriate tools"), and it's now fixed in `lab/hop-code`. G5 still needs equivalence: a flag at ⅔ with twelfths ticks means counting to eight twelfths.
+- **The hint shows the fraction values on the ticks.**
+- **Help ladder (no demonstration rung):** hint 1 shows the fraction values on the ticks. Hint 2: adding a hop block previews the distance it will hop, from where the plan currently ends. Guided is "here's how it works" on the student's own level. Both hint levels record as `hint` (no contract change). The level is logged locally for tuning and never reaches results.
+- **First-time tutorial:** a scripted, in-code "video" with voice-over through the shell's voice, played before the first task and when new block types appear. Never recorded as help.
+- **Polish, later:** highlight the plan's blocks along the bottom as each hop runs.
+- **Guided walks through the student's own level:** the voice counts along the ticks to the flag, then the game places the first hop of a correct route and the student adds the rest, with one more hop placed after each further miss. The student always presses play and finishes it.
+- **When help comes:** one hint button, always available. It glows after 2 misses on a task, and goes up to hint 2 after 2 more misses with hint 1 on. Guided starts by itself after 2 more misses with hint 2 on ("Let's do it together"). Probes and restarts never count. Help stays on for the rest of the task, and resets at the next one.
+- **Three misconceptions, each with a pattern in play:**
+  - `bigger-denominator-bigger`: a splash on a hop just added with a larger denominator, where a block with a smaller denominator would have landed on a stone (medium reliability).
+  - `numerator-not-a-count`: a miss using as many hops as the flag's numerator, all of one unit fraction with a different denominator from the flag's (high).
+  - `no-equivalence` (G4–5): hitting the hop budget using only the smallest block. This plan event counts as a miss, so it climbs the help ladder too.
+  - `stops-at-one` is dropped: stopping at 1 on grass is a probe, so it can't be spotted. Solving a flag past 1 still evidences G4 B1.6.
+- **Which misconception an attempt names:** `numerator-not-a-count` and `no-equivalence` count after 1 match in the task, `bigger-denominator-bigger` after 2. If several qualify, the most matches wins, and on a tie the first seen. It's recorded even when the task is then solved. These thresholds are starting numbers, to tune with real play.
+- **Tiers evidence one expectation each:** G3 `g3.B2.8` (every route is unit-fraction hops added up), G4 `g4.B1.6` (flags past 1, counted along the ticks), G5 `g5.B1.3` (the flag shown in simplest form, the blocks in other units). Dropped from the prototype's claims: `g4.B2.7` (nothing shows multiplication) and `g5.B2.5` (G5 routes mix denominators). **Idea parked:** a repeat block ("3 × ¼ hop", like Lightbot's loops) would evidence `g4.B2.7`. Prototype it after this game, maybe for the second MVP game.
+- **Misconceptions per tier:** `bigger-denominator-bigger` and `numerator-not-a-count` at all three tiers; `no-equivalence` at G5 only. **G4's budget is loosened** to the flag's numerator plus one spare, so counting in one unit always fits. Trading small hops for big ones is G5's challenge. It follows that G4's flag is shown in a unit that's on offer (e.g. ⁶⁄₄, not ³⁄₂), or reaching it would need equivalence. The prototype simplifies G4 flags, and the spec must not.
+- **One play:** 6 tasks, the first 2 with one block type plus the whole hop, then the tier's full block set. No skip, since guided always reaches the flag. Leaving mid-task sends no attempt for that task (the shell records the play as left). The tutorial plays at the start of every play and can be skipped, until the contract can remember per student which block types they've seen (possibly added when the game is built).
+- **No combos or scores.** A no-miss combo would reward understanding, but rewards follow effort (DESIGN.md principle 4, and "Rewards and recognition"). Instead, for polish: a "Nice fix!" cheer when changing only the hop that missed makes the next run land, and a rerun of an identical plan is refused ("That's the same plan. Change a hop first."). Spammers climb to guided, and their attempts say so.
+- **Avatar: `character`, with the portrait as the hopper** (squash and stretch). Its expression follows play: thinking while planning, happy on a landing, encouraging after a splash, cheering at the flag. Drawn through an art slot so a full-body 2D character can replace it later. The contract's character API starts minimal: the portrait at any size, plus the expression.
+- **Open, separate task:** the portrait's expressions look "weird/ugly" (founder). Fix them in `@repo/avatar`'s portrait, which every game shares, not in this game.
+- **Touch, reading, sound:** tap a block to add it, tap a planned block to remove it, with no drag needed. Every target is at least 64 px, and ticks are never tapped. The only text a student needs is fraction notation, and every fraction is spoken too. Every result shows on screen (the splash at the missing stone, the landing fraction next to the goal's). Blocks are all the same size, so only the fraction says how far a block goes.
+- **"Goal", not "flag"**, in everything a student sees or hears (founder: "flag" is ambiguous). The prototype's text is updated.
+- **The game always fits the screen, with no scrolling or zooming.** On the founder's laptop the prototype needed zooming out or fullscreen, and "Goal at …" got cut off. This is a requirement, checked by the browser tour at Chromebook sizes, with the tighter UI as polish.
+- **Renderer:** React and SVG, as in the prototype.
+- **Teacher card approved as drafted.** Use it after introducing unit fractions on a number line (G3), counting past one (G4) or equivalent fractions (G5): it reinforces, it doesn't introduce. Each misconception has a plain-language reading and a reteach idea in Kindling's own words (paper strips, naming the unit aloud, trading strips on a fraction wall).
+- **No coins.** The goal is the reward. Coins add nothing to what the game teaches, and they'd read as a score.
+- **Visual polish is a second pass** after the core game plays well. Whether it becomes its own skill is decided after the build (noted in `spec.md` step 10).
+- **Name: Fraction Hop** (`fraction-hop`), chosen by the founder over "Hop Code" as clearer. The prototype stays at `lab/hop-code` until it's archived.
+
+### Approved, and the retro (2026-10-24)
+
+The founder approved `games/fraction-hop/SPEC.md`. Retro edits accepted and applied: `design-game` step 3 (claim only expectations each task evidences; the browser check covers fitting 1366 × 650), step 4 (separate exploring from mistakes; `assisted` values are options, not a ladder), and the lab README (no points or coins, the same representation at every grade, fit the screen). Judgement calls left out of the skill: "goal" over "flag", no combos, the archive tab.

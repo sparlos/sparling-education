@@ -1,0 +1,24 @@
+{
+  "name": "@repo/voice",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./hash": "./src/hash.ts",
+    "./vite": "./src/vite.ts"
+  },
+  "scripts": {
+    "voice": "node scripts/voice.ts",
+    "check-voice": "node scripts/check.ts",
+    "check-types": "tsc --noEmit",
+    "test": "node --test 'src/**/*.test.ts'"
+  },
+  "devDependencies": {
+    "@repo/game-contract": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "@types/node": "24.19.2",
+    "typescript": "7.0.2",
+    "vite": "8.3.4"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "name": "@repo/curriculum",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "import-dcp": "node scripts/import-dcp.ts",
+    "check-types": "tsc --noEmit",
+    "test": "node --test 'src/**/*.test.ts'"
+  },
+  "devDependencies": {
+    "@repo/typescript-config": "workspace:*",
+    "@types/node": "24.19.2",
+    "typescript": "7.0.2"
+  }
+}
