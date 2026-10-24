@@ -80,7 +80,10 @@ regenerate the lines they touch.
   (`"Pip": "[Pip](/pɪp/)"`).
 - **`games/<slug>/voice/overrides.json`**, for one line, keyed by string ID:
   `{ "amount.3-4": { "speed": 0.9 }, "retry": { "text": "Let's, try again." } }`.
-  `text` is for the model only (a comma can fix pacing).
+  `text` is for the model only (a comma can fix pacing). `speed` is a tempo
+  applied with ffmpeg's time-stretch after synthesis: Kokoro always speaks at
+  its natural speed, because its own slow-down adds an "a-" before lines that
+  start with an unvoiced sound.
 
 Then run `pnpm voice` and listen again.
 

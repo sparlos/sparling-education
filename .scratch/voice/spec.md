@@ -52,7 +52,7 @@ A workspace package, `packages/voice`, generates a narrator voice line for every
 ### Voice registry
 
 - `packages/voice/voices/<name>/` holds a voice: its model ID, Kokoro voice name, language code, default speed, and a pronunciation map.
-- The MVP has one voice, `narrator`: `mlx-community/Kokoro-82M-8bit`, voice `af_heart`, `lang_code` `"a"`, speed 0.85 (slowed for young children, founder's call). It's a built-in Kokoro voice, so there's no reference clip and no real person's voice.
+- The MVP has one voice, `narrator`: `mlx-community/Kokoro-82M-8bit`, voice `af_heart`, `lang_code` `"a"`, speed 0.9 (slowed for young children, founder's call). Speed is a tempo applied with ffmpeg's time-stretch (`atempo`, pitch kept) after Kokoro speaks at its natural speed: Kokoro's own speed below 1 added an "a-" before lines starting with an unvoiced sound ("three fourths", "Too short."). It's a built-in Kokoro voice, so there's no reference clip and no real person's voice.
 - Per-character voices later are a data change: add a voice folder, and let a manifest name it. Not in the MVP.
 
 ### Quality control
@@ -66,7 +66,7 @@ A workspace package, `packages/voice`, generates a narrator voice line for every
 
 ### Audio format
 
-- The worker trims leading and trailing silence, normalises loudness to −16 LUFS, and encodes mono MP3 at about 48 kbps with ffmpeg. That's about 10–20 KB per line, and plays on every Chromebook.
+- The worker trims leading and trailing silence, applies the line's tempo, normalises loudness to −16 LUFS, and encodes mono MP3 at about 48 kbps with ffmpeg. That's about 10–20 KB per line, and plays on every Chromebook.
 
 ### Where audio lives and how the shell finds it
 

@@ -50,3 +50,6 @@ packages/voice/.review
 
 # Voice synth worker's Python env (uv sync)
 packages/voice/.venv
+
+# Python bytecode (packages/voice)
+__pycache__/

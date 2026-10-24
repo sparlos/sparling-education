@@ -88,7 +88,7 @@ test("the narrator voice is Kokoro af_heart", () => {
   assert.equal(voice.model, "mlx-community/Kokoro-82M-8bit");
   assert.equal(voice.voice, "af_heart");
   assert.equal(voice.langCode, "a");
-  assert.equal(voice.speed, 0.85);
+  assert.equal(voice.speed, 0.9);
 });
 
 test("first run generates every line and writes the lockfile", async () => {
@@ -100,7 +100,7 @@ test("first run generates every line and writes the lockfile", async () => {
     voice: "af_heart",
     langCode: "a",
   });
-  assert.equal(readFileSync(audio("intro"), "utf8"), "Hop to the half.@0.85");
+  assert.equal(readFileSync(audio("intro"), "utf8"), "Hop to the half.@0.9");
   const voice = loadVoice("narrator");
   assert.deepEqual(lock(), {
     version: 1,
@@ -136,7 +136,7 @@ test("a changed string regenerates only that line", async () => {
   strings = { ...strings, done: "Well done!" };
   await generate([source()], fakeWorker);
   assert.deepEqual(spoken(), ["Well done!"]);
-  assert.equal(readFileSync(audio("done"), "utf8"), "Well done!@0.85");
+  assert.equal(readFileSync(audio("done"), "utf8"), "Well done!@0.9");
 });
 
 test("a new string is generated", async () => {
@@ -240,7 +240,7 @@ test("a failed worker leaves lines stale, not wrong", async () => {
     { source: "fixture", id: "done", kind: "changed" },
   ]);
   assert.equal(existsSync(audio("done")), false);
-  assert.equal(readFileSync(audio("intro"), "utf8"), "Hop to the half.@0.85");
+  assert.equal(readFileSync(audio("intro"), "utf8"), "Hop to the half.@0.9");
 });
 
 test("the stale check's verdicts", async () => {

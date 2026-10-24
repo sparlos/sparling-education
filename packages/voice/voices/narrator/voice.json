@@ -2,6 +2,6 @@
   "model": "mlx-community/Kokoro-82M-8bit",
   "voice": "af_heart",
   "langCode": "a",
-  "speed": 0.85,
+  "speed": 0.9,
   "pronunciations": {}
 }

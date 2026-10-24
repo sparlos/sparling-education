@@ -54,15 +54,17 @@ def run_ffmpeg(ffmpeg_bin: str, filter_chain: str, audio, out: list[str]):
     return proc
 
 
-def encode(ffmpeg_bin: str, audio, out_path: Path) -> None:
-    """Measure integrated loudness, apply the exact gain to hit the target,
-    cap peaks with a limiter, and encode mono MP3.
+def encode(ffmpeg_bin: str, audio, out_path: Path, speed: float) -> None:
+    """Slow or speed up to `speed` (pitch kept), measure integrated loudness,
+    apply the exact gain to hit the target, cap peaks with a limiter, and
+    encode mono MP3.
 
     (loudnorm's own linear mode silently falls back to dynamic mode when the
     gain would exceed the true-peak limit, which left some lines at -20 LUFS.)
     """
+    tempo = f"atempo={speed:g}," if speed != 1 else ""
     measure = run_ffmpeg(
-        ffmpeg_bin, "loudnorm=print_format=json", audio, ["-f", "null", "-"]
+        ffmpeg_bin, f"{tempo}loudnorm=print_format=json", audio, ["-f", "null", "-"]
     )
     text = measure.stderr.decode(errors="replace")
     try:
@@ -71,7 +73,7 @@ def encode(ffmpeg_bin: str, audio, out_path: Path) -> None:
     except (ValueError, KeyError):
         gain = 0.0  # silent or too short to measure
     limit = 10 ** (TRUE_PEAK_DB / 20)
-    chain = f"volume={gain:.3f}dB,alimiter=limit={limit:.4f}:level=false"
+    chain = f"{tempo}volume={gain:.3f}dB,alimiter=limit={limit:.4f}:level=false"
     tmp = out_path.with_name(f".{out_path.name}.part")
     run_ffmpeg(
         ffmpeg_bin, chain, audio,
@@ -120,10 +122,14 @@ def main() -> None:
             mx.random.seed(0)
             chunks = [
                 np.asarray(r.audio, dtype="float32").reshape(-1)
+                # Always speak at the model's natural speed and slow it down
+                # in ffmpeg instead: Kokoro's own speed below 1 adds a short
+                # "a-" before lines that start with an unvoiced sound
+                # ("three fourths", "Too short.").
                 for r in model.generate(
                     text=line["text"],
                     voice=voice["voice"],
-                    speed=line["speed"],
+                    speed=1.0,
                     lang_code=voice["langCode"],
                 )
             ]
@@ -132,7 +138,7 @@ def main() -> None:
             audio = trim_silence(np.concatenate(chunks))
             out = Path(line["outPath"])
             out.parent.mkdir(parents=True, exist_ok=True)
-            encode(ffmpeg_bin, audio, out)
+            encode(ffmpeg_bin, audio, out, line["speed"])
         except SystemExit:
             raise
         except Exception as e:  # noqa: BLE001

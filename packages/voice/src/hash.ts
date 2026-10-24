@@ -10,11 +10,11 @@ export interface VoiceSettings {
 }
 
 /**
- * Covers everything the worker does after synthesis: silence trim, loudness
- * target, MP3 bitrate. It's hashed into every line, so bump it whenever
+ * Covers everything the worker does after synthesis: silence trim, ffmpeg
+ * time-stretch, loudness target, MP3 bitrate. It's hashed into every line, so bump it whenever
  * synth/cli.py changes any of those and every line is marked stale.
  */
-export const AUDIO_FORMAT = "trim54-lufs-16-mp3-48k-mono-v1";
+export const AUDIO_FORMAT = "trim54-atempo-lufs-16-mp3-48k-mono-v2";
 
 const K = new Uint32Array([
   0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1,

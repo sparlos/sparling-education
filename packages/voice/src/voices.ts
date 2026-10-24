@@ -6,7 +6,10 @@ import type { VoiceSettings } from "./hash.ts";
 
 export interface Voice extends VoiceSettings {
   name: string;
-  /** Used for lines with no speed override. */
+  /**
+   * Tempo for lines with no speed override. The worker applies it with
+   * ffmpeg's time-stretch, not Kokoro's own speed (see synth/cli.py).
+   */
   speed: number;
   /** Respellings or inline phonemes, applied only to the text sent to the model. */
   pronunciations: Record<string, string>;
