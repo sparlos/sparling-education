@@ -22,3 +22,17 @@ Default five-role vocabulary (`needs-triage`, `needs-info`, `ready-for-agent`, `
 ### Domain docs
 
 Multi-context: root `GLOSSARY-MAP.md` points to per-workspace `GLOSSARY.md` files under `apps/*` and `packages/*`. See `docs/agents/domain.md`.
+
+## Running anything in the sandbox
+
+Agents always run in a Linux (arm64) sandbox with the repo mounted from the founder's Mac. `node_modules` is the Mac's, so anything with a native binary (Vite, Vitest, Biome, rolldown, esbuild, lightningcss) fails here, e.g. `Cannot find native binding` or the tour dying with `kill ESRCH` when its dev server can't start.
+
+- **Never run `pnpm install` in the repo itself:** it would swap the Mac's native binaries for Linux ones. Ask the founder to run it on the host when dependencies change.
+- **Edit in the repo, run in a scratch copy.** Sync the source into the scratchpad without `node_modules`, install there once, and run tests, type checks, Biome, `pnpm tour` and `pnpm mutate` in the copy:
+
+  ```bash
+  rsync -a --delete --exclude node_modules --exclude .git --exclude .turbo --exclude dist ./ <scratchpad>/repo/
+  (cd <scratchpad>/repo && pnpm install --frozen-lockfile --store-dir <scratchpad>/store)
+  ```
+
+  Re-run the rsync after each edit; the excludes keep the copy's own `node_modules` from being deleted. If dependencies changed, install without `--frozen-lockfile` and copy back only `pnpm-lock.yaml`; never copy anything else back.

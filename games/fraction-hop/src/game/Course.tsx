@@ -2,7 +2,13 @@
 // goal once it's found or passed, and the hopper.
 import type { AvatarExpression } from "@repo/game-contract";
 import { palette } from "@repo/tokens";
-import type { ComponentType, CSSProperties } from "react";
+import {
+  type ComponentType,
+  type CSSProperties,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import type { Course as CourseData, Plan, RunEnd } from "../rules/course.ts";
 import { Art, arcStroke } from "./art.tsx";
 import { SvgFrac } from "./Frac.tsx";
@@ -18,10 +24,12 @@ export interface Hopper {
 
 export const home: Hopper = { at: 0, flight: null, sunk: false };
 
-const VW = 1000;
 const VH = 340;
+/** The drawing's width when its box can't be measured, and its narrowest. */
+const minVW = 1000;
+/** Its widest, so ticks don't stretch on a very wide screen. */
+const maxVW = 1700;
 const left = 56;
-const right = VW - 24;
 /** The stones' top, where the hopper stands. */
 const groundY = 196;
 const waterY = 206;
@@ -49,9 +57,34 @@ export interface CourseProps {
   label: string;
 }
 
+/**
+ * The drawing's width in viewBox units, matched to its box's shape so the
+ * course fills the width it's given instead of sitting in side margins.
+ */
+function useViewWidth() {
+  const ref = useRef<SVGSVGElement>(null);
+  const [width, setWidth] = useState(minVW);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const fit = () => {
+      const { width: w, height: h } = el.getBoundingClientRect();
+      if (w > 0 && h > 0)
+        setWidth(Math.round(Math.min(maxVW, Math.max(minVW, (VH * w) / h))));
+    };
+    fit();
+    const observer = new ResizeObserver(fit);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+  return [ref, width] as const;
+}
+
 export function Course(props: CourseProps) {
   const { course, hopper, result } = props;
   const { unit, end } = course;
+  const [svgRef, VW] = useViewWidth();
+  const right = VW - 24;
   // Half a whole of water past the end catches the longest overshoot.
   const span = end + unit / 2;
   const tick = (right - left) / span;
@@ -88,6 +121,7 @@ export function Course(props: CourseProps) {
 
   return (
     <svg
+      ref={svgRef}
       className={styles.course}
       viewBox={`0 0 ${VW} ${VH}`}
       preserveAspectRatio="xMidYMid meet"

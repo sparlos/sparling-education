@@ -19,7 +19,7 @@ Done when you can state the game's concept and grade range. If the human hasn't 
 
 Open `packages/curriculum/reference/<edition>/index.md`, find the strand files for the grade range, and read them in full: the expectations, then their key concepts, examples and sample tasks. The sample tasks are the richest source of mechanics and **misconceptions**.
 
-The reference layer is the only source for codes and wording. If the subject or edition you need isn't there, stop and ask the human to import it (`pnpm import-dcp`, see the README), naming the curriculum and grades.
+The reference layer is the only source for codes and wording. If the subject or edition you need isn't there, stop and run `add-curriculum` with the human, naming the curriculum and grades.
 
 Then check what existing games already evidence: search `games/*/SPEC.md` for each candidate expectation ID and read the Mechanic and Tiers sections of every game that uses one. Overlap is fine when the mechanic differs; raise it with the human while grilling, especially the same expectation with the same kind of task.
 
@@ -74,7 +74,7 @@ Done when the tests pass and the spec is consistent:
 
 ## 6. Get approval
 
-Walk the human through the spec, revise until they approve it, then set `Status: approved`. Ask them to check each expectation ID against the DCP. A game is built only from an approved spec.
+Walk the human through the spec, revise until they approve it, then set `Status: approved`. Ask them to check each expectation ID against the DCP. A game is built only from an approved spec, with `build-game`.
 
 ## 7. Retro
 

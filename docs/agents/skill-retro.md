@@ -1,12 +1,14 @@
 # Skill retro
 
-The last step of every Kindling game skill (`design-game`, `build-game`, `review-game`, `add-curriculum`). The skill improves itself from each run, so the next run needs less back-and-forth with the human.
+The last step of every Kindling game skill (`design-game`, `build-game`, `polish-game`, `review-game`, `add-curriculum`). The skill improves itself from each run, so the next run needs less back-and-forth with the human.
 
 ## 1. List the friction
 
-Go back through the run and list every **friction point**: each time the human corrected you, answered a question the skill's files could have answered, rejected a draft, or pointed you to something you missed. Count the steps you redid and the guesses you had to back out too.
+First ask the human: "Anything I could have done better, or anything you noticed but didn't mention?" Wait for their answer before you list your own. Each thing they raise is a friction point.
 
-Done when every friction point from the run is listed, each with what happened in one line.
+Then go back through the run and list every other **friction point**: each time the human corrected you, answered a question the skill's files could have answered, rejected a draft, or pointed you to something you missed. Count the steps you redid and the guesses you had to back out too.
+
+Done when the human has answered, and every friction point from their answer and the run is listed, each with what happened in one line.
 
 ## 2. Sort each one
 

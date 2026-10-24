@@ -103,59 +103,62 @@ export function Board(props: BoardProps) {
 
       <Caption ids={props.caption} t={t} />
 
-      <section className={styles.plan} aria-label={t("ui.plan")}>
-        <span className={styles.label}>{t("ui.plan")}</span>
-        <ol className={styles.slots}>
-          {Array.from({ length: course.budget }, (_, i) => {
-            const d = task.plan[i];
-            return (
-              // biome-ignore lint/suspicious/noArrayIndexKey: slots are positions
-              <li key={i}>
-                {d === undefined ? (
-                  <span
-                    className={styles.slot}
-                    data-slot="slot"
-                    data-testid="empty-slot"
-                  />
-                ) : (
-                  <button
-                    type="button"
-                    className={`${styles.block} ${i < task.locked ? styles.locked : ""}`}
-                    onClick={() => props.onRemove(i)}
-                    disabled={busy || i < task.locked}
-                    aria-label={t(`hop.${d}` as StringId)}
-                    data-hand={`slot-${i}`}
-                    data-testid="planned"
-                    data-d={d}
-                  >
-                    <Frac n={1} d={d} />
-                  </button>
-                )}
-              </li>
-            );
-          })}
-        </ol>
-      </section>
+      {/* The plan and the hops in one panel, with play beside both. */}
+      <div className={styles.deck}>
+        <section className={styles.plan} aria-label={t("ui.plan")}>
+          <span className={styles.label}>{t("ui.plan")}</span>
+          <ol className={styles.slots}>
+            {Array.from({ length: course.budget }, (_, i) => {
+              const d = task.plan[i];
+              return (
+                // biome-ignore lint/suspicious/noArrayIndexKey: slots are positions
+                <li key={i}>
+                  {d === undefined ? (
+                    <span
+                      className={styles.slot}
+                      data-slot="slot"
+                      data-testid="empty-slot"
+                    />
+                  ) : (
+                    <button
+                      type="button"
+                      className={`${styles.block} ${i < task.locked ? styles.locked : ""}`}
+                      onClick={() => props.onRemove(i)}
+                      disabled={busy || i < task.locked}
+                      aria-label={t(`hop.${d}` as StringId)}
+                      data-hand={`slot-${i}`}
+                      data-testid="planned"
+                      data-d={d}
+                    >
+                      <Frac n={1} d={d} />
+                    </button>
+                  )}
+                </li>
+              );
+            })}
+          </ol>
+        </section>
 
-      <section className={styles.tray} aria-label={t("ui.hops")}>
-        <span className={styles.label}>{t("ui.hops")}</span>
-        <div className={styles.blocks}>
-          {course.blocks.map((b) => (
-            <button
-              key={b.d}
-              type="button"
-              className={`${styles.block} ${styles.big}`}
-              onClick={() => props.onAdd(b.d)}
-              disabled={busy}
-              aria-label={t(`hop.${b.d}` as StringId)}
-              data-hand={`block-${b.d}`}
-              data-testid="block"
-              data-d={b.d}
-            >
-              <Frac n={1} d={b.d} />
-            </button>
-          ))}
-        </div>
+        <section className={styles.tray} aria-label={t("ui.hops")}>
+          <span className={styles.label}>{t("ui.hops")}</span>
+          <div className={styles.blocks}>
+            {course.blocks.map((b) => (
+              <button
+                key={b.d}
+                type="button"
+                className={styles.block}
+                onClick={() => props.onAdd(b.d)}
+                disabled={busy}
+                aria-label={t(`hop.${b.d}` as StringId)}
+                data-hand={`block-${b.d}`}
+                data-testid="block"
+                data-d={b.d}
+              >
+                <Frac n={1} d={b.d} />
+              </button>
+            ))}
+          </div>
+        </section>
         <button
           type="button"
           className={`${styles.button} ${styles.play}`}
@@ -166,7 +169,7 @@ export function Board(props: BoardProps) {
           <ScreenArt slot="icon-play" size={32} />
           {t("ui.play")}
         </button>
-      </section>
+      </div>
 
       <GhostHand target={props.hand} tapping={props.tapping} />
     </div>

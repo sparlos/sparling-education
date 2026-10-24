@@ -88,7 +88,7 @@ Ranked: when two conflict, the higher one wins.
 - **Evidence over time.** Attempts record the game version, tier, and expectation with its curriculum edition. A change to what a tier evidences bumps the game version.
 - **Testing.** Game rules (task generation, checking an attempt, detecting misconceptions) are plain TypeScript with unit tests. A harness plays each game through simulated touch against a fake shell.
 - **Chromebook budgets.** Reference device: a 4 GB Celeron N4020 / MediaTek MT8183 Chromebook, approximated in CI with 4× CPU throttling and Fast 3G. Per game: at most 250 KB of gzipped JavaScript beyond the shell, at most 2 MB to start one tier (art and audio included), at least 30 fps while dragging (60 fps target), touch response within 100 ms. Touch targets at least 48 px, 64 px for Grades 1–2.
-- **Skills.** `design-game` produces an approved **game spec**; `build-game`, `review-game` and `add-curriculum` follow, extracted from building the first fractions game rather than written ahead of it.
+- **Skills.** `design-game` finds the fun with prototypes and produces an approved **game spec**; `build-game` builds it on the starter kit until the founder accepts it; `polish-game` is a second, visual pass; `review-game` checks a built game against these principles; `add-curriculum` imports a new subject. All were extracted from building Fraction Hop, and each ends with a retro (`docs/agents/skill-retro.md`).
 
 ## Student loop
 

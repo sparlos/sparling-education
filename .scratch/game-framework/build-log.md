@@ -354,3 +354,21 @@ Fraction Hop 73 tests, kit 22 + 3, play 127, voice 26; types clean; Biome clean.
 - Budget checks beyond touch targets (bundle size per game, throttled frame rate) aren't automated.
 - The step-4 idea of rendering an art gallery to PNG isn't in the kit.
 - `pnpm install` on the host: the lockfile is updated for `@repo/game-kit`.
+
+## Step 10: the skills (2026-10-24)
+
+`build-game`, `review-game`, `add-curriculum` and `polish-game`, in `.claude/skills/`. Each ends with the retro. Cross-references updated: `design-game` (step 2 sends a missing curriculum to `add-curriculum`, step 6 hands off to `build-game`), `docs/agents/skill-retro.md`, DESIGN.md's "Skills" line, and `spec.md`.
+
+### Decisions
+
+- **`build-game` follows Fraction Hop's order:** contract check, scaffold, rules, manifest and spec tests, screen, mutations and tour, voice, the founder plays, log, then `review-game`. It carries the founder's two rules from step 8 (voice and screen take turns with `await say`; the game starts after the shell's start tap) and every gotcha that cost a build time (host-only `pnpm install`, `userEvent` under fake timers, running Vitest from the game's folder, stale dev servers on 3003).
+- **Readings vs questions.** `build-game` makes a judgement call that changes nothing evidenced and lists it for the founder (Fraction Hop's 8 readings worked well), and stops to ask about anything that changes a tier, misconception, attempt or string. Every answer goes back into SPEC.md.
+- **`review-game` reports, it doesn't fix,** and gives every check a verdict with evidence. Anything it can't measure here (throttled frame rate, touch latency) is "unmeasured", never a pass. It runs in a fresh session where possible.
+- **`polish-game` exists now** (spec step 10 made polish its own skill), as a lean first draft. It has no build behind it yet: Fraction Hop's deferred polish is its first run, so expect its retro to rewrite it. Polish never changes what a game teaches or records: those go back to the spec.
+- **`add-curriculum` fetches once with `curl` into the scratchpad, then always imports with `--from`.** The script itself fetches and parses in one go, so a parse failure on a new subject's shape would otherwise cost a second request. The skill also flags that `parseExpectationId` only takes `[a-z]+-\d{4}` editions and single-digit grades, so secondary grades or a name like `science-and-technology-2022` need the pattern changed first. It creates an empty `src/<edition>.ts` wired into `index.ts`, so `design-game` only adds entries.
+- **All four are model-invoked,** like `design-game`, so one skill can hand off to the next (`build-game` → `review-game`, `design-game` → `add-curriculum`).
+
+### Left open
+
+- Not tested yet: step 11 (the second MVP game) is the first real run of `build-game` and `review-game`. `add-curriculum` and `polish-game` run when first needed.
+- `.scratch/playtest-notes/fraction-hop.md` (guided becomes "I added the first hop for you", dragging and reordering blocks) is new founder feedback for Fraction Hop. The guided change is a spec change; dragging may be polish. Not acted on here.
