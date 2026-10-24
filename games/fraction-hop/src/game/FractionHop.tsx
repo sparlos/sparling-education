@@ -1,11 +1,12 @@
 // The game: the tutorial, then six tasks. The rules live in ../rules; this
 // file wires them to taps, the run's animation, the voice and the shell.
 import type { AvatarExpression, GameProps } from "@repo/game-contract";
+import { seeded } from "@repo/game-kit/random";
+import { useTimers } from "@repo/game-kit/timers";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { type Manifest, manifest } from "../manifest.ts";
 import { type Run, type RunEnd, runPlan } from "../rules/course.ts";
 import { generatePlay, tasksPerPlay } from "../rules/generate.ts";
-import { seeded } from "../rules/random.ts";
 import {
   addBlock,
   attemptFor,
@@ -71,19 +72,7 @@ export function FractionHop(props: GameProps<Manifest>) {
 
   // Every timer, cleared together on skip, on a new task, and on unmount.
   // A pause cut short this way never resumes, which ends whatever awaited it.
-  const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
-  const later = useCallback((ms: number, fn: () => void) => {
-    timers.current.push(setTimeout(fn, ms));
-  }, []);
-  const pause = useCallback(
-    (ms: number) => new Promise<void>((resolve) => later(ms, resolve)),
-    [later],
-  );
-  const clearTimers = useCallback(() => {
-    for (const id of timers.current) clearTimeout(id);
-    timers.current = [];
-  }, []);
-  useEffect(() => clearTimers, [clearTimers]);
+  const { later, pause, clear: clearTimers } = useTimers();
 
   const commit = useCallback((next: TaskState) => {
     current.current = next;

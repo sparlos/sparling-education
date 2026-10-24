@@ -1,17 +1,8 @@
 // Art slots (SPEC.md's Art section). Each slot draws placeholder SVG in a
 // fixed frame with an anchor point. Real art registered under the same slot
 // ID, with the same frame and anchor, replaces it without code changes.
+import { type Slot, SlotArt, SlotImage } from "@repo/game-kit/art";
 import { palette } from "@repo/tokens";
-import type { ReactNode } from "react";
-
-export interface Slot {
-  /** The frame, in its own units. */
-  width: number;
-  height: number;
-  /** The point placed at the slot's position, in frame units. */
-  anchor: { x: number; y: number };
-  draw(): ReactNode;
-}
 
 const ink = palette.ink[9];
 
@@ -119,14 +110,15 @@ export function Art({
   scale?: number;
   scaleX?: number;
 }) {
-  const art: Slot = courseArt[slot];
   return (
-    <g
-      data-slot={slot}
-      transform={`translate(${x} ${y}) scale(${scaleX} ${scale}) translate(${-art.anchor.x} ${-art.anchor.y})`}
-    >
-      {art.draw()}
-    </g>
+    <SlotArt
+      id={slot}
+      slot={courseArt[slot]}
+      x={x}
+      y={y}
+      scale={scale}
+      scaleX={scaleX}
+    />
   );
 }
 
@@ -200,16 +192,5 @@ export const screenArt = {
 export type ScreenSlot = keyof typeof screenArt;
 
 export function ScreenArt({ slot, size }: { slot: ScreenSlot; size: number }) {
-  const art: Slot = screenArt[slot];
-  return (
-    <svg
-      data-slot={slot}
-      width={size}
-      height={(size * art.height) / art.width}
-      viewBox={`0 0 ${art.width} ${art.height}`}
-      aria-hidden="true"
-    >
-      {art.draw()}
-    </svg>
-  );
+  return <SlotImage id={slot} slot={screenArt[slot]} size={size} />;
 }

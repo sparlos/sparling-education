@@ -1,11 +1,12 @@
-// Fraction Hop through the game contract, in a fake shell: what a student can
-// tap, what's said and shown, and which attempts come out.
-import type { GameProps } from "@repo/game-contract";
-import { act, fireEvent, render, screen, within } from "@testing-library/react";
+// Fraction Hop through the game contract, in the kit's fake shell: what a
+// student can tap, what's said and shown, and which attempts come out. The
+// fake shell also fails any test in which the game breaks the contract.
+import { seeded } from "@repo/game-kit/random";
+import { heldVoice, mountGame, wait } from "@repo/game-kit/testing";
+import { screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { runMs } from "./game/FractionHop.tsx";
 import game from "./index.tsx";
-import type { Manifest } from "./manifest.ts";
 import {
   type Course,
   type Plan,
@@ -14,8 +15,6 @@ import {
 } from "./rules/course.ts";
 import { generatePlay, type TierId } from "./rules/generate.ts";
 import { verdict } from "./rules/judge.ts";
-import { seeded } from "./rules/random.ts";
-import { type StringId, strings } from "./strings.ts";
 
 const seedFrom = 0.5;
 
@@ -24,46 +23,12 @@ interface User {
 }
 
 /** By default every line is said at once. */
-function setUp(
-  tier: TierId,
-  voice: () => Promise<void> = () => Promise.resolve(),
-) {
-  vi.spyOn(Math, "random").mockReturnValue(seedFrom);
+function setUp(tier: TierId, voice?: () => Promise<void>) {
   const courses = generatePlay(tier, seeded(Math.floor(seedFrom * 2 ** 31)));
-  const said: StringId[][] = [];
-  const props: GameProps<Manifest> = {
-    tier,
-    locale: "en-CA",
-    Avatar: ({ expression }) => (
-      <span data-testid="avatar" data-expression={expression} />
-    ),
-    t: (id) => strings[id] ?? id,
-    say: (...ids) => {
-      said.push(ids);
-      return voice();
-    },
-    onAttempt: vi.fn(),
-    onProgress: vi.fn(),
-    onFinish: vi.fn(),
-  };
-  render(<game.Component {...props} />);
-  vi.mocked(Math.random).mockRestore();
-  // Taps are clicks: userEvent's waits stall under Vitest's fake timers.
-  const user: User = {
-    click: async (el) => {
-      await act(async () => {
-        fireEvent.click(el);
-      });
-    },
-  };
-  return { courses, said, props, user, lastSaid: () => said.at(-1) ?? [] };
+  const shell = mountGame(game, { tier, voice, random: seedFrom });
+  const user: User = { click: shell.tap };
+  return { courses, shell, user, said: shell.said, lastSaid: shell.lastSaid };
 }
-
-/** Lets time pass, settling the voice's promises along the way. */
-const wait = (ms: number) =>
-  act(async () => {
-    await vi.advanceTimersByTimeAsync(ms);
-  });
 
 async function skipTutorial(user: User) {
   await user.click(screen.getByRole("button", { name: "Skip" }));
@@ -142,7 +107,7 @@ afterEach(() => {
 
 describe("the tutorial", () => {
   it("acts a course out, then starts task 1, recording nothing", async () => {
-    const { props, said, courses } = setUp("g3");
+    const { shell, said, courses } = setUp("g3");
     expect(screen.getByRole("button", { name: "Skip" })).toBeInTheDocument();
     // The student can't tap while it plays.
     expect(screen.getByRole("button", { name: "Play" })).toBeDisabled();
@@ -165,18 +130,12 @@ describe("the tutorial", () => {
       `amount.${first.shown.n}-${first.shown.d}`,
       "task.make-a-plan",
     ]);
-    expect(props.onAttempt).not.toHaveBeenCalled();
+    expect(shell.attempts()).toEqual([]);
   });
 
   it("takes turns: each line is said before the hand acts on it", async () => {
-    let finishLine = () => {};
-    const { said } = setUp(
-      "g3",
-      () =>
-        new Promise<void>((resolve) => {
-          finishLine = resolve;
-        }),
-    );
+    const { voice, finishLine } = heldVoice();
+    const { said } = setUp("g3", voice);
     const planned = () => screen.queryAllByTestId("planned");
     await wait(10_000);
     expect(said.map(([id]) => id)).toEqual(["tutorial.welcome"]);
@@ -235,7 +194,7 @@ describe("the tutorial", () => {
 
 describe.each(["g3", "g4", "g5"] as const)("a %s play", (tier) => {
   it("records one attempt per solved task, then finishes", async () => {
-    const { user, props, courses, lastSaid } = setUp(tier);
+    const { user, shell, courses, lastSaid } = setUp(tier);
     await skipTutorial(user);
     for (const course of courses) {
       expect(screen.getAllByTestId("empty-slot")).toHaveLength(course.budget);
@@ -247,7 +206,7 @@ describe.each(["g3", "g4", "g5"] as const)("a %s play", (tier) => {
       g4: "math-2020.g4.B1.6",
       g5: "math-2020.g5.B1.3",
     }[tier];
-    expect(vi.mocked(props.onAttempt).mock.calls.map(([a]) => a)).toEqual(
+    expect(shell.attempts()).toEqual(
       courses.map((_, i) => ({
         task: `task-${i + 1}`,
         expectation,
@@ -256,14 +215,14 @@ describe.each(["g3", "g4", "g5"] as const)("a %s play", (tier) => {
     );
     expect(lastSaid()).toEqual(["run.solved", "play.done"]);
     // Progress: none done at the start, then one more per solved task.
-    expect(vi.mocked(props.onProgress).mock.calls.map(([p]) => p)).toEqual(
+    expect(shell.progress()).toEqual(
       [0, 1, 2, 3, 4, 5, 6].map((done) => ({ done, total: 6 })),
     );
     expect(screen.getByTestId("avatar")).toHaveAttribute(
       "data-expression",
       "cheering",
     );
-    expect(props.onFinish).toHaveBeenCalledTimes(1);
+    expect(shell.finished()).toBe(1);
   });
 });
 
@@ -348,14 +307,8 @@ describe("a task", () => {
   });
 
   it("offers the first hint: the result, then the hand glides to the glowing button and fades", async () => {
-    let finishLine = () => {};
-    const { user, courses, said } = setUp(
-      "g3",
-      () =>
-        new Promise<void>((resolve) => {
-          finishLine = resolve;
-        }),
-    );
+    const { voice, finishLine } = heldVoice();
+    const { user, courses, said } = setUp("g3", voice);
     await skipTutorial(user);
     finishLine();
     const course = courses[0] as Course;
@@ -390,7 +343,7 @@ describe("a task", () => {
   });
 
   it("climbs to hints and guided, which places hops and is recorded", async () => {
-    const { user, props, courses, lastSaid, said } = setUp("g3");
+    const { user, shell, courses, lastSaid, said } = setUp("g3");
     await skipTutorial(user);
     const course = courses[0] as Course;
     const plans = misses(course, 4);
@@ -434,7 +387,7 @@ describe("a task", () => {
     );
     await enter(user, route);
     await play(user);
-    expect(props.onAttempt).toHaveBeenCalledWith(
+    expect(shell.attempts().at(-1)).toEqual(
       expect.objectContaining({ task: "task-1", assisted: "guided" }),
     );
   });

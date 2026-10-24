@@ -1,0 +1,63 @@
+{
+  "name": "@repo/game-kit",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./art": "./src/art.tsx",
+    "./timers": "./src/timers.ts",
+    "./spec": "./src/spec.ts",
+    "./testing": "./src/testing/fake-shell.tsx",
+    "./testing/setup": "./src/testing/setup.ts",
+    "./tour": "./src/tour.ts",
+    "./mutations": "./src/mutations.ts",
+    "./random": "./src/random.ts"
+  },
+  "scripts": {
+    "new-game": "node scripts/new-game.ts",
+    "tour": "node scripts/tour.ts",
+    "mutate": "node scripts/mutate.ts",
+    "check-types": "tsc --noEmit",
+    "test": "vitest run && node --test 'scripts/**/*.test.ts'"
+  },
+  "dependencies": {
+    "@repo/game-contract": "workspace:*",
+    "@repo/tokens": "workspace:*"
+  },
+  "peerDependencies": {
+    "@testing-library/react": "16.3.3",
+    "playwright-core": "1.59.1",
+    "react": "19.2.8",
+    "vitest": "5.0.5"
+  },
+  "peerDependenciesMeta": {
+    "@testing-library/react": {
+      "optional": true
+    },
+    "playwright-core": {
+      "optional": true
+    },
+    "vitest": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@repo/avatar": "workspace:*",
+    "@repo/curriculum": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "@testing-library/dom": "10.4.2",
+    "@testing-library/jest-dom": "7.0.1",
+    "@testing-library/react": "16.3.3",
+    "@types/node": "24.19.2",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.5",
+    "@vitejs/plugin-react": "6.1.2",
+    "jsdom": "30.1.3",
+    "playwright-core": "1.59.1",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "typescript": "7.0.2",
+    "vite": "8.3.4",
+    "vitest": "5.0.5"
+  }
+}

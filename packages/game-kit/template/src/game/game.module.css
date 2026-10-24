@@ -1,0 +1,101 @@
+/* The game's screen. It always fits the game area with no scrolling. The
+   shell's controls sit on their own rail, outside the game area. */
+
+.board {
+  height: 100%;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 16px;
+  padding: 16px;
+  box-sizing: border-box;
+  font-family: var(--k-font-heading-stack);
+  color: var(--k-ink);
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.caption {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.cards {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 48px;
+}
+
+.card {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  min-width: 200px;
+  min-height: 160px;
+  padding: 16px;
+  border: 3px solid var(--k-border-strong);
+  border-radius: 16px;
+  background: var(--k-surface-raised);
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.card[data-marked="true"] {
+  border-color: var(--tone-edge);
+  box-shadow: 0 0 0 6px var(--tone-soft);
+}
+
+/* Disabled only while the game is talking: it keeps its normal look. */
+.card:disabled {
+  cursor: default;
+}
+
+.frac {
+  display: inline-grid;
+  justify-items: center;
+  font-size: 40px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.frac > span:first-child {
+  border-bottom: 4px solid currentColor;
+  padding: 0 8px 4px;
+}
+
+.frac > span:last-child {
+  padding-top: 4px;
+}
+
+.bar {
+  width: 160px;
+}
+
+.star {
+  position: absolute;
+  top: -20px;
+  right: -20px;
+  animation: pop var(--k-duration-slow) var(--k-ease-springy);
+}
+
+@keyframes pop {
+  from {
+    transform: scale(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .star {
+    animation: none;
+  }
+}

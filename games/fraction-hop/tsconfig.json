@@ -9,6 +9,6 @@
     "verbatimModuleSyntax": true,
     "types": ["node", "vite/client", "@testing-library/jest-dom/vitest"]
   },
-  "include": ["src", "vitest.config.ts"],
+  "include": ["src", "tour.ts", "mutations.ts", "vitest.config.ts"],
   "exclude": ["node_modules"]
 }

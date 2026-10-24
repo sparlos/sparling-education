@@ -1,6 +1,12 @@
 // @vitest-environment node
 // Reads SPEC.md and fails when the code drifts from it, or the spec from the code.
-import { readFileSync } from "node:fs";
+import {
+  codes,
+  describeManifestSpec,
+  readSpec,
+  stringRows,
+  subsections,
+} from "@repo/game-kit/spec";
 import { describe, expect, it } from "vitest";
 import { manifest } from "./manifest.ts";
 import { distractors, g5Sets, tasksPerPlay } from "./rules/generate.ts";
@@ -12,50 +18,16 @@ import {
 } from "./rules/task.ts";
 import { denominators, fixedStrings, strings } from "./strings.ts";
 
-const spec = readFileSync(new URL("../SPEC.md", import.meta.url), "utf8");
+const spec = readSpec(new URL("../SPEC.md", import.meta.url));
+const section = spec.section;
 
-/** The text of a `## heading` section, up to the next one. */
-function section(heading: string): string {
-  const start = spec.indexOf(`\n## ${heading}\n`);
-  if (start < 0) throw new Error(`SPEC.md has no "${heading}" section`);
-  const rest = spec.slice(start + heading.length + 5);
-  const end = rest.indexOf("\n## ");
-  return end < 0 ? rest : rest.slice(0, end);
-}
+// Slug, version, renderer, avatar use, tiers and misconceptions.
+describeManifestSpec(spec, manifest);
 
-describe("the manifest matches SPEC.md", () => {
-  it("has its slug, version, renderer and avatar use", () => {
-    expect(spec).toContain(`Slug: ${manifest.slug} `);
-    expect(spec).toContain(`Version: ${manifest.version}\n`);
-    expect(spec).toContain(`Renderer: ${manifest.renderer}\n`);
-    expect(spec).toContain(`Avatar: ${manifest.avatar}\n`);
-  });
-
-  it("has each tier's grade and expectations", () => {
-    const tiers = section("Tiers");
-    const found = [
-      ...tiers.matchAll(/### (g\d): Grade (\d)\n\n- Expectations: (.+)/g),
-    ];
-    expect(found.map(([, id]) => id)).toEqual(Object.keys(manifest.tiers));
-    for (const [, id, grade, list] of found) {
-      const tier = manifest.tiers[id as keyof typeof manifest.tiers];
-      expect(tier.grade).toBe(Number(grade));
-      expect(codes(list ?? "")).toEqual(tier.expectations);
-    }
-  });
-
-  it("has each misconception, the expectations it belongs to, and its threshold", () => {
-    const text = section("Misconceptions");
-    const found = [
-      ...text.matchAll(/### `([a-z-]+)`\n([\s\S]*?)(?=\n### |$)/g),
-    ];
-    expect(found.map(([, id]) => id)).toEqual(
-      Object.keys(manifest.misconceptions),
-    );
-    for (const [, id, body = ""] of found) {
-      const key = id as keyof typeof manifest.misconceptions;
-      const line = /- Expectations: (.+)/.exec(body)?.[1] ?? "";
-      expect(codes(line)).toEqual(manifest.misconceptions[key].expectations);
+describe("the misconceptions match SPEC.md", () => {
+  it("has each one's threshold, and is spotted only at its tiers", () => {
+    for (const { heading, body } of subsections(section("Misconceptions"))) {
+      const key = codes(heading)[0] as keyof typeof manifest.misconceptions;
       const threshold = /Recorded after \*\*(\d+)\*\* match/.exec(body)?.[1];
       expect(Number(threshold)).toBe(thresholds[key]);
       // Spotted only at the tiers whose expectations it belongs to.
@@ -71,12 +43,11 @@ describe("the manifest matches SPEC.md", () => {
       expect(misconceptionTiers[key]).toEqual(tiers);
     }
   });
+});
 
+describe("the strings match SPEC.md", () => {
   it("has every fixed string word for word", () => {
-    const rows = [
-      ...section("Strings").matchAll(/^\| `([a-z0-9.-]+)` \| (.+) \|$/gm),
-    ];
-    expect(Object.fromEntries(rows.map(([, id, text]) => [id, text]))).toEqual({
+    expect(stringRows(spec)).toEqual({
       ...fixedStrings,
       "hop.1": strings["hop.1"],
     });
@@ -150,6 +121,3 @@ describe("the rules match SPEC.md", () => {
     expect(effort).toContain(`After **${missesBeforeGuided} misses** in all`);
   });
 });
-
-const codes = (list: string) =>
-  [...list.matchAll(/`([^`]+)`/g)].map(([, code]) => code);

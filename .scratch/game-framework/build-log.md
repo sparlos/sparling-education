@@ -322,3 +322,35 @@ SPEC.md is updated for 1, 2, 3 and 6.
 - **A separate line for the second hint offer:** `hint.ready-again`, "Want another hint? Tap the hint button again." It gets the same hand nudge.
 - **The tutorial opens with `tutorial.welcome`,** "Welcome to Fraction Hop!"
 - `pnpm voice` is needed for the 2 new lines (and to delete the orphaned `run.same-plan` recording); `check-voice` fails until then.
+
+### Readings confirmed (2026-10-24)
+
+The founder accepted every remaining reading above as built (distractor units only from task 3, Grade 5 warm-ups past one whole, at least 2 hops per course, each hint tap goes up a level, guided's labels and locked hops, results stay until the next run, long Grade 3–4 routes). Reading 6 was superseded by the founder's call that only hint 1, guided or finding the goal marks it. **Polish is deferred** to its own session, run as a separate visual-polish skill with a clean context (this settles step 10's open question).
+
+## Step 9: starter kit (2026-10-24)
+
+`packages/game-kit` (`@repo/game-kit`). Fraction Hop now runs on it. See its README.
+
+### Decisions
+
+- **The template is a working game, checked in the kit** (`template/`, "tap the bigger unit fraction"), with an example SPEC.md, so the kit's own tests and type check keep it from rotting. It lives under `packages/`, not `games/`, so `@repo/voice` doesn't treat it as a game. `pnpm new-game <slug>` refuses without an approved `games/<slug>/SPEC.md`, copies the template beside it, and registers the game in `apps/play` with `virtual:voice-lines/<slug>`. That's the whole voice wiring; generation stays in `packages/voice`.
+- **The fake shell checks the contract on every call** (expectation in the tier, misconception belongs to it, known strings, progress only if the manifest sets it and never backwards, one finish), and the setup file fails the test on any breach.
+- **Spec tests:** `describeManifestSpec` covers the header, tiers and misconceptions; games add their own numbers and string families.
+- **Tour:** `pnpm tour <slug>` runs `games/<slug>/tour.ts`, starts a dev server if none answers, and finds Chrome itself. **Mutations:** `pnpm mutate <slug>` reads `games/<slug>/mutations.ts`; `survives` records known-harmless survivors.
+- **Contract type test:** `packages/game-contract/src/contract.typetest.tsx`, run by `check-types`. Loosening `t`, `expectation`, `misconception`, `tier` or `renderer` to `string` each fails it.
+- Moved into the kit from Fraction Hop: art-slot drawing, `useTimers`, seeded random, the test setup. Dropped Fraction Hop's unused `@testing-library/user-event`.
+
+### Results (scratch copy)
+
+Fraction Hop 73 tests, kit 22 + 3, play 127, voice 26; types clean; Biome clean. Fraction Hop's 26 mutations: 24 caught, 2 marked survives (redundant code: `misses > hintSince` is always true after a miss, and the skip's timer clear). A scaffolded game passed its tests, mutations (6/6) and tour. Fraction Hop's tour is clean at G3–5, both sizes.
+
+### Gotchas
+
+- **Two stale dev servers from step 8's scratch session still hold port 3003** and serve that old copy. The tour now says so ("doesn't host <slug>") instead of timing out. Pass `--url` with another port, or kill them.
+- **Biome can reflow a `@ts-expect-error` onto a multi-line call**, so it no longer sits on the line with the error. Put the directive inside the object, on the property's line.
+
+### Left open
+
+- Budget checks beyond touch targets (bundle size per game, throttled frame rate) aren't automated.
+- The step-4 idea of rendering an art gallery to PNG isn't in the kit.
+- `pnpm install` on the host: the lockfile is updated for `@repo/game-kit`.

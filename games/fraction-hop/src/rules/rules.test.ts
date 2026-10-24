@@ -1,4 +1,6 @@
 // @vitest-environment node
+
+import { seeded } from "@repo/game-kit/random";
 import { describe, expect, it } from "vitest";
 import { strings } from "../strings.ts";
 import {
@@ -22,7 +24,6 @@ import {
   splashKey,
   verdict,
 } from "./judge.ts";
-import { seeded } from "./random.ts";
 import {
   addBlock,
   attemptFor,

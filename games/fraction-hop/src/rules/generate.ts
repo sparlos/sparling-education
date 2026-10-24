@@ -1,4 +1,6 @@
 // Makes one play's courses for a tier, following SPEC.md's Tiers section.
+
+import { int, pick, type Random } from "@repo/game-kit/random";
 import {
   type Block,
   type Course,
@@ -8,7 +10,6 @@ import {
   shortestRoute,
   walkableBySmallest,
 } from "./course.ts";
-import { int, pick, type Random } from "./random.ts";
 
 export type TierId = "g3" | "g4" | "g5";
 
