@@ -240,3 +240,85 @@ A failed run is not a failed attempt. Playing Hop Code, the founder built routes
 ### Approved, and the retro (2026-10-24)
 
 The founder approved `games/fraction-hop/SPEC.md`. Retro edits accepted and applied: `design-game` step 3 (claim only expectations each task evidences; the browser check covers fitting 1366 × 650), step 4 (separate exploring from mistakes; `assisted` values are options, not a ladder), and the lab README (no points or coins, the same representation at every grade, fit the screen). Judgement calls left out of the skill: "goal" over "flag", no combos, the archive tab.
+
+## Step 8: Fraction Hop (built to playable, 2026-10-24)
+
+`games/fraction-hop` (`@games/fraction-hop`), registered in `apps/play/src/games.ts` with its voice line map, and playable at `/play/fraction-hop`. Not yet played by the founder.
+
+### What's where
+
+- `src/rules/`: plain TypeScript, no React. `course.ts` (positions in ticks, `runPlan`, `shortestRoute`), `generate.ts` (six courses per play, per tier), `judge.ts` (probe, rerun, miss or solve, and the three misconception patterns), `task.ts` (one task: plan, runs, the help ladder, the attempt), `random.ts` (seeded).
+- `src/strings.ts` and `src/manifest.ts`: 191 strings (32 fixed, 9 hops, 150 amounts). Both are plain `.ts` with `.ts` imports, because `@repo/voice` loads the manifest with Node.
+- `src/game/`: `FractionHop.tsx` (wires the rules to taps, timers, voice and the shell), `Board.tsx` (the screen), `Course.tsx` (the SVG course and hopper), `art.tsx` (the art slots), `tutorial.ts` (its course and script).
+- Tests: `rules/rules.test.ts` (runs, verdicts, every misconception, the ladder, and generator invariants over 150 plays per tier), `spec.test.ts` (reads SPEC.md), `game.test.tsx` (fake shell, all three tiers played through). 67 tests.
+
+### Decisions
+
+- **Positions are whole ticks** (one tick = 1/unit of a whole, the unit being the largest denominator on offer), so every distance is exact and a plan is just a list of denominators (`[8, 8, 4]`).
+- **A run continues past a goal landed on mid-plan.** Only the last hop on the goal solves ("the last hop lands exactly on the goal"), so ⅛ × 4 for ³⁄₈ is past the goal.
+- **The course draws half a whole of water past its end**, so an overshoot by a whole hop from just before the goal splashes where it really lands. The number line still ends at the course's end, and a splash speaks no amount, so every spoken amount stays within 3 wholes.
+- **The voice says one instruction per moment.** Each run's result is one `say(...)`, with `hint.ready`, `guided.*` and the guided count appended, because a new `say` cuts off the last (step 6's lesson).
+- **Captions show amounts as stacked notation** and add a full stop after an amount when a sentence follows, as Plank Bridge did.
+- **The run is timed with `setTimeout`, drawn with CSS**: the hopper's x moves linearly while an inner group arcs (keyframes), so it traces a parabola with height proportional to the hop's length, and it squashes on takeoff. Timers make the jsdom tests deterministic under fake timers. Reduced motion turns off the arc, squash and glow.
+- **Layout is a grid whose course row takes what's left**, with the SVG at `meet`. At 1366 × 650 the course is about 1246 × 349 px, and 1246 × 279 px when a Grade 4 plan wraps to two rows of slots (budgets reach 26 in tenths).
+- **No contract change was needed.** The character API "starts minimal: the portrait at any size, with an expression", which is the existing `Avatar` prop; the hopper slot draws it in a `foreignObject`.
+- **Size:** 9 KB gzipped JS for the game's chunk, against a 250 KB budget. Shell unchanged at 87 KB. Voice lines are separate fingerprinted files, fetched only when said, so they don't count toward the 2 MB start budget.
+
+### Readings of the spec the founder should confirm
+
+Each is a judgement call made while building; none changes what's evidenced.
+
+1. **Grade 3–4 tasks 3–6 only use units that have a distractor** (fourths, sixths, eighths, tenths). The spec says "a bigger distractor where one exists". Halves, thirds and fifths have none, so `bigger-denominator-bigger` could never show on those tasks. They still appear in tasks 1–2.
+2. **Grade 5 tasks 1–2** tick in the goal's unit (the largest denominator on offer, per the Mechanic rule) and put the goal past one whole. Otherwise "not crossable with the smallest block alone" can't hold with only the goal's unit and the whole hop.
+3. **Every course needs at least 2 hops.** A single-hop course (2/4 with a ½ block) has nothing to plan.
+4. **Each hint tap goes up a level**, whether or not the button is glowing. The glow is a nudge; the button is "always available".
+5. **Guided turns the tick labels on** while it counts along the ticks, and its placed hops are locked (drawn with a double border, not removable).
+6. **Once passed, the goal stays marked** for the rest of the task.
+7. **A run's result stays in place** (the splash, or the landing fraction) until the next run. Editing the plan sends the hopper home.
+8. **Routes can be long at Grade 3–4.** For example, 19/10 with only tenths and a whole needs 10 hops. That's within the spec (goals up to 2 wholes, all tenths), but worth a look when playing.
+
+### Not built (polish, per the spec, after the founder plays)
+
+"Nice fix!" and the sparkle (the `sparkle` art and `run.nice-fix` string exist), refusing an identical rerun (`run.same-plan` exists), highlighting each plan block as its hop runs, and dragging blocks. Remembering per student whether the tutorial was seen isn't in the contract yet, so the tutorial plays every play.
+
+### Voice
+
+- **Found and fixed a bug in `@repo/voice/vite`.** For a game with no lines yet, `addWatchFile` on the missing `voice.lock.json` made Vite fail to resolve it as an import, so the game wouldn't load in dev. The plugin now only watches a lockfile that exists. After the first `pnpm voice`, restart the dev server so it picks the lockfile up.
+- **The lines aren't generated yet:** `pnpm voice` needs the founder's Mac. Until then `check-voice` (in `pnpm test`) fails with 191 new lines, and the game uses browser speech.
+- Strings follow the voice spec: whole sentences, and fragments only for the amount family. The longest instruction is guided's count (up to 30 amounts at Grade 5, "one twelfth … thirty twelfths").
+
+### Gotchas
+
+- **The working directory vanished again** (the repo folder was replaced on the host mid-session), and every Bash command failed until a restart.
+- **`userEvent` hangs under Vitest's fake timers.** Testing Library's async wrapper waits on a `setTimeout(0)`, which only gets advanced for Jest's fake timers, so every `user.click` stalls. The game tests tap with `fireEvent.click` inside `act` instead.
+- **Run Vitest from the package root.** Run from `src/`, it misses `vitest.config.ts` and fails with no jsdom. The first mutation run did this, so every mutation looked "caught".
+- **Breaking 20 rules on purpose found 2 gaps:** `numerator-not-a-count` matching a splashing plan in the goal's own unit, and Grade 5 landings spoken in the goal's unit instead of the ticks'. Both are tested now. One survivor is a redundant timer clear.
+- **The browser tour** (`playwright-core` with the sandbox's `chrome-headless-shell`, in a scratch folder) played every tier at 1366 × 650 and 1280 × 650. It checks for page scroll, a cut-off goal caption and targets under 64 px, plays a miss then a solve on every task, and checks the end screen. It found the voice-plugin bug and an overlap between the goal's fraction and its marker. The script is saved at `.scratch/game-framework/fraction-hop-tour.mjs`, to move into the starter kit (step 9).
+
+### Where the founder stepped in
+
+None during the build. The readings above are the questions to settle by playing.
+
+### Founder's first play (2026-10-24)
+
+1. **The tutorial's voice and hand ran in parallel**, so taps happened mid-sentence. Fixed timings guessed from line length can't line up with real audio. **Founder's call:** voice and actions take turns: say a line (the hand may hover on its target), then act, then the next line. **Fix:** the contract's `say` now returns a promise that settles when the instruction has been said, cut off or can't play (`apps/play/src/play/voice.ts`: recordings end, browser speech's `end` event, or a timeout of 2 s + 120 ms per character because some browsers never fire `end`). The tutorial is now an awaited cue list (`game/tutorial.ts`), and each line holds at least 1.5 s with no sound. Moving between tasks waits for "You found the goal!" too. **Avoidable?** Yes: the step-5 log already said "timing is fixed, not tied to speech", and nobody fixed it. Now in `spec.md` step 10 as a rule for `build-game`.
+2. **No sound until the first tap.** Browsers block audio and speech before a user gesture. **Founder's call:** every game starts with a start button, in the shell. **Fix:** `PlayScreen` shows a start screen (the portrait and a play button, the `start` shell string) and mounts the game only after the tap. Howler wasn't added: after the start tap the page has sticky user activation, so plain `Audio` and speech play on every Chromebook. Its other benefit, queueing a blocked sound until the next tap, has nothing left to catch. Revisit if iOS Safari matters (it unlocks per element).
+3. **The goal was marked after any overshoot.** **Founder's call:** mark it only on purpose. It's now marked by hint 1 (`hint.labels` now says so) or guided, or when it's found. The caption still says where the goal is after an overshoot.
+4. **The hand ran off the bottom** on the plan and play buttons. It now points down from above on the lower half of the screen, turned about its fingertip.
+5. **Play looked disabled while the hand tapped it.** In the tutorial the controls stay disabled but keep their normal look, and the hand presses in when it taps.
+6. **"Stones" reads wrong:** they're land. `tutorial.goal-found` is now "No hop landed in the water, and the last one landed on the goal. Now you try!"
+
+SPEC.md is updated for 1, 2, 3 and 6.
+
+### Founder's second round (2026-10-24)
+
+- **The hint glow was too subtle, and clipped under the course.** The header now sits above the course (`z-index`), and a glowing hint button swells and sends out two staggered rings that push out and fade, over and over. With reduced motion it's a still ring.
+- **The help ladder is now 2, 3 and 4 misses** (was 2, 4 and 6; the founder found 6 too many). Hint 1 glows at 2 misses, hint 2 at 3 (after at least one miss with hint 1 on, so the two never glow together), and guided starts at 4.
+- **The ghost hand now draws the eye to the hint button.** When the glow starts, the miss's result is said first. Then, while "Want a hint? Tap the hint button." is said, the hand appears mid-screen, glides to the button, rests 2 s after the line ends, and fades by itself, so it invites a tap without demanding one. It hides at once if the hint is tapped. In a real browser with the recorded lines: the result for about 5 s, then the hand for about 4 s.
+- **The hand now fades in where it points** instead of gliding in from its last spot (or the top-left corner the first time), and fades out in place.
+- Also: the lab test expected `speak` without the new `onEnd` callback. Fixed.
+- **A progress bar** (founder's idea). It's shell-level, so every progression-based game gets the same one. A manifest sets `progress: true` and reports `onProgress({ done, total })` (both new in the contract). The shell then reserves a thin strip above the game, so no game layout can cover it: a 6 px bar in the student tone (`@repo/ui/progress`, a new Mantine `Progress` wrapper) and a muted "2/6". Screen readers get a progressbar named "Tasks done". Fraction Hop reports 0/6 at the start and one more per solved task. `shell-check` uses it too (2 tasks), and the shell test covers it. The strip costs the course about 30 px of height; the tour still fits at 1280 × 650 with a two-row plan.
+- **"Want a hint?" sometimes never came.** Running the same failing plan again was a *rerun* (the same hop splashing from the same stone), which the spec said never counts, so a stuck student could rerun forever without help. **Founder's call:** a rerun climbs the help ladder but adds no misconception match (it's no new evidence). Same plan twice now offers hint 1; again, after hint 1, offers hint 2. The planned polish item "refuse an identical rerun" contradicts this, so it's dropped along with its `run.same-plan` line.
+- **A separate line for the second hint offer:** `hint.ready-again`, "Want another hint? Tap the hint button again." It gets the same hand nudge.
+- **The tutorial opens with `tutorial.welcome`,** "Welcome to Fraction Hop!"
+- `pnpm voice` is needed for the 2 new lines (and to delete the orphaned `run.same-plan` recording); `check-voice` fails until then.

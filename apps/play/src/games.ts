@@ -40,6 +40,10 @@ export function hosted<M extends GameManifest>(
 }
 
 export const games: GameRegistry = {
+  "fraction-hop": hosted(
+    () => import("@games/fraction-hop"),
+    () => import("virtual:voice-lines/fraction-hop"),
+  ),
   // Dev only, never in production builds.
   ...(import.meta.env.DEV && {
     // A tiny game for checking the shell by hand.

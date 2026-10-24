@@ -3,6 +3,7 @@
 // fingerprinted asset import, so it is emitted with the build and the map
 // lives in the chunk of whoever imports it (a game, loaded on demand), never
 // in the shell's entry chunk.
+import { existsSync } from "node:fs";
 import type { Plugin } from "vite";
 import { currentLineFiles } from "./linemap.ts";
 import { lockPath } from "./lines.ts";
@@ -28,7 +29,11 @@ export function voiceLines({ root }: VoiceLinesOptions): Plugin {
       if (!source) {
         throw new Error(`voice-lines: no game "${slug}" under ${root}/games`);
       }
-      this.addWatchFile(lockPath(source));
+      // A game with no lines yet has no lockfile, and watching a missing
+      // file makes Vite fail to resolve it as an import. Restart the dev
+      // server after the first `pnpm voice`.
+      const lock = lockPath(source);
+      if (existsSync(lock)) this.addWatchFile(lock);
       const files = Object.entries(currentLineFiles(source));
       // ?no-inline keeps short recordings as fingerprinted files, not data URIs.
       const imports = files.map(

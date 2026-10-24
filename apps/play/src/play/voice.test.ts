@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createVoice, type VoiceOptions } from "./voice.ts";
+import { createVoice, speechTimeoutMs, type VoiceOptions } from "./voice.ts";
 
 const text = (id: string) => `text of ${id}`;
 
@@ -137,5 +137,81 @@ describe("voice", () => {
   it("stays silent, without failing, when the device has no speech", () => {
     const voice = createVoice({ text, locale: "en-CA", speak: () => null });
     expect(() => voice.say("intro")).not.toThrow();
+  });
+
+  describe("an instruction settles", () => {
+    const settled = (promise: Promise<void>) => {
+      let done = false;
+      void promise.then(() => {
+        done = true;
+      });
+      return async () => {
+        await new Promise((r) => setTimeout(r, 0));
+        return done;
+      };
+    };
+
+    it("when its last recording ends", async () => {
+      const finish: Record<string, () => void> = {};
+      const { voice } = setUp({
+        lineUrl: (id) => id,
+        playLine: async (url) => ({
+          stop: () => {},
+          ended: new Promise<void>((resolve) => {
+            finish[url] = resolve;
+          }),
+        }),
+      });
+      const isDone = settled(voice.say("a", "b"));
+      await vi.waitFor(() => expect(finish.a).toBeDefined());
+      finish.a?.();
+      await vi.waitFor(() => expect(finish.b).toBeDefined());
+      expect(await isDone()).toBe(false);
+      finish.b?.();
+      await vi.waitFor(async () => expect(await isDone()).toBe(true));
+    });
+
+    it("when browser speech ends", async () => {
+      let end = () => {};
+      const { voice } = setUp({
+        speak: (_text, _locale, onEnd) => {
+          end = onEnd ?? end;
+          return () => {};
+        },
+      });
+      const isDone = settled(voice.say("intro"));
+      expect(await isDone()).toBe(false);
+      end();
+      expect(await isDone()).toBe(true);
+    });
+
+    it("when it's cut off by another instruction, or stopped", async () => {
+      const { voice } = setUp();
+      const first = settled(voice.say("intro"));
+      const second = settled(voice.say("step-2"));
+      expect(await first()).toBe(true);
+      expect(await second()).toBe(false);
+      voice.stop();
+      expect(await second()).toBe(true);
+    });
+
+    it("at once on a device with no speech", async () => {
+      const voice = createVoice({ text, locale: "en-CA", speak: () => null });
+      await expect(voice.say("intro")).resolves.toBeUndefined();
+    });
+
+    it("even if browser speech never says it ended", async () => {
+      vi.useFakeTimers();
+      const { voice } = setUp();
+      let done = false;
+      void voice.say("intro").then(() => {
+        done = true;
+      });
+      await vi.advanceTimersByTimeAsync(speechTimeoutMs("text of intro") - 1);
+      expect(done).toBe(false);
+      await vi.advanceTimersByTimeAsync(1);
+      expect(done).toBe(true);
+      vi.useRealTimers();
+    });
   });
 });

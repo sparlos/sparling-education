@@ -1,7 +1,13 @@
 // The shell end to end, through the real stand-in platform and the
 // shell-check game: what a student can do, and what records come out.
 import { UIProvider } from "@repo/ui/provider";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { hosted } from "../games.ts";
@@ -85,7 +91,12 @@ function setUp({
   };
 }
 
-const game = () => screen.findByTestId("tier");
+/** The game, tapping start first if it hasn't been. */
+async function game() {
+  if (!screen.queryByTestId("tier"))
+    fireEvent.click(await screen.findByRole("button", { name: "Start" }));
+  return screen.findByTestId("tier");
+}
 
 const attemptsIn = (records: readonly PlayRecord[]) =>
   records.filter((r) => r.kind === "attempt");
@@ -100,6 +111,26 @@ describe("opening a game", () => {
         "/play/__stand-in/sign-in?next=%2Fplay%2Fshell-check%3Fportal%3Dnorth",
       ),
     );
+  });
+
+  it("waits for a tap on start before the game, so the browser lets it speak", async () => {
+    const { user, spoken } = setUp();
+    const start = await screen.findByRole("button", { name: "Start" });
+    expect(screen.queryByTestId("tier")).not.toBeInTheDocument();
+    expect(spoken).toEqual([]);
+    await user.click(start);
+    expect(await screen.findByTestId("tier")).toBeInTheDocument();
+  });
+
+  it("shows how many tasks of a progression-based game are done", async () => {
+    const { user } = setUp();
+    await game();
+    const bar = screen.getByRole("progressbar", { name: "Tasks done" });
+    expect(bar).toHaveAttribute("aria-valuenow", "0");
+    expect(screen.getByText("0/2")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Right" }));
+    expect(screen.getByText("1/2")).toBeInTheDocument();
+    expect(bar).toHaveAttribute("aria-valuenow", "50");
   });
 
   it("gives the student the tier for their grade", async () => {

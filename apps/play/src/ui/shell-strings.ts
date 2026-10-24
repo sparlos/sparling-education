@@ -16,6 +16,8 @@ export const shellStrings = {
     "leave-question": "Do you want to stop playing?",
     "keep-playing": "Keep playing",
     avatar: "Your avatar",
+    start: "Start",
+    progress: "Tasks done",
   },
 } satisfies GameManifest["strings"];
 

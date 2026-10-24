@@ -1,0 +1,376 @@
+/* Fraction Hop's screen. It always fits the game area with no scrolling:
+   the course takes whatever height the controls leave. */
+
+.board {
+  position: relative;
+  height: 100%;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto auto auto;
+  gap: 8px;
+  padding: 12px 16px 12px 8px;
+  box-sizing: border-box;
+  font-family: var(--k-font-heading-stack);
+  color: var(--k-ink);
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* Above the course, so the hint button's ripple isn't drawn under it. */
+.top {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.goal {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 26px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.goalChip {
+  display: inline-flex;
+  min-width: 56px;
+  justify-content: center;
+  padding: 2px 12px;
+  border-radius: 12px;
+  border: 3px solid var(--k-border-strong);
+  background: var(--k-surface-raised);
+  font-size: 24px;
+}
+
+.courseBox {
+  min-height: 0;
+  display: flex;
+}
+
+.course {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.caption {
+  margin: 0;
+  min-height: 44px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0 0.3em;
+  font-size: 20px;
+  font-weight: 700;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.plan,
+.tray {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.label {
+  flex: 0 0 auto;
+  width: 96px;
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--k-ink-muted);
+}
+
+.slots {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.slot {
+  display: block;
+  width: 64px;
+  height: 64px;
+  box-sizing: border-box;
+  border-radius: 12px;
+  border: 3px dashed var(--k-border-strong);
+  background: var(--k-surface-sunken);
+}
+
+/* Every block is the same size and shape: only its fraction says how far it hops. */
+.block {
+  width: 64px;
+  height: 64px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border-radius: 12px;
+  border: 3px solid var(--tone-edge);
+  border-bottom-width: 6px;
+  background: var(--tone-soft);
+  color: var(--k-ink);
+  font: inherit;
+  font-size: 20px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.block:active:not(:disabled) {
+  border-bottom-width: 3px;
+  transform: translateY(3px);
+}
+
+.block:disabled {
+  cursor: default;
+}
+
+.big {
+  width: 80px;
+  height: 72px;
+  font-size: 24px;
+}
+
+.locked {
+  border-style: double;
+  border-width: 6px;
+  background: var(--k-surface-raised);
+}
+
+.blocks {
+  flex: 1;
+  display: flex;
+  gap: 12px;
+}
+
+.button {
+  min-height: 64px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 24px;
+  border-radius: 16px;
+  border: 3px solid var(--tone-edge);
+  border-bottom-width: 6px;
+  font: inherit;
+  font-size: 24px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.button:active:not(:disabled) {
+  border-bottom-width: 3px;
+  transform: translateY(3px);
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.demo .button:disabled {
+  opacity: 1;
+}
+
+.play {
+  min-height: 72px;
+  padding: 0 32px;
+  background: var(--tone-fill);
+  color: var(--tone-on-fill);
+}
+
+.quiet {
+  background: var(--k-surface-raised);
+  color: var(--k-ink);
+  border-color: var(--k-border-strong);
+}
+
+/* The hint button offering itself: a ring that pushes out and fades, over
+   and over, and a gentle swell of the button. */
+.glow {
+  position: relative;
+  border-color: var(--tone-edge);
+  background: var(--tone-soft);
+  animation: swell 1.6s var(--k-ease-standard) infinite;
+}
+
+.glow::before,
+.glow::after {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border-radius: 20px;
+  border: 4px solid var(--tone-fill);
+  pointer-events: none;
+  animation: ripple 1.6s ease-out infinite;
+}
+
+.glow::after {
+  animation-delay: 0.8s;
+}
+
+@keyframes ripple {
+  from {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  to {
+    transform: scale(1.45, 1.8);
+    opacity: 0;
+  }
+}
+
+@keyframes swell {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  20% {
+    transform: scale(1.06);
+  }
+}
+
+.frac {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1;
+  vertical-align: middle;
+}
+
+.caption .frac {
+  font-size: 16px;
+}
+
+.fracBar {
+  align-self: stretch;
+  border-top: 3px solid currentColor;
+  margin: 2px 0;
+}
+
+/* The hopper: x moves linearly while the inner group arcs, so together they
+   trace a parabola. SVG transforms need fill-box to squash from the feet. */
+.hopper {
+  transition-property: transform;
+  transition-timing-function: linear;
+}
+
+.flying {
+  animation-name: hop;
+  animation-timing-function: linear;
+}
+
+@keyframes hop {
+  0% {
+    transform: translateY(0);
+    animation-timing-function: cubic-bezier(0.33, 0.66, 0.66, 1);
+  }
+  50% {
+    transform: translateY(var(--arc));
+    animation-timing-function: cubic-bezier(0.33, 0, 0.66, 0.33);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+.standing,
+.sunk {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+}
+
+.flying .standing {
+  animation: squash var(--k-duration-slow) var(--k-ease-springy);
+}
+
+@keyframes squash {
+  0% {
+    transform: scale(1.15, 0.8);
+  }
+  60% {
+    transform: scale(0.92, 1.1);
+  }
+  100% {
+    transform: none;
+  }
+}
+
+.sunk {
+  animation: sink 520ms ease-in forwards;
+}
+
+@keyframes sink {
+  to {
+    transform: translateY(46px);
+    opacity: 0.35;
+  }
+}
+
+.splash {
+  animation: splash 400ms var(--k-ease-springy);
+}
+
+@keyframes splash {
+  from {
+    opacity: 0;
+  }
+}
+
+.hand {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  pointer-events: none;
+  transition:
+    transform 600ms var(--k-ease-standard),
+    opacity 200ms;
+  filter: drop-shadow(0 4px 6px rgb(0 0 0 / 0.25));
+}
+
+/* Appearing, the hand fades in where it points, instead of gliding there from its last spot. */
+.appearing {
+  transition: opacity 200ms;
+}
+
+.handPress {
+  transition: transform 120ms var(--k-ease-standard);
+}
+
+.tapping {
+  transform: scale(0.82);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flying,
+  .flying .standing,
+  .splash,
+  .glow,
+  .glow::after {
+    animation: none;
+  }
+  /* A still ring instead of the ripple. */
+  .glow::before {
+    animation: none;
+    transform: scale(1.1, 1.2);
+    opacity: 0.8;
+  }
+  .hopper,
+  .hand,
+  .handPress {
+    transition: none;
+  }
+  .sunk {
+    animation: none;
+    opacity: 0.35;
+  }
+}

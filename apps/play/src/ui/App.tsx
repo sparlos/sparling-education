@@ -3,10 +3,12 @@ import type {
   AvatarExpression,
   GameManifest,
   GameProps,
+  Progress,
 } from "@repo/game-contract";
 import { Icon } from "@repo/ui/icon";
 import { IconButton } from "@repo/ui/icon-button";
 import { Loader } from "@repo/ui/loader";
+import { Progress as ProgressBar } from "@repo/ui/progress";
 import { Stack } from "@repo/ui/stack";
 import { Text } from "@repo/ui/text";
 import { Title } from "@repo/ui/title";
@@ -174,6 +176,10 @@ function PlayScreen({
   const { game, student, tier, play } = ready;
   const [hasLine, setHasLine] = useState(false);
   const [asking, setAsking] = useState(false);
+  // Browsers block sound until the page is tapped, so every game waits for
+  // a tap on start before its first line.
+  const [started, setStarted] = useState(false);
+  const [progress, setProgress] = useState<Progress | null>(null);
   const voice = useMemo<Voice>(
     () =>
       createVoice({
@@ -203,10 +209,11 @@ function PlayScreen({
       Avatar: avatarFor(student.look),
       t: translator(game.manifest.strings, student.locale),
       say(...ids) {
-        voice.say(...ids);
         setHasLine(true);
+        return voice.say(...ids);
       },
       onAttempt: (attempt) => play.record(attempt),
+      onProgress: (next) => setProgress(next),
       onFinish: () => endOnce("finished"),
     }),
     [game, student, tier, play, voice, endOnce],
@@ -236,15 +243,27 @@ function PlayScreen({
         </IconButton>
       </div>
       <div className={classes.game}>
-        <ErrorBoundary
-          onError={(error) => {
-            console.error(`[play] ${game.manifest.slug} crashed`, error);
-            void play.end("crashed");
-          }}
-          fallback={<Message text={shellT("error")} />}
-        >
-          <game.Component {...props} />
-        </ErrorBoundary>
+        {started && game.manifest.progress && progress && (
+          <ProgressStrip progress={progress} />
+        )}
+        <div className={classes.gameBody}>
+          <ErrorBoundary
+            onError={(error) => {
+              console.error(`[play] ${game.manifest.slug} crashed`, error);
+              void play.end("crashed");
+            }}
+            fallback={<Message text={shellT("error")} />}
+          >
+            {started ? (
+              <game.Component {...props} />
+            ) : (
+              <StartScreen
+                look={student.look}
+                onStart={() => setStarted(true)}
+              />
+            )}
+          </ErrorBoundary>
+        </div>
       </div>
       {asking && !ending && (
         <LeaveQuestion
@@ -256,6 +275,56 @@ function PlayScreen({
       )}
       {ending && <Message text={shellT("saving")} busy overlay />}
     </main>
+  );
+}
+
+/**
+ * How many of a progression-based game's tasks are done: a thin bar, like a
+ * page's scroll bar, and "2/6". Feedback that the student is getting
+ * somewhere, never a score.
+ */
+function ProgressStrip({ progress }: { progress: Progress }) {
+  const { done, total } = progress;
+  return (
+    <div className={classes.progress} data-tone="student">
+      <div className={classes.progressBar}>
+        <ProgressBar
+          value={total > 0 ? (100 * Math.min(done, total)) / total : 0}
+          label={shellT("progress")}
+        />
+      </div>
+      <span className={classes.progressCount} aria-hidden="true">
+        {done}/{total}
+      </span>
+    </div>
+  );
+}
+
+/**
+ * The tap that lets the browser play sound. Usable without reading: the
+ * student's portrait and a big play button.
+ */
+function StartScreen({ look, onStart }: { look: AvatarLook; onStart(): void }) {
+  const start = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    start.current?.querySelector("button")?.focus();
+  }, []);
+  return (
+    <div className={classes.message}>
+      <Stack align="center" gap="lg">
+        <Portrait
+          look={look}
+          expression="happy"
+          size={160}
+          label={shellT("avatar")}
+        />
+        <div ref={start}>
+          <IconButton tone="student" label={shellT("start")} onClick={onStart}>
+            <Icon name="play" size={48} />
+          </IconButton>
+        </div>
+      </Stack>
+    </div>
   );
 }
 

@@ -28,7 +28,7 @@ The screen is a side view of a course over water: a number line from 0 to a few 
 3. **Press play.** The avatar hops the plan from 0, one hop at a time, each starting where the last one landed. A run ends when:
    - a hop lands in water: **splash**, the avatar sinks at that exact spot, and the gap is plain to see,
    - the plan runs out before the goal, on grass: the avatar stands where it stopped, and the landing fraction is shown,
-   - the plan goes past the goal: the avatar lands beyond it, the landing fraction is shown, and the goal appears behind it,
+   - the plan goes past the goal: the avatar lands beyond it, and its landing fraction is shown and spoken beside the goal's. The goal's place stays hidden: it's marked only when it's reached, or on purpose by hint 1 or guided (founder's call: showing it after any overshoot gave it away),
    - the last hop lands exactly on the goal: the goal is revealed and the avatar cheers.
 4. **Change the plan and run again,** as often as the student likes, until the goal is reached. Then the next task.
 
@@ -89,7 +89,7 @@ Every run ends as one of:
 | Run ends | Kind | Counts? |
 | --- | --- | --- |
 | Short of the goal, on grass | **probe** | Never. Probing is how the game is played. |
-| Splash before the goal's position | **miss**, unless the same hop at the same position already splashed in this task (rerunning a known mistake) | Yes |
+| Splash before the goal's position | **miss**, unless the same hop at the same position already splashed in this task: then a **rerun** of a known mistake | Yes. A rerun climbs the help ladder (running the same failing plan again is a sign of being stuck) but adds no misconception match (founder's call). |
 | Splash past the goal's position | **miss** | Yes |
 | Past the goal, on grass | **miss** | Yes |
 | Exactly on the goal | **solve** | Ends the task |
@@ -104,7 +104,7 @@ Plus one plan event that counts as a miss: `no-equivalence`'s full-plan tap (G5)
 - Retries of the same task are recognised by: the task ID `task-<n>`, n = 1–6 in the play. Runs inside a task are never separate attempts.
 - Logged locally only (for tuning, never sent): the hint level reached, and the miss and probe counts per task.
 
-The thresholds (2 misses per help step, 1 or 2 matches per misconception) are starting numbers, to be tuned from real play.
+The thresholds (2, 3 and 4 misses for the help steps, 1 or 2 matches per misconception) are starting numbers, to be tuned from real play.
 
 ## Effort
 
@@ -112,13 +112,13 @@ Retrying is the loop itself: a run costs nothing, and a probe never counts. Afte
 
 **The help ladder**, one task at a time, reset at the next task:
 
-1. **Hint button**, always available. It starts to glow after **2 misses**. Tapping it turns on **hint 1**: every tick shows its fraction ("1⁄8, 2⁄8, 3⁄8…", in the ticks' unit).
-2. After **2 more misses** with hint 1 on, the button glows again. Tapping it turns on **hint 2**: every block added to the plan previews its hop as an arc, from where the plan currently ends to where it would land.
-3. After **6 misses** in all, whatever hints were taken, **guided** starts by itself: "Let's do it together." The voice counts along the ticks to the goal ("one eighth, two eighths, three eighths"). The game clears the plan and places the first hop of a correct route, and the student adds the rest. After each further miss, it places one more hop. The student always presses play and finishes the course.
+1. **Hint button**, always available. It starts to glow after **2 misses**, with a ring that pushes out and fades, over and over, and the ghost hand glides from the middle of the screen to the button while the voice offers the hint, then fades after a couple of seconds, so it invites a tap without demanding one. Tapping it turns on **hint 1**: the goal is marked, and every tick shows its fraction ("1⁄8, 2⁄8, 3⁄8…", in the ticks' unit).
+2. After **3 misses** in all, at least one of them with hint 1 on, the button glows again. Tapping it turns on **hint 2**: every block added to the plan previews its hop as an arc, from where the plan currently ends to where it would land.
+3. After **4 misses** in all, whatever hints were taken, **guided** starts by itself: "Let's do it together." The voice counts along the ticks to the goal ("one eighth, two eighths, three eighths"). The game clears the plan and places the first hop of a correct route, and the student adds the rest. After each further miss, it places one more hop. The student always presses play and finishes the course.
 
-Once help is on, it stays on until the end of that task.
+Once help is on, it stays on until the end of that task. The steps were 2, 4 and 6 misses; the founder found 6 too many before guided (2026-10-24).
 
-**Discouraging spamming** without a score: misses climb the help ladder, so a spammer ends up guided, and their attempts say so. Polish pass (below): a "Nice fix!" cheer when changing only the hop that missed makes the next run land, and an identical rerun is refused.
+**Discouraging spamming** without a score: misses climb the help ladder, so a spammer ends up guided, and their attempts say so. Polish pass (below): a "Nice fix!" cheer when changing only the hop that missed makes the next run land. An identical rerun isn't refused: it climbs the help ladder instead.
 
 No combos, coins, points or streaks: rewards follow effort and are Kindling's to compute (DESIGN.md principle 4).
 
@@ -140,13 +140,17 @@ The contract's character API starts minimal: the portrait at any size, with an e
 
 - **Touch only, tap only:** tap a block to add it, tap a planned block to remove it, tap play, hint and skip. No dragging is needed (dragging blocks may come with polish). Every tap target is at least **64 px**. Ticks and stones are never tapped, so twelfths can be as narrow as the course needs.
 - **No reading:** the only text a student needs is fraction notation (the goal and the blocks), and that notation is what's being taught. Every instruction is a caption and a voice line from the same string. The goal is spoken at the start of each task, a block when it's tapped, and the landing after each run. The tutorial shows every move.
-- **No sound needed:** every result shows on screen: the splash at the exact spot, the landing fraction next to the goal's, the goal revealed when it's reached, and the hint labels and arcs.
+- **No sound needed:** every result shows on screen: the splash at the exact spot, the landing fraction on the course and the goal's in the caption, the goal revealed when it's reached, and the hint labels and arcs.
+- **A start tap before any sound:** browsers block audio until the page is tapped, so the shell shows a start button before every game. The game's first line comes after it.
 - **The game always fits the screen,** with no page scrolling or zooming, at 1366 × 650 and 1280 × 650 (a Chromebook window with browser chrome) and larger. The goal's caption is never cut off. The browser tour checks this.
+- **Progress:** a progression-based game (`progress` in the manifest): the shell's thin bar above the game shows tasks solved, from 0/6 to 6/6. Feedback that the student is getting somewhere, never a score.
 - **Wording:** "goal", never "flag", in everything a student sees or hears.
 
 ## Tutorial
 
-A scripted, in-code "video": the avatar and a ghost hand act out one course while the voice explains (strings `tutorial.*`). It shows: the goal's fraction, tapping two blocks into the plan, pressing play, a hop splashing, fixing that hop, and reaching the goal. It plays at the start of every play, before task 1, and a skip button ends it at any time. It's never recorded as help.
+A scripted, in-code "video": the avatar and a ghost hand act out one course while the voice explains (strings `tutorial.*`). It opens with a welcome ("Welcome to Fraction Hop!"), then shows: the goal's fraction, tapping two blocks into the plan, pressing play, a hop splashing, fixing that hop, and reaching the goal. It plays at the start of every play, before task 1, and a skip button ends it at any time. It's never recorded as help.
+
+**The voice and the hand take turns, never both at once** (founder's call). A line is said first, and the hand may rest on what it's about while it's said. Then the hand acts. Each step waits for the voice to finish (the contract's `say` settles when it has), rather than guessing a line's length. The buttons the hand taps look enabled, though the student can't tap them. On the lower half of the screen, the hand points down from above.
 
 Later, when the contract can remember things per student: play it only the first time, and again when a block type appears that the student hasn't seen.
 
@@ -156,11 +160,12 @@ Every string a student sees or hears; each becomes a voice line. Sentences are w
 
 | ID | English |
 | --- | --- |
+| `tutorial.welcome` | Welcome to Fraction Hop! |
 | `tutorial.goal` | The goal is hidden over the water. Its fraction tells you how far away it is. |
 | `tutorial.plan` | Tap the hops to make a plan. Each hop goes as far as its fraction. |
 | `tutorial.play` | Then press play, and watch your hops. |
 | `tutorial.splash` | Splash! That hop landed in the water. Change it, and try again. |
-| `tutorial.goal-found` | Every hop landed on a stone, and the last one on the goal. Now you try! |
+| `tutorial.goal-found` | No hop landed in the water, and the last one landed on the goal. Now you try! |
 | `ui.skip` | Skip |
 | `ui.play` | Play |
 | `ui.hint` | Hint |
@@ -177,10 +182,10 @@ Every string a student sees or hears; each becomes a voice line. Sentences are w
 | `run.stopped-at` | You stopped at |
 | `run.keep-going` | Keep going! |
 | `run.solved` | You found the goal! |
-| `run.same-plan` | That's the same plan. Change a hop first. |
 | `run.nice-fix` | Nice fix! |
 | `hint.ready` | Want a hint? Tap the hint button. |
-| `hint.labels` | Now every mark shows its fraction. |
+| `hint.ready-again` | Want another hint? Tap the hint button again. |
+| `hint.labels` | Now you can see the goal, and every mark shows its fraction. |
 | `hint.arcs` | Now every hop you add shows where it will land. |
 | `guided.start` | Let's do it together. |
 | `guided.count` | Count to the goal: |
@@ -217,7 +222,7 @@ Placeholder SVG first, from the style kit, each in a fixed frame with an anchor.
 | `water` | The water along the course, tiling |
 | `stone` | A grass stone at one tick position, anchored at its top centre |
 | `start` | The bank at 0 |
-| `goal` | The goal marker, revealed when found or passed, anchored at its base |
+| `goal` | The goal marker, revealed when found, or by hint 1 or guided, anchored at its base |
 | `splash` | The splash where a hop lands in water |
 | `block` | A hop block: one size for every fraction, with the fraction drawn on it |
 | `slot` | An empty plan slot |
@@ -248,7 +253,6 @@ Placeholder SVG first, from the style kit, each in a fixed frame with an anchor.
 After the core game plays well, not before:
 
 - "Nice fix!" and a sparkle on the fixed block, when only the hop that missed was changed and the next run lands,
-- refusing an identical rerun (`run.same-plan`),
 - highlighting each plan block as its hop runs,
 - a tighter layout and motion (the screen-fit requirement itself isn't polish),
 - dragging blocks into the plan.

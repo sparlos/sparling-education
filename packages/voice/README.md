@@ -67,7 +67,8 @@ game's own lazy chunk. To opt a game in, register it with its map in
 Games only call `say(id)`. The shell's `resolveLineUrl(game, locale, id)`
 (`apps/play/src/play/voice-lines.ts`) is the one place a URL is decided, and
 where a CDN base would go. The map is read when the build or dev server starts
-(dev reloads on lockfile changes). Set up the same way, any dir with a
+(dev reloads on lockfile changes; after a game's first `pnpm voice`, restart
+the dev server, since there was no lockfile to watch). Set up the same way, any dir with a
 `src/manifest.ts` works as a source.
 
 ## Fixing a line that sounds wrong

@@ -106,12 +106,20 @@ describe("playing a prototype", () => {
     ).toBeInTheDocument();
 
     await userEvent.click(screen.getByRole("button", { name: "Speak" }));
-    expect(speak).toHaveBeenLastCalledWith("Hello there", "en-CA");
+    expect(speak).toHaveBeenLastCalledWith(
+      "Hello there",
+      "en-CA",
+      expect.any(Function),
+    );
     await userEvent.click(
       screen.getByRole("button", { name: "Hear it again" }),
     );
     expect(speak).toHaveBeenCalledTimes(2);
-    expect(speak).toHaveBeenLastCalledWith("Hello there", "en-CA");
+    expect(speak).toHaveBeenLastCalledWith(
+      "Hello there",
+      "en-CA",
+      expect.any(Function),
+    );
   });
 
   test("goes back to the list", async () => {

@@ -39,6 +39,11 @@ export interface GameManifest {
   renderer: Renderer;
   /** Every game shows the avatar's portrait; "character" also puts it in the game. */
   avatar: "portrait" | "character";
+  /**
+   * A progression-based game, played as a set number of tasks: the shell
+   * shows a thin progress bar ("2/6") above it, fed by `onProgress`.
+   */
+  progress?: boolean;
   tiers: Record<string, Tier>;
   misconceptions: Record<string, Misconception>;
   /**
@@ -76,6 +81,13 @@ export interface Attempt<M extends GameManifest> {
 
 export type { AvatarExpression } from "@repo/avatar";
 
+export interface Progress {
+  /** Tasks finished. */
+  done: number;
+  /** Tasks in the play. */
+  total: number;
+}
+
 export interface GameProps<M extends GameManifest> {
   tier: TierId<M>;
   locale: Locale;
@@ -88,9 +100,20 @@ export interface GameProps<M extends GameManifest> {
    * needs" + "three fourths" + "of a plank."), so no string needs
    * interpolation. "Hear it again" replays the whole instruction. A new
    * call stops the one before.
+   *
+   * Settles when the instruction has been said, is cut off, or can't be
+   * played (no sound), so a game can wait for the voice before acting:
+   * speak, then act, never both at once. The shell only mounts a game after
+   * the student taps start, so the browser lets the voice play.
    */
-  say(...ids: StringId<M>[]): void;
+  say(...ids: StringId<M>[]): Promise<void>;
   onAttempt(attempt: Attempt<M>): void;
+  /**
+   * How far through the play the student is, for a game whose manifest sets
+   * `progress`: call it at the start (0 done) and as each task is finished.
+   * The shell ignores it otherwise.
+   */
+  onProgress(progress: Progress): void;
   /** The play is over; the shell takes the student back. */
   onFinish(): void;
 }
