@@ -12,6 +12,8 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@dnd-kit/dom": "0.5.1",
+    "@dnd-kit/react": "0.5.1",
     "@repo/game-contract": "workspace:*",
     "@repo/game-kit": "workspace:*",
     "@repo/tokens": "workspace:*"

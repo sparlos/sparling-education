@@ -28,6 +28,7 @@ import {
   addBlock,
   attemptFor,
   finishRun,
+  moveBlock,
   pressPlay,
   removeAt,
   startTask,
@@ -207,6 +208,52 @@ describe("a task", () => {
     expect(full.say).toEqual(["plan.full"]);
     expect(removeAt(state, 1).plan).toEqual([8, 4, 1]);
     expect(addBlock(startTask("g3", 1, eighths), 4).say).toEqual(["hop.4"]);
+  });
+
+  it("puts a dragged block where it's dropped, and moves planned blocks, never before guided's", () => {
+    const start = { ...startTask("g3", 1, eighths), plan: [8, 1] };
+    expect(addBlock(start, 4, 1).state.plan).toEqual([8, 4, 1]);
+    expect(addBlock(start, 4, 9).state.plan).toEqual([8, 1, 4]);
+    const guided = { ...start, locked: 1 };
+    expect(addBlock(guided, 4, 0).state.plan).toEqual([8, 4, 1]);
+    expect(addBlock({ ...start, plan: [8, 4, 4, 1] }, 8, 0).say).toEqual([
+      "plan.full",
+    ]);
+    const plan = { ...start, plan: [8, 4, 1] };
+    expect(moveBlock(plan, 0, 2).plan).toEqual([4, 1, 8]);
+    expect(moveBlock(plan, 2, 0).plan).toEqual([1, 8, 4]);
+    expect(moveBlock(plan, 1, 9).plan).toEqual([8, 1, 4]);
+    expect(moveBlock({ ...plan, locked: 1 }, 2, 0).plan).toEqual([8, 1, 4]);
+    expect(moveBlock({ ...plan, locked: 1 }, 0, 2)).toEqual({
+      ...plan,
+      locked: 1,
+    });
+  });
+
+  it("cheers a fix: after a splash, a run with no splash that ends further along", () => {
+    // Eighths: water at 1/8 and 5/8, the goal at 3/8.
+    const start = startTask("g3", 1, eighths);
+    const splash = run(start, [8]).state;
+    const probe = run(splash, [4]);
+    expect(probe.fixed).toBe(0);
+    expect(probe.say[0]).toBe("run.nice-fix");
+    const solve = run(splash, [4, 8]);
+    expect(solve.fixed).toBe(0);
+    expect(solve.say).toEqual(["run.nice-fix", "run.solved"]);
+    // Any change counts, a reorder too; the sparkle goes on the first hop
+    // past the old splash.
+    const swapped = run(run(start, [8, 4]).state, [4, 8]);
+    expect(swapped.fixed).toBe(0);
+    // Another splash, an overshoot, or a run that stops before the old
+    // splash: no cheer.
+    expect(run(splash, [8, 4]).fixed).toBeUndefined();
+    expect(run(splash, [1]).fixed).toBeUndefined();
+    const late = run(start, [4, 4, 8]).state;
+    expect(run(late, [4]).fixed).toBeUndefined();
+    expect(run(late, [4, 8]).fixed).toBeUndefined();
+    expect(run(late, [4, 4]).say).not.toContain("run.nice-fix");
+    // Only the run right after the splash can cheer.
+    expect(run(probe.state, [4, 8]).fixed).toBeUndefined();
   });
 
   it("refuses to run an empty plan", () => {

@@ -10,6 +10,7 @@
   },
   "scripts": {
     "voice": "node scripts/voice.ts",
+    "voice:test": "uv run python synth/qwen_test.py",
     "check-voice": "node scripts/check.ts",
     "check-types": "tsc --noEmit",
     "test": "node --test 'src/**/*.test.ts'"

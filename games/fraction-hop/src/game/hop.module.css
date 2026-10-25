@@ -91,9 +91,13 @@
   gap: 12px;
 }
 
-.deck > .play {
-  grid-column: 2;
-  grid-row: 1 / span 2;
+/* The tray's drop outline is always there, only transparent, so lighting it
+   up changes a colour and nothing else. */
+.tray {
+  border-radius: 16px;
+  outline: 4px dashed transparent;
+  outline-offset: 4px;
+  transition: outline-color var(--k-duration-fast);
 }
 
 .label {
@@ -152,6 +156,83 @@
   cursor: default;
 }
 
+/* Dragging: the finger moves the block, never the page. */
+.block:not(:disabled) {
+  touch-action: none;
+}
+
+/* The drag overlay's wrapper is always rendered. Out of the board's grid, so
+   it never takes a row: in the grid, a dragged block appearing in it pushed
+   the whole layout before the library lifted it out. */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 3;
+  pointer-events: none;
+}
+
+/* The block under the finger, lifted off the board. */
+.lifted {
+  box-shadow: 0 10px 18px rgb(0 0 0 / 0.22);
+  transform: scale(1.08);
+  cursor: grabbing;
+}
+
+/* The hop the ghost hand drags, centred under its fingertip. */
+.carried {
+  position: absolute;
+}
+
+/* A layer over the whole board, for effects, outside its grid. */
+.layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* The planned hop in the air: lifted and outlined while it runs. */
+.hopping {
+  outline: 4px solid var(--tone-fill);
+  outline-offset: 2px;
+  transform: translateY(-6px);
+  transition: transform var(--k-duration-fast) var(--k-ease-standard);
+}
+
+/* The planned hop that splashed: marked in water blue until the plan changes. */
+.missed {
+  outline: 4px dashed var(--k-info);
+  outline-offset: 2px;
+  background: var(--k-info-soft);
+}
+
+/* A hop that just earned a "Nice fix!" pops once. */
+.fixed {
+  animation: pop 420ms var(--k-ease-springy);
+}
+
+@keyframes pop {
+  40% {
+    transform: scale(1.18);
+  }
+}
+
+/* The planned hop being dragged leaves a faint copy in its place. */
+.source {
+  opacity: 0.35;
+}
+
+/* The slot a dragged hop would land in. */
+.over {
+  outline: 4px solid var(--tone-fill);
+  outline-offset: 2px;
+}
+
+/* The tray, when a planned hop dragged onto it would come out of the plan. */
+.trayOver {
+  outline-color: var(--tone-edge);
+}
+
 .locked {
   border-style: double;
   border-width: 6px;
@@ -193,7 +274,10 @@
   opacity: 1;
 }
 
+/* Beside the plan and the hops, spanning both rows of the deck. */
 .play {
+  grid-column: 2;
+  grid-row: 1 / span 2;
   min-height: 88px;
   padding: 0 40px;
   background: var(--tone-fill);
@@ -295,6 +379,32 @@
   }
 }
 
+/* The run's trail: the hop in the air is revealed left to right, in step
+   with the hopper's linear x. A hop's fraction fades in once it's landed. */
+.trailReveal {
+  transform-box: fill-box;
+  transform-origin: 0 50%;
+  animation-name: reveal;
+  animation-timing-function: linear;
+  animation-fill-mode: both;
+}
+
+@keyframes reveal {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+.trailLabel {
+  animation: fade var(--k-duration-slow) ease-out;
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+
 .standing,
 .sunk {
   transform-box: fill-box;
@@ -366,10 +476,17 @@
 @media (prefers-reduced-motion: reduce) {
   .flying,
   .flying .standing,
+  .fixed,
+  .trailReveal,
+  .trailLabel,
   .splash,
   .glow,
   .glow::after {
     animation: none;
+  }
+  /* Lit, not lifted. */
+  .hopping {
+    transform: none;
   }
   /* A still ring instead of the ripple. */
   .glow::before {
@@ -378,6 +495,7 @@
     opacity: 0.8;
   }
   .hopper,
+  .hopping,
   .hand,
   .handPress {
     transition: none;

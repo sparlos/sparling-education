@@ -1,0 +1,3 @@
+# General notes from a human
+- accessibility - will need to be audited a fair few times by AI, probably against each game, the main site, etc etc
+- accessibility features that are in modern games - think high contrast, color blindness modes, etc etc. probably need to do a grill session with the LLM to determine what would be good candidates, and then bake that into the game shell so all games can support it

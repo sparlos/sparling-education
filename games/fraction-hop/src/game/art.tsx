@@ -94,6 +94,13 @@ export const arcStroke = {
   dash: "10 8",
 };
 
+/** The run's trail: a dotted line behind each hop. */
+export const trailStroke = {
+  stroke: palette.sunshine[8],
+  strokeWidth: 4,
+  dash: "0 9",
+};
+
 export type CourseSlot = keyof typeof courseArt;
 
 /** Draws a slot with its anchor at (x, y), `scaleX` wide and `scale` tall. */
@@ -148,9 +155,10 @@ export const screenArt = {
     draw: () => (
       <path
         d="M24 2 l5 17 l17 5 l-17 5 l-5 17 l-5 -17 l-17 -5 l17 -5 z"
-        fill={palette.sunshine[4]}
-        stroke={palette.sunshine[7]}
-        strokeWidth="2"
+        fill={palette.sunshine[5]}
+        stroke={palette.sunshine[8]}
+        strokeWidth="3"
+        strokeLinejoin="round"
       />
     ),
   },

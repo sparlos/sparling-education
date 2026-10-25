@@ -57,6 +57,8 @@ export interface TaskState {
    */
   revealed: boolean;
   solved: boolean;
+  /** Where the last run splashed, in ticks, if it splashed. */
+  lastSplash: number | null;
 }
 
 export interface Step {
@@ -87,6 +89,7 @@ export function startTask(
     matches: [],
     revealed: false,
     solved: false,
+    lastSplash: null,
   };
 }
 
@@ -103,9 +106,21 @@ export const introLines = (course: Course): StringId[] => [
   "task.make-a-plan",
 ];
 
-export function addBlock(state: TaskState, d: number): Step {
-  if (state.plan.length < state.course.budget)
-    return { state: { ...state, plan: [...state.plan, d] }, say: [hopId(d)] };
+/**
+ * Adds a block to the plan: at the end when tapped, or where it's dropped
+ * when dragged, never before a hop guided placed. A full plan refuses it
+ * either way.
+ */
+export function addBlock(
+  state: TaskState,
+  d: number,
+  at = state.plan.length,
+): Step {
+  if (state.plan.length < state.course.budget) {
+    const i = Math.min(Math.max(at, state.locked), state.plan.length);
+    const plan = [...state.plan.slice(0, i), d, ...state.plan.slice(i)];
+    return { state: { ...state, plan }, say: [hopId(d)] };
+  }
   const say: StringId[] = ["plan.full"];
   const key = state.plan.join(",");
   if (
@@ -126,6 +141,20 @@ export function addBlock(state: TaskState, d: number): Step {
 export function removeAt(state: TaskState, i: number): TaskState {
   if (i < state.locked || i >= state.plan.length) return state;
   return { ...state, plan: state.plan.filter((_, j) => j !== i) };
+}
+
+/** Drags a planned block to another place in the plan; guided's hops stay put. */
+export function moveBlock(
+  state: TaskState,
+  from: number,
+  to: number,
+): TaskState {
+  const last = state.plan.length - 1;
+  const i = Math.min(Math.max(to, state.locked), last);
+  if (from < state.locked || from > last || i === from) return state;
+  const plan = state.plan.filter((_, j) => j !== from);
+  plan.splice(i, 0, state.plan[from] as number);
+  return { ...state, plan };
 }
 
 /** The hint button: each tap turns on the next hint level. Hint 1 also marks the goal. */
@@ -153,24 +182,54 @@ export function pressPlay(
 
 export interface RunResult extends Step {
   verdict: Verdict;
+  /** The hop a "Nice fix!" cheers, if this run earned one. */
+  fixed?: number;
+}
+
+/**
+ * A "Nice fix!" (founder's call): the last run splashed, and this one has
+ * no splash and ends further along than that splash, stopping short on
+ * grass or finding the goal. An overshoot is still a miss, so it never
+ * cheers. Returns the first hop that landed past the old splash, to
+ * sparkle on. It cheers effort; it's never recorded.
+ */
+export function niceFix(state: TaskState, run: Run): number | undefined {
+  const splash = state.lastSplash;
+  const { end } = run;
+  if (splash === null || (end.kind !== "short" && end.kind !== "goal"))
+    return undefined;
+  if (end.at <= splash) return undefined;
+  return run.landings.findIndex((at) => at > splash);
 }
 
 /** What a finished run counts as, and what it says. */
-export function finishRun(state: TaskState, run: Run): RunResult {
-  const { course } = state;
-  const v = verdict(course, state.plan, run, new Set(state.splashed));
+export function finishRun(before: TaskState, run: Run): RunResult {
+  const { course } = before;
+  const v = verdict(course, before.plan, run, new Set(before.splashed));
   const { end } = run;
+  const fixed = niceFix(before, run);
+  const cheer: StringId[] = fixed === undefined ? [] : ["run.nice-fix"];
+  // Remembered for the next run's "Nice fix!".
+  const lastSplash = end.kind === "splash" ? end.at : null;
+  const state: TaskState = { ...before, lastSplash };
   if (v === "solve")
     return {
       verdict: v,
+      fixed,
       state: { ...state, solved: true, revealed: true },
-      say: ["run.solved"],
+      say: [...cheer, "run.solved"],
     };
   if (v === "probe")
     return {
       verdict: v,
+      fixed,
       state: { ...state, probes: state.probes + 1 },
-      say: ["run.stopped-at", tickAmount(course, end.at), "run.keep-going"],
+      say: [
+        ...cheer,
+        "run.stopped-at",
+        tickAmount(course, end.at),
+        "run.keep-going",
+      ],
     };
   // A known mistake run again: no new evidence, but a sign of being stuck,
   // so it climbs the help ladder (founder's call).

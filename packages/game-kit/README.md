@@ -30,6 +30,7 @@ example `template/SPEC.md`, so it can't rot.
 | `@repo/game-kit/testing/setup` | The Vitest setup file: jest-dom, a `matchMedia` stub, cleanup, and **failing any test in which a mounted game broke the contract**. |
 | `@repo/game-kit/spec` | `readSpec`, `describeManifestSpec` (header, tiers, misconceptions), `stringRows`, `subsections`, `codes`: tests that read SPEC.md and fail on drift. |
 | `@repo/game-kit/art` | `Slot`, `SlotArt` (in an SVG) and `SlotImage` (standalone): art slots with a frame and anchor, replaceable by real art without code changes. |
+| `@repo/game-kit/burst` | `<Burst x y count spread duration>{particle}</Burst>`: a particle burst (sparkles, droplets) in HTML over the game, animated on `transform` and `opacity` with the Web Animations API, so it costs no layout or repaint. Fine for a few dozen particles at once; reach for a canvas only for hundreds, or effects that never stop. One fading particle with reduced motion. Unmount it after `duration`. |
 | `@repo/game-kit/timers` | `useTimers()`: `later`, `pause`, `clear`, for pauses between turns. Never time a voice line: `await say(...)`. |
 | `@repo/game-kit/random` | `seeded`, `int`, `pick`: reproducible plays. |
 | `@repo/game-kit/tour` | `defineTour` for a game's `tour.ts`. |

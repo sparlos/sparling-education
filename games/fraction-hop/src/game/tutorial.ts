@@ -1,7 +1,8 @@
 // The tutorial's course and script: the avatar and a ghost hand act out one
 // course while the voice explains (SPEC.md's Tutorial section). It shows the
-// goal's fraction, tapping two blocks into the plan, pressing play, a hop
-// splashing, fixing that hop, and reaching the goal.
+// goal's fraction, dragging two blocks into the plan, pressing play, a hop
+// splashing, fixing it by dragging the hops into the other order, and
+// reaching the goal.
 //
 // Speech and actions take turns, never both at once: a line is said (the
 // hand may rest on what it's about), then the hand acts on it. Each cue
@@ -24,14 +25,21 @@ export const tutorialCourse: Course = {
   budget: 3,
 };
 
-export type Tap = { add: number } | { remove: number } | { play: true };
+export type Tap =
+  | { add: number }
+  | { remove: number }
+  | { play: true }
+  /** Drags the tray's `drag` block to the plan's slot `to`. */
+  | { drag: number; to: number }
+  /** Drags the planned block at `move` to the plan's slot `to`. */
+  | { move: number; to: number };
 
 export type Cue =
   /** Says a line, and waits until it's been said. */
   | { say: StringId }
   /** Moves the hand to a `data-hand` target (or away), and waits until it's there. */
   | { point: string | null }
-  /** The hand taps where it points, then the tap happens; a play waits for its run. */
+  /** The hand taps (or drags from) where it points, then it happens; a play waits for its run. */
   | { tap: Tap }
   | { end: true };
 
@@ -41,18 +49,16 @@ export const tutorialScript: readonly Cue[] = [
   { say: "tutorial.goal" },
   { point: "block-4" },
   { say: "tutorial.plan" },
-  { tap: { add: 4 } },
+  { tap: { drag: 4, to: 0 } },
   { point: "block-2" },
-  { tap: { add: 2 } },
+  { tap: { drag: 2, to: 1 } },
   { point: "play" },
   { say: "tutorial.play" },
   { tap: { play: true } },
   { point: null },
   { say: "tutorial.splash" },
   { point: "slot-0" },
-  { tap: { remove: 0 } },
-  { point: "block-4" },
-  { tap: { add: 4 } },
+  { tap: { move: 0, to: 1 } },
   { point: "play" },
   { tap: { play: true } },
   { point: null },

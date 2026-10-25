@@ -5,6 +5,7 @@
   "type": "module",
   "exports": {
     "./art": "./src/art.tsx",
+    "./burst": "./src/burst.tsx",
     "./timers": "./src/timers.ts",
     "./spec": "./src/spec.ts",
     "./testing": "./src/testing/fake-shell.tsx",

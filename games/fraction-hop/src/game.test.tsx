@@ -5,6 +5,7 @@ import { seeded } from "@repo/game-kit/random";
 import { heldVoice, mountGame, wait } from "@repo/game-kit/testing";
 import { screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { hopMs } from "./game/Course.tsx";
 import { runMs } from "./game/FractionHop.tsx";
 import game from "./index.tsx";
 import {
@@ -68,6 +69,20 @@ function missPlan(course: Course): Plan {
       for (const b of course.blocks) queue.push([...plan, b.d]);
   }
   throw new Error("no miss on this course");
+}
+
+/** The first plan, breadth first, that splashes before the goal. */
+function splashPlan(course: Course): Plan {
+  const queue: number[][] = [[]];
+  while (queue.length) {
+    const plan = queue.shift() as number[];
+    const { end } = runPlan(course, plan);
+    if (plan.length && end.kind === "splash" && end.at < course.goal)
+      return plan;
+    if (plan.length < course.budget && end.kind === "short")
+      for (const b of course.blocks) queue.push([...plan, b.d]);
+  }
+  throw new Error("no splash before the goal");
 }
 
 /** Misses that each count: different splashes before the goal, or any miss past it. */
@@ -244,6 +259,53 @@ describe("a task", () => {
     // Tapping a planned block removes it.
     await user.click(screen.getAllByTestId("planned")[0] as HTMLElement);
     expect(screen.getAllByTestId("empty-slot")).toHaveLength(1);
+  });
+
+  it('cheers "Nice fix!" with a sparkle when a run after a splash gets further, dry', async () => {
+    const { user, said, courses } = setUp("g4");
+    await skipTutorial(user);
+    const course = courses[0] as Course;
+    const route = shortestRoute(course) as Plan;
+    const splash = splashPlan(course);
+    await enter(user, splash);
+    await play(user);
+    expect(screen.queryByTestId("burst")).not.toBeInTheDocument();
+    await enter(user, route);
+    await user.click(screen.getByRole("button", { name: "Play" }));
+    await wait(runMs(runPlan(course, route)) + 10);
+    expect(screen.getByTestId("burst")).toBeInTheDocument();
+    await wait(20_000);
+    expect(said).toContainEqual(["run.nice-fix", "run.solved"]);
+    expect(screen.queryByTestId("burst")).not.toBeInTheDocument();
+  });
+
+  it("lights each planned hop and draws its trail as it runs, and marks the one that splashed, until the plan changes", async () => {
+    const { user, courses } = setUp("g4");
+    await skipTutorial(user);
+    const course = courses[0] as Course;
+    const plan = splashPlan(course);
+    const run = runPlan(course, plan);
+    await enter(user, plan);
+    const states = () =>
+      screen.getAllByTestId("planned").map((b) => b.dataset.state ?? "");
+    await user.click(screen.getByRole("button", { name: "Play" }));
+    await wait(40 + hopMs / 2);
+    expect(states()[0]).toBe("hopping");
+    // A trail is drawn behind the hop in the air; its fraction shows once it lands.
+    expect(screen.getAllByTestId("trail")).toHaveLength(1);
+    expect(screen.queryAllByTestId("trail-label")).toHaveLength(0);
+    await wait(runMs(run));
+    const { end } = run;
+    expect(end.kind === "splash" && states()[end.hop]).toBe("missed");
+    const trails = screen.getAllByTestId("trail");
+    expect(trails.map((g) => g.dataset.d)).toEqual(
+      plan.slice(0, run.landings.length).map(String),
+    );
+    expect(screen.getAllByTestId("trail-label")).toHaveLength(trails.length);
+    expect(states().filter(Boolean)).toHaveLength(1);
+    await user.click(screen.getAllByTestId("block")[0] as HTMLElement);
+    expect(states().filter(Boolean)).toHaveLength(0);
+    expect(screen.queryAllByTestId("trail")).toHaveLength(0);
   });
 
   it("asks for hops before playing an empty plan", async () => {

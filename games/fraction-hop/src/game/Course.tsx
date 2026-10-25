@@ -5,12 +5,13 @@ import { palette } from "@repo/tokens";
 import {
   type ComponentType,
   type CSSProperties,
+  useId,
   useLayoutEffect,
   useRef,
   useState,
 } from "react";
 import type { Course as CourseData, Plan, RunEnd } from "../rules/course.ts";
-import { Art, arcStroke } from "./art.tsx";
+import { Art, arcStroke, trailStroke } from "./art.tsx";
 import { SvgFrac } from "./Frac.tsx";
 import styles from "./hop.module.css";
 
@@ -52,6 +53,8 @@ export interface CourseProps {
   labels: boolean;
   /** Hint 2: every planned hop shows as an arc. */
   arcs: boolean;
+  /** How many of the plan's hops this run has taken off on, for the trail. */
+  trail: number;
   Avatar: ComponentType<{ expression: AvatarExpression; size: number }>;
   expression: AvatarExpression;
   label: string;
@@ -67,13 +70,13 @@ function useViewWidth() {
   useLayoutEffect(() => {
     const el = ref.current;
     if (!el || typeof ResizeObserver === "undefined") return;
-    const fit = () => {
+    const measure = () => {
       const { width: w, height: h } = el.getBoundingClientRect();
       if (w > 0 && h > 0)
         setWidth(Math.round(Math.min(maxVW, Math.max(minVW, (VH * w) / h))));
     };
-    fit();
-    const observer = new ResizeObserver(fit);
+    measure();
+    const observer = new ResizeObserver(measure);
     observer.observe(el);
     return () => observer.disconnect();
   }, []);
@@ -108,16 +111,22 @@ export function Course(props: CourseProps) {
     animationDuration: `${hopMs}ms`,
   } as CSSProperties;
 
-  // Hint 2: the plan's hops chained from 0.
-  const arcs: { from: number; to: number }[] = [];
-  if (props.arcs) {
-    let at = 0;
-    for (const d of props.plan) {
-      const to = at + unit / d;
-      arcs.push({ from: at, to });
-      at = to;
-    }
+  // The plan's hops chained from 0: hint 2's arcs, and the run's trail.
+  const chain: { from: number; to: number; d: number }[] = [];
+  let reach = 0;
+  for (const d of props.plan) {
+    chain.push({ from: reach, to: reach + unit / d, d });
+    reach += unit / d;
   }
+  const arcs = props.arcs ? chain : [];
+  const arcPath = (from: number, to: number) =>
+    `M ${x(from)} ${groundY - 4} Q ${(x(from) + x(to)) / 2} ${groundY - 4 - 2 * arcHeight(to - from)} ${x(to)} ${groundY - 4}`;
+  // The run's trail: every hop taken off on, the one in the air drawn as it
+  // flies; a hop's fraction shows at its arc's top once it's landed.
+  const flying = hopper.flight?.key;
+  const trail = chain.slice(0, props.trail);
+  const landed = flying ?? props.trail;
+  const trailId = useId();
 
   return (
     <svg
@@ -207,13 +216,73 @@ export function Course(props: CourseProps) {
           // biome-ignore lint/suspicious/noArrayIndexKey: a plan repeats hops
           key={i}
           data-arc={`${from}-${to}`}
-          d={`M ${x(from)} ${groundY - 4} Q ${(x(from) + x(to)) / 2} ${groundY - 4 - 2 * arcHeight(to - from)} ${x(to)} ${groundY - 4}`}
+          d={arcPath(from, to)}
           fill="none"
           stroke={arcStroke.stroke}
           strokeWidth={arcStroke.strokeWidth}
           strokeDasharray={arcStroke.dash}
         />
       ))}
+
+      {trail.map(({ from, to, d }, i) => {
+        const inFlight = i === flying;
+        // Revealed left to right as the hopper's x moves, linearly.
+        const clip = `${trailId}-${i}`;
+        const top = groundY - 4 - arcHeight(to - from);
+        const width = x(to) - x(from);
+        return (
+          // biome-ignore lint/suspicious/noArrayIndexKey: a plan repeats hops
+          <g key={i} data-testid="trail" data-d={d}>
+            {inFlight && (
+              <clipPath id={clip}>
+                <rect
+                  className={styles.trailReveal}
+                  style={{ animationDuration: `${hopMs}ms` }}
+                  x={x(from) - 8}
+                  y={0}
+                  width={width + 16}
+                  height={VH}
+                />
+              </clipPath>
+            )}
+            <path
+              d={arcPath(from, to)}
+              fill="none"
+              stroke={trailStroke.stroke}
+              strokeWidth={trailStroke.strokeWidth}
+              strokeDasharray={trailStroke.dash}
+              strokeLinecap="round"
+              clipPath={inFlight ? `url(#${clip})` : undefined}
+            />
+            {i < landed && (
+              <g className={styles.trailLabel} data-testid="trail-label">
+                {d === 1 ? (
+                  <text
+                    x={(x(from) + x(to)) / 2}
+                    y={top - 8}
+                    textAnchor="middle"
+                    fontSize={Math.min(22, Math.max(12, width * 0.45))}
+                    fontWeight={800}
+                    fill={trailStroke.stroke}
+                  >
+                    1
+                  </text>
+                ) : (
+                  <SvgFrac
+                    n={1}
+                    d={d}
+                    x={(x(from) + x(to)) / 2}
+                    // Its stack sits just above the arc's top.
+                    y={top - 8 - 2.05 * Math.min(18, Math.max(11, width * 0.4))}
+                    size={Math.min(18, Math.max(11, width * 0.4))}
+                    fill={trailStroke.stroke}
+                  />
+                )}
+              </g>
+            )}
+          </g>
+        );
+      })}
 
       {props.revealed && (
         <g data-testid="goal">

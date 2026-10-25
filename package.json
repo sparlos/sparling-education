@@ -13,6 +13,7 @@
     "test": "turbo run test check-voice",
     "check-voice": "turbo run check-voice",
     "voice": "pnpm --filter @repo/voice voice",
+    "voice:test": "pnpm --filter @repo/voice voice:test",
     "new-game": "node packages/game-kit/scripts/new-game.ts",
     "tour": "node packages/game-kit/scripts/tour.ts",
     "mutate": "node packages/game-kit/scripts/mutate.ts"

@@ -31,8 +31,8 @@ Agents always run in a Linux (arm64) sandbox with the repo mounted from the foun
 - **Edit in the repo, run in a scratch copy.** Sync the source into the scratchpad without `node_modules`, install there once, and run tests, type checks, Biome, `pnpm tour` and `pnpm mutate` in the copy:
 
   ```bash
-  rsync -a --delete --exclude node_modules --exclude .git --exclude .turbo --exclude dist ./ <scratchpad>/repo/
+  rsync -a --delete --exclude node_modules --exclude .git --exclude .turbo --exclude dist --exclude .next --exclude .venv ./ <scratchpad>/repo/
   (cd <scratchpad>/repo && pnpm install --frozen-lockfile --store-dir <scratchpad>/store)
   ```
 
-  Re-run the rsync after each edit; the excludes keep the copy's own `node_modules` from being deleted. If dependencies changed, install without `--frozen-lockfile` and copy back only `pnpm-lock.yaml`; never copy anything else back.
+  Re-run the rsync after each edit; the excludes keep the copy's own `node_modules` from being deleted, and leave out the web app's build cache and the voice package's Python environment (about 1 GB together; the sandbox disk is small). If dependencies changed, install without `--frozen-lockfile` and copy back only `pnpm-lock.yaml`; never copy anything else back.

@@ -10,7 +10,7 @@ export const fixedStrings = {
   "tutorial.goal":
     "The goal is hidden over the water. Its fraction tells you how far away it is.",
   "tutorial.plan":
-    "Tap the hops to make a plan. Each hop goes as far as its fraction.",
+    "Drag the hops into your plan. Each hop goes as far as its fraction.",
   "tutorial.play": "Then press play, and watch your hops.",
   "tutorial.splash":
     "Splash! That hop landed in the water. Change it, and try again.",

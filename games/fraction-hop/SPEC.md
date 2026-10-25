@@ -24,7 +24,7 @@ A fraction is a count of equal unit pieces, and so a distance on a number line: 
 The screen is a side view of a course over water: a number line from 0 to a few wholes, with ticks, stones (grass) at some tick positions, and water between them. The student's avatar stands at 0.
 
 1. **The goal is hidden.** Only its fraction is shown ("Goal at ³⁄₈") and spoken. Its place on the course isn't marked until it's found.
-2. **Build a plan.** Below the course are hop blocks, each labelled with a fraction (⅛, ¼, 1). All blocks are the same size and shape: only the fraction says how far a block hops. Tapping a block adds it to the end of the plan. Tapping a block in the plan removes it. The plan has as many empty slots as the task's **hop budget**, so the budget is visible without reading.
+2. **Build a plan.** Below the course are hop blocks, each labelled with a fraction (⅛, ¼, 1). All blocks are the same size and shape: only the fraction says how far a block hops. Dragging a block drops it into the plan where it's let go, and tapping one adds it to the end. A planned block can be dragged to another place in the plan, or dragged back to the hops (or tapped) to remove it. Hops guided placed stay put. The plan has as many empty slots as the task's **hop budget**, so the budget is visible without reading.
 3. **Press play.** The avatar hops the plan from 0, one hop at a time, each starting where the last one landed. A run ends when:
    - a hop lands in water: **splash**, the avatar sinks at that exact spot, and the gap is plain to see,
    - the plan runs out before the goal, on grass: the avatar stands where it stopped, and the landing fraction is shown,
@@ -118,7 +118,7 @@ Retrying is the loop itself: a run costs nothing, and a probe never counts. Afte
 
 Once help is on, it stays on until the end of that task. The steps were 2, 4 and 6 misses; the founder found 6 too many before guided (2026-10-24).
 
-**Discouraging spamming** without a score: misses climb the help ladder, so a spammer ends up guided, and their attempts say so. Polish pass (below): a "Nice fix!" cheer when changing only the hop that missed makes the next run land. An identical rerun isn't refused: it climbs the help ladder instead.
+**Discouraging spamming** without a score: misses climb the help ladder, so a spammer ends up guided, and their attempts say so. A "Nice fix!" cheer, with a sparkle and a pop on the first hop that lands past the old splash, when the run right after a splash has no splash and ends further along: it stops short on grass or finds the goal. An overshoot is still a miss, so it never cheers (founder's call, polish pass). It's never recorded. An identical rerun isn't refused: it climbs the help ladder instead.
 
 No combos, coins, points or streaks: rewards follow effort and are Kindling's to compute (DESIGN.md principle 4).
 
@@ -138,7 +138,7 @@ The contract's character API starts minimal: the portrait at any size, with an e
 
 ## Touch, reading and sound
 
-- **Touch only, tap only:** tap a block to add it, tap a planned block to remove it, tap play, hint and skip. No dragging is needed (dragging blocks may come with polish). Every tap target is at least **64 px**. Ticks and stones are never tapped, so twelfths can be as narrow as the course needs.
+- **Touch only, drag or tap:** drag a block into the plan, drag planned blocks to reorder them or back to the hops to remove them, and tap play, hint and skip. Every drag also has a tap: tap a block to add it to the end, tap a planned block to remove it, so a student who can't drag can still play everything but reordering, which removing and re-adding covers (founder's call, polish pass). A drag starts after 8 px of movement, so a tap stays a tap. Every tap target is at least **64 px**. Ticks and stones are never tapped, so twelfths can be as narrow as the course needs.
 - **No reading:** the only text a student needs is fraction notation (the goal and the blocks), and that notation is what's being taught. Every instruction is a caption and a voice line from the same string. The goal is spoken at the start of each task, a block when it's tapped, and the landing after each run. The tutorial shows every move.
 - **No sound needed:** every result shows on screen: the splash at the exact spot, the landing fraction on the course and the goal's in the caption, the goal revealed when it's reached, and the hint labels and arcs.
 - **A start tap before any sound:** browsers block audio until the page is tapped, so the shell shows a start button before every game. The game's first line comes after it.
@@ -148,7 +148,7 @@ The contract's character API starts minimal: the portrait at any size, with an e
 
 ## Tutorial
 
-A scripted, in-code "video": the avatar and a ghost hand act out one course while the voice explains (strings `tutorial.*`). It opens with a welcome ("Welcome to Fraction Hop!"), then shows: the goal's fraction, tapping two blocks into the plan, pressing play, a hop splashing, fixing that hop, and reaching the goal. It plays at the start of every play, before task 1, and a skip button ends it at any time. It's never recorded as help.
+A scripted, in-code "video": the avatar and a ghost hand act out one course while the voice explains (strings `tutorial.*`). It opens with a welcome ("Welcome to Fraction Hop!"), then shows: the goal's fraction, dragging two blocks into the plan, pressing play, a hop splashing, fixing it by dragging the hops into the other order, and reaching the goal. It plays at the start of every play, before task 1, and a skip button ends it at any time. It's never recorded as help.
 
 **The voice and the hand take turns, never both at once** (founder's call). A line is said first, and the hand may rest on what it's about while it's said. Then the hand acts. Each step waits for the voice to finish (the contract's `say` settles when it has), rather than guessing a line's length. The buttons the hand taps look enabled, though the student can't tap them. On the lower half of the screen, the hand points down from above.
 
@@ -162,7 +162,7 @@ Every string a student sees or hears; each becomes a voice line. Sentences are w
 | --- | --- |
 | `tutorial.welcome` | Welcome to Fraction Hop! |
 | `tutorial.goal` | The goal is hidden over the water. Its fraction tells you how far away it is. |
-| `tutorial.plan` | Tap the hops to make a plan. Each hop goes as far as its fraction. |
+| `tutorial.plan` | Drag the hops into your plan. Each hop goes as far as its fraction. |
 | `tutorial.play` | Then press play, and watch your hops. |
 | `tutorial.splash` | Splash! That hop landed in the water. Change it, and try again. |
 | `tutorial.goal-found` | No hop landed in the water, and the last one landed on the goal. Now you try! |
@@ -252,10 +252,10 @@ Placeholder SVG first, from the style kit, each in a fixed frame with an anchor.
 
 After the core game plays well, not before:
 
-- "Nice fix!" and a sparkle on the fixed block, when only the hop that missed was changed and the next run lands,
+- "Nice fix!" and a sparkle, when the run after a splash has no splash and gets further (done 2026-10-24; see Effort),
 - highlighting each plan block as its hop runs,
 - a tighter layout and motion (the screen-fit requirement itself isn't polish),
-- dragging blocks into the plan.
+- dragging blocks into the plan, and to reorder it (done 2026-10-24).
 
 Whether visual polish becomes its own skill is decided after this build (see `.scratch/game-framework/spec.md`, step 10).
 

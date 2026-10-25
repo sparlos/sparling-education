@@ -1,6 +1,7 @@
 // Fraction Hop's browser tour: `pnpm tour fraction-hop`. Every tier at
 // Chromebook sizes: watches the whole tutorial once (Grade 3, widest size),
-// then on every task plays a miss, taps hint twice on task 2, and solves.
+// then on every task plays a miss, taps hint twice on task 2, and solves
+// (building task 3's plan by dragging).
 // Checks the screen fits, the goal caption shows and targets are 64 px at
 // every step. See packages/game-kit/src/tour.ts.
 import { defineTour } from "@repo/game-kit/tour";
@@ -61,8 +62,35 @@ function route(c: Course): number[] | undefined {
   return best.get(c.goal);
 }
 
+/** The route up to one hop, then a hop that lands in water there. */
+function splashOff(c: Course, route: number[]): number[] | undefined {
+  let at = 0;
+  for (const [k, hop] of route.entries()) {
+    for (const d of c.blocks) {
+      const to = at + c.unit / d;
+      if (d !== hop && to < c.goal && !c.stones.includes(to))
+        return [...route.slice(0, k), d];
+    }
+    at += c.unit / hop;
+  }
+  return undefined;
+}
+
 const tap = (page: Page, selector: string) =>
   page.locator(selector).first().click();
+
+/** Drags one element onto another with the mouse, in small steps as a hand would. */
+async function drag(page: Page, from: string, to: string) {
+  const a = await page.locator(from).first().boundingBox();
+  const b = await page.locator(to).first().boundingBox();
+  if (!a || !b) throw new Error(`can't drag ${from} to ${to}`);
+  await page.mouse.move(a.x + a.width / 2, a.y + a.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2, { steps: 12 });
+  await page.mouse.up();
+  // Let the drop settle before the next drag starts.
+  await page.waitForTimeout(300);
+}
 
 /** Waits until play can be pressed: no run, no line, no tutorial in the way. */
 const waitIdle = (page: Page) =>
@@ -93,8 +121,13 @@ export default defineTour({
     await screenshot("tutorial-plan");
     await checkFit("tutorial");
     if (first && grade === 3) {
-      // Watch the whole tutorial once.
+      // Watch the whole tutorial once, with a look at the hand dragging.
       const t0 = Date.now();
+      await page.waitForSelector('[data-testid="carried"]', {
+        timeout: 60_000,
+      });
+      await page.waitForTimeout(350);
+      await screenshot("tutorial-drag");
       await page.waitForFunction(
         () =>
           ![...document.querySelectorAll("button")].some(
@@ -119,12 +152,19 @@ export default defineTour({
         return;
       }
       await checkFit(`task ${task}`);
-      // A miss: the smallest block until the plan is full.
+      // A miss: the smallest block until the plan is full. On task 4, the
+      // route with one hop that splashes instead, so solving is a "Nice fix!".
       const smallest = Math.max(...c.blocks);
-      for (let i = 0; i < c.budget; i++)
-        await tap(page, `[data-testid="block"][data-d="${smallest}"]`);
+      const fixable = task === 4 ? splashOff(c, r) : undefined;
+      if (fixable)
+        for (const d of fixable)
+          await tap(page, `[data-testid="block"][data-d="${d}"]`);
+      else
+        for (let i = 0; i < c.budget; i++)
+          await tap(page, `[data-testid="block"][data-d="${smallest}"]`);
       await tap(page, '[data-hand="play"]');
       await page.waitForTimeout(400);
+      if (task === 1) await screenshot("task1-running");
       await waitIdle(page);
       if (task === 1) await screenshot("task1-miss");
       // Clear and solve, after tapping hint twice on task 2.
@@ -137,10 +177,47 @@ export default defineTour({
       )
         await tap(page, '[data-testid="planned"]:not(:disabled)');
       const locked = await page.locator('[data-testid="planned"]').count();
-      for (const d of r.slice(locked))
-        await tap(page, `[data-testid="block"][data-d="${d}"]`);
+      if (task === 3) {
+        // By dragging: the route in backwards, each hop dropped on the
+        // first slot, then, if there's room, a spare hop dragged in and back out to the tray.
+        for (const d of r.slice(locked).reverse())
+          await drag(
+            page,
+            `[data-testid="block"][data-d="${d}"]`,
+            `[data-hand="slot-${locked}"], [data-testid="empty-slot"]`,
+          );
+        if (r.length < c.budget) {
+          await drag(
+            page,
+            `[data-testid="block"][data-d="${smallest}"]`,
+            '[data-testid="empty-slot"]',
+          );
+          await drag(
+            page,
+            `[data-hand="slot-${r.length}"]`,
+            '[data-testid="block"]',
+          );
+        }
+        const plan = await page
+          .locator('[data-testid="planned"]')
+          .evaluateAll((els) => els.map((e) => Number(e.dataset.d)));
+        if (plan.join() !== r.join())
+          problem(`task 3: dragged plan ${plan}, wanted ${r}`);
+        await screenshot("task3-dragged");
+      } else
+        for (const d of r.slice(locked))
+          await tap(page, `[data-testid="block"][data-d="${d}"]`);
       if (task === 2) await screenshot("task2-hints");
       await tap(page, '[data-hand="play"]');
+      if (fixable) {
+        // Attached, not visible: the burst itself is 0 × 0.
+        await page.waitForSelector('[data-testid="burst"]', {
+          state: "attached",
+          timeout: 20_000,
+        });
+        await page.waitForTimeout(150);
+        await screenshot("nice-fix");
+      }
       await page.waitForFunction(
         () =>
           document
