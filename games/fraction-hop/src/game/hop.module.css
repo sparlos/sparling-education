@@ -72,7 +72,8 @@
 }
 
 /* The plan and the hops share a sunken panel, label column and block size,
-   so slots and blocks line up; play sits to the right of both. */
+   so slots and blocks line up. The plan takes the panel's full width, so a
+   long one wraps to as few rows as it can; play sits beside the hops. */
 .deck {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -83,9 +84,12 @@
   background: var(--k-surface-sunken);
 }
 
+.plan {
+  grid-column: 1 / -1;
+}
+
 .plan,
 .tray {
-  grid-column: 1;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -274,10 +278,10 @@
   opacity: 1;
 }
 
-/* Beside the plan and the hops, spanning both rows of the deck. */
+/* Beside the hops, under the plan's end. */
 .play {
   grid-column: 2;
-  grid-row: 1 / span 2;
+  grid-row: 2;
   min-height: 88px;
   padding: 0 40px;
   background: var(--tone-fill);

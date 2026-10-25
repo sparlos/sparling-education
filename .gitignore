@@ -53,3 +53,7 @@ packages/voice/.venv
 
 # Python bytecode (packages/voice)
 __pycache__/
+
+# Marketing videos: generated voice, music and mixes (pnpm --filter @repo/marketing make)
+packages/marketing/public
+packages/marketing/out

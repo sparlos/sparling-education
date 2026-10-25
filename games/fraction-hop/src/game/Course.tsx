@@ -28,8 +28,11 @@ export const home: Hopper = { at: 0, flight: null, sunk: false };
 const VH = 340;
 /** The drawing's width when its box can't be measured, and its narrowest. */
 const minVW = 1000;
-/** Its widest, so ticks don't stretch on a very wide screen. */
-const maxVW = 1700;
+/**
+ * Its widest, so ticks don't stretch apart on a very wide screen. High
+ * enough that a short box (a long plan wrapping) still fills its width.
+ */
+const maxVW = 2400;
 const left = 56;
 /** The stones' top, where the hopper stands. */
 const groundY = 196;

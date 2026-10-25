@@ -1,6 +1,6 @@
 # Skill retro
 
-The last step of every Kindling game skill (`design-game`, `build-game`, `polish-game`, `review-game`, `add-curriculum`). The skill improves itself from each run, so the next run needs less back-and-forth with the human.
+The last step of every Kindling game skill (`design-game`, `build-game`, `polish-game`, `review-game`, `add-curriculum`, `make-video`). The skill improves itself from each run, so the next run needs less back-and-forth with the human.
 
 ## 1. List the friction
 

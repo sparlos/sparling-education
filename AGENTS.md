@@ -36,3 +36,5 @@ Agents always run in a Linux (arm64) sandbox with the repo mounted from the foun
   ```
 
   Re-run the rsync after each edit; the excludes keep the copy's own `node_modules` from being deleted, and leave out the web app's build cache and the voice package's Python environment (about 1 GB together; the sandbox disk is small). If dependencies changed, install without `--frozen-lockfile` and copy back only `pnpm-lock.yaml`; never copy anything else back.
+
+    Make sure that after you are done with the scratch copy you've created, clear it completely. eventually, it will bloat the sandbox (which has 20 GB of working room), and will not allow additional scratch copies to be made. If you run into a space problem with creating a scratch copy, make sure to check for existing, old scratch copies that can be deleted first - that's your best bet.
