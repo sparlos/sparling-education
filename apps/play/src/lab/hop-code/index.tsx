@@ -612,7 +612,7 @@ export default function HopCode({ grade, Avatar, speak }: PrototypeProps) {
       </div>
 
       {/* The plan */}
-      <div
+      <section
         style={{
           display: "flex",
           gap: 6,
@@ -649,7 +649,7 @@ export default function HopCode({ grade, Avatar, speak }: PrototypeProps) {
             </button>
           );
         })}
-      </div>
+      </section>
 
       <div
         style={{

@@ -11,7 +11,11 @@
       "!**/generated",
       "!apps/api/openapi.json",
       "!packages/curriculum/reference",
-      "!pnpm-lock.yaml"
+      "!pnpm-lock.yaml",
+      "!.agents/skills",
+      "!.claude/skills/inspect-glb",
+      "!.claude/skills/inspect-runtime",
+      "!.claude/settings.local.json"
     ]
   },
   "formatter": { "enabled": true, "indentStyle": "space" },

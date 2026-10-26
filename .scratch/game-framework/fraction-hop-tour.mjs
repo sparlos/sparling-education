@@ -140,16 +140,16 @@ for (const grade of grades)
         window.__spoken = [];
         const s = window.speechSynthesis;
         s.speak = (u) => {
-      window.__spoken.push(u.text);
-      setTimeout(() => u.dispatchEvent(new Event("end")), 300);
-    };
+          window.__spoken.push(u.text);
+          setTimeout(() => u.dispatchEvent(new Event("end")), 300);
+        };
         s.cancel = () => {};
       },
       [grade],
     );
     await page.goto("http://127.0.0.1:3003/play/fraction-hop");
     await page.getByRole("button", { name: "Start" }).click();
-  await page.waitForSelector('[data-testid="board"]');
+    await page.waitForSelector('[data-testid="board"]');
     await page.waitForTimeout(4000);
     const first = w === 1366;
     if (first)

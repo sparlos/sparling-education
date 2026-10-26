@@ -64,7 +64,6 @@ const pick = <T,>(list: readonly T[]): T => list[rand(list.length)] as T;
 const gcd = (a: number, b: number): number => (b === 0 ? a : gcd(b, a % b));
 const lcm = (a: number, b: number) => (a * b) / gcd(a, b);
 const units = (f: Frac, unit: number) => (f.n * unit) / f.d;
-const same = (a: Frac, b: Frac) => a.n === b.n && a.d === b.d;
 
 function shuffle<T>(list: T[]): T[] {
   const out = [...list];
