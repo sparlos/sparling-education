@@ -58,7 +58,7 @@ function setUp(
     student: overrides.student ?? inClass,
     portal: overrides.portal === undefined ? "north" : overrides.portal,
     outbox,
-    links: standInLinks({ base: "/play/", hubUrl: "http://hub.test/" }),
+    links: standInLinks({ base: "/play/" }),
     newId: () => `id-${++n}`,
     now: () => new Date("2026-10-23T14:00:00.000Z"),
     onInvalid,
@@ -131,7 +131,10 @@ describe("ending", () => {
     const { play } = setUp();
     const exit = await play.end("finished");
     expect(exit.kind).toBe("hub");
-    const url = new URL(exit.kind === "hub" ? exit.url : "");
+    const url = new URL(
+      exit.kind === "hub" ? exit.url : "",
+      "http://localhost",
+    );
     expect(url.searchParams.get("portal")).toBe("north");
     expect(url.searchParams.get("play")).toBe("play-1");
   });

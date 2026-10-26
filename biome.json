@@ -9,7 +9,7 @@
       "!**/dist",
       "!**/public",
       "!**/generated",
-      "!apps/hubworld-api/openapi.json",
+      "!apps/api/openapi.json",
       "!packages/curriculum/reference",
       "!pnpm-lock.yaml"
     ]

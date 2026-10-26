@@ -18,8 +18,8 @@ export const parents = {
     primaryAction: { label: "Get updates", href: "#updates" },
     secondaryAction: { label: "How rewards work", href: "#rewards" },
     image: {
-      alt: "A child's cosy low-poly house filled with furniture earned by practising",
-      placeholderLabel: "Student house render coming soon",
+      alt: "A child's locker decorated with stickers and outfits earned by practising",
+      placeholderLabel: "Student locker render coming soon",
     },
   },
   features: {
@@ -33,14 +33,14 @@ export const parents = {
         body: "Getting better at the game means getting better at the concept. No quiz questions in disguise.",
       },
       {
-        icon: "house",
-        title: "A house that shows what they learned",
-        body: "Furniture is earned by practising and improving in games, so their house becomes a record of their effort.",
+        icon: "sparkles",
+        title: "A locker that shows their effort",
+        body: "Outfits and stickers are earned by practising and improving in games, so their locker becomes a record of their effort.",
       },
       {
-        icon: "users",
-        title: "A class they belong to",
-        body: "Classmates share a world and invite each other over to see what they've earned.",
+        icon: "chart",
+        title: "A teacher who sees how they think",
+        body: "Their teacher sees which ideas they've got and which they're still working on, not just a score.",
       },
       {
         icon: "star",
@@ -50,12 +50,12 @@ export const parents = {
       {
         icon: "heart",
         title: "Recognition from their teacher",
-        body: "Teachers can award special items for kindness, perseverance and leadership.",
+        body: "Teachers can award special stickers for kindness, perseverance and leadership.",
       },
       {
         icon: "privacy",
         title: "Safe by design",
-        body: "Classmates only see nicknames, houses are invite-only, and preset phrases replace open chat.",
+        body: "There's no chat, classmates never see your child's name, and nobody else can see or change their locker.",
       },
     ] satisfies Feature[],
   },
@@ -75,7 +75,7 @@ export const parents = {
       {
         icon: "smile",
         title: "Play at home, if you like",
-        body: "Kids can decorate, visit friends and replay games. New rewards have a weekly limit kids reach in class, so kids without a device at home aren't left behind.",
+        body: "Kids can replay games and dress up their character. New rewards have a weekly limit kids reach in class, so kids without a device at home aren't left behind.",
       },
       {
         icon: "clock",
@@ -84,8 +84,8 @@ export const parents = {
       },
       {
         icon: "clipboard",
-        title: "A parent view, with no upsell",
-        body: "See what your child has learned, their house and their teacher's awards.",
+        title: "Home play counts too",
+        body: "Games played at home are evidence for their teacher, just like games played in class.",
       },
     ] satisfies Feature[],
   },
@@ -100,12 +100,12 @@ export const parents = {
       {
         question: "Is it safe for my child?",
         answer:
-          "Children sign in with their school account, and we keep only their first name and last initial, never their email. Classmates only see a nickname. There's no free chat, only preset phrases and emotes, and student data will be hosted in Canada.",
+          "Children sign in with their school account, and we keep only their first name and last initial, never their email. Classmates never see their name, there's no chat, and student data will be hosted in Canada.",
       },
       {
         question: "Can my child play at home?",
         answer:
-          "Yes, on any computer with a web browser. At home they can decorate, visit and replay. New rewards have a weekly limit kids reach in class, so kids without a device at home aren't left behind.",
+          "Yes, on any computer with a web browser. At home they can replay games and dress up their character. New rewards have a weekly limit kids reach in class, so kids without a device at home aren't left behind.",
       },
       {
         question: "How can my child's class start using Kindling?",

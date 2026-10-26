@@ -9,19 +9,20 @@ export const students = {
   meta: {
     title: "For students",
     description:
-      "Design your character, build your house and explore your class world. Ask your teacher about Kindling!",
+      "Design your character, earn outfits and stickers, and play games where getting better is how you win. Ask your teacher about Kindling!",
   },
   hero: {
     title: (
       <>
-        Your world. Your class. <TitleHighlight>Your adventure.</TitleHighlight>
+        Your character. Your locker.{" "}
+        <TitleHighlight>Your adventure.</TitleHighlight>
       </>
     ),
-    lead: "Kindling is a game you play with your whole class. Design your character, build your house and unlock cool stuff by getting better at what you learn in school.",
+    lead: "Kindling is games you play at school. Design your character, earn outfits and stickers, and unlock cool stuff by getting better at what you learn in school.",
     primaryAction: { label: "See what you can do", href: "#things-to-do" },
     image: {
-      alt: "Kids' characters waving in front of a glowing portal in their class world",
-      placeholderLabel: "Avatars render coming soon",
+      alt: "A student's locker with their character, outfits and stickers",
+      placeholderLabel: "Locker render coming soon",
     },
   },
   features: {
@@ -31,30 +32,30 @@ export const students = {
       {
         icon: "avatar",
         title: "Design your character",
-        body: "Pick your look and your outfits. Your character comes with you into every game.",
+        body: "Pick your look. Your character comes with you into every game.",
       },
       {
-        icon: "house",
-        title: "Build your own house",
-        body: "Decorate it with furniture you earn. Got a sundial? That's because you learned to tell time!",
+        icon: "sparkles",
+        title: "Earn new outfits",
+        body: "Unlock outfit pieces by playing, and dress your character however you like.",
       },
       {
-        icon: "users",
-        title: "Invite your friends over",
-        body: "Invite classmates to your house, and visit theirs when they invite you.",
+        icon: "star",
+        title: "Decorate your locker",
+        body: "Your locker is your own space. Stick the stickers you earn wherever you want. Only you can see it.",
       },
       {
-        icon: "world",
-        title: "Explore your class world",
-        body: "Hang out with your class and jump through portals to play games.",
+        icon: "play",
+        title: "Play games where you learn by doing",
+        body: "Hop along number lines and more. Getting better at the game means getting better at math.",
       },
       {
         icon: "trophy",
         title: "Get noticed for being kind",
-        body: "Your teacher can give you special items for being kind, never giving up and helping others.",
+        body: "Your teacher can give you special stickers for being kind, never giving up and helping others.",
       },
       {
-        icon: "star",
+        icon: "heart",
         title: "Get rewarded for trying",
         body: "Practising, trying again and getting better all earn rewards. It's not just about being right.",
       },
@@ -70,11 +71,11 @@ export const students = {
       },
       {
         title: "Join your class",
-        body: "Open the link your teacher shares, sign in with your school account and pick a nickname.",
+        body: "Open the link your teacher shares and sign in with your school account.",
       },
       {
         title: "Start playing!",
-        body: "Make your character and jump through your first portal.",
+        body: "Make your character, then pick your first game from your locker.",
       },
     ] satisfies Step[],
   },

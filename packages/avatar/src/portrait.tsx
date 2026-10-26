@@ -1,4 +1,4 @@
-// The avatar's 2D portrait: the head of the 3D capsule, in the student's
+// The avatar's 2D portrait: the student's head, in their
 // look, reacting with an expression. Games get it through the game contract's
 // Avatar prop; the shell uses it on its own screens.
 //

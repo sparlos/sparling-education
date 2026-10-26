@@ -8,8 +8,12 @@ import { UIProvider } from "@repo/ui/provider";
 import { lazy, StrictMode, Suspense } from "react";
 import { createRoot } from "react-dom/client";
 import { games } from "./games.ts";
+import { StandInHubScreen } from "./platform/stand-ins/HubScreen.tsx";
 import { createStandInPlatform } from "./platform/stand-ins/index.ts";
-import { standInSignInPath } from "./platform/stand-ins/links.ts";
+import {
+  standInHubPath,
+  standInSignInPath,
+} from "./platform/stand-ins/links.ts";
 import { StandInSignInScreen } from "./platform/stand-ins/SignInScreen.tsx";
 import { newId } from "./play/ids.ts";
 import { isLabUrl } from "./play/routes.ts";
@@ -30,9 +34,6 @@ const navigate = (to: string) => window.location.assign(to);
 const platform = createStandInPlatform({
   storage,
   base,
-  hubUrl:
-    import.meta.env.VITE_HUB_URL ??
-    `${window.location.protocol}//${window.location.hostname}:3001/`,
   // Add ?stand-in-offline to a game link to watch attempts wait and retry.
   offline: () => url.searchParams.has("stand-in-offline"),
 });
@@ -51,6 +52,8 @@ createRoot(root).render(
           navigate={navigate}
           newId={newId}
         />
+      ) : url.pathname === `${base}${standInHubPath}` ? (
+        <StandInHubScreen url={url} />
       ) : (
         <App
           url={url}

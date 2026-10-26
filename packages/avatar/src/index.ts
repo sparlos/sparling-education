@@ -1,7 +1,6 @@
-// An avatar's look, defined once as data. The class world renders it in 3D
-// (`@repo/avatar/playcanvas`) and games render it in 2D as a portrait
-// (`@repo/avatar/portrait`). No imports beyond tokens, so the backend can
-// validate looks with it too.
+// An avatar's look, defined once as data. Games and the shell render it in 2D
+// as a portrait (`@repo/avatar/portrait`). No imports beyond tokens, so the
+// backend can validate looks with it too.
 //
 // Provisional: the avatar is still to be designed, and an illustrator draws
 // the real style kit and parts. Until then every item is a placeholder drawn
@@ -27,8 +26,8 @@ export type EyesId = (typeof eyes)[number];
 export type HeadwearId = (typeof headwear)[number];
 
 /**
- * What a student picked for each slot. Each renderer keys its art by these
- * IDs, so the type checker rejects a new item until it has both 2D and 3D art.
+ * What a student picked for each slot. The portrait keys its art by these
+ * IDs, so the type checker rejects a new item until it has art.
  */
 export interface AvatarLook {
   body: BodyId;

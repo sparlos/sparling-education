@@ -38,9 +38,9 @@ yarn-error.log*
 *.pem
 .pnpm-store
 
-# Generated from apps/hubworld-api (pnpm generate)
-apps/hubworld-api/openapi.json
-packages/hubworld-api-client/src/generated
+# Generated from apps/api (pnpm generate)
+apps/api/openapi.json
+packages/api-client/src/generated
 
 # Generated from @repo/tokens (pnpm generate)
 packages/tokens/src/generated

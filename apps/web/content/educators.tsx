@@ -21,8 +21,8 @@ export const educators = {
     secondaryAction: { label: "Talk to us", href: "/contact" },
     note: "Free for teachers, always.",
     image: {
-      alt: "A teacher's view of the class world from above, showing every student's house",
-      placeholderLabel: "Teacher view render coming soon",
+      alt: "The teacher dashboard: each student against curriculum expectations, with the misconceptions showing up in the class listed above",
+      placeholderLabel: "Dashboard render coming soon",
     },
   },
   features: {
@@ -38,27 +38,27 @@ export const educators = {
       {
         icon: "chromebook",
         title: "Runs on older Chromebooks",
-        body: "Lightweight and browser-based, with a simpler mode for slower devices.",
+        body: "Lightweight and browser-based, built for the oldest Chromebook in the room.",
       },
       {
         icon: "clock",
         title: "Quick starts",
-        body: "A class link and one-click school sign-in get everyone in fast. Game links drop students straight into a game.",
+        body: "A class link and one-click school sign-in get everyone in fast. Game links drop students straight into a game, and every game starts turned on.",
       },
       {
         icon: "chart",
-        title: "Progress you can act on",
-        body: "See who's stuck and which misconceptions are showing up, then print a quick assess summary for report cards.",
+        title: "Misconceptions you can act on",
+        body: "See which wrong ideas are showing up in your class and who has each, then open any student's evidence to see exactly what happened.",
+      },
+      {
+        icon: "clipboard",
+        title: "Quick assess for report cards",
+        body: "View or print a summary of which expectations and learning skills each student's evidence speaks to. The level stays your call.",
       },
       {
         icon: "trophy",
         title: "Recognition that's fair",
-        body: "Award exclusive items for kindness, perseverance and leadership, and see who hasn't been recognised yet this term.",
-      },
-      {
-        icon: "path",
-        title: "Room for every pace",
-        body: "Each game adjusts to the student's grade, so split classes just work. No due dates, so absent students never fall behind.",
+        body: "Award exclusive stickers for kindness, perseverance and leadership, and see who hasn't been recognised yet this term. Each game plays at the student's grade, so split classes just work.",
       },
     ] satisfies Feature[],
   },
@@ -81,9 +81,9 @@ export const educators = {
         price: "Free, always",
         description: "Everything you need to run Kindling with your class.",
         features: [
-          "Class links and student nicknames",
+          "Class links for Google Classroom",
           "Turn on any game for your class",
-          "Game links for Google Classroom",
+          "Game links for any lesson",
           "Basic progress for every student",
         ],
         cta: { label: "Join the pilot", href: "#pilot" },
@@ -98,9 +98,9 @@ export const educators = {
         features: [
           "Results mapped to curriculum expectations",
           "Detailed class and student analytics",
-          "Evidence for report cards",
+          "Quick assess for report cards",
           "Multiple classes",
-          "Teacher-awarded items",
+          "Recognition stickers",
         ],
         cta: { label: "Talk to us", href: "/contact" },
         highlighted: true,
@@ -118,7 +118,7 @@ export const educators = {
       {
         icon: "privacy",
         title: "Privacy by design",
-        body: "We keep a first name and last initial, never student emails. Classmates only see nicknames, and preset phrases replace free chat.",
+        body: "We keep a first name and last initial, never student emails. There's no chat, and students never see each other's names.",
       },
       {
         icon: "secure",
@@ -144,12 +144,12 @@ export const educators = {
       {
         question: "What grades and subjects will it cover?",
         answer:
-          "Kindling is for Grades 1–8. We're starting with a single math strand and expanding from there, and pilot teachers help decide what comes next.",
+          "Kindling is for Grades 1–8. The first five games cover the Number strand for Grades 3–5: fractions, multiplication, place value, addition and subtraction, and division. Pilot teachers help decide what comes next.",
       },
       {
         question: "Will it run on our Chromebooks?",
         answer:
-          "That's a requirement from day one. Kindling runs in the browser, is built for older Chromebooks and has a lighter mode for slower devices.",
+          "That's a requirement from day one. Kindling runs in the browser and is built for older Chromebooks, and a game link opens just that game.",
       },
       {
         question: "Is Kindling approved by my board?",
@@ -159,7 +159,7 @@ export const educators = {
       {
         question: "How is student data protected?",
         answer:
-          "Students sign in with their school account, and we keep only a first name and last initial, never their email. Classmates only see nicknames, there's no free chat, data will be hosted in Canada, and we'll delete it when you ask.",
+          "Students sign in with their school account, and we keep only a first name and last initial, never their email. Students never see each other's names, there's no chat, data will be hosted in Canada, and we'll delete it when you ask.",
       },
       {
         question: "Does Kindling replace my unit?",
@@ -169,7 +169,12 @@ export const educators = {
       {
         question: "What does the pilot involve?",
         answer:
-          "Trying early games, sharing what works and what doesn't, and helping us choose what to build next. Pilot teachers get every paid feature free.",
+          "Trying the first five games with your class, sharing what works and what doesn't, and helping us choose what to build next. Pilot teachers get every paid feature free.",
+      },
+      {
+        question: "What's coming next?",
+        answer:
+          "A shared class world for your students and a view for parents, shaped by what pilot teachers tell us.",
       },
     ] satisfies FaqItem[],
   },

@@ -10,7 +10,6 @@ import { standInSession } from "./session.ts";
 export function createStandInPlatform(options: {
   storage: KeyValueStore | null;
   base: string;
-  hubUrl: string;
   /** While true, attempt sends fail, to try out the retry path. */
   offline?: () => boolean;
 }): Platform {

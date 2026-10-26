@@ -1,8 +1,8 @@
 import { defineConfig } from "orval";
 
 export default defineConfig({
-  hubworld: {
-    input: { target: "../../apps/hubworld-api/openapi.json" },
+  api: {
+    input: { target: "../../apps/api/openapi.json" },
     output: {
       target: "src/generated/api.ts",
       schemas: "src/generated/models",

@@ -26,10 +26,10 @@ export const comparison = {
       note: "Earned by trying and improving.",
       typical: "Random prize boxes are common",
     },
-    world: {
-      label: "One shared class world",
-      note: "A house for every student, open to classmates by invite.",
-      typical: "Separate games and sessions",
+    misconceptions: {
+      label: "Shows you the misconceptions",
+      note: "See which wrong ideas are showing up in your class, and who has each.",
+      typical: "Usually a score or a percentage",
     },
     streaks: {
       label: "No pressure to log in",
@@ -43,7 +43,7 @@ export const comparisonShort: ComparisonRow[] = [
   comparison.rows.mechanic,
   comparison.rows.store,
   comparison.rows.earned,
-  comparison.rows.world,
+  comparison.rows.misconceptions,
 ];
 
 export const comparisonFull: ComparisonRow[] = Object.values(comparison.rows);
@@ -60,19 +60,19 @@ export const promiseItems: PromiseItem[] = [
 export const classroomSteps: Step[] = [
   {
     title: "Create your class",
-    body: "Share a class link. Students sign in with their school account and pick a nickname.",
+    body: "Give it a name and its grade or grades. Every game mapped to Ontario curriculum expectations starts turned on.",
   },
   {
-    title: "Turn on games",
-    body: "Pick games mapped to Ontario curriculum expectations that fit what you're teaching. No due dates.",
+    title: "Share a link",
+    body: "Post your class link, or a game link that fits today's lesson, in Google Classroom. Students sign in with their school account.",
   },
   {
     title: "Students play",
-    body: "Games you turn on wait as portals in the class world, or drop a game link straight into Google Classroom.",
+    body: "Each student plays at their grade, and every game returns them to their locker with what they've earned. No due dates.",
   },
   {
     title: "Assess with evidence",
-    body: "See understanding and effort for every student, and print a quick assess summary for report cards.",
+    body: "See the misconceptions showing up in your class, open any student's evidence, and print quick assess for report cards.",
   },
 ];
 
@@ -89,5 +89,5 @@ export const pilotForm = {
 
 export const pilotCta = {
   title: "Join the teacher pilot",
-  lead: "We're looking for Ontario teachers in Grades 1–8 to help shape the first Kindling games. Pilot teachers get every paid feature free.",
+  lead: "We're looking for Ontario teachers to try the first five Kindling games, for Grades 3–5 math, and help shape what comes next. Pilot teachers get every paid feature free.",
 };

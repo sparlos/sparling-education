@@ -75,10 +75,7 @@ describe("stand-in attempts", () => {
 });
 
 describe("stand-in links", () => {
-  const links = standInLinks({
-    base: "/play/",
-    hubUrl: "http://localhost:3001/",
-  });
+  const links = standInLinks({ base: "/play/" });
 
   it("sends sign-in to the stand-in screen, carrying the game link", () => {
     const url = new URL(
@@ -89,9 +86,12 @@ describe("stand-in links", () => {
     expect(url.searchParams.get("next")).toBe("/play/sample?portal=north");
   });
 
-  it("sends the student back to their portal in the hub, with the play", () => {
-    const url = new URL(links.hub({ portal: "north", play: "p1" }));
-    expect(url.origin).toBe("http://localhost:3001");
+  it("sends the student to the stand-in hub, with their portal and play", () => {
+    const url = new URL(
+      links.hub({ portal: "north", play: "p1" }),
+      "http://localhost",
+    );
+    expect(url.pathname).toBe("/play/__stand-in/hub");
     expect(url.searchParams.get("portal")).toBe("north");
     expect(url.searchParams.get("play")).toBe("p1");
   });

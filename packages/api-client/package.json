@@ -1,5 +1,5 @@
 {
-  "name": "@repo/hubworld-api-client",
+  "name": "@repo/api-client",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -12,7 +12,7 @@
   },
   "devDependencies": {
     "@repo/typescript-config": "workspace:*",
-    "hubworld-api": "workspace:*",
+    "api": "workspace:*",
     "orval": "8.43.0",
     "typescript": "7.0.2"
   }

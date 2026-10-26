@@ -1,5 +1,5 @@
 {
-  "name": "hubworld-api",
+  "name": "api",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -8,19 +8,18 @@
     "start": "node src/index.ts",
     "generate": "node scripts/generate-openapi.ts",
     "check-types": "tsc --noEmit",
-    "test": "node --test 'src/**/*.test.ts'"
+    "test": "vitest run"
   },
   "dependencies": {
     "@hono/node-server": "2.1.5",
     "@hono/zod-openapi": "1.6.3",
     "hono": "4.13.13",
-    "ws": "8.22.0",
     "zod": "4.6.7"
   },
   "devDependencies": {
     "@repo/typescript-config": "workspace:*",
     "@types/node": "24.19.2",
-    "@types/ws": "8.18.2",
-    "typescript": "7.0.2"
+    "typescript": "7.0.2",
+    "vitest": "5.0.5"
   }
 }

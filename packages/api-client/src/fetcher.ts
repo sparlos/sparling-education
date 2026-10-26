@@ -1,6 +1,6 @@
 let baseUrl = "";
 
-/** Points every generated request at the hubworld API, e.g. "http://localhost:3002". */
+/** Points every generated request at Kindling's API, e.g. "http://localhost:3002". */
 export function setBaseUrl(url: string) {
   baseUrl = url.replace(/\/$/, "");
 }

@@ -8,7 +8,7 @@ This is a **multi-context** repo (pnpm/Turborepo monorepo). Each workspace under
 
 - **`GLOSSARY-MAP.md`** at the repo root: it points at one `GLOSSARY.md` per context. Read each one relevant to the topic.
 - **`docs/adr/`** at the repo root: system-wide decisions.
-- **`<workspace>/docs/adr/`** (e.g. `apps/hubworld/docs/adr/`): context-scoped decisions for the workspace you're about to work in.
+- **`<workspace>/docs/adr/`** (e.g. `apps/play/docs/adr/`): context-scoped decisions for the workspace you're about to work in.
 
 If any of these files don't exist, **proceed silently**. Don't flag their absence; don't suggest creating them upfront. The `/domain-modeling` skill (reached via `/grill-with-docs` and `/improve-codebase-architecture`) creates them lazily when terms or decisions actually get resolved.
 
@@ -22,10 +22,10 @@ If any of these files don't exist, **proceed silently**. Don't flag their absenc
 │   ├── web/
 │   │   ├── GLOSSARY.md
 │   │   └── docs/adr/                  ← context-specific decisions
-│   ├── hubworld/
+│   ├── play/
 │   │   ├── GLOSSARY.md
 │   │   └── docs/adr/
-│   └── hubworld-api/
+│   └── api/
 │       ├── GLOSSARY.md
 │       └── docs/adr/
 └── packages/

@@ -60,10 +60,7 @@ function setUp({
           name: "test",
           session,
           records,
-          links: standInLinks({
-            base: "/play/",
-            hubUrl: "https://kindling.test/world",
-          }),
+          links: standInLinks({ base: "/play/" }),
         }}
         games={games}
         storage={storage}
@@ -250,8 +247,8 @@ describe("finishing", () => {
     expect(endsIn(records.stored)).toEqual([
       expect.objectContaining({ ending: "finished" }),
     ]);
-    const hub = new URL(navigate.mock.calls[0]?.[0]);
-    expect(hub.pathname).toBe("/world");
+    const hub = new URL(navigate.mock.calls[0]?.[0], "https://kindling.test");
+    expect(hub.pathname).toBe("/play/__stand-in/hub");
     expect(hub.searchParams.get("portal")).toBe("north");
     expect(hub.searchParams.get("play")).toBe(records.stored[0]?.play);
   });
@@ -336,7 +333,10 @@ describe("leaving", () => {
       expect.objectContaining({ ending: "left" }),
     ]);
     expect(
-      new URL(navigate.mock.calls[0]?.[0]).searchParams.get("portal"),
+      new URL(
+        navigate.mock.calls[0]?.[0],
+        "https://kindling.test",
+      ).searchParams.get("portal"),
     ).toBe("north");
   });
 

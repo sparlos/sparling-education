@@ -2,22 +2,22 @@ export const privacy = {
   meta: {
     title: "Privacy",
     description:
-      "The privacy commitments Kindling is being built around: no student emails, nicknames between classmates, no free chat, data hosted in Canada.",
+      "The privacy commitments Kindling is being built around: no student emails, names seen only by teachers, no chat, data hosted in Canada.",
   },
   title: "Privacy at Kindling",
   lead: "Kindling is still in development. This page describes the commitments we're building around. We'll publish a full privacy policy before any student uses Kindling.",
   sections: [
     {
       title: "What we'll collect from students",
-      body: "Students sign in with their school account, and we keep only their first name and last initial, never their email or photo. Only their teacher sees that name: classmates see a nickname picked from a word list.",
+      body: "Students sign in with their school account, and we keep only their first name and last initial, never their email or photo. Only their teacher sees that name: other students never do.",
     },
     {
       title: "Where data will live",
       body: "Student data will be stored in Canada.",
     },
     {
-      title: "No free chat",
-      body: "Students talk to each other with preset phrases and emotes, never open text chat.",
+      title: "No chat",
+      body: "Students never type anything other students can see.",
     },
     {
       title: "No ads, and no selling data",
