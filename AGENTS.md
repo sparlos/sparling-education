@@ -23,6 +23,10 @@ Default five-role vocabulary (`needs-triage`, `needs-info`, `ready-for-agent`, `
 
 Multi-context: root `GLOSSARY-MAP.md` points to per-workspace `GLOSSARY.md` files under `apps/*` and `packages/*`. See `docs/agents/domain.md`.
 
+### Testing against the database
+
+The API's tests run against an ephemeral Postgres. See `docs/agents/testing.md` before adding API tests or schema changes.
+
 ## Running anything in the sandbox
 
 Agents always run in a Linux (arm64) sandbox with the repo mounted from the founder's Mac. `node_modules` is the Mac's, so anything with a native binary (Vite, Vitest, Biome, rolldown, esbuild, lightningcss) fails here, e.g. `Cannot find native binding` or the tour dying with `kill ESRCH` when its dev server can't start.

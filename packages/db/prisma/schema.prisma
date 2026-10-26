@@ -1,0 +1,11 @@
+// Kindling's schema. This is the only place schema changes are made:
+// edit this file, then run `pnpm --filter @repo/db migrate` to add a migration.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}

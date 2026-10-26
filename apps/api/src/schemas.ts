@@ -5,3 +5,7 @@ export const HealthSchema = z
   .openapi("Health");
 
 export type Health = z.infer<typeof HealthSchema>;
+
+export const UnhealthySchema = z
+  .object({ status: z.literal("unavailable") })
+  .openapi("Unhealthy");

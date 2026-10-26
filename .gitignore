@@ -57,3 +57,6 @@ __pycache__/
 # Marketing videos: generated voice, music and mixes (pnpm --filter @repo/marketing make)
 packages/marketing/public
 packages/marketing/out
+
+# Generated from @repo/db (pnpm generate)
+packages/db/src/generated

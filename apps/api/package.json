@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "node --watch src/index.ts",
+    "dev": "node --watch src/index.ts --api-reference",
     "start": "node src/index.ts",
     "generate": "node scripts/generate-openapi.ts",
     "check-types": "tsc --noEmit",
@@ -13,6 +13,8 @@
   "dependencies": {
     "@hono/node-server": "2.1.5",
     "@hono/zod-openapi": "1.6.3",
+    "@repo/db": "workspace:*",
+    "@scalar/hono-api-reference": "0.12.14",
     "hono": "4.13.13",
     "zod": "4.6.7"
   },

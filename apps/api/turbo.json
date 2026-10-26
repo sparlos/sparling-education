@@ -1,0 +1,13 @@
+{
+  "$schema": "https://turborepo.dev/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    "dev": {
+      "dependsOn": ["$TURBO_EXTENDS$", "@repo/db#dev"],
+      "env": ["DATABASE_URL", "PORT"]
+    },
+    "test": {
+      "passThroughEnv": ["DOCKER_*", "TESTCONTAINERS_*"]
+    }
+  }
+}

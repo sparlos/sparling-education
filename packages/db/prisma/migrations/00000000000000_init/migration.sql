@@ -1,0 +1,1 @@
+-- Kindling starts with an empty schema. Later migrations add the tables.

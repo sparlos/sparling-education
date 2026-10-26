@@ -4,3 +4,9 @@ packages:
   - "games/*"
 allowBuilds:
   esbuild: true
+  "@prisma/engines": true
+  prisma: true
+  # Optional native extras of testcontainers' Docker client (SSH transport).
+  cpu-features: false
+  ssh2: false
+  protobufjs: false
