@@ -120,7 +120,7 @@ Once help is on, it stays on until the end of that task. The steps were 2, 4 and
 
 **Discouraging spamming** without a score: misses climb the help ladder, so a spammer ends up guided, and their attempts say so. A "Nice fix!" cheer, with a sparkle and a pop on the first hop that lands past the old splash, when the run right after a splash has no splash and ends further along: it stops short on grass or finds the goal. An overshoot is still a miss, so it never cheers (founder's call, polish pass). It's never recorded. An identical rerun isn't refused: it climbs the help ladder instead.
 
-No combos, coins, points or streaks: rewards follow effort and are Kindling's to compute (DESIGN.md principle 4).
+No combos, coins, points or streaks: rewards follow effort and are Kindling's to compute (DESIGN.md principle 5).
 
 ## Avatar
 

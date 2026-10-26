@@ -21,16 +21,26 @@ _Avoid_: Character, player, skin
 ### Classes
 
 **Class join link**:
-A link that carries a class's join code so a student can join that class in one step. Separate from game links.
+A link that carries a class's join code so a student can join that class in one step, landing in their locker.
 _Avoid_: Invite link
 
 **Game link**:
-A direct link to one game, usually shared by a teacher in a class stream. A full entry point for students: results count exactly as if the game were opened from the class world.
+A direct link to one game for one class, usually shared by a teacher in a class stream. A full entry point for students: opening it joins the student to that class if they aren't in it yet, and their results go to that class exactly as if the game were opened from their locker.
 _Avoid_: Deep link, assignment link
 
 **Demo class**:
-A sandbox class with simulated classmates that prospective teachers can explore as both teacher and student. Runs on the same foundations as a real class.
+A class of simulated students with results already in, which every new teacher gets alongside their own classes and can explore as both teacher and student. Runs on the same foundations as a real class, and the teacher can delete it in one step.
 _Avoid_: Sandbox, trial, test class
+
+**Welcome walkthrough**:
+A new teacher's first-run guide, three steps at most: share a game link, spot the misconceptions showing up in the class, and view quick assess.
+_Avoid_: Tour (that's the automated playthrough of a game), onboarding, tutorial
+
+### Locker
+
+**Locker**:
+A student's own home screen, outside any class world: their avatar and wardrobe, the games their teacher has turned on, and where every game returns them, with any new rewards revealed. A student can decorate it. Nobody visits it.
+_Avoid_: Home, dashboard, hub, profile
 
 ### Class world
 
@@ -97,15 +107,19 @@ How a student worked during a play: retrying, improving after mistakes, persisti
 _Avoid_: Engagement, time spent
 
 **Quick assess**:
-A printable summary of a student's or a class's results that a teacher can use when writing report cards. It names which curriculum expectations and Learning Skills each piece of evidence contributes to, but never assigns a level or a Learning Skills rating: that judgement stays with the teacher.
+A summary of a student's or a class's results that a teacher views, or prints, when writing report cards. It names which curriculum expectations and Learning Skills each piece of evidence contributes to, but never assigns a level or a Learning Skills rating: that judgement stays with the teacher.
 _Avoid_: Report card, grade report, rubric (as the product name)
 
 ### Rewards
 
 **Reward**:
-An item (an outfit piece or a piece of furniture) a student earns through effort. Never bought, never random. Earnable anywhere, up to a weekly cap a student can reach in class time alone, so home play is never an advantage.
+An item (an outfit piece, a sticker, or a piece of furniture) a student earns through effort. Never bought, never random. Earnable anywhere, up to a weekly cap a student can reach in class time alone, so home play is never an advantage.
 _Avoid_: Prize, loot, unlock
 
+**Sticker**:
+A reward a student places on their locker to decorate it.
+_Avoid_: Decal, badge
+
 **Recognition**:
-An exclusive item a teacher awards a student for a character trait (e.g. kindness, perseverance, leadership). Only teachers can give it, games never do, and it doesn't count toward the weekly cap.
+An exclusive sticker a teacher awards a student for a character trait (e.g. kindness, perseverance, leadership), one design per trait. Only teachers can give it, games never do, and it doesn't count toward the weekly cap.
 _Avoid_: Badge, award (as a separate term), teacher reward

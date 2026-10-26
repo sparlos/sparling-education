@@ -1,6 +1,6 @@
 # Glossary Map
 
-Kindling is a web-based learning game for Grades 1–8 built around a shared class world.
+Kindling is a web-based learning game for Grades 1–8 built around games where the concept is the mechanic, with a shared class world planned for later.
 
 ## Contexts
 
