@@ -42,6 +42,7 @@ export const meta: PrototypeMeta = {
   sampleTask:
     "math-2020.g4.B2.7, sample task 1: building 4/5 out of one-fifth strips and connecting it to 1/5 + 1/5 + 1/5 + 1/5. Here each strip is a hop.",
   fun: "Program a route, then press play and watch it run, like a coding game (Lightbot) crossed with Mario's hops over pits and coins. The plan is a puzzle with a hop budget; the run is the reveal, and a splash shows exactly which hop was wrong.",
+  isArchived: true,
 };
 
 interface Block {
