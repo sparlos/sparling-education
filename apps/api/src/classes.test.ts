@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { client, cookiesFrom, db, google } from "../test/client.ts";
+import {
+  client,
+  cookiesFrom,
+  google,
+  signInAsStudent,
+} from "../test/client.ts";
 
 /** A new teacher's browser: the headers that act as them. */
 async function teacher() {
@@ -10,21 +15,9 @@ async function teacher() {
   return cookiesFrom(res);
 }
 
-// No endpoint makes a student yet (joining a class does, in ticket 07).
-async function student() {
-  const sub = `g-student-${crypto.randomUUID()}`;
-  await db.account.create({
-    data: {
-      googleSubject: sub,
-      role: "student",
-      firstName: "Maya",
-      lastInitial: "R",
-    },
-  });
-  const res = await client["sign-in"].$post({
-    json: { credential: google.credentialFor({ sub }), as: "teacher" },
-  });
-  return cookiesFrom(res);
+/** A new student's browser. */
+function student() {
+  return signInAsStudent();
 }
 
 async function createClass(

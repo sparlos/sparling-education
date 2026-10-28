@@ -14,22 +14,36 @@ import {
 } from "./accounts.ts";
 import { createClass, teacherClass, teacherClasses } from "./classes.ts";
 import { type IdentityVerifier, identityFrom } from "./identity.ts";
+import { joinClass, pickGrade } from "./memberships.ts";
 import {
   type Account,
   AccountSchema,
   ClassSchema,
   ErrorSchema,
+  GradePickSchema,
   HealthSchema,
+  JoinSchema,
+  MembershipSchema,
   NewClassSchema,
   SignedInSchema,
   SignInSchema,
+  StudentSchema,
+  StudentSignInSchema,
   UnhealthySchema,
 } from "./schemas.ts";
+import { studentSession } from "./session.ts";
 
 export const openApiConfig = {
   openapi: "3.1.0",
   info: { title: "Kindling API", version: "0.0.0" },
 };
+
+// Where student sign-in sends the browser back to. The play shell remembers
+// where the student was headed, so no destination has to survive Google.
+const studentSignInPage = "/play/sign-in";
+
+// The cookie Google's sign-in library sets, to match against the form field.
+const googleCsrfCookie = "g_csrf_token";
 
 const healthRoute = createRoute({
   method: "get",
@@ -70,6 +84,27 @@ const signInRoute = createRoute({
   },
 });
 
+const studentSignInRoute = createRoute({
+  method: "post",
+  path: "/sign-in/student",
+  operationId: "signInStudent",
+  summary: "Sign a student in with Google's redirect-mode sign-in",
+  description:
+    "Google posts its ID token here as a form (Google's `login_uri`). Checks Google's double-submit cookie, verifies the token, makes a student if the account is new, starts a session, and sends the browser back to the play shell's sign-in page, which goes on to where the student was headed. An existing account keeps its role.",
+  request: {
+    body: {
+      content: {
+        "application/x-www-form-urlencoded": { schema: StudentSignInSchema },
+      },
+    },
+  },
+  responses: {
+    303: {
+      description: `Back to ${studentSignInPage}: signed in, or with \`?failed\` when the sign-in was rejected`,
+    },
+  },
+});
+
 const signOutRoute = createRoute({
   method: "post",
   path: "/sign-out",
@@ -89,6 +124,92 @@ const accountRoute = createRoute({
       content: {
         "application/json": { schema: z.union([AccountSchema, z.null()]) },
       },
+    },
+  },
+});
+
+const sessionRoute = createRoute({
+  method: "get",
+  path: "/session",
+  operationId: "getSession",
+  summary: "The signed-in student, as the play shell needs them",
+  responses: {
+    200: {
+      description: "The signed-in student, or null when signed out",
+      content: {
+        "application/json": { schema: z.union([StudentSchema, z.null()]) },
+      },
+    },
+    403: {
+      description: "Signed in, but not as a student",
+      content: { "application/json": { schema: ErrorSchema } },
+    },
+  },
+});
+
+// Every student route answers these when the browser isn't a student's.
+const studentOnly = {
+  401: {
+    description: "Not signed in",
+    content: { "application/json": { schema: ErrorSchema } },
+  },
+  403: {
+    description: "Signed in, but not as a student",
+    content: { "application/json": { schema: ErrorSchema } },
+  },
+};
+
+const joinRoute = createRoute({
+  method: "post",
+  path: "/memberships",
+  operationId: "joinClass",
+  summary: "Join the signed-in student to a class",
+  description:
+    "Joining a class they're already in changes nothing. In a single-grade class the student's grade is set; in a split class it stays null until they pick one.",
+  request: {
+    body: { content: { "application/json": { schema: JoinSchema } } },
+  },
+  responses: {
+    200: {
+      description: "The student's membership of the class",
+      content: { "application/json": { schema: MembershipSchema } },
+    },
+    ...studentOnly,
+    404: {
+      description: "No class has that join code",
+      content: { "application/json": { schema: ErrorSchema } },
+    },
+  },
+});
+
+const gradeRoute = createRoute({
+  method: "put",
+  path: "/memberships/{classId}/grade",
+  operationId: "pickGrade",
+  summary: "The student picks their grade in a split class",
+  description:
+    "Once only, from the class's grades. After that only their teacher can change it.",
+  request: {
+    params: z.object({ classId: z.uuid() }),
+    body: { content: { "application/json": { schema: GradePickSchema } } },
+  },
+  responses: {
+    200: {
+      description: "The student's membership, with their grade",
+      content: { "application/json": { schema: MembershipSchema } },
+    },
+    400: {
+      description: "Not one of the class's grades",
+      content: { "application/json": { schema: ErrorSchema } },
+    },
+    ...studentOnly,
+    404: {
+      description: "The student isn't in that class",
+      content: { "application/json": { schema: ErrorSchema } },
+    },
+    409: {
+      description: "The student's grade in that class is already set",
+      content: { "application/json": { schema: ErrorSchema } },
     },
   },
 });
@@ -189,6 +310,26 @@ export function createApp({
     return account.role === "teacher" ? account : "not-a-teacher";
   }
 
+  /** The browser's student, or why it hasn't got one. */
+  async function studentOf(
+    c: Context,
+  ): Promise<Account | "signed-out" | "not-a-student"> {
+    const account = await sessionAccount(db, getCookie(c, sessionCookie.name));
+    if (!account) return "signed-out";
+    return account.role === "student" ? account : "not-a-student";
+  }
+
+  async function startSessionCookie(c: Context, accountId: string) {
+    const token = await startSession(db, accountId);
+    setCookie(c, sessionCookie.name, token, {
+      httpOnly: true,
+      sameSite: "Lax",
+      secure: secureCookies,
+      path: "/",
+      maxAge: sessionCookie.maxAgeSeconds,
+    });
+  }
+
   const app = base
     .openapi(healthRoute, async (c) => {
       try {
@@ -203,18 +344,22 @@ export function createApp({
       const claims = await identity.verify(credential);
       if (!claims) return c.json({ error: "credential-rejected" }, 401);
       const account = await accountFor(db, identityFrom(claims), as);
-      const token = await startSession(db, account.id);
-      setCookie(c, sessionCookie.name, token, {
-        httpOnly: true,
-        sameSite: "Lax",
-        secure: secureCookies,
-        path: "/",
-        maxAge: sessionCookie.maxAgeSeconds,
-      });
+      await startSessionCookie(c, account.id);
       return c.json(
         { account, returnTo: sameOriginPath(returnTo, homes[as]) },
         200,
       );
+    })
+    .openapi(studentSignInRoute, async (c) => {
+      const { credential, g_csrf_token } = c.req.valid("form");
+      const failed = () => c.redirect(`${studentSignInPage}?failed`, 303);
+      // Another site can post a form here, but can't set this site's cookie.
+      if (getCookie(c, googleCsrfCookie) !== g_csrf_token) return failed();
+      const claims = await identity.verify(credential);
+      if (!claims) return failed();
+      const account = await accountFor(db, identityFrom(claims), "student");
+      await startSessionCookie(c, account.id);
+      return c.redirect(studentSignInPage, 303);
     })
     .openapi(signOutRoute, async (c) => {
       await endSession(db, getCookie(c, sessionCookie.name));
@@ -227,6 +372,42 @@ export function createApp({
         getCookie(c, sessionCookie.name),
       );
       return c.json(account, 200);
+    })
+    .openapi(sessionRoute, async (c) => {
+      const student = await studentOf(c);
+      if (student === "signed-out") return c.json(null, 200);
+      if (student === "not-a-student") return c.json({ error: student }, 403);
+      return c.json(await studentSession(db, student), 200);
+    })
+    .openapi(joinRoute, async (c) => {
+      const student = await studentOf(c);
+      if (student === "signed-out") return c.json({ error: student }, 401);
+      if (student === "not-a-student") return c.json({ error: student }, 403);
+      const { joinCode } = c.req.valid("json");
+      const membership = await joinClass(db, student.id, joinCode);
+      if (!membership) return c.json({ error: "no-such-class" }, 404);
+      return c.json(membership, 200);
+    })
+    .openapi(gradeRoute, async (c) => {
+      const student = await studentOf(c);
+      if (student === "signed-out") return c.json({ error: student }, 401);
+      if (student === "not-a-student") return c.json({ error: student }, 403);
+      const pick = await pickGrade(
+        db,
+        student.id,
+        c.req.valid("param").classId,
+        c.req.valid("json").grade,
+      );
+      switch (pick.kind) {
+        case "picked":
+          return c.json(pick.membership, 200);
+        case "not-a-member":
+          return c.json({ error: pick.kind }, 404);
+        case "already-picked":
+          return c.json({ error: pick.kind }, 409);
+        case "not-a-class-grade":
+          return c.json({ error: pick.kind }, 400);
+      }
     })
     .openapi(classesRoute, async (c) => {
       const teacher = await teacherOf(c);

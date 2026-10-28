@@ -46,7 +46,7 @@ teacherPortContract("API teacher port", () => {
         given_name: firstName,
         family_name: lastName,
       }),
-    // No endpoint makes a student yet; joining a class will.
+    // Seeded directly: the teacher port never makes students.
     addStudent: async ({ subject, firstName, lastName }) => {
       await db.account.create({
         data: {

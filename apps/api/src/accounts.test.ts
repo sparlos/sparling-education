@@ -1,5 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
-import { client, cookiesFrom, db, google } from "../test/client.ts";
+import {
+  client,
+  cookiesFrom,
+  db,
+  google,
+  signInAsStudent,
+} from "../test/client.ts";
 
 async function signIn(json: { credential: string; returnTo?: string }) {
   const res = await client["sign-in"].$post({
@@ -19,16 +25,8 @@ async function accountWith(headers?: { cookie: string }) {
   return res.json();
 }
 
-// No endpoint makes a student yet (joining a class does, in a later ticket).
 async function existingStudent(sub: string) {
-  await db.account.create({
-    data: {
-      googleSubject: sub,
-      role: "student",
-      firstName: "Maya",
-      lastInitial: "R",
-    },
-  });
+  await signInAsStudent(google.credentialFor({ sub }));
 }
 
 describe("signing in", () => {

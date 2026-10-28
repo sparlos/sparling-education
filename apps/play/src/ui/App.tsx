@@ -7,31 +7,30 @@ import type {
 } from "@repo/game-contract";
 import { Icon } from "@repo/ui/icon";
 import { IconButton } from "@repo/ui/icon-button";
-import { Loader } from "@repo/ui/loader";
 import { Progress as ProgressBar } from "@repo/ui/progress";
 import { Stack } from "@repo/ui/stack";
-import { Text } from "@repo/ui/text";
 import { Title } from "@repo/ui/title";
-import {
-  type ReactNode,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { GameRegistry } from "../games.ts";
 import type { AvatarLook, Platform } from "../platform/ports.ts";
 import { boot, type ReadyPlay } from "../play/boot.ts";
 import type { OutboxOptions } from "../play/outbox.ts";
 import type { Ending } from "../play/play.ts";
+import { parseRoute } from "../play/routes.ts";
 import type { KeyValueStore } from "../play/storage.ts";
 import { translator } from "../play/strings.ts";
 import { createVoice, type Voice, type VoiceOptions } from "../play/voice.ts";
-import { resolveLineUrl } from "../play/voice-lines.ts";
+import { type LineMap, resolveLineUrl } from "../play/voice-lines.ts";
 import classes from "./app.module.css";
 import { ErrorBoundary } from "./ErrorBoundary.tsx";
-import { type ShellStringId, shellStrings } from "./shell-strings.ts";
+import { JoinPage, LockerPage, SignInPage } from "./Locker.tsx";
+import {
+  Message,
+  Question,
+  ShellLines,
+  shellT,
+  useShellLine,
+} from "./shared.tsx";
 
 export interface AppProps {
   url: URL;
@@ -43,6 +42,8 @@ export interface AppProps {
   /** Leaves the shell for another page. */
   navigate(url: string): void;
   newId(): string;
+  /** The recordings of the shell's own lines; lines without one use browser speech. */
+  shellLines?: LineMap;
   /** Browser speech, replaceable in tests. */
   speak?: VoiceOptions["speak"];
   /** How long ending a play waits for attempts to send before leaving anyway. */
@@ -59,11 +60,37 @@ type Screen =
   | { kind: "ending"; ready: ReadyPlay }
   | { kind: "end-screen"; ready: ReadyPlay; ending: Ending };
 
-const shellT = translator(shellStrings, "en-CA") as (
-  id: ShellStringId,
-) => string;
+const noLines: LineMap = {};
 
+/** The shell: the locker, joining a class, sign-in, or a game, by the URL. */
 export function App(props: AppProps) {
+  return (
+    <ShellLines.Provider value={props.shellLines ?? noLines}>
+      <RoutedScreen {...props} />
+    </ShellLines.Provider>
+  );
+}
+
+function RoutedScreen(props: AppProps) {
+  const route = useMemo(
+    () => parseRoute(props.url, props.base),
+    [props.url, props.base],
+  );
+  switch (route?.kind) {
+    case "locker":
+      return <LockerPage {...props} />;
+    case "join":
+      return <JoinPage {...props} joinCode={route.joinCode} />;
+    case "sign-in":
+      return <SignInPage {...props} />;
+    case "game":
+      return <GamePage {...props} />;
+    case undefined:
+      return <Message text={shellT("not-found")} />;
+  }
+}
+
+function GamePage(props: AppProps) {
   const { url, base, platform, games, storage, navigate, newId, outboxTiming } =
     props;
   const [screen, setScreen] = useState<Screen>({ kind: "loading" });
@@ -79,6 +106,7 @@ export function App(props: AppProps) {
           return;
         }
         if (result.kind === "sign-in") return navigate(result.url);
+        if (result.kind === "locker") return navigate(base);
         if (result.kind === "not-found")
           return setScreen({ kind: "not-found" });
         ready = result.ready;
@@ -221,7 +249,7 @@ function PlayScreen({
 
   return (
     <main className={classes.play} aria-busy={ending}>
-      <div className={classes.controls}>
+      <div className={classes.controls} inert={asking || ending}>
         <IconButton
           tone="neutral"
           label={shellT("leave")}
@@ -242,7 +270,7 @@ function PlayScreen({
           <Icon name="speaker" size={32} />
         </IconButton>
       </div>
-      <div className={classes.game}>
+      <div className={classes.game} inert={asking || ending}>
         {started && game.manifest.progress && progress && (
           <ProgressStrip progress={progress} />
         )}
@@ -348,23 +376,9 @@ function avatarFor(look: AvatarLook) {
   };
 }
 
-/** Says one of the shell's own lines when it appears. */
-function useShellLine(id: ShellStringId, speak?: VoiceOptions["speak"]) {
-  useEffect(() => {
-    const voice = createVoice({
-      text: shellT as (id: string) => string,
-      locale: "en-CA",
-      speak,
-    });
-    voice.say(id);
-    return () => voice.stop();
-  }, [id, speak]);
-}
-
 /**
- * Asks before leaving, so a stray tap doesn't end a play. Usable without
- * reading: the question is spoken, and the answers are a play icon and the
- * same door icon the student just tapped.
+ * Asks before leaving, so a stray tap doesn't end a play. The answers are a
+ * play icon and the same door icon the student just tapped.
  */
 function LeaveQuestion({
   look,
@@ -377,47 +391,19 @@ function LeaveQuestion({
   onStay(): void;
   onLeave(): void;
 }) {
-  useShellLine("leave-question", speak);
-  const stay = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    stay.current?.querySelector("button")?.focus();
-  }, []);
   return (
-    <div
-      className={`${classes.message} ${classes.overlay}`}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="leave-question"
-      onKeyDown={(event) => {
-        if (event.key === "Escape") onStay();
-      }}
-    >
-      <Stack align="center" gap="lg">
-        <Portrait
-          look={look}
-          expression="encouraging"
-          size={120}
-          label={shellT("avatar")}
-        />
-        <Text size="xl">
-          <span id="leave-question">{shellT("leave-question")}</span>
-        </Text>
-        <div className={classes.choices}>
-          <div ref={stay}>
-            <IconButton
-              tone="student"
-              label={shellT("keep-playing")}
-              onClick={onStay}
-            >
-              <Icon name="play" size={32} />
-            </IconButton>
-          </div>
-          <IconButton tone="neutral" label={shellT("leave")} onClick={onLeave}>
-            <Icon name="leave" size={32} />
-          </IconButton>
-        </div>
-      </Stack>
-    </div>
+    <Question line="leave-question" look={look} speak={speak} onCancel={onStay}>
+      <IconButton
+        tone="student"
+        label={shellT("keep-playing")}
+        onClick={onStay}
+      >
+        <Icon name="play" size={32} />
+      </IconButton>
+      <IconButton tone="neutral" label={shellT("leave")} onClick={onLeave}>
+        <Icon name="leave" size={32} />
+      </IconButton>
+    </Question>
   );
 }
 
@@ -451,32 +437,5 @@ function EndScreen({
         </IconButton>
       </Stack>
     </main>
-  );
-}
-
-function Message({
-  text,
-  busy = false,
-  overlay = false,
-  children,
-}: {
-  text: string;
-  busy?: boolean;
-  overlay?: boolean;
-  children?: ReactNode;
-}) {
-  return (
-    <div
-      className={
-        overlay ? `${classes.message} ${classes.overlay}` : classes.message
-      }
-      role="status"
-    >
-      <Stack align="center" gap="lg">
-        {busy && <Loader label={text} />}
-        <Text size="xl">{text}</Text>
-        {children}
-      </Stack>
-    </div>
   );
 }

@@ -5,6 +5,13 @@ declare module "*.module.css" {
   export default classes;
 }
 
+interface ImportMetaEnv {
+  /** Kindling's Google OAuth client ID, for the student sign-in button. */
+  readonly VITE_GOOGLE_CLIENT_ID?: string;
+  /** "stand-in" runs the shell on the stand-ins, without the API or Google. */
+  readonly VITE_PLAY_PLATFORM?: string;
+}
+
 declare module "virtual:voice-lines/*" {
   /** Current recordings by string ID, from `@repo/voice/vite`. */
   const lines: Record<string, string>;

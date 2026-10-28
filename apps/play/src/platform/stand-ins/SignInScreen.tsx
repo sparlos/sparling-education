@@ -1,6 +1,6 @@
 // STAND-IN for Google sign-in. Picks the pretend student the stand-in session
-// returns, then goes back to the game link, the way the real sign-in will.
-// Only reachable while the shell runs on the stand-in platform.
+// returns, then goes back to where they were headed, the way the real
+// sign-in does. Only reachable while the shell runs on the stand-in platform.
 
 import { lookFromSeed } from "@repo/avatar";
 import { Button } from "@repo/ui/button";
@@ -9,6 +9,7 @@ import { Text } from "@repo/ui/text";
 import { Title } from "@repo/ui/title";
 import { useState } from "react";
 import type { KeyValueStore } from "../../play/storage.ts";
+import type { StandInClasses } from "./memberships.ts";
 import { standInSignIn } from "./session.ts";
 
 const grades = [1, 2, 3, 4, 5, 6, 7, 8];
@@ -18,9 +19,12 @@ export function StandInSignInScreen({
   storage,
   navigate,
   newId,
+  classes,
 }: {
   url: URL;
   storage: KeyValueStore | null;
+  /** The stand-in's classes; the pretend student starts in the one for their grade. */
+  classes: StandInClasses;
   navigate(url: string): void;
   newId(): string;
 }) {
@@ -31,12 +35,12 @@ export function StandInSignInScreen({
 
   const signIn = (grade: number) => {
     const id = `stand-in-${newId()}`;
+    const found = classes(`G${grade}`);
     standInSignIn(storage, {
       id,
-      grade,
       locale: "en-CA",
       look: lookFromSeed(id),
-      classId: inClass ? "stand-in-class" : null,
+      classes: inClass && found ? [{ ...found, grade }] : [],
     });
     navigate(returnTo);
   };
@@ -48,8 +52,10 @@ export function StandInSignInScreen({
           Stand-in sign-in
         </Title>
         <Text c="muted">
-          Kindling has no sign-in yet. Pick the pretend student to play as. Real
-          sign-in replaces this screen; see apps/play/src/platform/README.md.
+          Pick the pretend student to play as. On the real platform this is
+          Google sign-in; see apps/play/src/platform/README.md. Open
+          /play/join/G45 to join a split class, or /play/join/X1 for a join code
+          no class has.
         </Text>
         <label style={{ display: "flex", gap: 8, alignItems: "center" }}>
           <input
@@ -57,7 +63,7 @@ export function StandInSignInScreen({
             checked={inClass}
             onChange={(event) => setInClass(event.target.checked)}
           />
-          In a class (finishing returns to the hub when opened from a portal)
+          Already in a class for their grade
         </label>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
           {grades.map((grade) => (

@@ -5,6 +5,9 @@ export {
   getClass,
   getClasses,
   getHealth,
+  getSession,
+  joinClass,
+  pickGrade,
   signIn,
   signOut,
 } from "./generated/api";

@@ -1,0 +1,480 @@
+// The student's side of the shell outside games: the locker, joining a class
+// by its join link (and picking a grade in a split class), and sign-in. Every
+// label is also spoken, so a Grade 3 student can use it without reading.
+import { Portrait } from "@repo/avatar/portrait";
+import { Button } from "@repo/ui/button";
+import { Icon } from "@repo/ui/icon";
+import { IconButton } from "@repo/ui/icon-button";
+import { Stack } from "@repo/ui/stack";
+import { Text } from "@repo/ui/text";
+import { Title } from "@repo/ui/title";
+import { VisuallyHidden } from "@repo/ui/visually-hidden";
+import { type ReactNode, useEffect, useState } from "react";
+import type { GameRegistry } from "../games.ts";
+import {
+  type Membership,
+  NoSuchClass,
+  NotAStudent,
+  type Platform,
+  type Student,
+} from "../platform/ports.ts";
+import { lockerGamePath, returnPath, shellPath } from "../play/routes.ts";
+import { readJson, remove, writeJson } from "../play/storage.ts";
+import type { VoiceOptions } from "../play/voice.ts";
+import type { AppProps } from "./App.tsx";
+import classes from "./app.module.css";
+import styles from "./locker.module.css";
+import {
+  Message,
+  nameLine,
+  Question,
+  shellT,
+  useShellLine,
+  useShellVoice,
+} from "./shared.tsx";
+import type { ShellStringId } from "./shell-strings.ts";
+
+type Signed =
+  | { kind: "loading" }
+  | { kind: "error" }
+  | { kind: "not-a-student" }
+  | { kind: "ready"; student: Student };
+
+/** The signed-in student. Sends a signed-out one to sign-in, coming back here. */
+function useStudent({ platform, url, navigate }: AppProps) {
+  const [state, setState] = useState<Signed>({ kind: "loading" });
+  useEffect(() => {
+    let cancelled = false;
+    platform.session.current().then(
+      (student) => {
+        if (cancelled) return;
+        if (!student) return navigate(platform.links.signIn(returnPath(url)));
+        setState({ kind: "ready", student });
+      },
+      (error: unknown) => {
+        if (cancelled) return;
+        if (error instanceof NotAStudent)
+          return setState({ kind: "not-a-student" });
+        console.error("[play] Couldn't check who's signed in", error);
+        setState({ kind: "error" });
+      },
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [platform, url, navigate]);
+  return [state, setState] as const;
+}
+
+/** What to show until there's a student. */
+function NotReady({
+  state,
+  url,
+  navigate,
+  speak,
+}: {
+  state: Exclude<Signed, { kind: "ready" }>;
+  url: URL;
+  navigate(url: string): void;
+  speak?: VoiceOptions["speak"];
+}) {
+  switch (state.kind) {
+    case "loading":
+      return <Message text={shellT("opening-locker")} busy />;
+    case "error":
+      return <TryAgain url={url} navigate={navigate} />;
+    case "not-a-student":
+      return <SpokenMessage line="for-students" speak={speak} />;
+  }
+}
+
+function TryAgain({
+  url,
+  navigate,
+}: {
+  url: URL;
+  navigate(url: string): void;
+}) {
+  return (
+    <Message text={shellT("error")}>
+      <IconButton
+        label={shellT("try-again")}
+        onClick={() => navigate(url.href)}
+      >
+        <Icon name="replay" size={32} />
+      </IconButton>
+    </Message>
+  );
+}
+
+function SpokenMessage({
+  line,
+  speak,
+  children,
+}: {
+  line: ShellStringId;
+  speak?: VoiceOptions["speak"];
+  children?: ReactNode;
+}) {
+  useShellLine(line, speak);
+  return <Message text={shellT(line)}>{children}</Message>;
+}
+
+/** The locker, after the student picks their grade in any split class that needs one. */
+export function LockerPage(props: AppProps) {
+  const [state, setState] = useStudent(props);
+  if (state.kind !== "ready") return <NotReady state={state} {...props} />;
+
+  const { student } = state;
+  const unpicked = student.classes.find((m) => m.grade === null);
+  if (unpicked)
+    return (
+      <GradePick
+        key={unpicked.classId}
+        student={student}
+        membership={unpicked}
+        platform={props.platform}
+        speak={props.speak}
+        onPicked={(picked) =>
+          setState({
+            kind: "ready",
+            student: {
+              ...student,
+              classes: student.classes.map((m) =>
+                m.classId === picked.classId ? picked : m,
+              ),
+            },
+          })
+        }
+        onError={() => setState({ kind: "error" })}
+      />
+    );
+  return (
+    <Locker
+      student={student}
+      base={props.base}
+      games={props.games}
+      speak={props.speak}
+    />
+  );
+}
+
+function Locker({
+  student,
+  base,
+  games,
+  speak,
+}: {
+  student: Student;
+  base: string;
+  games: GameRegistry;
+  speak?: VoiceOptions["speak"];
+}) {
+  const voice = useShellVoice(student.locale, speak);
+  // Each class the student plays in, with the games of it this shell hosts.
+  const sections = student.classes
+    .filter((m) => m.grade !== null)
+    .map((membership) => ({
+      membership,
+      games: membership.games.filter((g) => Object.hasOwn(games, g.slug)),
+    }))
+    .filter((section) => section.games.length > 0);
+  const line = sections.length > 0 ? "pick-game" : "no-games";
+  useEffect(() => {
+    void voice.say(line);
+  }, [voice, line]);
+
+  const hear = (name: string) => (
+    <IconButton
+      tone="neutral"
+      size="lg"
+      label={`${shellT("hear")} ${name}`}
+      onClick={() => void voice.say(nameLine(name))}
+    >
+      <Icon name="speaker" size={24} />
+    </IconButton>
+  );
+
+  return (
+    <main className={styles.locker}>
+      <VisuallyHidden>
+        <h1>{shellT("locker")}</h1>
+      </VisuallyHidden>
+      <div className={styles.header}>
+        <Portrait
+          look={student.look}
+          expression="happy"
+          size={96}
+          label={shellT("avatar")}
+        />
+        <Text size="xl" className={styles.instruction}>
+          {shellT(line)}
+        </Text>
+        <IconButton
+          tone="neutral"
+          label={shellT("hear-again")}
+          onClick={() => voice.again()}
+        >
+          <Icon name="speaker" size={32} />
+        </IconButton>
+      </div>
+      {sections.map(({ membership, games }) => {
+        const headingId = `class-${membership.classId}`;
+        return (
+          <section
+            key={membership.classId}
+            className={styles.section}
+            aria-labelledby={sections.length > 1 ? headingId : undefined}
+          >
+            {sections.length > 1 && (
+              <div className={styles.classHeading}>
+                <Title order={2} size="h3" id={headingId}>
+                  {membership.className}
+                </Title>
+                {hear(membership.className)}
+              </div>
+            )}
+            <ul className={styles.games}>
+              {games.map((game) => (
+                <li key={game.slug} className={styles.game}>
+                  <Button
+                    href={lockerGamePath(base, game.slug, membership.classId)}
+                    size="lg"
+                    tone="student"
+                    className={styles.gameButton}
+                    leftSection={<Icon name="play" size={32} />}
+                  >
+                    {game.name}
+                  </Button>
+                  {hear(game.name)}
+                </li>
+              ))}
+            </ul>
+          </section>
+        );
+      })}
+    </main>
+  );
+}
+
+/**
+ * A student in a split class taps their grade, once. A tapped grade is
+ * asked back ("Are you in Grade 4?") with a smiley for yes and a sad face
+ * for no, since it can't be undone without the teacher.
+ */
+function GradePick({
+  student,
+  membership,
+  platform,
+  speak,
+  onPicked,
+  onError,
+}: {
+  student: Student;
+  membership: Membership;
+  platform: Platform;
+  speak?: VoiceOptions["speak"];
+  onPicked(membership: Membership): void;
+  onError(): void;
+}) {
+  const voice = useShellVoice(student.locale, speak);
+  const [asking, setAsking] = useState<number | null>(null);
+  const [picking, setPicking] = useState(false);
+  useEffect(() => {
+    void voice.say("pick-grade");
+  }, [voice]);
+
+  // "No" asks again.
+  const notThat = () => {
+    setAsking(null);
+    void voice.say("pick-grade");
+  };
+
+  const pick = (grade: number) => {
+    setPicking(true);
+    platform.memberships
+      .pickGrade(membership.classId, grade)
+      .then(onPicked, (error: unknown) => {
+        console.error("[play] Couldn't set the grade", error);
+        onError();
+      });
+  };
+
+  return (
+    <main className={classes.message}>
+      {/* Out of reach while the question covers it. */}
+      <div inert={asking !== null}>
+        <Stack align="center" gap="lg">
+        <Portrait
+          look={student.look}
+          expression="happy"
+          size={120}
+          label={shellT("avatar")}
+        />
+        <div className={styles.header}>
+          <Title order={1} size="h2">
+            {shellT("pick-grade")}
+          </Title>
+          <IconButton
+            tone="neutral"
+            label={shellT("hear-again")}
+            onClick={() => voice.again()}
+          >
+            <Icon name="speaker" size={32} />
+          </IconButton>
+        </div>
+        <div className={styles.grades}>
+          {membership.grades.map((grade) => (
+            <Button
+              key={grade}
+              size="lg"
+              tone="student"
+              className={styles.gradeButton}
+              disabled={picking}
+              onClick={() => {
+                voice.stop();
+                setAsking(grade);
+              }}
+            >
+              {shellT(gradeLine(grade))}
+            </Button>
+          ))}
+        </div>
+        </Stack>
+      </div>
+      {asking !== null && (
+        <Question
+          line={`${gradeLine(asking)}-sure` as ShellStringId}
+          look={student.look}
+          speak={speak}
+          onCancel={notThat}
+        >
+          <IconButton
+            tone="student"
+            label={shellT("yes")}
+            disabled={picking}
+            onClick={() => pick(asking)}
+          >
+            <Icon name="smile" size={48} />
+          </IconButton>
+          <IconButton
+            tone="neutral"
+            label={shellT("no")}
+            disabled={picking}
+            onClick={notThat}
+          >
+            <Icon name="sad" size={48} />
+          </IconButton>
+        </Question>
+      )}
+    </main>
+  );
+}
+
+const gradeLine = (grade: number) => `grade-${grade}` as ShellStringId;
+
+/** The class join link: joins the class, then opens the locker. */
+export function JoinPage(props: AppProps & { joinCode: string }) {
+  const { platform, joinCode, base, navigate } = props;
+  const [state] = useStudent(props);
+  const [failed, setFailed] = useState<"no-such-class" | "error" | null>(null);
+
+  useEffect(() => {
+    if (state.kind !== "ready") return;
+    let cancelled = false;
+    platform.memberships.join(joinCode).then(
+      () => {
+        if (!cancelled) navigate(base);
+      },
+      (error: unknown) => {
+        if (cancelled) return;
+        if (error instanceof NoSuchClass) return setFailed("no-such-class");
+        console.error("[play] Couldn't join the class", error);
+        setFailed("error");
+      },
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [state, platform, joinCode, base, navigate]);
+
+  if (state.kind !== "ready") return <NotReady state={state} {...props} />;
+  if (failed === "error") return <TryAgain {...props} />;
+  if (failed === "no-such-class")
+    return (
+      <SpokenMessage line="no-such-class" speak={props.speak}>
+        <IconButton label={shellT("to-locker")} onClick={() => navigate(base)}>
+          <Icon name="student" size={32} />
+        </IconButton>
+      </SpokenMessage>
+    );
+  return <Message text={shellT("joining")} busy />;
+}
+
+// Where the student was headed when they were sent to sign in. Kept on the
+// device, since the trip through Google can't carry it.
+const nextKey = "kindling.sign-in.next";
+
+/**
+ * Google sign-in, on the real platform. Google brings the student back here
+ * signed in, and this page sends them on to where they were headed.
+ */
+export function SignInPage({
+  url,
+  base,
+  platform,
+  storage,
+  navigate,
+  speak,
+}: AppProps) {
+  const [state, setState] = useState<
+    "loading" | "signed-out" | "unavailable" | "not-a-student" | "error"
+  >("loading");
+
+  useEffect(() => {
+    const next = shellPath(url.searchParams.get("next"), base);
+    if (next) writeJson(storage, nextKey, next);
+    let cancelled = false;
+    platform.session.current().then(
+      (student) => {
+        if (cancelled) return;
+        if (!student) return setState("signed-out");
+        const headed = shellPath(readJson(storage, nextKey), base);
+        remove(storage, nextKey);
+        navigate(headed ?? base);
+      },
+      (error: unknown) => {
+        if (cancelled) return;
+        if (error instanceof NotAStudent) return setState("not-a-student");
+        console.error("[play] Couldn't check who's signed in", error);
+        setState("error");
+      },
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [url, base, platform, storage, navigate]);
+
+  const { SignInButton } = platform;
+  switch (state) {
+    case "loading":
+      return <Message text={shellT("loading")} busy />;
+    case "error":
+      return <TryAgain url={url} navigate={navigate} />;
+    case "not-a-student":
+      return <SpokenMessage line="for-students" speak={speak} />;
+    case "unavailable":
+      return <SpokenMessage line="sign-in-unavailable" speak={speak} />;
+    case "signed-out":
+      if (!SignInButton)
+        return <SpokenMessage line="sign-in-unavailable" speak={speak} />;
+      return (
+        <SpokenMessage
+          line={url.searchParams.has("failed") ? "sign-in-failed" : "sign-in"}
+          speak={speak}
+        >
+          <SignInButton onUnavailable={() => setState("unavailable")} />
+        </SpokenMessage>
+      );
+  }
+}

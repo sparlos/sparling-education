@@ -1,7 +1,7 @@
 // Turns the URL a student opened into a play that's ready to start, or says
 // why it can't start.
 import type { GameRegistry, HostedGame } from "../games.ts";
-import type { Platform, Student } from "../platform/ports.ts";
+import type { Membership, Platform, Student } from "../platform/ports.ts";
 import {
   createOutbox,
   type Outbox,
@@ -17,6 +17,8 @@ import { chooseTier } from "./tier.ts";
 export interface ReadyPlay {
   link: GameLink;
   student: Student;
+  /** The class the play is for, with the student's grade in it. */
+  membership: Membership & { grade: number };
   game: HostedGame;
   tier: string;
   play: Play;
@@ -26,6 +28,8 @@ export interface ReadyPlay {
 
 export type Boot =
   | { kind: "sign-in"; url: string }
+  /** No class of theirs can play it yet; the locker shows why. */
+  | { kind: "locker" }
   | { kind: "not-found" }
   | { kind: "ready"; ready: ReadyPlay };
 
@@ -55,8 +59,11 @@ export async function boot(options: {
       url: platform.links.signIn(returnPath(options.url)),
     };
 
+  const membership = membershipFor(student, link);
+  if (!membership) return { kind: "locker" };
+
   const game = await load();
-  const tier = chooseTier(game.manifest.tiers, student.grade);
+  const tier = chooseTier(game.manifest.tiers, membership.grade);
   const id = newId();
   const key = outboxKey(student.id, id);
   const outbox = createOutbox({
@@ -77,6 +84,7 @@ export async function boot(options: {
     manifest: game.manifest,
     tier,
     student,
+    classId: membership.classId,
     portal: link.portal,
     outbox,
     links: platform.links,
@@ -87,10 +95,27 @@ export async function boot(options: {
     ready: {
       link,
       student,
+      membership,
       game,
       tier,
       play,
       outboxes: [outbox, ...leftovers],
     },
   };
+}
+
+/**
+ * The class to play a game for: the one the link names, or else the first
+ * the student joined. Only a class with the game on, where the student's
+ * grade is set.
+ */
+function membershipFor(
+  student: Student,
+  link: GameLink,
+): (Membership & { grade: number }) | undefined {
+  const playable = student.classes.filter(
+    (m): m is Membership & { grade: number } =>
+      m.grade !== null && m.games.some((g) => g.slug === link.slug),
+  );
+  return playable.find((m) => m.classId === link.classId) ?? playable[0];
 }

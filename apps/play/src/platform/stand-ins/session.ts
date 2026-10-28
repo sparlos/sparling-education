@@ -1,7 +1,7 @@
-// STAND-IN for the real session port. Kindling has no sign-in yet, so the
-// "signed-in student" is whoever was picked on the stand-in sign-in screen,
-// kept in this browser's storage. Replace with an adapter over the backend's
-// session endpoint; see ../README.md.
+// STAND-IN for the session port, for development without Kindling's API.
+// The "signed-in student" is whoever was picked on the stand-in sign-in
+// screen, kept in this browser's storage with the classes they've joined.
+// The real adapter is ../api/session.ts; see ../README.md.
 import { parseLook } from "@repo/avatar";
 import {
   type KeyValueStore,
@@ -9,17 +9,22 @@ import {
   remove,
   writeJson,
 } from "../../play/storage.ts";
-import type { SessionPort, Student } from "../ports.ts";
+import type { Membership, SessionPort, Student } from "../ports.ts";
 
 const key = "kindling.stand-in.student";
 
 export function standInSession(storage: KeyValueStore | null): SessionPort {
   return {
     async current() {
-      const student = readJson(storage, key);
-      return isStudent(student) ? student : null;
+      return standInStudent(storage);
     },
   };
+}
+
+/** The stand-in's signed-in student, or null. */
+export function standInStudent(storage: KeyValueStore | null): Student | null {
+  const student = readJson(storage, key);
+  return isStudent(student) ? student : null;
 }
 
 /** What the stand-in sign-in screen does in place of Google sign-in. */
@@ -39,9 +44,25 @@ function isStudent(value: unknown): value is Student {
   const s = value as Record<string, unknown>;
   return (
     typeof s.id === "string" &&
-    Number.isInteger(s.grade) &&
     (s.locale === "en-CA" || s.locale === "fr-CA") &&
     parseLook(s.look) !== null &&
-    (s.classId === null || typeof s.classId === "string")
+    Array.isArray(s.classes) &&
+    s.classes.every(isMembership)
+  );
+}
+
+function isMembership(value: unknown): value is Membership {
+  if (typeof value !== "object" || value === null) return false;
+  const m = value as Record<string, unknown>;
+  return (
+    typeof m.classId === "string" &&
+    typeof m.className === "string" &&
+    Array.isArray(m.grades) &&
+    m.grades.every(Number.isInteger) &&
+    (m.grade === null || Number.isInteger(m.grade)) &&
+    Array.isArray(m.games) &&
+    m.games.every(
+      (g) => typeof g?.slug === "string" && typeof g?.name === "string",
+    )
   );
 }

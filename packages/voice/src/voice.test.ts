@@ -302,6 +302,28 @@ test("discovery finds games with manifests and tolerates none", async () => {
   ]);
 });
 
+test("discovery finds the play shell's own strings after the games", async () => {
+  const ui = join(root, "apps", "play", "src", "ui");
+  mkdirSync(ui, { recursive: true });
+  writeFileSync(
+    join(ui, "shell-strings.ts"),
+    `export const shellStrings = { "en-CA": { start: "Start" } };\n`,
+  );
+  assert.deepEqual(await discoverSources(root), [
+    {
+      name: "shell",
+      dir: join(root, "apps", "play"),
+      strings: { start: "Start" },
+    },
+  ]);
+});
+
+test("the real shell strings load as a source", async () => {
+  const repo = fileURLToPath(new URL("../../..", import.meta.url));
+  const shell = (await discoverSources(repo)).find((s) => s.name === "shell");
+  assert.equal(shell?.strings.start, "Start");
+});
+
 test("the review page lists only the lines that changed", async () => {
   await generate([source()], fakeWorker);
   strings = { ...strings, done: "Well <done>!" };

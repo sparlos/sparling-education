@@ -1,0 +1,69 @@
+/* The locker: the student's home screen, usable without reading. */
+.locker {
+  min-height: 100dvh;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: var(--mantine-spacing-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-xl);
+  background-color: var(--k-surface-page);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--mantine-spacing-md);
+}
+
+.instruction {
+  flex: 1;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-sm);
+}
+
+.classHeading {
+  display: flex;
+  align-items: center;
+  gap: var(--mantine-spacing-sm);
+}
+
+.games {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-md);
+}
+
+.game {
+  display: flex;
+  align-items: center;
+  gap: var(--mantine-spacing-sm);
+}
+
+/* Big enough to hit without aiming: well over the 48 px minimum. */
+.gameButton {
+  flex: 1;
+  min-height: 5rem;
+  justify-content: flex-start;
+  font-size: var(--mantine-font-size-xl);
+}
+
+.grades {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--mantine-spacing-lg);
+}
+
+.gradeButton {
+  min-width: 8rem;
+  min-height: 6rem;
+  font-size: var(--mantine-font-size-xl);
+}

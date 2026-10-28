@@ -13,6 +13,11 @@ import { describe, expect, it, vi } from "vitest";
 import { hosted } from "../games.ts";
 import type { PlayRecord, Student } from "../platform/ports.ts";
 import { standInLinks } from "../platform/stand-ins/links.ts";
+import {
+  standInClasses,
+  standInGames,
+  standInMemberships,
+} from "../platform/stand-ins/memberships.ts";
 import { standInRecords } from "../platform/stand-ins/records.ts";
 import {
   standInSession,
@@ -29,11 +34,26 @@ const outboxTiming = { batchDelayMs: 10, retryDelaysMs: [60_000] };
 
 const student: Student = {
   id: "student-1",
-  grade: 4,
   locale: "en-CA",
   look: { body: "sky", eyes: "sparkle", headwear: "crown" },
-  classId: "class-1",
+  classes: [
+    {
+      classId: "class-1",
+      className: "Room 12",
+      grades: [4],
+      grade: 4,
+      games: standInGames(["shell-check"]),
+    },
+  ],
 };
+
+/** The student, in one class at `grade`. */
+function inGrade(grade: number): Student {
+  return {
+    ...student,
+    classes: student.classes.map((m) => ({ ...m, grades: [grade], grade })),
+  };
+}
 
 function setUp({
   path = "/play/shell-check?portal=north",
@@ -59,6 +79,10 @@ function setUp({
         platform={{
           name: "test",
           session,
+          memberships: standInMemberships(
+            storage,
+            standInClasses(standInGames(["shell-check"])),
+          ),
           records,
           links: standInLinks({ base: "/play/" }),
         }}
@@ -131,12 +155,12 @@ describe("opening a game", () => {
   });
 
   it("gives the student the tier for their grade", async () => {
-    setUp({ signedIn: { ...student, grade: 3 } });
+    setUp({ signedIn: inGrade(3) });
     expect(await game()).toHaveTextContent("g3");
   });
 
   it("gives a student outside the game's grades the closest tier", async () => {
-    setUp({ signedIn: { ...student, grade: 7 } });
+    setUp({ signedIn: inGrade(7) });
     expect(await game()).toHaveTextContent("g4");
   });
 
@@ -162,6 +186,42 @@ describe("opening a game", () => {
     expect(avatar).toHaveAttribute("data-expression", "neutral");
     await user.click(screen.getByRole("button", { name: "Wrong" }));
     expect(avatar).toHaveAttribute("data-expression", "encouraging");
+  });
+
+  it("plays for the class the locker opened it for, at the student's grade in that class", async () => {
+    const { user, records } = setUp({
+      path: "/play/shell-check?class=class-2",
+      signedIn: {
+        ...student,
+        classes: [
+          ...student.classes,
+          {
+            classId: "class-2",
+            className: "Math",
+            grades: [3],
+            grade: 3,
+            games: standInGames(["shell-check"]),
+          },
+        ],
+      },
+    });
+    expect(await game()).toHaveTextContent("g3");
+    await user.click(screen.getByRole("button", { name: "Right" }));
+    await waitFor(() => expect(records.stored).toHaveLength(1));
+    expect(records.stored[0]).toMatchObject({ class: "class-2", tier: "g3" });
+  });
+
+  it("plays for the student's first class with the game when the link names none", async () => {
+    const { user, records } = setUp({ path: "/play/shell-check" });
+    await game();
+    await user.click(screen.getByRole("button", { name: "Right" }));
+    await waitFor(() => expect(records.stored).toHaveLength(1));
+    expect(records.stored[0]).toMatchObject({ class: "class-1" });
+  });
+
+  it("sends a student with no class to play the game in to their locker", async () => {
+    const { navigate } = setUp({ signedIn: { ...student, classes: [] } });
+    await waitFor(() => expect(navigate).toHaveBeenCalledWith("/play/"));
   });
 
   it("says when there's no such game", async () => {
@@ -192,6 +252,7 @@ describe("playing", () => {
       expect.objectContaining({
         kind: "attempt",
         student: "student-1",
+        class: "class-1",
         game: "shell-check",
         gameVersion: 1,
         tier: "g4",
@@ -262,16 +323,6 @@ describe("finishing", () => {
     expect(spoken).toContain("Well done!");
     await user.click(screen.getByRole("button", { name: "Play again" }));
     expect(navigate).toHaveBeenCalledWith("/play/shell-check");
-  });
-
-  it("shows game complete for a student who isn't in a class", async () => {
-    const { user, navigate } = setUp({
-      signedIn: { ...student, classId: null },
-    });
-    await game();
-    await user.click(screen.getByRole("button", { name: "Finish" }));
-    expect(await screen.findByText("Well done!")).toBeInTheDocument();
-    expect(navigate).not.toHaveBeenCalled();
   });
 
   it("still leaves when attempts can't be sent, keeping them for next time", async () => {

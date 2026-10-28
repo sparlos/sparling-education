@@ -1,5 +1,12 @@
-import { describe, expect, it, vi } from "vitest";
-import { createVoice, speechTimeoutMs, type VoiceOptions } from "./voice.ts";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import {
+  browserSpeak,
+  createVoice,
+  type Synth,
+  speechTimeoutMs,
+  type VoiceOptions,
+  voiceFor,
+} from "./voice.ts";
 
 const text = (id: string) => `text of ${id}`;
 
@@ -213,5 +220,88 @@ describe("voice", () => {
       expect(done).toBe(true);
       vi.useRealTimers();
     });
+  });
+});
+
+describe("browser speech", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.useRealTimers();
+  });
+
+  class Utterance extends EventTarget {
+    lang = "";
+    voice: SpeechSynthesisVoice | null = null;
+    constructor(readonly text: string) {
+      super();
+    }
+  }
+
+  function fakeSynth(voices: Partial<SpeechSynthesisVoice>[] = []) {
+    const calls: string[] = [];
+    const said: Utterance[] = [];
+    const synth: Synth = {
+      speaking: false,
+      pending: false,
+      speak: (u) => {
+        calls.push("speak");
+        said.push(u as unknown as Utterance);
+      },
+      cancel: () => calls.push("cancel"),
+      resume: () => calls.push("resume"),
+      getVoices: () => voices as SpeechSynthesisVoice[],
+    };
+    return { synth, calls, said };
+  }
+
+  const voice = (lang: string, isDefault = false) =>
+    ({ lang, name: lang, default: isDefault }) as SpeechSynthesisVoice;
+
+  it("speaks after the task that stopped the last line, which Chrome would drop", () => {
+    vi.useFakeTimers();
+    vi.stubGlobal("SpeechSynthesisUtterance", Utterance);
+    const { synth, calls, said } = fakeSynth();
+    browserSpeak("Pick a game to play.", "en-CA", undefined, synth);
+    expect(calls).toEqual([]);
+    vi.runAllTimers();
+    expect(calls).toEqual(["resume", "speak"]);
+    expect(said[0]?.text).toBe("Pick a game to play.");
+  });
+
+  it("never starts a line stopped before it began", () => {
+    vi.useFakeTimers();
+    vi.stubGlobal("SpeechSynthesisUtterance", Utterance);
+    const { synth, calls } = fakeSynth();
+    browserSpeak("Grade 4", "en-CA", undefined, synth)?.();
+    vi.runAllTimers();
+    expect(calls).toEqual(["cancel"]);
+  });
+
+  it("ends when the utterance ends or fails", () => {
+    vi.useFakeTimers();
+    vi.stubGlobal("SpeechSynthesisUtterance", Utterance);
+    const { synth, said } = fakeSynth();
+    const onEnd = vi.fn();
+    browserSpeak("Yes", "en-CA", onEnd, synth);
+    vi.runAllTimers();
+    said[0]?.dispatchEvent(new Event("error"));
+    expect(onEnd).toHaveBeenCalledOnce();
+  });
+
+  it("is unavailable without speech synthesis", () => {
+    expect(browserSpeak("Yes", "en-CA", undefined, undefined)).toBeNull();
+  });
+
+  it("picks the locale's voice, else the language's default, else any of the language", () => {
+    expect(voiceFor([voice("en-US"), voice("en-CA")], "en-CA")?.lang).toBe(
+      "en-CA",
+    );
+    expect(
+      voiceFor([voice("en-GB"), voice("en-US", true)], "en-CA")?.lang,
+    ).toBe("en-US");
+    expect(voiceFor([voice("fr-CA"), voice("en_GB")], "en-CA")?.lang).toBe(
+      "en_GB",
+    );
+    expect(voiceFor([voice("fr-CA")], "en-CA")).toBeUndefined();
   });
 });

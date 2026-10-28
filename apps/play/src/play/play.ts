@@ -10,7 +10,7 @@ export type Ending = PlayEnding;
 export type Exit =
   /** Back to the portal they came through, where the class world reveals rewards. */
   | { kind: "hub"; url: string }
-  /** Opened by game link, or not in a class: the shell's own end screen. */
+  /** Opened by game link: the shell's own end screen. */
   | { kind: "end-screen"; ending: Ending };
 
 export interface Play {
@@ -32,6 +32,8 @@ export function createPlay(options: {
   manifest: GameManifest;
   tier: string;
   student: Student;
+  /** The class it's played for. */
+  classId: string;
   portal: string | null;
   outbox: Outbox;
   links: LinksPort;
@@ -79,6 +81,7 @@ export function createPlay(options: {
       id: options.newId(),
       play: options.id,
       student: student.id,
+      class: options.classId,
       game: manifest.slug,
       gameVersion: manifest.version,
       tier,
@@ -107,7 +110,7 @@ export function createPlay(options: {
       if (ended) return ended;
       outbox.add({ ...common(), kind: "end", ending });
       ended = outbox.drain(timeoutMs).then((): Exit => {
-        if (options.portal && student.classId)
+        if (options.portal)
           return {
             kind: "hub",
             url: options.links.hub({

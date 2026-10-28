@@ -31,6 +31,8 @@
         "$TURBO_DEFAULT$",
         "$TURBO_ROOT$/games/*/src/**",
         "$TURBO_ROOT$/games/*/voice/**",
+        "$TURBO_ROOT$/apps/play/src/ui/shell-strings.ts",
+        "$TURBO_ROOT$/apps/play/voice/**",
         "voices/**"
       ]
     }

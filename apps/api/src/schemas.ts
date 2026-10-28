@@ -1,4 +1,5 @@
 import { z } from "@hono/zod-openapi";
+import { type BodyId, bodies, eyes, headwear } from "@repo/avatar";
 
 export const HealthSchema = z
   .object({ status: z.literal("ok") })
@@ -94,3 +95,85 @@ export const ClassSchema = z
   .openapi("Class");
 
 export type Class = z.infer<typeof ClassSchema>;
+
+export const StudentSignInSchema = z
+  .object({
+    credential: z
+      .string()
+      .min(1)
+      .openapi({ description: "The ID token from Google sign-in" }),
+    g_csrf_token: z.string().min(1).openapi({
+      description:
+        "Google's double-submit token; must match the g_csrf_token cookie",
+    }),
+  })
+  .openapi("StudentSignIn");
+
+export const JoinSchema = z
+  .object({
+    joinCode: z
+      .string()
+      .trim()
+      .min(1)
+      .max(20)
+      .openapi({ description: "From the class join link or a game link" }),
+  })
+  .openapi("Join");
+
+export const GradePickSchema = z
+  .object({
+    grade: z
+      .number()
+      .int()
+      .openapi({ description: "One of the class's grades" }),
+  })
+  .openapi("GradePick");
+
+export const LockerGameSchema = z
+  .object({
+    slug: z.string().openapi({ example: "fraction-hop" }),
+    name: z.string().openapi({ example: "Fraction Hop" }),
+  })
+  .openapi("LockerGame");
+
+export const MembershipSchema = z
+  .object({
+    classId: z.string().openapi({ description: "Stable and opaque" }),
+    className: z.string(),
+    grades: z
+      .array(z.number().int())
+      .openapi({ description: "The class's grades, ascending" }),
+    grade: z.union([z.number().int(), z.null()]).openapi({
+      description:
+        "The student's grade in this class, which chooses their tier. Null until a student in a split class picks one",
+    }),
+    games: z
+      .array(LockerGameSchema)
+      .openapi({ description: "The class's games that are on" }),
+  })
+  .openapi("Membership");
+
+export type Membership = z.infer<typeof MembershipSchema>;
+
+export const LookSchema = z
+  .object({
+    body: z.enum(Object.keys(bodies) as [BodyId, ...BodyId[]]),
+    eyes: z.enum(eyes),
+    headwear: z.union([z.enum(headwear), z.null()]),
+  })
+  .openapi("Look", { description: "From @repo/avatar" });
+
+export const StudentSchema = z
+  .object({
+    id: z
+      .string()
+      .openapi({ description: "Stable and opaque; never an email or a name" }),
+    locale: z.enum(["en-CA", "fr-CA"]),
+    look: LookSchema,
+    classes: z.array(MembershipSchema).openapi({
+      description: "The classes they're in, in the order they joined",
+    }),
+  })
+  .openapi("Student");
+
+export type Student = z.infer<typeof StudentSchema>;

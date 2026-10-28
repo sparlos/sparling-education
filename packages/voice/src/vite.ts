@@ -1,8 +1,9 @@
 // Vite plugin: `virtual:voice-lines/<slug>` is a game's line map, `{ [id]: url }`,
-// holding only current recordings (see `currentLineFiles`). Each file is a
+// holding only current recordings (see `currentLineFiles`), and
+// `virtual:voice-lines/shell` is the play shell's own. Each file is a
 // fingerprinted asset import, so it is emitted with the build and the map
-// lives in the chunk of whoever imports it (a game, loaded on demand), never
-// in the shell's entry chunk.
+// lives in the chunk of whoever imports it: a game's in its lazy chunk, the
+// shell's (a few dozen short URLs) in the shell's entry chunk.
 import { existsSync } from "node:fs";
 import type { Plugin } from "vite";
 import { currentLineFiles } from "./linemap.ts";
@@ -27,7 +28,9 @@ export function voiceLines({ root }: VoiceLinesOptions): Plugin {
       const slug = id.slice(`\0${prefix}`.length);
       const source = (await discoverSources(root)).find((s) => s.name === slug);
       if (!source) {
-        throw new Error(`voice-lines: no game "${slug}" under ${root}/games`);
+        throw new Error(
+          `voice-lines: no game "${slug}" under ${root}/games, and it isn't "shell"`,
+        );
       }
       // A game with no lines yet has no lockfile, and watching a missing
       // file makes Vite fail to resolve it as an import. Restart the dev

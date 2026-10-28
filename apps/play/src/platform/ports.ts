@@ -1,12 +1,14 @@
 // The platform contract: everything the play shell needs from the rest of
-// Kindling (sign-in, the student's class and grade, somewhere to send each
-// play's attempts and how it ended, and links into other apps). The shell
-// only ever talks to these interfaces. Today they're implemented by the stand-ins in ./stand-ins/;
-// the real implementations wrap the backend's generated API client. Each one
-// must pass the suites in ./contract.ts. See ./README.md.
+// Kindling (sign-in, the student's classes and grades, joining a class,
+// somewhere to send each play's attempts and how it ended, and links into
+// other apps). The shell only ever talks to these interfaces. They're
+// implemented by the stand-ins in ./stand-ins/ and the adapters over
+// Kindling's API in ./api/, and each one must pass the suites in
+// ./contract.ts. See ./README.md.
 import type { AvatarLook } from "@repo/avatar";
 import type { ExpectationId } from "@repo/curriculum";
 import type { Attempt, GameManifest, Locale } from "@repo/game-contract";
+import type { ComponentType } from "react";
 
 export type { AvatarLook } from "@repo/avatar";
 
@@ -14,22 +16,73 @@ export type { AvatarLook } from "@repo/avatar";
 export interface Student {
   /** Stable and opaque; never an email or a name. */
   id: string;
-  /** The grade their teacher set, 1–8. Chooses the tier. */
-  grade: number;
   locale: Locale;
   look: AvatarLook;
-  /** Null for a student who isn't in a class yet; they get a game-complete screen instead of the hub. */
-  classId: string | null;
+  /** The classes they're in, in the order they joined. */
+  classes: Membership[];
+}
+
+/** A student in one class. */
+export interface Membership {
+  /** Stable and opaque. */
+  classId: string;
+  className: string;
+  /** The class's grades, ascending: several for a split class. */
+  grades: number[];
+  /**
+   * Their grade in this class, 1–8, which chooses the tier of its games.
+   * Null until a student in a split class picks one of its grades.
+   */
+  grade: number | null;
+  /** The class's games that are on, in the order students see them. */
+  games: LockerGame[];
+}
+
+export interface LockerGame {
+  slug: string;
+  /** The game's name, as students see and hear it. */
+  name: string;
 }
 
 export interface SessionPort {
   /**
-   * The signed-in student, or null when signed out. Shares the class world's
-   * session, so a student signed in there is signed in here. Rejects only
-   * when the session can't be checked (e.g. offline); the shell shows an
-   * error rather than sending a signed-in student to sign-in.
+   * The signed-in student, or null when signed out. Rejects with
+   * `NotAStudent` when a teacher is signed in, and otherwise only when the
+   * session can't be checked (e.g. offline); the shell shows an error rather
+   * than sending a signed-in student to sign-in.
    */
   current(): Promise<Student | null>;
+}
+
+export interface MembershipsPort {
+  /**
+   * Joins the signed-in student to the class with this join code, or finds
+   * them already in it, keeping their grade. In a single-grade class the
+   * grade is set; in a split class it's null until they pick one. Rejects
+   * with `NoSuchClass` when no class has the code.
+   */
+  join(joinCode: string): Promise<Membership>;
+  /**
+   * Sets the student's grade in a split class, once, to one of the class's
+   * grades. Rejects when it's already set or isn't one of them.
+   */
+  pickGrade(classId: string, grade: number): Promise<Membership>;
+}
+
+/** A teacher is signed in; the play shell is for students. */
+export class NotAStudent extends Error {
+  constructor() {
+    super("Signed in, but not as a student");
+    this.name = "NotAStudent";
+  }
+}
+
+/** No class has the join code. */
+export class NoSuchClass extends Error {
+  constructor() {
+    super("No class has that join code");
+    this.name = "NoSuchClass";
+  }
 }
 
 /** What every record of a play carries, whatever kind it is. */
@@ -40,6 +93,8 @@ interface PlayRecordBase {
   play: string;
   /** Must match the signed-in student; the backend rejects a mismatch. */
   student: string;
+  /** The class the play was opened for; its results go to that class. */
+  class: string;
   /** The game's slug. */
   game: string;
   /** The manifest version the play ran under. */
@@ -103,6 +158,18 @@ export interface Platform {
   /** Shown in logs, e.g. "stand-in". */
   name: string;
   session: SessionPort;
+  memberships: MembershipsPort;
   records: PlayRecordsPort;
   links: LinksPort;
+  /**
+   * Google's sign-in button, for the shell's sign-in page, which
+   * `links.signIn` leads to. Platforms with a sign-in page of their own (the
+   * stand-ins) have none.
+   */
+  SignInButton?: ComponentType<SignInButtonProps>;
+}
+
+export interface SignInButtonProps {
+  /** Called when sign-in can't be offered (e.g. Google's script didn't load). */
+  onUnavailable(): void;
 }

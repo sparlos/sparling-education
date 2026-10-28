@@ -5,7 +5,14 @@ import {
   sampleAttempt,
   sessionPortContract,
 } from "../contract.ts";
+import type { Student } from "../ports.ts";
 import { standInLinks } from "./links.ts";
+import {
+  type StandInClass,
+  standInClasses,
+  standInGames,
+  standInMemberships,
+} from "./memberships.ts";
 import { standInRecords } from "./records.ts";
 import { standInSession, standInSignIn, standInSignOut } from "./session.ts";
 
@@ -14,25 +21,47 @@ playRecordsPortContract("Stand-in attempts", () => {
   return { port, stored: async () => port.stored };
 });
 
+const games = standInGames(["fraction-hop"]);
+
+// Classes made by the harness, by join code, as a teacher would make them.
+const made = new Map<string, StandInClass>();
+let classes = 0;
+
 sessionPortContract("Stand-in session", {
   signedOut: () => standInSession(memoryStorage()),
-  signedIn: (student) => {
+  newStudent: () => {
     const storage = memoryStorage();
-    standInSignIn(storage, student);
-    return standInSession(storage);
+    standInSignIn(storage, newStudent());
+    return {
+      session: standInSession(storage),
+      memberships: standInMemberships(
+        storage,
+        (code) => made.get(code) ?? null,
+      ),
+    };
+  },
+  newClass: async (className, grades) => {
+    classes += 1;
+    const joinCode = `CODE${classes}`;
+    const classId = `class-${classes}`;
+    made.set(joinCode, { classId, className, grades, games });
+    return { classId, joinCode };
   },
 });
+
+function newStudent(): Student {
+  return {
+    id: `s-${crypto.randomUUID()}`,
+    locale: "en-CA",
+    look: { body: "sky", eyes: "sparkle", headwear: "crown" },
+    classes: [],
+  };
+}
 
 describe("stand-in session", () => {
   it("is signed out after signing out", async () => {
     const storage = memoryStorage();
-    standInSignIn(storage, {
-      id: "s",
-      grade: 3,
-      locale: "en-CA",
-      look: { body: "sky", eyes: "sparkle", headwear: "crown" },
-      classId: null,
-    });
+    standInSignIn(storage, newStudent());
     standInSignOut(storage);
     expect(await standInSession(storage).current()).toBeNull();
   });
@@ -47,19 +76,38 @@ describe("stand-in session", () => {
     const storage = memoryStorage();
     storage.setItem(
       "kindling.stand-in.student",
-      JSON.stringify({
-        id: "s",
-        grade: 3,
-        locale: "en-CA",
-        look: { color: "red" },
-        classId: null,
-      }),
+      JSON.stringify({ ...newStudent(), look: { color: "red" } }),
     );
     expect(await standInSession(storage).current()).toBeNull();
   });
 
   it("is signed out when storage is unavailable", async () => {
     expect(await standInSession(null).current()).toBeNull();
+  });
+});
+
+describe("stand-in classes", () => {
+  const find = standInClasses(games);
+
+  it.each([
+    ["G4", [4]],
+    ["G45", [4, 5]],
+    ["ROOM", [3, 4, 5]],
+  ])(
+    "reads the grades of %s from its digits, or else Grades 3–5",
+    (code, grades) => {
+      expect(find(code)).toMatchObject({ grades, games });
+    },
+  );
+
+  it("has no class for a code starting with X", () => {
+    expect(find("X1")).toBeNull();
+  });
+
+  it("names games by their slug", () => {
+    expect(standInGames(["fraction-hop"])).toEqual([
+      { slug: "fraction-hop", name: "Fraction Hop" },
+    ]);
   });
 });
 

@@ -101,7 +101,13 @@ async function devServer(): Promise<ChildProcess | null> {
       "--host",
       "127.0.0.1",
     ],
-    { cwd: join(repoRoot, "apps", "play"), stdio: "ignore", detached: true },
+    {
+      cwd: join(repoRoot, "apps", "play"),
+      stdio: "ignore",
+      detached: true,
+      // The tour signs in a stand-in student, so it needs the stand-ins.
+      env: { ...process.env, VITE_PLAY_PLATFORM: "stand-in" },
+    },
   );
   for (let i = 0; i < 120; i++) {
     if (await reachable(`${base}/`)) return server;
@@ -131,15 +137,22 @@ try {
         if (m.type() === "error") errors.push(m.text());
       });
       await page.addInitScript(
-        ([grade]) => {
+        ([grade, slug]) => {
           localStorage.setItem(
             "kindling.stand-in.student",
             JSON.stringify({
               id: "tour",
-              grade,
               locale: "en-CA",
               look: { body: "sky", eyes: "round", headwear: null },
-              classId: null,
+              classes: [
+                {
+                  classId: "tour",
+                  className: "Tour",
+                  grades: [grade],
+                  grade,
+                  games: [{ slug, name: slug }],
+                },
+              ],
             }),
           );
           const spoken: string[] = [];
@@ -151,7 +164,7 @@ try {
           };
           s.cancel = () => {};
         },
-        [grade] as const,
+        [grade, slug] as const,
       );
       const problem = (message: string) => {
         problems++;
@@ -198,7 +211,13 @@ try {
         await page.goto(`${base}/${slug}`);
         const start = page.getByRole("button", { name: "Start" });
         const missing = page.getByText("We couldn't find that game.");
-        await start.or(missing).waitFor({ timeout: 30_000 });
+        // Real sign-in: the server runs on Kindling's API, not the stand-ins.
+        const signIn = page.getByText(/^(Sign in to play|Signing in isn't)/);
+        await start.or(missing).or(signIn).waitFor({ timeout: 30_000 });
+        if (await signIn.isVisible())
+          throw new Error(
+            `the dev server at ${base} runs on Kindling's API, so the tour's stand-in student isn't signed in. Stop it (the tour starts its own), or run one with VITE_PLAY_PLATFORM=stand-in.`,
+          );
         if (await missing.isVisible())
           throw new Error(
             `the dev server at ${base} doesn't host ${slug}. Is it serving another checkout, or was it started before the game was registered? Restart it, or pass --url.`,

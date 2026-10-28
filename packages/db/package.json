@@ -11,6 +11,7 @@
     "dev": "docker compose up --detach --wait && prisma migrate deploy",
     "stop": "docker compose stop",
     "migrate": "prisma migrate dev",
+    "clear-students": "node scripts/clear-students.ts",
     "generate": "prisma generate",
     "check-types": "tsc --noEmit"
   },

@@ -135,23 +135,66 @@ function browserPlayLine(url: string): Promise<PlayingLine> {
   return audio.play().then(() => ({ stop: () => audio.pause(), ended }));
 }
 
-function browserSpeak(
+/** What browser speech needs of `speechSynthesis`; a fake in tests. */
+export type Synth = Pick<
+  SpeechSynthesis,
+  "speak" | "cancel" | "resume" | "getVoices" | "speaking" | "pending"
+>;
+
+// The utterance being spoken. Chrome forgets an utterance nothing refers to,
+// and with it the `end` event.
+let speaking: SpeechSynthesisUtterance | null = null;
+
+export function browserSpeak(
   text: string,
   locale: Locale,
   onEnd?: () => void,
+  synth: Synth | undefined = globalThis.speechSynthesis,
 ): (() => void) | null {
-  if (typeof speechSynthesis === "undefined") return null;
+  if (!synth || typeof SpeechSynthesisUtterance === "undefined") return null;
   try {
-    speechSynthesis.cancel();
+    if (synth.speaking || synth.pending) synth.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = locale;
+    // Few devices have an en-CA voice, and Chrome can stay silent for a
+    // language it has no voice for, so pick one of the same language.
+    const voice = voiceFor(synth.getVoices(), locale);
+    if (voice) utterance.voice = voice;
     if (onEnd) {
       utterance.addEventListener("end", onEnd, { once: true });
       utterance.addEventListener("error", onEnd, { once: true });
     }
-    speechSynthesis.speak(utterance);
-    return () => speechSynthesis.cancel();
+    speaking = utterance;
+    // Chrome drops an utterance spoken in the same task as `cancel()`, and
+    // stopping one line to say the next does exactly that. `resume()` wakes
+    // speech that Chrome left paused.
+    let stopped = false;
+    const start = setTimeout(() => {
+      if (stopped) return;
+      synth.resume();
+      synth.speak(utterance);
+    }, 0);
+    return () => {
+      stopped = true;
+      clearTimeout(start);
+      if (speaking === utterance) speaking = null;
+      synth.cancel();
+    };
   } catch {
     return null;
   }
+}
+
+/** The voice for this exact locale, else one of the same language. */
+export function voiceFor(
+  voices: readonly SpeechSynthesisVoice[],
+  locale: Locale,
+): SpeechSynthesisVoice | undefined {
+  const lang = (v: SpeechSynthesisVoice) => v.lang.replace("_", "-");
+  const language = locale.split("-")[0];
+  return (
+    voices.find((v) => lang(v) === locale) ??
+    voices.find((v) => lang(v).split("-")[0] === language && v.default) ??
+    voices.find((v) => lang(v).split("-")[0] === language)
+  );
 }

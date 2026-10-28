@@ -21,12 +21,11 @@ const manifest = {
   strings: { "en-CA": {} },
 } satisfies GameManifest;
 
-const inClass: Student = {
+const student: Student = {
   id: "student-1",
-  grade: 4,
   locale: "en-CA",
   look: { body: "sky", eyes: "sparkle", headwear: "crown" },
-  classId: "class-1",
+  classes: [],
 };
 
 function fakeOutbox(drained = true) {
@@ -41,13 +40,7 @@ function fakeOutbox(drained = true) {
   return { outbox, added };
 }
 
-function setUp(
-  overrides: {
-    student?: Student;
-    portal?: string | null;
-    drained?: boolean;
-  } = {},
-) {
+function setUp(overrides: { portal?: string | null; drained?: boolean } = {}) {
   const { outbox, added } = fakeOutbox(overrides.drained);
   const onInvalid = vi.fn();
   let n = 0;
@@ -55,7 +48,8 @@ function setUp(
     id: "play-1",
     manifest,
     tier: "g4",
-    student: overrides.student ?? inClass,
+    student,
+    classId: "class-1",
     portal: overrides.portal === undefined ? "north" : overrides.portal,
     outbox,
     links: standInLinks({ base: "/play/" }),
@@ -75,7 +69,7 @@ const attempt = (a: Partial<Attempt<GameManifest>> = {}) =>
   }) as Attempt<GameManifest>;
 
 describe("recording attempts", () => {
-  it("adds the student, play, game, version, tier and time to each attempt", () => {
+  it("adds the student, class, play, game, version, tier and time to each attempt", () => {
     const { play, added } = setUp();
     play.record(
       attempt({ misconception: "bigger-denominator-bigger", assisted: "hint" }),
@@ -86,6 +80,7 @@ describe("recording attempts", () => {
         id: "id-1",
         play: "play-1",
         student: "student-1",
+        class: "class-1",
         game: "sample",
         gameVersion: 3,
         tier: "g4",
@@ -152,14 +147,6 @@ describe("ending", () => {
     },
   );
 
-  it("shows the end screen for a student who isn't in a class", async () => {
-    const { play } = setUp({ student: { ...inClass, classId: null } });
-    expect(await play.end("finished")).toEqual({
-      kind: "end-screen",
-      ending: "finished",
-    });
-  });
-
   it.each(["finished", "left", "crashed"] as const)(
     "records how the play ended (%s) after its attempts, then sends them",
     async (ending) => {
@@ -172,6 +159,7 @@ describe("ending", () => {
         id: "id-2",
         play: "play-1",
         student: "student-1",
+        class: "class-1",
         game: "sample",
         gameVersion: 3,
         tier: "g4",

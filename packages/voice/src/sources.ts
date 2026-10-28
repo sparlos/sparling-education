@@ -28,16 +28,16 @@ export type Overrides = Record<string, LineOverride>;
 
 /**
  * Every game under `games/*` that has a `src/manifest.ts` exporting
- * `manifest`. No games is fine.
- *
- * The play shell's own strings aren't a source yet: apps/play has no string
- * table to read.
+ * `manifest`, then the play shell's own strings (see `shellSource`). No games
+ * is fine.
  */
 export async function discoverSources(root: string): Promise<VoiceSource[]> {
   const gamesDir = join(root, "games");
-  if (!existsSync(gamesDir)) return [];
   const sources: VoiceSource[] = [];
-  for (const entry of readdirSync(gamesDir, { withFileTypes: true })) {
+  const entries = existsSync(gamesDir)
+    ? readdirSync(gamesDir, { withFileTypes: true })
+    : [];
+  for (const entry of entries) {
     if (!entry.isDirectory()) continue;
     const dir = join(gamesDir, entry.name);
     const file = join(dir, "src", "manifest.ts");
@@ -52,7 +52,28 @@ export async function discoverSources(root: string): Promise<VoiceSource[]> {
       strings: { ...manifest.strings["en-CA"] },
     });
   }
+  const shell = await shellSource(root);
+  if (shell) sources.push(shell);
   return sources;
+}
+
+/** The play shell's source name: `virtual:voice-lines/shell`. */
+export const shellName = "shell";
+
+/**
+ * The play shell's own words (the locker, start, leaving), from
+ * `apps/play/src/ui/shell-strings.ts`. Their audio and lockfile live in
+ * `apps/play/voice/`, the same layout as a game's.
+ */
+async function shellSource(root: string): Promise<VoiceSource | null> {
+  const dir = join(root, "apps", "play");
+  const file = join(dir, "src", "ui", "shell-strings.ts");
+  if (!existsSync(file)) return null;
+  const { shellStrings } = (await import(pathToFileURL(file).href)) as {
+    shellStrings?: GameManifest["strings"];
+  };
+  if (!shellStrings) throw new Error(`${file} has no \`shellStrings\` export`);
+  return { name: shellName, dir, strings: { ...shellStrings["en-CA"] } };
 }
 
 export function readOverrides(source: VoiceSource): Overrides {

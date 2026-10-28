@@ -59,12 +59,19 @@
   background-color: var(--k-surface-page);
 }
 
+/* Solid, so nothing behind shows through to compete with the question. */
 .overlay {
   z-index: 2;
-  background-color: color-mix(in srgb, var(--k-surface-page) 88%, transparent);
+  background-color: var(--k-surface-page);
 }
 
 .choices {
   display: flex;
   gap: var(--mantine-spacing-xl);
+}
+
+.question {
+  display: flex;
+  align-items: center;
+  gap: var(--mantine-spacing-sm);
 }
