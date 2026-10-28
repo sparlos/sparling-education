@@ -27,37 +27,62 @@ export const shellT = translator(shellStrings, "en-CA") as (
   id: ShellStringId,
 ) => string;
 
-/**
- * The recordings of the shell's own lines (`virtual:voice-lines/shell`, made
- * by `pnpm voice`). Lines without one use browser speech.
- */
-export const ShellLines = createContext<LineMap>({});
+/** Recordings made by `pnpm voice`. Lines without one use browser speech. */
+export interface ShellRecordings {
+  /** The shell's own lines (`virtual:voice-lines/shell`). */
+  shell: LineMap;
+  /** Each game's title, by slug (`virtual:voice-titles`). */
+  titles: LineMap;
+}
 
-// Names (of games and classes) are spoken as they are; everything else is a
-// shell line by ID.
+export const noRecordings: ShellRecordings = { shell: {}, titles: {} };
+
+export const ShellLines = createContext<ShellRecordings>(noRecordings);
+
+// Names are spoken as they are; everything else is a shell line by ID. A
+// game's name is its manifest's title, recorded with the game's lines; a
+// class's name is the teacher's, so it never has a recording.
 const namePrefix = "name:";
+const gamePrefix = "game:";
 
 /** The line that says a name, which has no recording. */
 export const nameLine = (name: string) => `${namePrefix}${name}`;
+
+/** The line that says a game's name: its recorded title, if it has one. */
+export const gameLine = (slug: string, name: string) =>
+  `${gamePrefix}${slug}:${name}`;
+
+/** A game line's slug and name. Slugs never hold a colon. */
+function parseGameLine(line: string) {
+  const rest = line.slice(gamePrefix.length);
+  const colon = rest.indexOf(":");
+  return { slug: rest.slice(0, colon), name: rest.slice(colon + 1) };
+}
+
+function lineText(line: string): string {
+  if (line.startsWith(namePrefix)) return line.slice(namePrefix.length);
+  if (line.startsWith(gamePrefix)) return parseGameLine(line).name;
+  return shellT(line as ShellStringId);
+}
 
 /** A voice for the shell's lines and for names, stopped when the screen goes. */
 export function useShellVoice(
   locale: VoiceOptions["locale"],
   speak?: VoiceOptions["speak"],
 ): Voice {
-  const lines = useContext(ShellLines);
+  const recordings = useContext(ShellLines);
   const voice = useMemo(
     () =>
       createVoice({
-        text: (line) =>
-          line.startsWith(namePrefix)
-            ? line.slice(namePrefix.length)
-            : shellT(line as ShellStringId),
+        text: lineText,
         locale,
-        lineUrl: (line) => lines[line],
+        lineUrl: (line) =>
+          line.startsWith(gamePrefix)
+            ? recordings.titles[parseGameLine(line).slug]
+            : recordings.shell[line],
         speak,
       }),
-    [locale, lines, speak],
+    [locale, recordings, speak],
   );
   useEffect(() => () => voice.stop(), [voice]);
   return voice;

@@ -160,6 +160,7 @@ Every string a student sees or hears; each becomes a voice line. Sentences are w
 
 | ID | English |
 | --- | --- |
+| `title` | Fraction Hop |
 | `tutorial.welcome` | Welcome to Fraction Hop! |
 | `tutorial.goal` | The goal is hidden over the water. Its fraction tells you how far away it is. |
 | `tutorial.plan` | Drag the hops into your plan. Each hop goes as far as its fraction. |

@@ -16,6 +16,7 @@
   "dependencies": {
     "@hono/node-server": "2.1.5",
     "@hono/zod-openapi": "1.6.3",
+    "@games/fraction-hop": "workspace:*",
     "@repo/avatar": "workspace:*",
     "@repo/db": "workspace:*",
     "@scalar/hono-api-reference": "0.12.14",

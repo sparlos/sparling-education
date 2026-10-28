@@ -18,7 +18,7 @@ const manifest = {
     "bigger-denominator-bigger": { expectations: ["math-2020.g4.B1.4"] },
     "counts-marks": { expectations: ["math-2020.g3.B2.8"] },
   },
-  strings: { "en-CA": {} },
+  strings: { "en-CA": { title: "Test Game" } },
 } satisfies GameManifest;
 
 const student: Student = {

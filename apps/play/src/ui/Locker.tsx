@@ -25,6 +25,7 @@ import type { AppProps } from "./App.tsx";
 import classes from "./app.module.css";
 import styles from "./locker.module.css";
 import {
+  gameLine,
   Message,
   nameLine,
   Question,
@@ -185,12 +186,12 @@ function Locker({
   }, [voice, line]);
 
   // "Hear it again" repeats the instruction, never the last name heard.
-  const hear = (name: string) => (
+  const hear = (name: string, line: string) => (
     <IconButton
       tone="neutral"
       size="lg"
       label={`${shellT("hear")} ${name}`}
-      onClick={() => void voice.say(nameLine(name))}
+      onClick={() => void voice.say(line)}
     >
       <Icon name="speaker" size={24} />
     </IconButton>
@@ -232,7 +233,7 @@ function Locker({
                 <Title order={2} size="h3" id={headingId}>
                   {membership.className}
                 </Title>
-                {hear(membership.className)}
+                {hear(membership.className, nameLine(membership.className))}
               </div>
             )}
             <ul className={styles.games}>
@@ -247,7 +248,7 @@ function Locker({
                   >
                     {game.name}
                   </Button>
-                  {hear(game.name)}
+                  {hear(game.name, gameLine(game.slug, game.name))}
                 </li>
               ))}
             </ul>

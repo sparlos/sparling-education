@@ -17,3 +17,9 @@ declare module "virtual:voice-lines/*" {
   const lines: Record<string, string>;
   export default lines;
 }
+
+declare module "virtual:voice-titles" {
+  /** Each game's current title recording, by slug, from `@repo/voice/vite`. */
+  const titles: Record<string, string>;
+  export default titles;
+}

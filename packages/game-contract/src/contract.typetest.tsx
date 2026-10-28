@@ -19,7 +19,7 @@ const manifest = {
       expectations: ["math-2020.g3.B2.8", "math-2020.g4.B1.4"],
     },
   },
-  strings: { "en-CA": { hello: "Hello", bye: "Bye" } },
+  strings: { "en-CA": { title: "Type Test", hello: "Hello", bye: "Bye" } },
 } as const;
 
 type Props = GameProps<typeof manifest>;
@@ -76,6 +76,14 @@ defineGame(
     ...manifest,
     // @ts-expect-error English strings are required
     strings: { "fr-CA": { hello: "Bonjour" } },
+  },
+  () => null,
+);
+defineGame(
+  {
+    ...manifest,
+    // @ts-expect-error every game has a title, its name
+    strings: { "en-CA": { hello: "Hello" } },
   },
   () => null,
 );

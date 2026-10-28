@@ -20,6 +20,9 @@ importers:
 
   apps/api:
     dependencies:
+      '@games/fraction-hop':
+        specifier: workspace:*
+        version: link:../../games/fraction-hop
       '@hono/node-server':
         specifier: 2.1.5
         version: 2.1.5(hono@4.13.13)

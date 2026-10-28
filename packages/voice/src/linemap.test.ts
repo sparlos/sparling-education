@@ -127,3 +127,31 @@ test("a production build emits current audio, fingerprinted, in the game's chunk
   assert.match(game.code ?? "", /intro/);
   assert.match(game.code ?? "", /done/);
 });
+
+/** The `virtual:voice-titles` module, for a demo game titled `title`. */
+async function titlesFor(title: string) {
+  mkdirSync(join(gameDir(), "src"), { recursive: true });
+  writeFileSync(
+    join(gameDir(), "src", "manifest.ts"),
+    `export const manifest = { strings: { "en-CA": ${JSON.stringify({ ...strings, title })} } };`,
+  );
+  const plugin = voiceLines({ root });
+  const id = (plugin.resolveId as (id: string) => string)(
+    "virtual:voice-titles",
+  );
+  const load = plugin.load as (this: unknown, id: string) => Promise<string>;
+  return load.call({ addWatchFile() {} }, id);
+}
+
+test("the titles map has each game's recorded title", async () => {
+  strings = { ...strings, title: "Demo Hop" };
+  record(strings);
+  const titles = await titlesFor("Demo Hop");
+  assert.match(titles, /"demo": l0/);
+  assert.ok(titles.includes(`${linePath(source(), "title")}?no-inline`));
+});
+
+test("the titles map leaves out a title that changed since it was recorded", async () => {
+  record({ ...strings, title: "Demo Hop" });
+  assert.doesNotMatch(await titlesFor("Demo Hop Two"), /"demo"/);
+});

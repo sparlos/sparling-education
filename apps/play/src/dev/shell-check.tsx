@@ -21,6 +21,7 @@ export const manifest = {
   },
   strings: {
     "en-CA": {
+      title: "Shell Check",
       intro: "Tap a button to send an attempt.",
       right: "Right",
       wrong: "Wrong",

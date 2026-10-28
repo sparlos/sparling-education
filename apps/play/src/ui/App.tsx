@@ -26,6 +26,7 @@ import { ErrorBoundary } from "./ErrorBoundary.tsx";
 import { JoinPage, LockerPage, SignInPage } from "./Locker.tsx";
 import {
   Message,
+  noRecordings,
   Question,
   ShellLines,
   shellT,
@@ -44,6 +45,8 @@ export interface AppProps {
   newId(): string;
   /** The recordings of the shell's own lines; lines without one use browser speech. */
   shellLines?: LineMap;
+  /** Each game's recorded title, by slug; a game without one is said by browser speech. */
+  titleLines?: LineMap;
   /** Browser speech, replaceable in tests. */
   speak?: VoiceOptions["speak"];
   /** How long ending a play waits for attempts to send before leaving anyway. */
@@ -60,12 +63,18 @@ type Screen =
   | { kind: "ending"; ready: ReadyPlay }
   | { kind: "end-screen"; ready: ReadyPlay; ending: Ending };
 
-const noLines: LineMap = {};
-
 /** The shell: the locker, joining a class, sign-in, or a game, by the URL. */
 export function App(props: AppProps) {
+  const { shellLines, titleLines } = props;
+  const recordings = useMemo(
+    () =>
+      shellLines || titleLines
+        ? { shell: shellLines ?? {}, titles: titleLines ?? {} }
+        : noRecordings,
+    [shellLines, titleLines],
+  );
   return (
-    <ShellLines.Provider value={props.shellLines ?? noLines}>
+    <ShellLines.Provider value={recordings}>
       <RoutedScreen {...props} />
     </ShellLines.Provider>
   );

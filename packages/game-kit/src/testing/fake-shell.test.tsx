@@ -17,7 +17,7 @@ const manifest = {
   misconceptions: {
     "g4-only": { expectations: ["math-2020.g4.B1.4"] },
   },
-  strings: { "en-CA": { go: "Go" } },
+  strings: { "en-CA": { title: "Breaker", go: "Go" } },
 } as const;
 
 /** Each button breaks one rule, bypassing the types as a cast would. */

@@ -50,8 +50,10 @@ export interface GameManifest {
    * Every string a student sees or hears, by ID. Each one also gets a voice
    * line generated at build time; the shell falls back to browser speech
    * until it exists. English is required; other locales are translations.
+   * `title` is the game's name: the one source for it, shown and spoken in
+   * the student's locker and shown to teachers.
    */
-  strings: { "en-CA": Record<string, string> } & Partial<
+  strings: { "en-CA": { title: string } & Record<string, string> } & Partial<
     Record<Locale, Record<string, string>>
   >;
 }

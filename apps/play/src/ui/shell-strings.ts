@@ -1,6 +1,4 @@
 // The shell's own words. Like a game's strings, each is shown and spoken by ID.
-import type { GameManifest } from "@repo/game-contract";
-
 export const shellStrings = {
   "en-CA": {
     loading: "Getting your game ready…",
@@ -52,6 +50,6 @@ export const shellStrings = {
     "sign-in-unavailable":
       "Signing in isn't working right now. Ask your teacher for help.",
   },
-} satisfies GameManifest["strings"];
+} satisfies { "en-CA": Record<string, string> };
 
 export type ShellStringId = keyof (typeof shellStrings)["en-CA"];

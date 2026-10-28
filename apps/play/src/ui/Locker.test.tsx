@@ -64,6 +64,7 @@ function setUp({
     | undefined,
   beforeRender = (_storage: KeyValueStore) => {},
   shellLines = undefined as Record<string, string> | undefined,
+  titleLines = undefined as Record<string, string> | undefined,
 } = {}) {
   const storage = memoryStorage();
   beforeRender(storage);
@@ -88,6 +89,7 @@ function setUp({
         navigate={navigate}
         newId={() => "id"}
         shellLines={shellLines}
+        titleLines={titleLines}
         // Speech that finishes at once, so lines said before an action don't hold it up.
         speak={(text, _locale, onEnd) => {
           spoken.push(text);
@@ -237,6 +239,32 @@ describe("the shell's recorded lines", () => {
       await screen.findByRole("button", { name: "Hear it: Fraction Hop" }),
     );
     expect(spoken).toEqual(["Fraction Hop"]);
+  });
+});
+
+describe("game titles", () => {
+  it("plays a game's recorded title, and says one without a recording with the browser", async () => {
+    const played: string[] = [];
+    vi.spyOn(HTMLMediaElement.prototype, "play").mockImplementation(function (
+      this: HTMLMediaElement,
+    ) {
+      played.push(this.src);
+      this.dispatchEvent(new Event("ended"));
+      return Promise.resolve();
+    });
+    const { spoken, user } = setUp({
+      titleLines: {
+        "fraction-hop": "https://kindling.test/fraction-hop-title.mp3",
+      },
+    });
+    await user.click(
+      await screen.findByRole("button", { name: "Hear it: Fraction Hop" }),
+    );
+    expect(played).toEqual(["https://kindling.test/fraction-hop-title.mp3"]);
+    await user.click(
+      screen.getByRole("button", { name: "Hear it: Shell Check" }),
+    );
+    expect(spoken.at(-1)).toBe("Shell Check");
   });
 });
 

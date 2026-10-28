@@ -14,6 +14,7 @@ const names: Record<(typeof denominators)[number], string> = {
 };
 
 export const fixedStrings = {
+  title: "Template Game",
   intro: "Tap the bigger fraction.",
   "task.which": "Which one is bigger?",
   right: "Yes! That one is bigger.",

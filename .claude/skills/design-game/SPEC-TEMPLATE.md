@@ -50,10 +50,11 @@ Avatar: portrait | character
 
 ## Strings
 
-Every string a student sees or hears. Each one also becomes a voice line.
+Every string a student sees or hears. Each one also becomes a voice line. `title` is the game's name, as the locker shows and says it.
 
 | ID | English |
 | --- | --- |
+| `title` | <Game name> |
 | `<id>` | <text> |
 
 ## Art

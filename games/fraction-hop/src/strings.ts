@@ -6,6 +6,7 @@
 // with Node.
 
 export const fixedStrings = {
+  title: "Fraction Hop",
   "tutorial.welcome": "Welcome to Fraction Hop!",
   "tutorial.goal":
     "The goal is hidden over the water. Its fraction tells you how far away it is.",

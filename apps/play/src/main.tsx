@@ -5,6 +5,7 @@ import "@fontsource-variable/nunito/wght.css";
 import "@fontsource-variable/nunito-sans/wght.css";
 import "./ui/global.css";
 import shellLines from "virtual:voice-lines/shell";
+import titleLines from "virtual:voice-titles";
 import { UIProvider } from "@repo/ui/provider";
 import { lazy, StrictMode, Suspense } from "react";
 import { createRoot } from "react-dom/client";
@@ -83,6 +84,7 @@ createRoot(root).render(
           navigate={navigate}
           newId={newId}
           shellLines={shellLines}
+          titleLines={titleLines}
         />
       )}
     </UIProvider>

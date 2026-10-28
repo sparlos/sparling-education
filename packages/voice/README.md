@@ -71,6 +71,15 @@ where a CDN base would go. The map is read when the build or dev server starts
 the dev server, since there was no lockfile to watch). Set up the same way, any dir with a
 `src/manifest.ts` works as a source.
 
+Two more maps come from the same plugin:
+
+- `virtual:voice-lines/shell`: the play shell's own lines, from
+  `apps/play/src/ui/shell-strings.ts`, recorded into `apps/play/voice/`.
+- `virtual:voice-titles`: every game's `title` string (its name, required by
+  the game contract), `{ [slug]: url }`, so the locker says a game's name
+  without loading the game. The API's game names come from the same string,
+  so renaming a game is one edit in its strings, then `pnpm voice`.
+
 ## Fixing a line that sounds wrong
 
 Captions never change; these only affect what the model is told, and only

@@ -61,6 +61,7 @@ Thinking while the student chooses, happy on a right tap, encouraging on a miss,
 
 | ID | English |
 | --- | --- |
+| `title` | Template Game |
 | `intro` | Tap the bigger fraction. |
 | `task.which` | Which one is bigger? |
 | `right` | Yes! That one is bigger. |
