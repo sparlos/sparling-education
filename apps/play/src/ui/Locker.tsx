@@ -1,5 +1,6 @@
-// The student's side of the shell outside games: the locker, joining a class
-// by its join link (and picking a grade in a split class), and sign-in. Every
+// The student's side of the shell outside games: the locker (after designing
+// their avatar, the first time), its wardrobe, joining a class by its join
+// link (and picking a grade in a split class), and sign-in. Every
 // label is also spoken, so a Grade 3 student can use it without reading.
 import { Portrait } from "@repo/avatar/portrait";
 import { Button } from "@repo/ui/button";
@@ -12,13 +13,19 @@ import { VisuallyHidden } from "@repo/ui/visually-hidden";
 import { type ReactNode, useEffect, useState } from "react";
 import type { GameRegistry } from "../games.ts";
 import {
+  type DressedStudent,
   type Membership,
   NoSuchClass,
   NotAStudent,
   type Platform,
   type Student,
 } from "../platform/ports.ts";
-import { lockerGamePath, returnPath, shellPath } from "../play/routes.ts";
+import {
+  lockerGamePath,
+  returnPath,
+  shellPath,
+  wardrobePath,
+} from "../play/routes.ts";
 import { readJson, remove, writeJson } from "../play/storage.ts";
 import type { VoiceOptions } from "../play/voice.ts";
 import type { AppProps } from "./App.tsx";
@@ -34,6 +41,7 @@ import {
   useShellVoice,
 } from "./shared.tsx";
 import type { ShellStringId } from "./shell-strings.ts";
+import { AvatarDesign } from "./Wardrobe.tsx";
 
 type Signed =
   | { kind: "loading" }
@@ -121,18 +129,35 @@ function SpokenMessage({
   return <Message text={shellT(line)}>{children}</Message>;
 }
 
-/** The locker, after the student picks their grade in any split class that needs one. */
+/**
+ * The locker, after the student designs their avatar, the first time, and
+ * picks their grade in any split class that needs one.
+ */
 export function LockerPage(props: AppProps) {
   const [state, setState] = useStudent(props);
   if (state.kind !== "ready") return <NotReady state={state} {...props} />;
 
   const { student } = state;
+  if (!student.look)
+    return (
+      <AvatarDesign
+        mode="first"
+        student={student}
+        platform={props.platform}
+        speak={props.speak}
+        onDone={(look) =>
+          setState({ kind: "ready", student: { ...student, look } })
+        }
+        onError={() => setState({ kind: "error" })}
+      />
+    );
+  const dressed: DressedStudent = { ...student, look: student.look };
   const unpicked = student.classes.find((m) => m.grade === null);
   if (unpicked)
     return (
       <GradePick
         key={unpicked.classId}
-        student={student}
+        student={dressed}
         membership={unpicked}
         platform={props.platform}
         speak={props.speak}
@@ -152,7 +177,7 @@ export function LockerPage(props: AppProps) {
     );
   return (
     <Locker
-      student={student}
+      student={dressed}
       base={props.base}
       games={props.games}
       speak={props.speak}
@@ -166,7 +191,7 @@ function Locker({
   games,
   speak,
 }: {
-  student: Student;
+  student: DressedStudent;
   base: string;
   games: GameRegistry;
   speak?: VoiceOptions["speak"];
@@ -203,12 +228,23 @@ function Locker({
         <h1>{shellT("locker")}</h1>
       </VisuallyHidden>
       <div className={styles.header}>
-        <Portrait
-          look={student.look}
-          expression="happy"
-          size={96}
-          label={shellT("avatar")}
-        />
+        <a
+          href={wardrobePath(base)}
+          className={styles.wardrobeLink}
+          aria-label={shellT("change-clothes")}
+          title={shellT("change-clothes")}
+          data-tone="student"
+        >
+          <Portrait
+            look={student.look}
+            expression="happy"
+            size={112}
+            label={shellT("avatar")}
+          />
+          <span className={styles.wardrobeBadge}>
+            <Icon name="avatar" size={24} />
+          </span>
+        </a>
         <Text size="xl" className={styles.instruction}>
           {shellT(line)}
         </Text>
@@ -272,7 +308,7 @@ function GradePick({
   onPicked,
   onError,
 }: {
-  student: Student;
+  student: DressedStudent;
   membership: Membership;
   platform: Platform;
   speak?: VoiceOptions["speak"];
@@ -374,6 +410,24 @@ function GradePick({
 }
 
 const gradeLine = (grade: number) => `grade-${grade}` as ShellStringId;
+
+/** The wardrobe: the student changes their avatar's look, then goes back to the locker. */
+export function WardrobePage(props: AppProps) {
+  const { base, navigate } = props;
+  const [state, setState] = useStudent(props);
+  if (state.kind !== "ready") return <NotReady state={state} {...props} />;
+  return (
+    <AvatarDesign
+      mode={state.student.look ? "wardrobe" : "first"}
+      student={state.student}
+      platform={props.platform}
+      speak={props.speak}
+      onDone={() => navigate(base)}
+      onBack={() => navigate(base)}
+      onError={() => setState({ kind: "error" })}
+    />
+  );
+}
 
 /** The class join link: joins the class, then opens the locker. */
 export function JoinPage(props: AppProps & { joinCode: string }) {

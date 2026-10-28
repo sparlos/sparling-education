@@ -414,7 +414,7 @@ export function FractionHop({
               }}
             >
               <Portrait
-                look={{ ...defaultLook, headwear: "cap" }}
+                look={{ ...defaultLook, hat: "hat-07" }}
                 size={unit * 3}
                 label=""
                 expression={

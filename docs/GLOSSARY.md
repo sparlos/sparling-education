@@ -116,6 +116,14 @@ _Avoid_: Report card, grade report, rubric (as the product name)
 An item (an outfit piece, a sticker, or a piece of furniture) a student earns through effort. Never bought, never random. Earnable anywhere, up to a weekly cap a student can reach in class time alone, so home play is never an advantage.
 _Avoid_: Prize, loot, unlock
 
+**Outfit piece**:
+An item an avatar wears: a top, bottom, shoes or a hat. Every student owns a **base set** from the start; the rest are rewards. Skin tones and hairstyles aren't outfit pieces: every student can pick any of them.
+_Avoid_: Clothing item, skin, cosmetic
+
+**Wardrobe**:
+Where a student changes their avatar's look, opened from their avatar in the locker. It offers every skin tone and hairstyle, and only the outfit pieces they own.
+_Avoid_: Closet, customiser
+
 **Sticker**:
 A reward a student places on their locker to decorate it.
 _Avoid_: Decal, badge

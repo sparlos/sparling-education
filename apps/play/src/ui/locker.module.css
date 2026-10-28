@@ -67,3 +67,33 @@
   min-height: 6rem;
   font-size: var(--mantine-font-size-xl);
 }
+
+/* The student's avatar opens the wardrobe: a big target, with a shirt badge
+   saying what tapping it does. */
+.wardrobeLink {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+  border-radius: var(--mantine-radius-lg);
+  background-color: var(--tone-soft);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.wardrobeLink:focus-visible {
+  outline: 0.25rem solid var(--k-focus);
+  outline-offset: 0.125rem;
+}
+
+.wardrobeBadge {
+  position: absolute;
+  right: -0.5rem;
+  bottom: -0.5rem;
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background-color: var(--tone-fill);
+  color: var(--tone-on-fill);
+  border: var(--k-press-border) solid var(--tone-edge);
+}

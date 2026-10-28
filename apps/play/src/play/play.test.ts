@@ -24,7 +24,14 @@ const manifest = {
 const student: Student = {
   id: "student-1",
   locale: "en-CA",
-  look: { body: "sky", eyes: "sparkle", headwear: "crown" },
+  look: {
+    body: "skin-07",
+    hair: "hair-12",
+    hat: "hat-07",
+    top: "top-08",
+    bottom: "bottom-11",
+    shoes: "shoes-05",
+  },
   classes: [],
 };
 

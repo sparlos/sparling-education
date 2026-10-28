@@ -1,7 +1,12 @@
 // Turns the URL a student opened into a play that's ready to start, or says
 // why it can't start.
 import type { GameRegistry, HostedGame } from "../games.ts";
-import type { Membership, Platform, Student } from "../platform/ports.ts";
+import type {
+  DressedStudent,
+  Membership,
+  Platform,
+  Student,
+} from "../platform/ports.ts";
 import {
   createOutbox,
   type Outbox,
@@ -16,7 +21,7 @@ import { chooseTier } from "./tier.ts";
 
 export interface ReadyPlay {
   link: GameLink;
-  student: Student;
+  student: DressedStudent;
   /** The class the play is for, with the student's grade in it. */
   membership: Membership & { grade: number };
   game: HostedGame;
@@ -28,6 +33,8 @@ export interface ReadyPlay {
 
 export type Boot =
   | { kind: "sign-in"; url: string }
+  /** They have no avatar yet, and design it before anything else. */
+  | { kind: "design"; student: Student }
   /** No class of theirs can play it yet; the locker shows why. */
   | { kind: "locker" }
   | { kind: "not-found" }
@@ -59,6 +66,9 @@ export async function boot(options: {
       url: platform.links.signIn(returnPath(options.url)),
     };
 
+  if (!student.look) return { kind: "design", student };
+  const dressed: DressedStudent = { ...student, look: student.look };
+
   const membership = membershipFor(student, link);
   if (!membership) return { kind: "locker" };
 
@@ -83,7 +93,7 @@ export async function boot(options: {
     id,
     manifest: game.manifest,
     tier,
-    student,
+    student: dressed,
     classId: membership.classId,
     portal: link.portal,
     outbox,
@@ -94,7 +104,7 @@ export async function boot(options: {
     kind: "ready",
     ready: {
       link,
-      student,
+      student: dressed,
       membership,
       game,
       tier,

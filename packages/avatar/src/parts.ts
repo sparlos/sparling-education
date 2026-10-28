@@ -8,7 +8,7 @@
 // y from its top. A shape's width and height are in the same units, whatever
 // its PNGs' resolution, so sharper art drops in without moving anything.
 import { palette } from "@repo/tokens";
-import { sheetItems, sheetShapes } from "./generated/shapes.ts";
+import { sheetFace, sheetItems, sheetShapes } from "./generated/shapes.ts";
 
 export type PartSlot = keyof typeof sheetShapes;
 export type ItemId<S extends PartSlot = PartSlot> =
@@ -60,8 +60,56 @@ export function isItem<S extends PartSlot>(
   return typeof id === "string" && items.get(id)?.slot === slot;
 }
 
+/** The items in a slot, in the sheet's order. */
+export function itemsIn<S extends PartSlot>(slot: S): ItemId<S>[] {
+  return sheetItems[slot].map((i) => i.id);
+}
+
 /** Slots a look can leave empty; the rest always hold an item. */
 export const optionalSlots = ["hat"] as const satisfies PartSlot[];
+
+/**
+ * Who the avatar is: every item in these slots is always on offer, never a
+ * reward, so every student can look like themselves.
+ */
+export const selfSlots = ["body", "hair"] as const satisfies PartSlot[];
+
+/**
+ * What the avatar wears: outfit pieces. A student wears only those they own,
+ * the base set and their rewards.
+ */
+export const outfitSlots = [
+  "top",
+  "bottom",
+  "shoes",
+  "hat",
+] as const satisfies PartSlot[];
+
+export type OutfitSlot = (typeof outfitSlots)[number];
+
+/**
+ * The outfit pieces every student owns from the start: plain tees, shorts and
+ * trousers, a few pairs of shoes and two beanies. Rewards add the rest.
+ * Provisional, for the founder to review.
+ */
+export const baseSet = [
+  "top-01",
+  "top-03",
+  "top-04",
+  "top-06",
+  "top-08",
+  "top-12",
+  "bottom-01",
+  "bottom-03",
+  "bottom-08",
+  "bottom-11",
+  "shoes-01",
+  "shoes-05",
+  "shoes-10",
+  "shoes-15",
+  "hat-01",
+  "hat-07",
+] as const satisfies readonly ItemId<OutfitSlot>[];
 
 /** Back to front. */
 export const layerOrder = [
@@ -100,6 +148,21 @@ export const fits: Record<Exclude<PartSlot, "body">, PartFit> = {
 };
 
 /**
+ * Where the face goes on the body, in body-frame units: each eye's centre,
+ * the eyes' height and the mouth's centre. The body's art has no eyes or
+ * mouth, so a renderer draws them for each expression.
+ */
+export const face = {
+  eyes: sheetFace.eyes.map(([x, y]) => ({ x: x - bodyHalfWidth(), y })),
+  eyeHeight: sheetFace.eyeHeight,
+  mouth: { x: sheetFace.mouth[0] - bodyHalfWidth(), y: sheetFace.mouth[1] },
+};
+
+function bodyHalfWidth() {
+  return sheetShapes.body[0].width / 2;
+}
+
+/**
  * The grey levels (0–1) of a fill layer that take a ramp's shadow, base and
  * highlight. Darker greys hold the shadow and lighter ones the highlight.
  */
@@ -112,6 +175,30 @@ export const rampStops = [0.12, 0.5, 0.88] as const;
  * layer over it.
  */
 export function rampLookup(ramp: Ramp): Uint8ClampedArray {
+  const at = rampAt(ramp);
+  const out = new Uint8ClampedArray(256 * 3);
+  for (let g = 0; g < 256; g++) out.set(at(g / 255), g * 3);
+  return out;
+}
+
+/**
+ * The ramp as an SVG `feComponentTransfer` table for each channel, red, green
+ * and blue, 0–1. Its 51 entries put every stop on an entry, so a filter tints
+ * a fill layer exactly as `rampLookup` does.
+ */
+export function rampTables(ramp: Ramp): [number[], number[], number[]] {
+  const at = rampAt(ramp);
+  const tables: [number[], number[], number[]] = [[], [], []];
+  for (let k = 0; k <= 50; k++) {
+    const colour = at(k / 50);
+    for (const c of [0, 1, 2] as const)
+      tables[c].push(Math.round((colour[c] / 255) * 1000) / 1000);
+  }
+  return tables;
+}
+
+/** The ramp's colour at grey level `t` (0–1). */
+function rampAt(ramp: Ramp): (t: number) => RGB {
   const [shadow, base, highlight] = ramp.map(rgb) as [RGB, RGB, RGB];
   const [low, mid, high] = rampStops;
   const segments = [
@@ -120,22 +207,16 @@ export function rampLookup(ramp: Ramp): Uint8ClampedArray {
     [mid, base, high, highlight],
     [high, highlight, 1, highlight],
   ] as const;
-  const out = new Uint8ClampedArray(256 * 3);
-  for (let g = 0; g < 256; g++) {
-    const t = g / 255;
+  return (t) => {
     const [from, c0, to, c1] =
       segments.find(([, , end]) => t <= end) ?? segments[3];
     const u = (t - from) / (to - from);
-    out.set(
-      [
-        c0[0] + (c1[0] - c0[0]) * u,
-        c0[1] + (c1[1] - c0[1]) * u,
-        c0[2] + (c1[2] - c0[2]) * u,
-      ],
-      g * 3,
-    );
-  }
-  return out;
+    return [
+      c0[0] + (c1[0] - c0[0]) * u,
+      c0[1] + (c1[1] - c0[1]) * u,
+      c0[2] + (c1[2] - c0[2]) * u,
+    ];
+  };
 }
 
 type RGB = [number, number, number];

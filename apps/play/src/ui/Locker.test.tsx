@@ -1,7 +1,13 @@
 // The locker, joining a class and sign-in, rendered over the stand-ins: what
 // a student sees, hears and can do.
 import { UIProvider } from "@repo/ui/provider";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import {
+  cleanup,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
@@ -14,6 +20,7 @@ import {
   type Student,
 } from "../platform/ports.ts";
 import { standInLinks } from "../platform/stand-ins/links.ts";
+import { standInGrant, standInLocker } from "../platform/stand-ins/locker.ts";
 import {
   standInClasses,
   standInGames,
@@ -23,6 +30,7 @@ import { standInRecords } from "../platform/stand-ins/records.ts";
 import {
   standInSession,
   standInSignIn,
+  standInSignOut,
   standInStudent,
 } from "../platform/stand-ins/session.ts";
 import type { KeyValueStore } from "../play/storage.ts";
@@ -50,7 +58,14 @@ function studentIn(...classes: Membership[]): Student {
   return {
     id: "student-1",
     locale: "en-CA",
-    look: { body: "sky", eyes: "sparkle", headwear: "crown" },
+    look: {
+      body: "skin-07",
+      hair: "hair-12",
+      hat: "hat-07",
+      top: "top-08",
+      bottom: "bottom-11",
+      shoes: "shoes-05",
+    },
     classes,
   };
 }
@@ -80,6 +95,7 @@ function setUp({
           name: "test",
           session: session ?? standInSession(storage),
           memberships: standInMemberships(storage, standInClasses(classGames)),
+          locker: standInLocker(storage),
           records: standInRecords(),
           links: standInLinks({ base: "/play/" }),
           SignInButton,
@@ -170,7 +186,9 @@ describe("the locker", () => {
     expect(
       await screen.findByRole("link", { name: "Shell Check" }),
     ).toBeInTheDocument();
-    expect(screen.getAllByRole("link")).toHaveLength(1);
+    expect(within(screen.getByRole("list")).getAllByRole("link")).toHaveLength(
+      1,
+    );
   });
 
   it("tells a student in no class to ask their teacher, aloud", async () => {
@@ -178,7 +196,7 @@ describe("the locker", () => {
     expect(
       await screen.findByText("Ask your teacher for your class link."),
     ).toBeInTheDocument();
-    expect(screen.queryByRole("link")).not.toBeInTheDocument();
+    expect(screen.queryByRole("list")).not.toBeInTheDocument();
     await waitFor(() =>
       expect(spoken).toEqual(["Ask your teacher for your class link."]),
     );
@@ -216,6 +234,170 @@ describe("the locker", () => {
     expect(await screen.findByText(line)).toBeInTheDocument();
     expect(spoken).toContain(line);
     expect(navigate).not.toHaveBeenCalled();
+  });
+});
+
+/** The item worn in each slot of an avatar drawing. */
+function worn(avatar: HTMLElement) {
+  return Object.fromEntries(
+    [...avatar.querySelectorAll("[data-slot]")].map((el) => [
+      el.getAttribute("data-slot"),
+      el.getAttribute("data-item"),
+    ]),
+  );
+}
+
+describe("designing the avatar, the first time", () => {
+  const newcomer = () => ({ ...studentIn(membership()), look: null });
+
+  it("comes before the locker, says what to do, and has no way out but done", async () => {
+    const { spoken } = setUp({ signedIn: newcomer() });
+    const instruction = "Make your avatar! Pick each part, then tap the tick.";
+    expect(await screen.findByText(instruction)).toBeInTheDocument();
+    await waitFor(() => expect(spoken).toEqual([instruction]));
+    expect(screen.queryByRole("link")).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Go to your locker" }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Done" })).toBeInTheDocument();
+  });
+
+  it("comes before picking a grade in a split class", async () => {
+    setUp({
+      signedIn: {
+        ...newcomer(),
+        classes: [membership({ grades: [3, 4], grade: null })],
+      },
+    });
+    expect(await screen.findByRole("button", { name: "Done" })).toBeVisible();
+    expect(
+      screen.queryByText("Which grade are you in?"),
+    ).not.toBeInTheDocument();
+  });
+
+  it("says each part's name as the student picks it", async () => {
+    const { spoken, user } = setUp({ signedIn: newcomer() });
+    await user.click(await screen.findByRole("button", { name: "Hair" }));
+    expect(spoken.at(-1)).toBe("Hair");
+    await user.click(screen.getByRole("button", { name: "Shoes" }));
+    expect(spoken.at(-1)).toBe("Shoes");
+  });
+
+  it("shows each pick on the avatar at once, then keeps the look and opens the locker", async () => {
+    const { storage, user } = setUp({ signedIn: newcomer() });
+    await user.click(await screen.findByRole("button", { name: "Skin 12" }));
+    await user.click(screen.getByRole("button", { name: "Hair" }));
+    await user.click(screen.getByRole("button", { name: "Hair 40" }));
+    const avatar = screen.getByRole("img", { name: "Your avatar" });
+    expect(worn(avatar)).toMatchObject({ body: "skin-12", hair: "hair-40" });
+    expect(screen.getByRole("button", { name: "Hair 40" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+
+    await user.click(screen.getByRole("button", { name: "Done" }));
+    expect(
+      await screen.findByRole("link", { name: "Fraction Hop" }),
+    ).toBeInTheDocument();
+    expect(
+      worn(screen.getByRole("img", { name: "Your avatar" })),
+    ).toMatchObject({ body: "skin-12", hair: "hair-40" });
+    expect(standInStudent(storage)?.look).toMatchObject({
+      body: "skin-12",
+      hair: "hair-40",
+    });
+  });
+
+  it("offers every skin tone and hairstyle", async () => {
+    const { user } = setUp({ signedIn: newcomer() });
+    const skins = within(await screen.findByRole("list", { name: "Skin" }));
+    expect(skins.getAllByRole("button")).toHaveLength(12);
+    await user.click(screen.getByRole("button", { name: "Hair" }));
+    const hair = within(screen.getByRole("list", { name: "Hair" }));
+    expect(hair.getAllByRole("button")).toHaveLength(62);
+  });
+
+  it("starts each student from a look of their own", async () => {
+    setUp({ signedIn: newcomer() });
+    const one = worn(await screen.findByRole("img", { name: "Your avatar" }));
+    cleanup();
+    setUp({ signedIn: { ...newcomer(), id: "student-2" } });
+    const two = worn(await screen.findByRole("img", { name: "Your avatar" }));
+    expect(one).not.toEqual(two);
+  });
+});
+
+describe("the wardrobe", () => {
+  it("opens from the student's avatar in the locker", async () => {
+    setUp();
+    expect(
+      await screen.findByRole("link", { name: "Change your clothes" }),
+    ).toHaveAttribute("href", "/play/wardrobe");
+  });
+
+  it("says what to do, and offers a way back without changing anything", async () => {
+    const { navigate, spoken, storage, user } = setUp({
+      path: "/play/wardrobe",
+    });
+    const instruction = "Pick what to wear, then tap the tick.";
+    expect(await screen.findByText(instruction)).toBeInTheDocument();
+    await waitFor(() => expect(spoken).toEqual([instruction]));
+    await user.click(screen.getByRole("button", { name: "Tops 1" }));
+    await user.click(screen.getByRole("button", { name: "Go to your locker" }));
+    expect(navigate).toHaveBeenCalledWith("/play/");
+    expect(standInStudent(storage)?.look).toEqual(studentIn().look);
+  });
+
+  it("shows only the outfit pieces the student owns, and no hat", async () => {
+    const { user } = setUp({ path: "/play/wardrobe" });
+    await user.click(await screen.findByRole("button", { name: "Hats" }));
+    const hats = within(screen.getByRole("list", { name: "Hats" }));
+    expect(hats.getAllByRole("button").map((b) => b.ariaLabel)).toEqual([
+      "No hat",
+      "Hats 1",
+      "Hats 7",
+    ]);
+  });
+
+  it("offers a reward the student owns beside the base set", async () => {
+    const { user } = setUp({
+      path: "/play/wardrobe",
+      beforeRender: (storage) => standInGrant(storage, ["hat-30"]),
+    });
+    await user.click(await screen.findByRole("button", { name: "Hats" }));
+    expect(
+      within(screen.getByRole("list", { name: "Hats" })).getByRole("button", {
+        name: "Hats 30",
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it("changes the outfit, keeps it, and goes back to the locker", async () => {
+    const { navigate, storage, user } = setUp({ path: "/play/wardrobe" });
+    await user.click(await screen.findByRole("button", { name: "Tops 1" }));
+    await user.click(screen.getByRole("button", { name: "Hats" }));
+    await user.click(screen.getByRole("button", { name: "No hat" }));
+    expect(
+      worn(screen.getByRole("img", { name: "Your avatar" })),
+    ).not.toHaveProperty("hat");
+    await user.click(screen.getByRole("button", { name: "Done" }));
+    await waitFor(() => expect(navigate).toHaveBeenCalledWith("/play/"));
+    expect(standInStudent(storage)?.look).toEqual({
+      ...studentIn().look,
+      top: "top-01",
+      hat: null,
+    });
+  });
+
+  it("offers to try again when the look can't be saved", async () => {
+    const { storage, user } = setUp({ path: "/play/wardrobe" });
+    await screen.findByRole("button", { name: "Done" });
+    // Signed out meanwhile, so saving fails.
+    standInSignOut(storage);
+    await user.click(screen.getByRole("button", { name: "Done" }));
+    expect(
+      await screen.findByRole("button", { name: "Try again" }),
+    ).toBeInTheDocument();
   });
 });
 

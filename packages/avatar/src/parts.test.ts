@@ -13,6 +13,7 @@ import {
   type Ramp,
   rampLookup,
   rampStops,
+  rampTables,
   shapes,
 } from "./parts.ts";
 
@@ -74,4 +75,12 @@ test("ink keeps 3:1 against every palette ramp's base", () => {
     const ratio = contrastRatio(color.ink.default, base);
     assert.ok(ratio >= 3, `${id}: ${ratio.toFixed(2)}:1, needs 3:1`);
   }
+});
+
+test("rampTables puts the ramp's colours on its stops", () => {
+  const [r] = rampTables(["#000000", "#808080", "#FFFFFF"]);
+  assert.equal(r.length, 51);
+  assert.equal(r[6], 0);
+  assert.equal(r[25], Math.round((128 / 255) * 1000) / 1000);
+  assert.equal(r[44], 1);
 });

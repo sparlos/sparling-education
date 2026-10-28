@@ -4,7 +4,10 @@
   "lines": {
     "en-CA": {
       "avatar": "ded86c8b8f32b514",
+      "avatar-done": "1d27460ffa38e1c3",
+      "change-clothes": "6593d2a5ab5c9b6c",
       "complete": "a825c60d522ba23a",
+      "design-avatar": "5eb2ce7fb05ebfc1",
       "error": "3740f54f88128278",
       "for-students": "fc9df2e57af2ddf9",
       "grade-1": "8606433699ed3eda",
@@ -34,6 +37,7 @@
       "locker": "093b0e1efb4da777",
       "no": "a28aeb8b527d6320",
       "no-games": "af18c00280871a21",
+      "no-hat": "0ead3bb4df962c90",
       "no-such-class": "aa717467b475faaa",
       "not-found": "677350595a891bd8",
       "opening-locker": "e462be2591f81f9b",
@@ -42,12 +46,20 @@
       "play-again": "3ccd2e42b9b1c0f8",
       "progress": "236673e9582ecc79",
       "saving": "1f273847749e0990",
+      "saving-avatar": "d57ec3e37e82fb30",
       "sign-in": "b1dfa5b722a4ebd3",
       "sign-in-failed": "59d1dcff2fa1528c",
       "sign-in-unavailable": "a6430bb94a8f28cc",
+      "slot-body": "60b52aad763c3c51",
+      "slot-bottom": "ee165000b13d4240",
+      "slot-hair": "70a4fc79128694d8",
+      "slot-hat": "f888068329733f69",
+      "slot-shoes": "48ff3a38b6984b4a",
+      "slot-top": "7fb022a27b76db1d",
       "start": "d5c67ee17c3d4a53",
       "to-locker": "c8866b7f5fcfb48c",
       "try-again": "5e57d10d349e6c0b",
+      "wardrobe": "22e9077f1da0ae95",
       "yes": "35d1558c71d5bc66"
     }
   }

@@ -1,4 +1,3 @@
-import { parseLook } from "@repo/avatar";
 import { describe, expect, it } from "vitest";
 import {
   client,
@@ -110,22 +109,14 @@ describe("the session", () => {
     expect(await sessionOf({ cookie: "kindling_session=made-up" })).toBeNull();
   });
 
-  it("gives a new student an opaque ID, a look of their own, and no classes", async () => {
+  it("gives a new student an opaque ID, no look until they design one, and no classes", async () => {
     const session = await sessionOf(await signInAsStudent());
     expect(session).toEqual({
       id: expect.any(String),
       locale: "en-CA",
-      look: expect.any(Object),
+      look: null,
       classes: [],
     });
-    expect(parseLook(session?.look)).toEqual(session?.look);
-  });
-
-  it("keeps the same look every time", async () => {
-    const headers = await signInAsStudent();
-    expect((await sessionOf(headers))?.look).toEqual(
-      (await sessionOf(headers))?.look,
-    );
   });
 });
 

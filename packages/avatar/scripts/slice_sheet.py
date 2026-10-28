@@ -215,6 +215,39 @@ def tint_layers(a: np.ndarray, face: bool) -> dict[str, np.ndarray]:
     return layers
 
 
+def blank_face(layers: dict[str, np.ndarray]) -> dict:
+    """Takes the drawn eyes and mouth off the body's layers, keeping its
+    cheeks, so renderers draw each expression's own. Returns where they were:
+    each eye's centre, the eye height and the mouth's centre."""
+    ink, face, fill = layers["ink"], layers["face"], layers["fill"]
+    h, w = ink.shape[:2]
+    inner = ndimage.binary_erosion(fill[..., 3] > 200, iterations=4)
+    band = np.zeros((h, w), bool)
+    band[int(h * 0.22) : int(h * 0.40), int(w * 0.2) : int(w * 0.8)] = True
+    eyes = (ink[..., 3] > 25) & band & inner
+    labels, n = ndimage.label(eyes)
+    found = sorted(ndimage.center_of_mass(eyes, labels, range(1, n + 1)), key=lambda c: c[1])
+    eye_rows = np.where(eyes.any(1))[0]
+    # The mouth is the face layer's middle; the cheeks are either side.
+    middle = np.zeros((h, w), bool)
+    middle[int(h * 0.31) : int(h * 0.40), int(w * 0.38) : int(w * 0.62)] = True
+    mouth = middle & (face[..., 3] > 0)
+    my, mx = ndimage.center_of_mass(mouth)
+    # The fill shades the mouth too: fill it from the skin around it.
+    hole = ndimage.binary_dilation(eyes | mouth, iterations=2) & inner
+    keep = (~hole & (fill[..., 3] > 0)).astype(float)
+    grey = fill[..., 0]
+    smooth = ndimage.gaussian_filter(grey * keep, 3) / np.maximum(ndimage.gaussian_filter(keep, 3), 1e-3)
+    fill[..., :3] = np.where(hole[..., None], smooth[..., None], fill[..., :3])
+    ink[..., 3] = np.where(ndimage.binary_dilation(eyes, iterations=1) & inner, 0, ink[..., 3])
+    face[..., 3] = np.where(middle, 0, face[..., 3])
+    return {
+        "eyes": [[round(float(x), 1), round(float(y), 1)] for y, x in found],
+        "eyeHeight": int(eye_rows.max() - eye_rows.min() + 1),
+        "mouth": [round(float(mx), 1), round(float(my), 1)],
+    }
+
+
 def centred(mask: np.ndarray, h: int, w: int) -> np.ndarray:
     out = np.zeros((h, w), mask.dtype)
     y0, x0 = (h - mask.shape[0]) // 2, (w - mask.shape[1]) // 2
@@ -272,6 +305,7 @@ def main() -> None:
     dark = 765 - rgb.sum(2)
     shapes: dict[str, list[dict]] = {}
     items: dict[str, list[dict]] = {}
+    body_face: dict = {}
     for slot, boxes in find_sprites(dark).items():
         sprites = [cut(rgb, dark, box) for box in boxes]
         out = SHAPES / slot
@@ -287,7 +321,9 @@ def main() -> None:
 
         if slot == "body":
             base = sprites[BODY_SHAPE - 1]
-            add_shape("body", base, tint_layers(base, face=True))
+            layers = tint_layers(base, face=True)
+            body_face.update(blank_face(layers))
+            add_shape("body", base, layers)
             tones = sorted((ramp(s) for s in sprites), key=lambda r: -lightness(r[1]))
             for n, i in enumerate(np.linspace(0, len(tones) - 1, SKIN_TONES).round().astype(int), 1):
                 items[slot].append({"id": f"skin-{n:02d}", "shape": "body", "ramp": tones[i]})
@@ -329,6 +365,15 @@ def main() -> None:
         data += [f'    {{ id: "{i["id"]}", shape: "{i["shape"]}", ramp: {json.dumps(i["ramp"])} }},' for i in list_]
         data.append("  ],")
     data.append("} as const;")
+    data += [
+        "",
+        "/**",
+        " * Where the body's face goes, in body-frame units: each eye's centre, the",
+        " * eyes' height and the mouth's centre. The body is drawn without eyes or a",
+        " * mouth, so each expression draws its own.",
+        " */",
+        f"export const sheetFace = {{ eyes: {json.dumps(body_face['eyes'])}, eyeHeight: {body_face['eyeHeight']}, mouth: {json.dumps(body_face['mouth'])} }} as const;",
+    ]
     # URLs live apart from the data, so the API can validate looks without
     # resolving art.
     urls = [

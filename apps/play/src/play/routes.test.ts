@@ -48,6 +48,7 @@ describe("parseRoute", () => {
     ["/play/", { kind: "locker" }],
     ["/play", { kind: "locker" }],
     ["/play/sign-in", { kind: "sign-in" }],
+    ["/play/wardrobe", { kind: "wardrobe" }],
     ["/play/join/K7QM4XRT", { kind: "join", joinCode: "K7QM4XRT" }],
     ["/play/join/K7QM4XRT/", { kind: "join", joinCode: "K7QM4XRT" }],
     [

@@ -1,12 +1,15 @@
+import { defaultLook } from "@repo/avatar";
 import { describe, expect, it } from "vitest";
 import { memoryStorage } from "../../test/memory-storage.ts";
 import {
+  lockerPortContract,
   playRecordsPortContract,
   sampleAttempt,
   sessionPortContract,
 } from "../contract.ts";
 import type { Student } from "../ports.ts";
 import { standInLinks } from "./links.ts";
+import { standInGrant, standInLocker } from "./locker.ts";
 import {
   type StandInClass,
   standInClasses,
@@ -49,11 +52,19 @@ sessionPortContract("Stand-in session", {
   },
 });
 
+lockerPortContract("Stand-in locker", {
+  newStudent: () => {
+    const storage = memoryStorage();
+    standInSignIn(storage, newStudent());
+    return { session: standInSession(storage), locker: standInLocker(storage) };
+  },
+});
+
 function newStudent(): Student {
   return {
     id: `s-${crypto.randomUUID()}`,
     locale: "en-CA",
-    look: { body: "sky", eyes: "sparkle", headwear: "crown" },
+    look: null,
     classes: [],
   };
 }
@@ -83,6 +94,18 @@ describe("stand-in session", () => {
 
   it("is signed out when storage is unavailable", async () => {
     expect(await standInSession(null).current()).toBeNull();
+  });
+});
+
+describe("stand-in locker", () => {
+  it("owns what it's granted beyond the base set, and can wear it", async () => {
+    const storage = memoryStorage();
+    standInSignIn(storage, newStudent());
+    standInGrant(storage, ["hat-30"]);
+    const locker = standInLocker(storage);
+    expect((await locker.current()).owned).toContain("hat-30");
+    const look = { ...defaultLook, hat: "hat-30" } as const;
+    expect(await locker.wear(look)).toEqual(look);
   });
 });
 

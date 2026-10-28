@@ -143,7 +143,14 @@ try {
             JSON.stringify({
               id: "tour",
               locale: "en-CA",
-              look: { body: "sky", eyes: "round", headwear: null },
+              look: {
+                body: "skin-04",
+                hair: "hair-07",
+                hat: null,
+                top: "top-03",
+                bottom: "bottom-01",
+                shoes: "shoes-01",
+              },
               classes: [
                 {
                   classId: "tour",

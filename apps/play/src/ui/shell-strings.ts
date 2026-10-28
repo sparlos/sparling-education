@@ -49,6 +49,18 @@ export const shellStrings = {
     "sign-in-failed": "That didn't work. Let's try again.",
     "sign-in-unavailable":
       "Signing in isn't working right now. Ask your teacher for help.",
+    "design-avatar": "Make your avatar! Pick each part, then tap the tick.",
+    wardrobe: "Pick what to wear, then tap the tick.",
+    "change-clothes": "Change your clothes",
+    "slot-body": "Skin",
+    "slot-hair": "Hair",
+    "slot-top": "Tops",
+    "slot-bottom": "Pants and shorts",
+    "slot-shoes": "Shoes",
+    "slot-hat": "Hats",
+    "no-hat": "No hat",
+    "avatar-done": "Done",
+    "saving-avatar": "Saving your avatar…",
   },
 } satisfies { "en-CA": Record<string, string> };
 

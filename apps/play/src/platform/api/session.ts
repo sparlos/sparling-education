@@ -1,6 +1,6 @@
 // The session port over Kindling's API, through the generated client.
 import { getSession } from "@repo/api-client";
-import { defaultLook, parseLook } from "@repo/avatar";
+import { parseLook } from "@repo/avatar";
 import { NotAStudent, type SessionPort } from "../ports.ts";
 import { unexpected } from "./unexpected.ts";
 
@@ -14,7 +14,8 @@ export function apiSession(): SessionPort {
         throw unexpected("session", (res as { status: number }).status);
       if (!res.data) return null;
       const { look, ...student } = res.data;
-      return { ...student, look: parseLook(look) ?? defaultLook };
+      // A look that isn't valid any more is designed again.
+      return { ...student, look: look === null ? null : parseLook(look) };
     },
   };
 }

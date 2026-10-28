@@ -1,5 +1,5 @@
 import { z } from "@hono/zod-openapi";
-import { type BodyId, bodies, eyes, headwear } from "@repo/avatar";
+import { itemsIn, type PartSlot } from "@repo/avatar/parts";
 
 export const HealthSchema = z
   .object({ status: z.literal("ok") })
@@ -155,13 +155,36 @@ export const MembershipSchema = z
 
 export type Membership = z.infer<typeof MembershipSchema>;
 
+/** One slot's item IDs, as an enum. */
+const itemOf = <S extends PartSlot>(slot: S) =>
+  z.enum(itemsIn(slot) as [ReturnType<typeof itemsIn<S>>[number]]);
+
 export const LookSchema = z
   .object({
-    body: z.enum(Object.keys(bodies) as [BodyId, ...BodyId[]]),
-    eyes: z.enum(eyes),
-    headwear: z.union([z.enum(headwear), z.null()]),
+    body: itemOf("body").openapi({ description: "A skin tone" }),
+    hair: itemOf("hair"),
+    hat: z.union([itemOf("hat"), z.null()]).openapi({
+      description: "Null for no hat",
+    }),
+    top: itemOf("top"),
+    bottom: itemOf("bottom"),
+    shoes: itemOf("shoes"),
   })
-  .openapi("Look", { description: "From @repo/avatar" });
+  .openapi("Look", {
+    description:
+      "An item ID for each slot of the avatar, from @repo/avatar. Outfit pieces (top, bottom, shoes, hat) must be ones the student owns.",
+  });
+
+export const LockerSchema = z
+  .object({
+    owned: z.array(z.string()).openapi({
+      description:
+        "The outfit pieces the student owns, as item IDs: the base set every student starts with, and their rewards. Skin tones and hair are always everyone's.",
+    }),
+  })
+  .openapi("Locker");
+
+export type Locker = z.infer<typeof LockerSchema>;
 
 export const StudentSchema = z
   .object({
@@ -169,7 +192,10 @@ export const StudentSchema = z
       .string()
       .openapi({ description: "Stable and opaque; never an email or a name" }),
     locale: z.enum(["en-CA", "fr-CA"]),
-    look: LookSchema,
+    look: z.union([LookSchema, z.null()]).openapi({
+      description:
+        "Null until the student designs their avatar, which the play shell asks them to do first",
+    }),
     classes: z.array(MembershipSchema).openapi({
       description: "The classes they're in, in the order they joined",
     }),

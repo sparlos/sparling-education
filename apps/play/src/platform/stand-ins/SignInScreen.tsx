@@ -29,6 +29,7 @@ export function StandInSignInScreen({
   newId(): string;
 }) {
   const [inClass, setInClass] = useState(true);
+  const [designed, setDesigned] = useState(false);
   const next = url.searchParams.get("next");
   // Only ever return to a path on this site.
   const returnTo = next?.startsWith("/") && !next.startsWith("//") ? next : "/";
@@ -39,7 +40,7 @@ export function StandInSignInScreen({
     standInSignIn(storage, {
       id,
       locale: "en-CA",
-      look: lookFromSeed(id),
+      look: designed ? lookFromSeed(id) : null,
       classes: inClass && found ? [{ ...found, grade }] : [],
     });
     navigate(returnTo);
@@ -64,6 +65,14 @@ export function StandInSignInScreen({
             onChange={(event) => setInClass(event.target.checked)}
           />
           Already in a class for their grade
+        </label>
+        <label style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          <input
+            type="checkbox"
+            checked={designed}
+            onChange={(event) => setDesigned(event.target.checked)}
+          />
+          Already has an avatar (otherwise they design one first)
         </label>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
           {grades.map((grade) => (

@@ -13,6 +13,8 @@ export type Route =
   | { kind: "locker" }
   /** Google sign-in, on the real platform: /play/sign-in. */
   | { kind: "sign-in" }
+  /** The wardrobe, from the locker: /play/wardrobe. */
+  | { kind: "wardrobe" }
   /** The class join link: /play/join/<code>. */
   | { kind: "join"; joinCode: string }
   | { kind: "game"; link: GameLink };
@@ -27,6 +29,7 @@ export function parseRoute(url: URL, base: string): Route | null {
   if (!url.pathname.startsWith(base)) return null;
   const path = url.pathname.slice(base.length).replace(/\/$/, "");
   if (path === "sign-in") return { kind: "sign-in" };
+  if (path === "wardrobe") return { kind: "wardrobe" };
   const [first, joinCode, ...rest] = path.split("/");
   if (first === "join")
     return joinCode && joinCodePattern.test(joinCode) && rest.length === 0
@@ -40,12 +43,20 @@ export function parseRoute(url: URL, base: string): Route | null {
 export function parseGameLink(url: URL, base: string): GameLink | null {
   if (!url.pathname.startsWith(base)) return null;
   const slug = url.pathname.slice(base.length).replace(/\/$/, "");
-  if (!slugPattern.test(slug) || slug === "sign-in") return null;
+  if (!slugPattern.test(slug) || shellPages.includes(slug)) return null;
   return {
     slug,
     classId: url.searchParams.get("class") || null,
     portal: url.searchParams.get("portal") || null,
   };
+}
+
+// The shell's own pages under its base, which no game slug can be.
+const shellPages = ["sign-in", "wardrobe"];
+
+/** The wardrobe's path, e.g. "/play/wardrobe". */
+export function wardrobePath(base: string) {
+  return `${base}wardrobe`;
 }
 
 /** The game link the locker opens: one game, for one of the student's classes. */

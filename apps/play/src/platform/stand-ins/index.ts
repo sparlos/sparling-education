@@ -4,6 +4,7 @@
 import type { KeyValueStore } from "../../play/storage.ts";
 import type { LockerGame, Platform } from "../ports.ts";
 import { standInLinks } from "./links.ts";
+import { standInLocker } from "./locker.ts";
 import { standInClasses, standInMemberships } from "./memberships.ts";
 import { standInRecords } from "./records.ts";
 import { standInSession } from "./session.ts";
@@ -17,7 +18,7 @@ export function createStandInPlatform(options: {
   offline?: () => boolean;
 }): Platform {
   console.warn(
-    "[play] Running on the STAND-IN platform: sign-in, classes and play-record storage are simulated in this browser. See apps/play/src/platform/README.md.",
+    "[play] Running on the STAND-IN platform: sign-in, classes, the locker and play-record storage are simulated in this browser. See apps/play/src/platform/README.md.",
   );
   return {
     name: "stand-in",
@@ -26,6 +27,7 @@ export function createStandInPlatform(options: {
       options.storage,
       standInClasses(options.games),
     ),
+    locker: standInLocker(options.storage),
     records: standInRecords({
       offline: options.offline,
       log: (message, batch) => console.info(message, batch),

@@ -1,6 +1,6 @@
 // The platform contract: everything the play shell needs from the rest of
-// Kindling (sign-in, the student's classes and grades, joining a class,
-// somewhere to send each play's attempts and how it ended, and links into
+// Kindling (sign-in, the student's classes and grades, joining a class, their
+// locker and avatar, somewhere to send each play's attempts and how it ended, and links into
 // other apps). The shell only ever talks to these interfaces. They're
 // implemented by the stand-ins in ./stand-ins/ and the adapters over
 // Kindling's API in ./api/, and each one must pass the suites in
@@ -17,10 +17,17 @@ export interface Student {
   /** Stable and opaque; never an email or a name. */
   id: string;
   locale: Locale;
-  look: AvatarLook;
+  /**
+   * Null until they design their avatar, which the shell has them do before
+   * anything else.
+   */
+  look: AvatarLook | null;
   /** The classes they're in, in the order they joined. */
   classes: Membership[];
 }
+
+/** A student who has designed their avatar: everywhere past that first step. */
+export type DressedStudent = Student & { look: AvatarLook };
 
 /** A student in one class. */
 export interface Membership {
@@ -69,6 +76,27 @@ export interface MembershipsPort {
   pickGrade(classId: string, grade: number): Promise<Membership>;
 }
 
+/** What's in the student's locker. */
+export interface Locker {
+  /**
+   * The outfit pieces they own, as item IDs from `@repo/avatar/parts`: the
+   * base set every student starts with, and their rewards. Skin tones and
+   * hair aren't owned; they're everyone's.
+   */
+  owned: string[];
+}
+
+export interface LockerPort {
+  /** The signed-in student's locker. */
+  current(): Promise<Locker>;
+  /**
+   * Dresses the signed-in student's avatar in `look`, which the session then
+   * returns: the first time when they design it, then from the wardrobe.
+   * Rejects with `NotOwned` when an outfit piece in it isn't theirs.
+   */
+  wear(look: AvatarLook): Promise<AvatarLook>;
+}
+
 /** A teacher is signed in; the play shell is for students. */
 export class NotAStudent extends Error {
   constructor() {
@@ -82,6 +110,14 @@ export class NoSuchClass extends Error {
   constructor() {
     super("No class has that join code");
     this.name = "NoSuchClass";
+  }
+}
+
+/** The look has an outfit piece the student doesn't own. */
+export class NotOwned extends Error {
+  constructor() {
+    super("The look has an outfit piece the student doesn't own");
+    this.name = "NotOwned";
   }
 }
 
@@ -159,6 +195,7 @@ export interface Platform {
   name: string;
   session: SessionPort;
   memberships: MembershipsPort;
+  locker: LockerPort;
   records: PlayRecordsPort;
   links: LinksPort;
   /**

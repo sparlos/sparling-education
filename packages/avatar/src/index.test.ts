@@ -1,32 +1,24 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { color } from "@repo/tokens";
-import { contrastRatio } from "@repo/tokens/color";
 import {
   type AvatarLook,
-  bodies,
+  canWear,
   defaultLook,
-  eyes,
-  headwear,
   lookFromSeed,
   parseLook,
 } from "./index.ts";
+import { frame, placeLook } from "./layout.ts";
+import { baseSet, isItem, itemsIn, outfitSlots } from "./parts.ts";
 
-// WCAG 2.2 AA 1.4.11: the outline and eyes are ink on the body colour.
-test("ink keeps 3:1 against every body colour", () => {
-  for (const [id, hex] of Object.entries(bodies)) {
-    const ratio = contrastRatio(color.ink.default, hex);
-    assert.ok(ratio >= 3, `${id}: ${ratio.toFixed(2)}:1, needs 3:1`);
-  }
+test("the default look is valid and wearable with the base set", () => {
+  assert.deepEqual(parseLook(defaultLook), defaultLook);
+  assert.ok(canWear(defaultLook, baseSet));
 });
 
-test("parseLook accepts every valid look", () => {
-  for (const body of Object.keys(bodies))
-    for (const e of eyes)
-      for (const h of [null, ...headwear]) {
-        const look = { body, eyes: e, headwear: h };
-        assert.deepEqual(parseLook(look), look);
-      }
+test("parseLook accepts a look with or without a hat", () => {
+  const hatted = { ...defaultLook, hat: "hat-07" };
+  assert.deepEqual(parseLook(hatted), hatted);
+  assert.deepEqual(parseLook({ ...defaultLook, hat: null }), defaultLook);
 });
 
 test("parseLook drops fields that aren't part of the look", () => {
@@ -36,40 +28,82 @@ test("parseLook drops fields that aren't part of the look", () => {
 test("parseLook rejects anything else", () => {
   for (const value of [
     null,
-    "sunshine",
+    "skin-01",
     { color: "red" },
     { ...defaultLook, body: "toString" },
-    { ...defaultLook, body: "#F2B632" },
-    { ...defaultLook, eyes: "laser" },
-    { ...defaultLook, headwear: undefined },
-    { ...defaultLook, headwear: "wizard-hat" },
+    { ...defaultLook, body: "hair-01" },
+    { ...defaultLook, hair: "hair-99" },
+    { ...defaultLook, hat: undefined },
+    { ...defaultLook, top: null },
+    { ...defaultLook, shoes: "shoes-shape-01" },
+    // The old placeholder look.
+    { body: "sunshine", eyes: "round", headwear: null },
   ])
     assert.equal(parseLook(value), null, JSON.stringify(value));
 });
 
-test("lookFromSeed is stable and valid", () => {
+test("every base set item is an outfit piece", () => {
+  for (const id of baseSet)
+    assert.ok(
+      outfitSlots.some((slot) => isItem(slot, id)),
+      id,
+    );
+  for (const slot of outfitSlots)
+    assert.ok(
+      baseSet.some((id) => isItem(slot, id)),
+      `nothing in ${slot}`,
+    );
+});
+
+test("canWear needs every outfit piece owned, but never skin or hair", () => {
+  const look: AvatarLook = {
+    ...defaultLook,
+    body: "skin-12",
+    hair: "hair-62",
+    hat: "hat-30",
+  };
+  assert.ok(!canWear(look, baseSet));
+  assert.ok(canWear(look, [...baseSet, "hat-30"]));
+  assert.ok(canWear({ ...look, hat: null }, baseSet));
+  assert.ok(!canWear({ ...defaultLook, top: "top-02" }, baseSet));
+});
+
+test("lookFromSeed is stable, valid and wearable with the base set", () => {
   assert.deepEqual(lookFromSeed("student-1"), lookFromSeed("student-1"));
   for (let i = 0; i < 200; i++) {
     const look = lookFromSeed(`student-${i}`);
     assert.deepEqual(parseLook(look), look);
+    assert.ok(canWear(look, baseSet), JSON.stringify(look));
   }
 });
 
-test("lookFromSeed uses every item", () => {
+test("lookFromSeed varies every slot", () => {
   const looks: AvatarLook[] = [];
   for (let i = 0; i < 500; i++) looks.push(lookFromSeed(`student-${i}`));
-  const used = (pick: (l: AvatarLook) => unknown) =>
-    new Set(looks.map(pick)).size;
-  assert.equal(
-    used((l) => l.body),
-    Object.keys(bodies).length,
-  );
-  assert.equal(
-    used((l) => l.eyes),
-    eyes.length,
-  );
-  assert.equal(
-    used((l) => l.headwear),
-    headwear.length + 1,
-  );
+  for (const slot of ["body", "hair", "hat", "top", "bottom", "shoes"] as const)
+    assert.ok(new Set(looks.map((l) => l[slot])).size > 2, slot);
+  assert.ok(new Set(looks.map((l) => l.body)).size === itemsIn("body").length);
+});
+
+test("a look places every slot it fills once, and shoes as a pair", () => {
+  const slots = placeLook({ ...defaultLook, hat: "hat-07" }).map((p) => p.slot);
+  assert.deepEqual(slots, [
+    "body",
+    "bottom",
+    "shoes",
+    "shoes",
+    "top",
+    "hair",
+    "hat",
+  ]);
+  assert.ok(!placeLook(defaultLook).some((p) => p.slot === "hat"));
+});
+
+test("the frame holds every part of every look", () => {
+  for (const look of [defaultLook, lookFromSeed("a"), lookFromSeed("b")])
+    for (const p of placeLook(look)) {
+      const x0 = p.mirrored ? -(p.x + p.width) : p.x;
+      assert.ok(x0 >= frame.x && x0 + p.width <= frame.x + frame.size);
+      assert.ok(p.y >= frame.y && p.y + p.height <= frame.y + frame.size);
+    }
 });

@@ -9,6 +9,12 @@ export default defineConfig({
   // Served at /play/ on the same domain as the class world; see README.md.
   base: "/play/",
   plugins: [react(), voiceLines({ root: repoRoot })],
+  build: {
+    // Avatar art stays as files, fetched as it's drawn, rather than inlined
+    // into the bundle: one avatar is a handful of its hundreds of layers.
+    assetsInlineLimit: (file) =>
+      file.includes("/packages/avatar/art/") ? false : undefined,
+  },
   server: {
     host: true,
     // The API's session cookie only works same-origin, so development reaches

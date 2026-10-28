@@ -2,12 +2,15 @@
 // Run them against each implementation of a port: the stand-ins
 // (stand-ins/stand-ins.test.ts) and the adapters over the API (api/api.test.ts),
 // with a harness that can set up and read back what the implementation stores.
-import { parseLook } from "@repo/avatar";
+import { type AvatarLook, defaultLook } from "@repo/avatar";
+import { baseSet, isItem, outfitSlots } from "@repo/avatar/parts";
 import { describe, expect, it } from "vitest";
 import {
   type AttemptRecord,
+  type LockerPort,
   type MembershipsPort,
   NoSuchClass,
+  NotOwned,
   type PlayEndRecord,
   type PlayRecord,
   type PlayRecordsPort,
@@ -128,16 +131,15 @@ export function sessionPortContract(name: string, harness: SessionHarness) {
       expect(await session.current()).toBeNull();
     });
 
-    it("returns a new student, with a valid look and no classes", async () => {
+    it("returns a new student, with no look until they design one, and no classes", async () => {
       const { session } = await harness.newStudent();
       const student = await session.current();
       expect(student).toEqual({
         id: expect.any(String),
         locale: "en-CA",
-        look: expect.any(Object),
+        look: null,
         classes: [],
       });
-      expect(parseLook(student?.look)).toEqual(student?.look);
       expect(await session.current()).toEqual(student);
     });
 
@@ -206,5 +208,75 @@ export function sessionPortContract(name: string, harness: SessionHarness) {
         NoSuchClass,
       );
     });
+  });
+}
+
+export interface LockerHarness {
+  /** Signs a new student in, who owns only the base set and has no look yet. */
+  newStudent():
+    | { session: SessionPort; locker: LockerPort }
+    | Promise<{ session: SessionPort; locker: LockerPort }>;
+}
+
+// Outfit pieces outside the base set: no new student owns them.
+const notOwned = { top: "top-02", hat: "hat-30" } as const;
+
+/** The locker: what a student owns, and dressing their avatar. */
+export function lockerPortContract(name: string, harness: LockerHarness) {
+  describe(`${name} meets the locker contract`, () => {
+    it("gives a new student the base set, and only outfit pieces", async () => {
+      const { locker } = await harness.newStudent();
+      const { owned } = await locker.current();
+      expect(owned).toEqual(expect.arrayContaining([...baseSet]));
+      for (const id of owned)
+        expect(outfitSlots.some((slot) => isItem(slot, id))).toBe(true);
+      for (const id of Object.values(notOwned)) expect(owned).not.toContain(id);
+    });
+
+    it("dresses the student in the look they design, which the session returns", async () => {
+      const { session, locker } = await harness.newStudent();
+      const look: AvatarLook = {
+        ...defaultLook,
+        body: "skin-11",
+        hair: "hair-40",
+        hat: "hat-07",
+      };
+      expect(await locker.wear(look)).toEqual(look);
+      expect((await session.current())?.look).toEqual(look);
+    });
+
+    it("changes the look again from the wardrobe", async () => {
+      const { session, locker } = await harness.newStudent();
+      await locker.wear(defaultLook);
+      const changed: AvatarLook = {
+        ...defaultLook,
+        top: "top-08",
+        bottom: "bottom-11",
+      };
+      await locker.wear(changed);
+      expect((await session.current())?.look).toEqual(changed);
+    });
+
+    it("offers every skin tone and hairstyle", async () => {
+      const { locker } = await harness.newStudent();
+      const look: AvatarLook = {
+        ...defaultLook,
+        body: "skin-01",
+        hair: "hair-62",
+      };
+      expect(await locker.wear(look)).toEqual(look);
+    });
+
+    it.each(Object.entries(notOwned))(
+      "refuses a %s the student doesn't own, keeping their look",
+      async (slot, item) => {
+        const { session, locker } = await harness.newStudent();
+        await locker.wear(defaultLook);
+        await expect(
+          locker.wear({ ...defaultLook, [slot]: item } as AvatarLook),
+        ).rejects.toBeInstanceOf(NotOwned);
+        expect((await session.current())?.look).toEqual(defaultLook);
+      },
+    );
   });
 }

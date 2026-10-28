@@ -357,32 +357,6 @@
   margin: 2px 0;
 }
 
-/* The hopper: x moves linearly while the inner group arcs, so together they
-   trace a parabola. SVG transforms need fill-box to squash from the feet. */
-.hopper {
-  transition-property: transform;
-  transition-timing-function: linear;
-}
-
-.flying {
-  animation-name: hop;
-  animation-timing-function: linear;
-}
-
-@keyframes hop {
-  0% {
-    transform: translateY(0);
-    animation-timing-function: cubic-bezier(0.33, 0.66, 0.66, 1);
-  }
-  50% {
-    transform: translateY(var(--arc));
-    animation-timing-function: cubic-bezier(0.33, 0, 0.66, 0.33);
-  }
-  100% {
-    transform: translateY(0);
-  }
-}
-
 /* The run's trail: the hop in the air is revealed left to right, in step
    with the hopper's linear x. A hop's fraction fades in once it's landed. */
 .trailReveal {
@@ -409,26 +383,9 @@
   }
 }
 
-.standing,
 .sunk {
   transform-box: fill-box;
   transform-origin: 50% 100%;
-}
-
-.flying .standing {
-  animation: squash var(--k-duration-slow) var(--k-ease-springy);
-}
-
-@keyframes squash {
-  0% {
-    transform: scale(1.15, 0.8);
-  }
-  60% {
-    transform: scale(0.92, 1.1);
-  }
-  100% {
-    transform: none;
-  }
 }
 
 .sunk {
@@ -478,8 +435,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .flying,
-  .flying .standing,
   .fixed,
   .trailReveal,
   .trailLabel,
@@ -498,7 +453,6 @@
     transform: scale(1.1, 1.2);
     opacity: 0.8;
   }
-  .hopper,
   .hopping,
   .hand,
   .handPress {

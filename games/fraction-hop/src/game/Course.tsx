@@ -1,10 +1,9 @@
 // The course in side view: water, stones at ticks, the number line, the
 // goal once it's found or passed, and the hopper.
 import type { AvatarExpression } from "@repo/game-contract";
-import { palette } from "@repo/tokens";
+import { motion, palette } from "@repo/tokens";
 import {
   type ComponentType,
-  type CSSProperties,
   useId,
   useLayoutEffect,
   useRef,
@@ -38,7 +37,23 @@ const left = 56;
 const groundY = 196;
 const waterY = 206;
 const lineY = 256;
-const hopperSize = 64;
+const hopperSize = 88;
+
+/**
+ * The takeoff squash about the hopper's feet, `ms` into a hop: squat, stretch,
+ * settle.
+ */
+function squashAt(ms: number) {
+  const p = Math.min(1, ms / motion.duration.slow);
+  const [sx, sy] =
+    p < 0.6
+      ? lerp([1.15, 0.8], [0.92, 1.1], p / 0.6)
+      : lerp([0.92, 1.1], [1, 1], (p - 0.6) / 0.4);
+  return `scale(${sx} ${sy})`;
+}
+
+const lerp = (a: [number, number], b: [number, number], t: number) =>
+  [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t] as const;
 
 /** How long one hop takes, in ms. */
 export const hopMs = 620;
@@ -97,22 +112,48 @@ export function Course(props: CourseProps) {
   const x = (at: number) => left + tick * at;
   const stoneWidth = Math.min(tick - Math.max(3, tick * 0.12), 72);
   const ticks = Array.from({ length: end + 1 }, (_, i) => i);
+  // Capped so the hopper's head stays in the drawing at the top of a hop.
   const arcHeight = (length: number) =>
-    Math.min(150, 34 + (110 * length) / unit);
+    Math.min(groundY - hopperSize - 8, 34 + (110 * length) / unit);
 
   const bubble = result
     ? 22 + 16 * String(Math.max(result.at, unit)).length
     : 0;
   const goalBubble = 22 + 16 * String(course.shown.n).length;
-  const flightLength = hopper.flight ? hopper.at - hopper.flight.from : 0;
-  const hopperStyle = {
-    transform: `translate(${x(hopper.at)}px, ${groundY}px)`,
-    transitionDuration: hopper.flight ? `${hopMs}ms` : "0ms",
-  } as CSSProperties;
-  const arcStyle = {
-    "--arc": `${-arcHeight(flightLength)}px`,
-    animationDuration: `${hopMs}ms`,
-  } as CSSProperties;
+  const landing = `translate(${x(hopper.at)} ${groundY})`;
+
+  // A hop is drawn frame by frame, not with CSS transitions: Chrome can paint
+  // a foreignObject under an animating SVG transform where it was before the
+  // hop began, so the avatar flickered back mid-run. React renders where the
+  // hopper lands; while it flies this moves it along the arc and squashes it.
+  const hopperRef = useRef<SVGGElement>(null);
+  const squashRef = useRef<SVGGElement>(null);
+  const flightKey = hopper.flight?.key;
+  const flightFrom = hopper.flight?.from ?? hopper.at;
+  const x0 = x(flightFrom);
+  const x1 = x(hopper.at);
+  const arc = arcHeight(hopper.at - flightFrom);
+  useLayoutEffect(() => {
+    const g = hopperRef.current;
+    const squash = squashRef.current;
+    if (flightKey === undefined || !g || !squash) return;
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    let frame = 0;
+    const start = performance.now();
+    const step = (now: number) => {
+      const p = Math.min(1, (now - start) / hopMs);
+      const y = groundY - 4 * arc * p * (1 - p);
+      g.setAttribute("transform", `translate(${x0 + (x1 - x0) * p} ${y})`);
+      squash.setAttribute("transform", squashAt(now - start));
+      if (p < 1) frame = requestAnimationFrame(step);
+    };
+    step(start);
+    return () => {
+      cancelAnimationFrame(frame);
+      g.setAttribute("transform", `translate(${x1} ${groundY})`);
+      squash.removeAttribute("transform");
+    };
+  }, [flightKey, x0, x1, arc]);
 
   // The plan's hops chained from 0: hint 2's arcs, and the run's trail.
   const chain: { from: number; to: number; d: number }[] = [];
@@ -317,17 +358,13 @@ export function Course(props: CourseProps) {
       )}
 
       <g
-        className={styles.hopper}
-        style={hopperStyle}
+        ref={hopperRef}
+        transform={landing}
         data-testid="hopper"
         data-at={hopper.at}
       >
-        <g
-          key={hopper.flight?.key ?? "still"}
-          className={hopper.flight ? styles.flying : undefined}
-          style={arcStyle}
-        >
-          <g className={hopper.sunk ? styles.sunk : styles.standing}>
+        <g ref={squashRef}>
+          <g className={hopper.sunk ? styles.sunk : undefined}>
             <foreignObject
               x={-hopperSize / 2}
               y={-hopperSize}

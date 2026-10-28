@@ -1,0 +1,15 @@
+.root {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+  border-radius: var(--mantine-radius-lg);
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Picked: a ring that reads without colour, outside the press edge. */
+.root[data-selected] {
+  outline: 0.25rem solid var(--k-ink);
+  outline-offset: 0.125rem;
+}

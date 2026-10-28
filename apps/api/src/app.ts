@@ -14,6 +14,7 @@ import {
 } from "./accounts.ts";
 import { createClass, teacherClass, teacherClasses } from "./classes.ts";
 import { type IdentityVerifier, identityFrom } from "./identity.ts";
+import { studentLocker, wearLook } from "./locker.ts";
 import { joinClass, pickGrade } from "./memberships.ts";
 import {
   type Account,
@@ -23,6 +24,8 @@ import {
   GradePickSchema,
   HealthSchema,
   JoinSchema,
+  LockerSchema,
+  LookSchema,
   MembershipSchema,
   NewClassSchema,
   SignedInSchema,
@@ -211,6 +214,43 @@ const gradeRoute = createRoute({
       description: "The student's grade in that class is already set",
       content: { "application/json": { schema: ErrorSchema } },
     },
+  },
+});
+
+const lockerRoute = createRoute({
+  method: "get",
+  path: "/locker",
+  operationId: "getLocker",
+  summary: "The signed-in student's locker",
+  responses: {
+    200: {
+      description: "What's in their locker",
+      content: { "application/json": { schema: LockerSchema } },
+    },
+    ...studentOnly,
+  },
+});
+
+const wearRoute = createRoute({
+  method: "put",
+  path: "/locker/look",
+  operationId: "wearLook",
+  summary: "Dress the signed-in student's avatar",
+  description:
+    "Saves their look: the first time when they design their avatar, then from the wardrobe. Skin tones and hair are anyone's; outfit pieces must be ones they own.",
+  request: {
+    body: { content: { "application/json": { schema: LookSchema } } },
+  },
+  responses: {
+    200: {
+      description: "The look they now wear",
+      content: { "application/json": { schema: LookSchema } },
+    },
+    400: {
+      description: "An outfit piece in the look isn't theirs",
+      content: { "application/json": { schema: ErrorSchema } },
+    },
+    ...studentOnly,
   },
 });
 
@@ -408,6 +448,21 @@ export function createApp({
         case "not-a-class-grade":
           return c.json({ error: pick.kind }, 400);
       }
+    })
+    .openapi(lockerRoute, async (c) => {
+      const student = await studentOf(c);
+      if (student === "signed-out") return c.json({ error: student }, 401);
+      if (student === "not-a-student") return c.json({ error: student }, 403);
+      return c.json(await studentLocker(db, student.id), 200);
+    })
+    .openapi(wearRoute, async (c) => {
+      const student = await studentOf(c);
+      if (student === "signed-out") return c.json({ error: student }, 401);
+      if (student === "not-a-student") return c.json({ error: student }, 403);
+      const look = c.req.valid("json");
+      if ((await wearLook(db, student.id, look)) === "not-owned")
+        return c.json({ error: "not-owned" }, 400);
+      return c.json(look, 200);
     })
     .openapi(classesRoute, async (c) => {
       const teacher = await teacherOf(c);

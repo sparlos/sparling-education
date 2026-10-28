@@ -26,6 +26,10 @@ model Account {
   firstName     String
   lastInitial   String
   createdAt     DateTime     @default(now())
+  // A student's avatar look: item IDs per slot, as `parseLook` in
+  // @repo/avatar reads them. Null until they design their avatar; always
+  // null for a teacher.
+  look          Json?
   sessions      Session[]
   // A teacher's classes.
   classes       Class[]

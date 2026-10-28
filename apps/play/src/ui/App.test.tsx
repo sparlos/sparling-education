@@ -11,8 +11,9 @@ import {
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { hosted } from "../games.ts";
-import type { PlayRecord, Student } from "../platform/ports.ts";
+import type { AvatarLook, PlayRecord, Student } from "../platform/ports.ts";
 import { standInLinks } from "../platform/stand-ins/links.ts";
+import { standInLocker } from "../platform/stand-ins/locker.ts";
 import {
   standInClasses,
   standInGames,
@@ -22,6 +23,7 @@ import { standInRecords } from "../platform/stand-ins/records.ts";
 import {
   standInSession,
   standInSignIn,
+  standInStudent,
 } from "../platform/stand-ins/session.ts";
 import { memoryStorage } from "../test/memory-storage.ts";
 import { App } from "./App.tsx";
@@ -35,7 +37,14 @@ const outboxTiming = { batchDelayMs: 10, retryDelaysMs: [60_000] };
 const student: Student = {
   id: "student-1",
   locale: "en-CA",
-  look: { body: "sky", eyes: "sparkle", headwear: "crown" },
+  look: {
+    body: "skin-07",
+    hair: "hair-12",
+    hat: "hat-07",
+    top: "top-08",
+    bottom: "bottom-11",
+    shoes: "shoes-05",
+  },
   classes: [
     {
       classId: "class-1",
@@ -79,6 +88,7 @@ function setUp({
         platform={{
           name: "test",
           session,
+          locker: standInLocker(storage),
           memberships: standInMemberships(
             storage,
             standInClasses(standInGames(["shell-check"])),
@@ -182,10 +192,40 @@ describe("opening a game", () => {
         el.getAttribute("data-item"),
       ]),
     );
-    expect(items).toEqual({ body: "sky", eyes: "sparkle", headwear: "crown" });
+    expect(items).toEqual(student.look);
     expect(avatar).toHaveAttribute("data-expression", "neutral");
     await user.click(screen.getByRole("button", { name: "Wrong" }));
     expect(avatar).toHaveAttribute("data-expression", "encouraging");
+  });
+
+  it("has a first-time student design their avatar, then opens the game in it", async () => {
+    const { navigate, storage, user } = setUp({
+      signedIn: { ...student, look: null },
+    });
+    await user.click(await screen.findByRole("button", { name: "Skin 3" }));
+    await user.click(screen.getByRole("button", { name: "Done" }));
+    await waitFor(() =>
+      expect(navigate).toHaveBeenCalledWith(
+        "https://kindling.test/play/shell-check?portal=north",
+      ),
+    );
+    expect(standInStudent(storage)?.look).toMatchObject({ body: "skin-03" });
+  });
+
+  it("shows a look changed in the wardrobe in the game", async () => {
+    const changed = {
+      ...(student.look as AvatarLook),
+      top: "top-01",
+      hat: null,
+    } satisfies AvatarLook;
+    setUp({ signedIn: { ...student, look: changed } });
+    await game();
+    const avatar = screen.getByRole("img", { name: "Your avatar" });
+    expect(avatar.querySelector('[data-slot="top"]')).toHaveAttribute(
+      "data-item",
+      "top-01",
+    );
+    expect(avatar.querySelector('[data-slot="hat"]')).toBeNull();
   });
 
   it("plays for the class the locker opened it for, at the student's grade in that class", async () => {

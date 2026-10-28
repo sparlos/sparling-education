@@ -12,7 +12,7 @@ import { Stack } from "@repo/ui/stack";
 import { Title } from "@repo/ui/title";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { GameRegistry } from "../games.ts";
-import type { AvatarLook, Platform } from "../platform/ports.ts";
+import type { AvatarLook, Platform, Student } from "../platform/ports.ts";
 import { boot, type ReadyPlay } from "../play/boot.ts";
 import type { OutboxOptions } from "../play/outbox.ts";
 import type { Ending } from "../play/play.ts";
@@ -23,7 +23,7 @@ import { createVoice, type Voice, type VoiceOptions } from "../play/voice.ts";
 import { type LineMap, resolveLineUrl } from "../play/voice-lines.ts";
 import classes from "./app.module.css";
 import { ErrorBoundary } from "./ErrorBoundary.tsx";
-import { JoinPage, LockerPage, SignInPage } from "./Locker.tsx";
+import { JoinPage, LockerPage, SignInPage, WardrobePage } from "./Locker.tsx";
 import {
   Message,
   noRecordings,
@@ -32,6 +32,7 @@ import {
   shellT,
   useShellLine,
 } from "./shared.tsx";
+import { AvatarDesign } from "./Wardrobe.tsx";
 
 export interface AppProps {
   url: URL;
@@ -59,6 +60,7 @@ type Screen =
   | { kind: "loading" }
   | { kind: "not-found" }
   | { kind: "error" }
+  | { kind: "design"; student: Student }
   | { kind: "playing"; ready: ReadyPlay }
   | { kind: "ending"; ready: ReadyPlay }
   | { kind: "end-screen"; ready: ReadyPlay; ending: Ending };
@@ -92,6 +94,8 @@ function RoutedScreen(props: AppProps) {
       return <JoinPage {...props} joinCode={route.joinCode} />;
     case "sign-in":
       return <SignInPage {...props} />;
+    case "wardrobe":
+      return <WardrobePage {...props} />;
     case "game":
       return <GamePage {...props} />;
     case undefined:
@@ -118,6 +122,8 @@ function GamePage(props: AppProps) {
         if (result.kind === "locker") return navigate(base);
         if (result.kind === "not-found")
           return setScreen({ kind: "not-found" });
+        if (result.kind === "design")
+          return setScreen({ kind: "design", student: result.student });
         ready = result.ready;
         setScreen({ kind: "playing", ready });
       },
@@ -176,6 +182,18 @@ function GamePage(props: AppProps) {
             <Icon name="replay" size={32} />
           </IconButton>
         </Message>
+      );
+    case "design":
+      // Before anything else, even a game. Then the game opens as linked.
+      return (
+        <AvatarDesign
+          mode="first"
+          student={screen.student}
+          platform={platform}
+          speak={props.speak}
+          onDone={() => navigate(url.href)}
+          onError={() => setScreen({ kind: "error" })}
+        />
       );
     case "playing":
     case "ending":

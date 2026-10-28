@@ -45,7 +45,7 @@ function isStudent(value: unknown): value is Student {
   return (
     typeof s.id === "string" &&
     (s.locale === "en-CA" || s.locale === "fr-CA") &&
-    parseLook(s.look) !== null &&
+    (s.look === null || parseLook(s.look) !== null) &&
     Array.isArray(s.classes) &&
     s.classes.every(isMembership)
   );

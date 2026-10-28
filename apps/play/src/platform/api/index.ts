@@ -3,6 +3,7 @@ import { setBaseUrl } from "@repo/api-client";
 import type { Platform, PlayRecordsPort } from "../ports.ts";
 import { googleSignInButton } from "./google-button.tsx";
 import { apiLinks } from "./links.ts";
+import { apiLocker } from "./locker.ts";
 import { apiMemberships } from "./memberships.ts";
 import { apiSession } from "./session.ts";
 
@@ -22,6 +23,7 @@ export function createApiPlatform(options: {
     name: "api",
     session: apiSession(),
     memberships: apiMemberships(),
+    locker: apiLocker(),
     records: options.records,
     links: apiLinks(options),
     SignInButton: googleSignInButton({

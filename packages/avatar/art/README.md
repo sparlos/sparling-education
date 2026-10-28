@@ -17,16 +17,18 @@ Every PNG of a shape covers the same box, aligned and trimmed alike.
 | File | What it holds | How it's drawn |
 |---|---|---|
 | `<shape>.fill.png` | Greyscale shading. Grey 0.12 takes the ramp's shadow, 0.5 its base and 0.88 its highlight (`rampStops`). Alpha is the silhouette. | Each grey is looked up in the item's ramp (`rampLookup`) |
-| `<shape>.face.png` | Body only: mouth and cheeks, as colour to multiply, with alpha for strength. | Multiply, over the tinted fill |
-| `<shape>.ink.png` | Outline, eyes and drawn details in ink `#1F1F1F`, with alpha. Never tinted. | Normal, on top |
+| `<shape>.face.png` | Body only: cheeks, as colour to multiply, with alpha for strength. | Multiply, over the tinted fill |
+| `<shape>.ink.png` | Outline and drawn details in ink `#1F1F1F`, with alpha. Never tinted. | Normal, on top |
 | `<shape>.colour.png` | Fixed colour art, instead of the three above. | Normal |
+
+The body is drawn without eyes or a mouth: the slicer takes them off and records where they were (`sheetFace`, as `face` in `src/parts.ts`). `src/portrait.tsx` draws them for each expression, so a happy, thinking or cheering avatar works with any body art.
 
 ## Replacing art
 
 Better art replaces a shape's files in place, at any resolution:
 
 1. Draw the shape in the same pose and proportions, so it fits the same body-frame box (its `width` × `height` in `src/generated/shapes.ts`). Renderers draw every layer at that box's size, so a 4× PNG simply looks sharper.
-2. For a tintable shape, deliver the fill as greys around the stops above, plus the ink, and the face for the body. Mid-grey (128) is the colour a student picked.
+2. For a tintable shape, deliver the fill as greys around the stops above, plus the ink, and the face for the body. Mid-grey (128) is the colour a student picked. Draw the body with a blank face, and update `face` with where its eyes and mouth go.
 3. If the new art's proportions differ, change the shape's box and, if needed, the slot's fit in `src/parts.ts`.
 
 Once real art replaces the sheet, the generated catalogue should become hand-maintained data, and this script retired.

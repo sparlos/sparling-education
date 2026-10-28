@@ -397,3 +397,10 @@ export const sheetItems = {
     { id: "shoes-44", shape: "shoes-44", ramp: null },
   ],
 } as const;
+
+/**
+ * Where the body's face goes, in body-frame units: each eye's centre, the
+ * eyes' height and the mouth's centre. The body is drawn without eyes or a
+ * mouth, so each expression draws its own.
+ */
+export const sheetFace = { eyes: [[17.1, 33.2], [41.2, 33.3]], eyeHeight: 6, mouth: [28.9, 42.1] } as const;

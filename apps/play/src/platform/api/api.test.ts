@@ -4,9 +4,10 @@ import { setFetch } from "@repo/api-client";
 import { createTestDatabase } from "@repo/db/testing";
 import { createApp, fakeGoogle } from "api/testing";
 import { afterAll, beforeEach, describe, expect, inject, it } from "vitest";
-import { sessionPortContract } from "../contract.ts";
+import { lockerPortContract, sessionPortContract } from "../contract.ts";
 import { NotAStudent } from "../ports.ts";
 import { apiLinks } from "./links.ts";
+import { apiLocker } from "./locker.ts";
 import { apiMemberships } from "./memberships.ts";
 import { apiSession } from "./session.ts";
 
@@ -91,6 +92,15 @@ sessionPortContract("API session", {
       const { id, joinCode } = await res.json();
       return { classId: id, joinCode };
     }),
+});
+
+lockerPortContract("API locker", {
+  newStudent: async () => {
+    const student = browser();
+    await student.signInAsStudent();
+    setFetch(student.send);
+    return { session: apiSession(), locker: apiLocker() };
+  },
 });
 
 describe("API session", () => {
