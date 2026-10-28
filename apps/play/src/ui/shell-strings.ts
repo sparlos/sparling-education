@@ -6,9 +6,6 @@ export const shellStrings = {
     "not-found": "We couldn't find that game.",
     error: "Something went wrong. Let's try that again.",
     "try-again": "Try again",
-    complete: "Well done!",
-    left: "See you next time!",
-    "play-again": "Play again",
     saving: "Saving your work…",
     leave: "Leave the game",
     "leave-question": "Do you want to stop playing?",
@@ -43,6 +40,7 @@ export const shellStrings = {
     joining: "Joining your class…",
     "no-such-class":
       "We couldn't find that class. Ask your teacher for the link.",
+    "game-off": "That game is turned off for your class.",
     "to-locker": "Go to your locker",
     "for-students": "This is for students. Teachers, use the teacher app.",
     "sign-in": "Sign in to play.",

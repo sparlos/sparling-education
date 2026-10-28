@@ -184,10 +184,10 @@ export interface LinksPort {
   /** Sign-in, returning to `returnTo` (the game link the student opened) afterwards. */
   signIn(returnTo: string): string;
   /**
-   * The class world, putting the student in front of the portal they came
-   * through. The class world reveals the rewards the play earned.
+   * The locker, where every game returns the student, naming the play they're
+   * back from so the locker can reveal the rewards it earned.
    */
-  hub(arrival: { portal: string; play: string }): string;
+  locker(play: string): string;
 }
 
 export interface Platform {

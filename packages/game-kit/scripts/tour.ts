@@ -231,9 +231,11 @@ try {
           );
         await start.click();
         await tour.play(context);
-        await page.waitForFunction(
-          () => /Well done|See you next time/.test(document.body.innerText),
-          null,
+        // Every play ends back in the locker, naming the play.
+        await page.waitForURL(
+          (url) =>
+            url.pathname === `${new URL(base).pathname}/` &&
+            url.searchParams.has("play"),
           { timeout: 15_000 },
         );
       } catch (error) {

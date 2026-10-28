@@ -1,10 +1,13 @@
-/** What a game link asks for: /play/<slug>, plus ?class=<id> from the locker, or ?portal=<id> when opened from a portal. */
+/**
+ * What a game link asks for: /play/<slug>, plus ?join=<code> on a teacher's
+ * game link, or ?class=<id> from the locker.
+ */
 export interface GameLink {
   slug: string;
   /** The class it was opened for, from the locker, or null. */
   classId: string | null;
-  /** The portal the student came through, or null for a game link opened directly. */
-  portal: string | null;
+  /** The join code of a teacher's game link, whose class it's played for; or null. */
+  joinCode: string | null;
 }
 
 /** A page of the shell. */
@@ -47,7 +50,7 @@ export function parseGameLink(url: URL, base: string): GameLink | null {
   return {
     slug,
     classId: url.searchParams.get("class") || null,
-    portal: url.searchParams.get("portal") || null,
+    joinCode: url.searchParams.get("join") || null,
   };
 }
 
@@ -57,6 +60,11 @@ const shellPages = ["sign-in", "wardrobe"];
 /** The wardrobe's path, e.g. "/play/wardrobe". */
 export function wardrobePath(base: string) {
   return `${base}wardrobe`;
+}
+
+/** The locker, naming the play the student is back from, so it can reveal what the play earned. */
+export function lockerPath(base: string, play: string) {
+  return `${base}?${new URLSearchParams({ play })}`;
 }
 
 /** The game link the locker opens: one game, for one of the student's classes. */

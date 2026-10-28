@@ -9,7 +9,7 @@ The play shell needs six things from the rest of Kindling. It reaches each one o
 | `LockerPort` | The outfit pieces the student owns, and dressing their avatar (designing it the first time, then the wardrobe) | `GET /locker`, `PUT /locker/look` | Owns the base set, plus pieces granted with `standInGrant` (kept in localStorage); the look is kept on the stored student |
 | `PlayRecordsPort` | Stores each play's records: its attempts, then how it ended | **None yet** (ticket 10): `main.tsx` gives the real platform the stand-in | Kept in memory and logged to the console |
 | `LinksPort.signIn` | The sign-in page, returning to where the student was headed | `/play/sign-in`: Google's button in redirect mode | `/play/__stand-in/sign-in` |
-| `LinksPort.hub` | Where a game opened from a portal returns to | The locker, `/play/?play=` (ticket 09 replaces this port) | A placeholder screen, `__stand-in/hub` |
+| `LinksPort.locker` | Where every game returns the student, naming the play | The locker, `/play/?play=<play>` | The same |
 
 `src/main.tsx` is the only file that picks the platform: the real one, or the stand-ins with `VITE_PLAY_PLATFORM=stand-in` (see `apps/play/.env.example`). The shell's own tests use the stand-ins. Every stand-in opens with a `STAND-IN` header comment, and nothing outside `stand-ins/`, `src/main.tsx` and tests imports one.
 
@@ -49,7 +49,10 @@ An existing account keeps its role, so a teacher signing in here gets a session 
 - A teacher's session answers 403, which the adapter turns into `NotAStudent`.
 - Any other failure rejects. The shell shows "try again" rather than sending a signed-in student to sign-in.
 
-A game opens for one class: the one `?class=<id>` names (the locker's links carry it), or else the first the student joined that has the game on and their grade set. That class's grade picks the tier, and every play record carries the class.
+A game opens for one class, and that class's grade picks the tier, and every play record carries the class:
+
+- **A teacher's game link**, `/play/<slug>?join=<code>`, is for the class with that join code. Signed out, the student goes to sign-in and comes back to the link. The shell joins them to the class (`POST /memberships`, which finds them if they're already in it), has them pick their grade first in a split class, then opens the game. A join code no class has, or a class with the game turned off, gets a spoken message and a way to the locker.
+- **The locker's links**, `/play/<slug>?class=<id>`, are for that class, or else the first the student joined that has the game on and their grade set.
 
 ### `GET /locker` → `Locker`, `PUT /locker/look` with `AvatarLook` → `AvatarLook`
 
@@ -108,4 +111,4 @@ plus, by `kind`:
 ### Links
 
 - `signIn(returnTo)`: see "Student sign-in" above. `returnTo` is always a path on the shared domain, and sign-in only ever returns to a page of the shell.
-- `hub({ portal, play })`: the locker, naming the play so it can reveal the rewards it earned (ticket 14). Ticket 09 replaces it with a locker link.
+- `locker(play)`: the locker, where every game returns the student however the play ended, naming the play so the locker can reveal the rewards it earned (ticket 14).

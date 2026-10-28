@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { parseGameLink, parseRoute, returnPath, shellPath } from "./routes.ts";
+import {
+  lockerPath,
+  parseGameLink,
+  parseRoute,
+  returnPath,
+  shellPath,
+} from "./routes.ts";
 
 const at = (path: string) => new URL(path, "https://kindling.example");
 
@@ -8,14 +14,20 @@ describe("parseGameLink", () => {
     expect(parseGameLink(at("/play/plank-bridge"), "/play/")).toEqual({
       slug: "plank-bridge",
       classId: null,
-      portal: null,
+      joinCode: null,
     });
   });
 
-  it("reads the portal a game was opened from", () => {
+  it("reads the join code of a teacher's game link", () => {
     expect(
-      parseGameLink(at("/play/plank-bridge/?portal=north"), "/play/"),
-    ).toEqual({ slug: "plank-bridge", classId: null, portal: "north" });
+      parseGameLink(at("/play/plank-bridge/?join=K7QM4XRT"), "/play/"),
+    ).toEqual({ slug: "plank-bridge", classId: null, joinCode: "K7QM4XRT" });
+  });
+
+  it("has no portal any more", () => {
+    expect(
+      parseGameLink(at("/play/plank-bridge?portal=north"), "/play/"),
+    ).toEqual({ slug: "plank-bridge", classId: null, joinCode: null });
   });
 
   it("reads the class the locker opened a game for", () => {
@@ -36,9 +48,9 @@ describe("parseGameLink", () => {
 });
 
 describe("returnPath", () => {
-  it("keeps the path and query, so the portal survives sign-in", () => {
-    expect(returnPath(at("/play/plank-bridge?portal=north"))).toBe(
-      "/play/plank-bridge?portal=north",
+  it("keeps the path and query, so a game link's join code survives sign-in", () => {
+    expect(returnPath(at("/play/plank-bridge?join=K7QM4XRT"))).toBe(
+      "/play/plank-bridge?join=K7QM4XRT",
     );
   });
 });
@@ -55,9 +67,17 @@ describe("parseRoute", () => {
       "/play/fraction-hop?class=c1",
       {
         kind: "game",
-        link: { slug: "fraction-hop", classId: "c1", portal: null },
+        link: { slug: "fraction-hop", classId: "c1", joinCode: null },
       },
     ],
+    [
+      "/play/fraction-hop?join=K7QM4XRT",
+      {
+        kind: "game",
+        link: { slug: "fraction-hop", classId: null, joinCode: "K7QM4XRT" },
+      },
+    ],
+    ["/play/?play=p1", { kind: "locker" }],
   ])("reads %s", (path, route) => {
     expect(parseRoute(at(path), "/play/")).toEqual(route);
   });
@@ -68,6 +88,12 @@ describe("parseRoute", () => {
       expect(parseRoute(at(path), "/play/")).toBeNull();
     },
   );
+});
+
+describe("lockerPath", () => {
+  it("names the play the student is back from", () => {
+    expect(lockerPath("/play/", "p 1")).toBe("/play/?play=p+1");
+  });
 });
 
 describe("shellPath", () => {

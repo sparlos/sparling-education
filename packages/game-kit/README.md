@@ -52,7 +52,7 @@ pnpm mutate <slug>                 # break each key rule; the tests must notice
   and the game's `play` takes over. `checkFit` fails on page scroll, elements
   that must show being cut off, and buttons under the minimum target (64 px
   for Grades 1–2, 48 px after, or the game's own). Console errors and a
-  missing end screen fail too. It uses the dev server at
+  game that doesn't end back in the locker fail too. It uses the dev server at
   `http://127.0.0.1:3003/play` or starts one. Chrome is Playwright's
   `chrome-headless-shell` from `~/.cache/ms-playwright` if there is one, else
   the installed Google Chrome. Speech is stubbed; recorded lines play.

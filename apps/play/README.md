@@ -17,7 +17,7 @@ To run without the API or Google, set `VITE_PLAY_PLATFORM=stand-in` in `.env.loc
 
 `/play/lab` is the dev-only prototype lab, for playing candidate mechanics before a game spec is written; see [`src/lab/README.md`](./src/lab/README.md).
 
-`/play/shell-check` is a dev-only game that exercises the whole contract. On the stand-ins, the first visit goes to the stand-in sign-in, where you pick a grade; `/play/join/G45` joins a split class. Add `?portal=north` to finish into the stand-in hub, a placeholder until ticket 09. Add `?stand-in-offline` to watch attempts wait on the device and retry.
+`/play/shell-check` is a dev-only game that exercises the whole contract. On the stand-ins, the first visit goes to the stand-in sign-in, where you pick a grade; `/play/join/G45` joins a split class. `/play/shell-check?join=G34` opens it the way a teacher's game link does, joining that class first. Finishing or leaving returns to the locker. Add `?stand-in-offline` to watch attempts wait on the device and retry.
 
 ## Layout
 

@@ -7,7 +7,7 @@
 // `defineTour({ play })`. `pnpm tour <slug>` (scripts/tour.ts) runs it: for
 // each grade and size it signs a stand-in student in at that grade, opens
 // /play/<slug>, taps the shell's start button and hands the page to `play`.
-// After `play` it checks for the end screen and for errors. Speech is
+// After `play` it checks the student is back in their locker, and for errors. Speech is
 // stubbed: each utterance "ends" after 300 ms, and `spoken()` lists them.
 import type { Page } from "playwright-core";
 

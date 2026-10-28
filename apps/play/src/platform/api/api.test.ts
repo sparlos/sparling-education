@@ -1,11 +1,16 @@
 // @vitest-environment node
 // The API adapters against the real API, in-process, over the test Postgres.
+import { manifest as fractionHop } from "@games/fraction-hop/manifest";
 import { setFetch } from "@repo/api-client";
+import { defaultLook } from "@repo/avatar";
 import { createTestDatabase } from "@repo/db/testing";
 import { createApp, fakeGoogle } from "api/testing";
 import { afterAll, beforeEach, describe, expect, inject, it } from "vitest";
+import type { GameRegistry, HostedGame } from "../../games.ts";
+import { boot } from "../../play/boot.ts";
 import { lockerPortContract, sessionPortContract } from "../contract.ts";
-import { NotAStudent } from "../ports.ts";
+import { NotAStudent, type Platform } from "../ports.ts";
+import { standInRecords } from "../stand-ins/records.ts";
 import { apiLinks } from "./links.ts";
 import { apiLocker } from "./locker.ts";
 import { apiMemberships } from "./memberships.ts";
@@ -124,6 +129,94 @@ describe("API session", () => {
   });
 });
 
+describe("a game link over the API", () => {
+  // Only the manifest matters until the game renders.
+  const games: GameRegistry = {
+    [fractionHop.slug]: async () =>
+      ({ manifest: fractionHop, Component: () => null }) as HostedGame,
+  };
+
+  async function newClass(grades: number[]) {
+    const teacher = browser();
+    await teacher.signInAsTeacher();
+    const res = await teacher.send("/classes", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ name: "Room 12", grades }),
+    });
+    return (await res.json()) as { id: string; joinCode: string };
+  }
+
+  /** A signed-in student with an avatar, opening a game link. */
+  async function open(joinCode: string) {
+    const student = browser();
+    await student.signInAsStudent();
+    setFetch(student.send);
+    await apiLocker().wear(defaultLook);
+    const records = standInRecords();
+    const platform: Platform = {
+      name: "api",
+      session: apiSession(),
+      memberships: apiMemberships(),
+      locker: apiLocker(),
+      records,
+      links: apiLinks({ base: "/play/" }),
+    };
+    let n = 0;
+    const result = await boot({
+      url: new URL(
+        `/play/${fractionHop.slug}?join=${joinCode}`,
+        "https://k.test",
+      ),
+      base: "/play/",
+      platform,
+      games,
+      storage: null,
+      newId: () => `id-${++n}`,
+      outboxTiming: { batchDelayMs: 0, retryDelaysMs: [60_000] },
+    });
+    return { result, platform, records };
+  }
+
+  it("joins a student to its class, and the play records that class", async () => {
+    const { id, joinCode } = await newClass([4]);
+    const { result, platform, records } = await open(joinCode);
+    if (result.kind !== "ready") throw new Error(`Booted to ${result.kind}`);
+    expect(result.ready.membership).toMatchObject({ classId: id, grade: 4 });
+    expect((await platform.session.current())?.classes).toEqual([
+      expect.objectContaining({ classId: id, grade: 4 }),
+    ]);
+    const exit = await result.ready.play.end("left", 1000);
+    expect(records.stored).toEqual([
+      expect.objectContaining({ kind: "end", class: id, game: "fraction-hop" }),
+    ]);
+    expect(exit).toBe(`/play/?play=${result.ready.play.id}`);
+    for (const outbox of result.ready.outboxes) outbox.dispose();
+  });
+
+  it("asks for the grade first in a split class", async () => {
+    const { id, joinCode } = await newClass([3, 4]);
+    const { result } = await open(joinCode);
+    expect(result).toMatchObject({
+      kind: "pick-grade",
+      membership: { classId: id, grade: null },
+    });
+  });
+
+  it("says when its class has the game turned off", async () => {
+    const { id, joinCode } = await newClass([4]);
+    await database.db.class.update({
+      where: { id },
+      data: { gamesOff: [fractionHop.slug] },
+    });
+    expect((await open(joinCode)).result).toEqual({ kind: "game-off" });
+  });
+
+  it("says when no class has its join code", async () => {
+    expect((await open("NOPE2345")).result).toEqual({ kind: "no-such-class" });
+  });
+});
+
 describe("API links", () => {
   const links = apiLinks({ base: "/play/" });
 
@@ -134,10 +227,7 @@ describe("API links", () => {
   });
 
   it("sends the student back to the locker, naming the play", () => {
-    const url = new URL(
-      links.hub({ portal: "north", play: "p1" }),
-      "https://k.test",
-    );
+    const url = new URL(links.locker("p1"), "https://k.test");
     expect(url.pathname).toBe("/play/");
     expect(url.searchParams.get("play")).toBe("p1");
   });

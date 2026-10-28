@@ -150,20 +150,16 @@ describe("stand-in links", () => {
 
   it("sends sign-in to the stand-in screen, carrying the game link", () => {
     const url = new URL(
-      links.signIn("/play/sample?portal=north"),
+      links.signIn("/play/sample?join=G4"),
       "http://localhost",
     );
     expect(url.pathname).toBe("/play/__stand-in/sign-in");
-    expect(url.searchParams.get("next")).toBe("/play/sample?portal=north");
+    expect(url.searchParams.get("next")).toBe("/play/sample?join=G4");
   });
 
-  it("sends the student to the stand-in hub, with their portal and play", () => {
-    const url = new URL(
-      links.hub({ portal: "north", play: "p1" }),
-      "http://localhost",
-    );
-    expect(url.pathname).toBe("/play/__stand-in/hub");
-    expect(url.searchParams.get("portal")).toBe("north");
+  it("sends the student back to the locker, naming the play", () => {
+    const url = new URL(links.locker("p1"), "http://localhost");
+    expect(url.pathname).toBe("/play/");
     expect(url.searchParams.get("play")).toBe("p1");
   });
 });

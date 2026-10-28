@@ -11,12 +11,8 @@ import { lazy, StrictMode, Suspense } from "react";
 import { createRoot } from "react-dom/client";
 import { games } from "./games.ts";
 import { createApiPlatform } from "./platform/api/index.ts";
-import { StandInHubScreen } from "./platform/stand-ins/HubScreen.tsx";
 import { createStandInPlatform } from "./platform/stand-ins/index.ts";
-import {
-  standInHubPath,
-  standInSignInPath,
-} from "./platform/stand-ins/links.ts";
+import { standInSignInPath } from "./platform/stand-ins/links.ts";
 import {
   standInClasses,
   standInGames,
@@ -72,8 +68,6 @@ createRoot(root).render(
           newId={newId}
           classes={standInClasses(standInClassGames)}
         />
-      ) : standIn && url.pathname === `${base}${standInHubPath}` ? (
-        <StandInHubScreen url={url} />
       ) : (
         <App
           url={url}

@@ -10,7 +10,7 @@ import { Stack } from "@repo/ui/stack";
 import { Text } from "@repo/ui/text";
 import { Title } from "@repo/ui/title";
 import { VisuallyHidden } from "@repo/ui/visually-hidden";
-import { type ReactNode, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import type { GameRegistry } from "../games.ts";
 import {
   type DressedStudent,
@@ -36,8 +36,9 @@ import {
   Message,
   nameLine,
   Question,
+  SpokenMessage,
   shellT,
-  useShellLine,
+  ToLocker,
   useShellVoice,
 } from "./shared.tsx";
 import type { ShellStringId } from "./shell-strings.ts";
@@ -114,19 +115,6 @@ function TryAgain({
       </IconButton>
     </Message>
   );
-}
-
-function SpokenMessage({
-  line,
-  speak,
-  children,
-}: {
-  line: ShellStringId;
-  speak?: VoiceOptions["speak"];
-  children?: ReactNode;
-}) {
-  useShellLine(line, speak);
-  return <Message text={shellT(line)}>{children}</Message>;
 }
 
 /**
@@ -296,11 +284,12 @@ function Locker({
 }
 
 /**
- * A student in a split class taps their grade, once. A tapped grade is
+ * A student in a split class taps their grade, once: from the locker, or
+ * first thing after a game link joins them to the class. A tapped grade is
  * asked back ("Are you in Grade 4?") with a smiley for yes and a sad face
  * for no, since it can't be undone without the teacher.
  */
-function GradePick({
+export function GradePick({
   student,
   membership,
   platform,
@@ -459,9 +448,7 @@ export function JoinPage(props: AppProps & { joinCode: string }) {
   if (failed === "no-such-class")
     return (
       <SpokenMessage line="no-such-class" speak={props.speak}>
-        <IconButton label={shellT("to-locker")} onClick={() => navigate(base)}>
-          <Icon name="student" size={32} />
-        </IconButton>
+        <ToLocker onClick={() => navigate(base)} />
       </SpokenMessage>
     );
   return <Message text={shellT("joining")} busy />;

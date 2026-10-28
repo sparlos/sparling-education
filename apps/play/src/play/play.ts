@@ -1,28 +1,23 @@
 // One play of one game by one student: turns the game's attempts into
-// records for the outbox, records how the play ended, and decides where the
-// student goes next.
+// records for the outbox, records how the play ended, and sends the student
+// back to their locker.
 import type { Attempt, GameManifest } from "@repo/game-contract";
 import type { LinksPort, PlayEnding, Student } from "../platform/ports.ts";
 import type { Outbox } from "./outbox.ts";
 
 export type Ending = PlayEnding;
 
-export type Exit =
-  /** Back to the portal they came through, where the class world reveals rewards. */
-  | { kind: "hub"; url: string }
-  /** Opened by game link: the shell's own end screen. */
-  | { kind: "end-screen"; ending: Ending };
-
 export interface Play {
   id: string;
   record(attempt: Attempt<GameManifest>): void;
   /**
    * Records how the play ended, sends what's left (waiting at most
-   * `timeoutMs`), then says where to go. A play ends once: later calls get
-   * the first call's exit, and attempts after it are dropped. Attempts
-   * recorded before a student leaves are kept and sent like any others.
+   * `timeoutMs`), then gives the link back to the locker, naming this play.
+   * A play ends once: later calls get the same link, and attempts after it
+   * are dropped. Attempts recorded before a student leaves are kept and sent
+   * like any others.
    */
-  end(ending: Ending, timeoutMs?: number): Promise<Exit>;
+  end(ending: Ending, timeoutMs?: number): Promise<string>;
 }
 
 const assistance = new Set(["hint", "demonstration", "guided"]);
@@ -34,7 +29,6 @@ export function createPlay(options: {
   student: Student;
   /** The class it's played for. */
   classId: string;
-  portal: string | null;
   outbox: Outbox;
   links: LinksPort;
   newId: () => string;
@@ -48,7 +42,7 @@ export function createPlay(options: {
     options.onInvalid ??
     ((problem, attempt) =>
       console.error(`[play] Dropped an attempt: ${problem}`, attempt));
-  let ended: Promise<Exit> | null = null;
+  let ended: Promise<string> | null = null;
 
   function problemWith(attempt: Attempt<GameManifest>): string | null {
     if (ended) return "the play has already ended";
@@ -109,17 +103,9 @@ export function createPlay(options: {
     end(ending, timeoutMs = 4000) {
       if (ended) return ended;
       outbox.add({ ...common(), kind: "end", ending });
-      ended = outbox.drain(timeoutMs).then((): Exit => {
-        if (options.portal)
-          return {
-            kind: "hub",
-            url: options.links.hub({
-              portal: options.portal,
-              play: options.id,
-            }),
-          };
-        return { kind: "end-screen", ending };
-      });
+      ended = outbox
+        .drain(timeoutMs)
+        .then(() => options.links.locker(options.id));
       return ended;
     },
   };

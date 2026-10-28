@@ -9,10 +9,16 @@ import { Icon } from "@repo/ui/icon";
 import { IconButton } from "@repo/ui/icon-button";
 import { Progress as ProgressBar } from "@repo/ui/progress";
 import { Stack } from "@repo/ui/stack";
-import { Title } from "@repo/ui/title";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { GameRegistry } from "../games.ts";
-import type { AvatarLook, Platform, Student } from "../platform/ports.ts";
+import {
+  type AvatarLook,
+  type DressedStudent,
+  type Membership,
+  NotAStudent,
+  type Platform,
+  type Student,
+} from "../platform/ports.ts";
 import { boot, type ReadyPlay } from "../play/boot.ts";
 import type { OutboxOptions } from "../play/outbox.ts";
 import type { Ending } from "../play/play.ts";
@@ -23,14 +29,21 @@ import { createVoice, type Voice, type VoiceOptions } from "../play/voice.ts";
 import { type LineMap, resolveLineUrl } from "../play/voice-lines.ts";
 import classes from "./app.module.css";
 import { ErrorBoundary } from "./ErrorBoundary.tsx";
-import { JoinPage, LockerPage, SignInPage, WardrobePage } from "./Locker.tsx";
+import {
+  GradePick,
+  JoinPage,
+  LockerPage,
+  SignInPage,
+  WardrobePage,
+} from "./Locker.tsx";
 import {
   Message,
   noRecordings,
   Question,
   ShellLines,
+  SpokenMessage,
   shellT,
-  useShellLine,
+  ToLocker,
 } from "./shared.tsx";
 import { AvatarDesign } from "./Wardrobe.tsx";
 
@@ -60,10 +73,13 @@ type Screen =
   | { kind: "loading" }
   | { kind: "not-found" }
   | { kind: "error" }
+  | { kind: "not-a-student" }
+  | { kind: "no-such-class" }
+  | { kind: "game-off" }
   | { kind: "design"; student: Student }
+  | { kind: "pick-grade"; student: DressedStudent; membership: Membership }
   | { kind: "playing"; ready: ReadyPlay }
-  | { kind: "ending"; ready: ReadyPlay }
-  | { kind: "end-screen"; ready: ReadyPlay; ending: Ending };
+  | { kind: "ending"; ready: ReadyPlay };
 
 /** The shell: the locker, joining a class, sign-in, or a game, by the URL. */
 export function App(props: AppProps) {
@@ -120,16 +136,16 @@ function GamePage(props: AppProps) {
         }
         if (result.kind === "sign-in") return navigate(result.url);
         if (result.kind === "locker") return navigate(base);
-        if (result.kind === "not-found")
-          return setScreen({ kind: "not-found" });
-        if (result.kind === "design")
-          return setScreen({ kind: "design", student: result.student });
+        if (result.kind !== "ready") return setScreen(result);
         ready = result.ready;
         setScreen({ kind: "playing", ready });
       },
       (error: unknown) => {
+        if (cancelled) return;
+        if (error instanceof NotAStudent)
+          return setScreen({ kind: "not-a-student" });
         console.error("[play] Couldn't start the game", error);
-        if (!cancelled) setScreen({ kind: "error" });
+        setScreen({ kind: "error" });
       },
     );
     return () => {
@@ -156,22 +172,30 @@ function GamePage(props: AppProps) {
     };
   }, [ready]);
 
+  // However a play ends, the student goes back to their locker.
   const end = useCallback(
     (ready: ReadyPlay, ending: Ending) => {
       setScreen({ kind: "ending", ready });
-      void ready.play.end(ending, props.finishTimeoutMs).then((exit) => {
-        if (exit.kind === "hub") navigate(exit.url);
-        else setScreen({ kind: "end-screen", ready, ending: exit.ending });
-      });
+      void ready.play.end(ending, props.finishTimeoutMs).then(navigate);
     },
     [navigate, props.finishTimeoutMs],
   );
+  const toLocker = <ToLocker onClick={() => navigate(base)} />;
 
   switch (screen.kind) {
     case "loading":
       return <Message text={shellT("loading")} busy />;
     case "not-found":
       return <Message text={shellT("not-found")} />;
+    case "not-a-student":
+      return <SpokenMessage line="for-students" speak={props.speak} />;
+    case "no-such-class":
+    case "game-off":
+      return (
+        <SpokenMessage line={screen.kind} speak={props.speak}>
+          {toLocker}
+        </SpokenMessage>
+      );
     case "error":
       return (
         <Message text={shellT("error")}>
@@ -195,6 +219,18 @@ function GamePage(props: AppProps) {
           onError={() => setScreen({ kind: "error" })}
         />
       );
+    case "pick-grade":
+      // A game link joined them to a split class. Then the game opens as linked.
+      return (
+        <GradePick
+          student={screen.student}
+          membership={screen.membership}
+          platform={platform}
+          speak={props.speak}
+          onPicked={() => navigate(url.href)}
+          onError={() => setScreen({ kind: "error" })}
+        />
+      );
     case "playing":
     case "ending":
       return (
@@ -202,15 +238,7 @@ function GamePage(props: AppProps) {
           ready={screen.ready}
           ending={screen.kind === "ending"}
           onEnd={end}
-          speak={props.speak}
-        />
-      );
-    case "end-screen":
-      return (
-        <EndScreen
-          ending={screen.ending}
-          look={screen.ready.student.look}
-          onPlayAgain={() => navigate(`${base}${screen.ready.link.slug}`)}
+          navigate={navigate}
           speak={props.speak}
         />
       );
@@ -221,11 +249,13 @@ function PlayScreen({
   ready,
   ending,
   onEnd,
+  navigate,
   speak,
 }: {
   ready: ReadyPlay;
   ending: boolean;
   onEnd(ready: ReadyPlay, ending: Ending): void;
+  navigate(url: string): void;
   speak?: VoiceOptions["speak"];
 }) {
   const { game, student, tier, play } = ready;
@@ -307,7 +337,14 @@ function PlayScreen({
               console.error(`[play] ${game.manifest.slug} crashed`, error);
               void play.end("crashed");
             }}
-            fallback={<Message text={shellT("error")} />}
+            fallback={
+              <Message text={shellT("error")}>
+                {/* Ending again only gives back the crashed play's locker link. */}
+                <ToLocker
+                  onClick={() => void play.end("crashed").then(navigate)}
+                />
+              </Message>
+            }
           >
             {started ? (
               <game.Component {...props} />
@@ -431,38 +468,5 @@ function LeaveQuestion({
         <Icon name="leave" size={32} />
       </IconButton>
     </Question>
-  );
-}
-
-function EndScreen({
-  ending,
-  look,
-  onPlayAgain,
-  speak,
-}: {
-  ending: Ending;
-  look: AvatarLook;
-  onPlayAgain(): void;
-  speak?: VoiceOptions["speak"];
-}) {
-  const line = ending === "finished" ? "complete" : "left";
-  useShellLine(line, speak);
-  return (
-    <main className={classes.message}>
-      <Stack align="center" gap="lg">
-        <Portrait
-          look={look}
-          expression={ending === "finished" ? "cheering" : "happy"}
-          size={160}
-          label={shellT("avatar")}
-        />
-        <Title order={1} size="h2">
-          {shellT(line)}
-        </Title>
-        <IconButton label={shellT("play-again")} onClick={onPlayAgain}>
-          <Icon name="replay" size={32} />
-        </IconButton>
-      </Stack>
-    </main>
   );
 }

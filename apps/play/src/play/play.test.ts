@@ -47,7 +47,7 @@ function fakeOutbox(drained = true) {
   return { outbox, added };
 }
 
-function setUp(overrides: { portal?: string | null; drained?: boolean } = {}) {
+function setUp(overrides: { drained?: boolean } = {}) {
   const { outbox, added } = fakeOutbox(overrides.drained);
   const onInvalid = vi.fn();
   let n = 0;
@@ -57,7 +57,6 @@ function setUp(overrides: { portal?: string | null; drained?: boolean } = {}) {
     tier: "g4",
     student,
     classId: "class-1",
-    portal: overrides.portal === undefined ? "north" : overrides.portal,
     outbox,
     links: standInLinks({ base: "/play/" }),
     newId: () => `id-${++n}`,
@@ -129,28 +128,13 @@ describe("recording attempts", () => {
 });
 
 describe("ending", () => {
-  it("returns a student in a class to the portal they came through", async () => {
-    const { play } = setUp();
-    const exit = await play.end("finished");
-    expect(exit.kind).toBe("hub");
-    const url = new URL(
-      exit.kind === "hub" ? exit.url : "",
-      "http://localhost",
-    );
-    expect(url.searchParams.get("portal")).toBe("north");
-    expect(url.searchParams.get("play")).toBe("play-1");
-  });
-
-  it("returns a student who leaves to their portal too", async () => {
-    const { play } = setUp();
-    expect((await play.end("left")).kind).toBe("hub");
-  });
-
-  it.each(["finished", "left"] as const)(
-    "shows the end screen for a game link opened directly (%s)",
+  it.each(["finished", "left", "crashed"] as const)(
+    "returns the student to their locker, naming the play (%s)",
     async (ending) => {
-      const { play } = setUp({ portal: null });
-      expect(await play.end(ending)).toEqual({ kind: "end-screen", ending });
+      const { play } = setUp();
+      const url = new URL(await play.end(ending), "http://localhost");
+      expect(url.pathname).toBe("/play/");
+      expect(url.searchParams.get("play")).toBe("play-1");
     },
   );
 
@@ -187,15 +171,14 @@ describe("ending", () => {
 
   it("sends what's pending first, but leaves even if that times out", async () => {
     const { play, outbox } = setUp({ drained: false });
-    expect((await play.end("finished", 1234)).kind).toBe("hub");
+    expect(await play.end("finished", 1234)).toBe("/play/?play=play-1");
     expect(outbox.drain).toHaveBeenCalledWith(1234);
   });
 
   it("ends once: the first ending wins", async () => {
-    const { play, outbox, added } = setUp({ portal: null });
+    const { play, outbox, added } = setUp();
     const [first] = await Promise.all([play.end("left"), play.end("finished")]);
-    expect(first).toEqual({ kind: "end-screen", ending: "left" });
-    expect(await play.end("finished")).toEqual(first);
+    expect(await play.end("finished")).toBe(first);
     expect(outbox.drain).toHaveBeenCalledOnce();
     expect(added.filter((r) => r.kind === "end")).toEqual([
       expect.objectContaining({ ending: "left" }),
