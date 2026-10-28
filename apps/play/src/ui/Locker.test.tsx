@@ -119,6 +119,15 @@ describe("the locker", () => {
     expect(spoken).toEqual(["Pick a game to play.", "Pick a game to play."]);
   });
 
+  it("says the instruction again even after a game's name", async () => {
+    const { spoken, user } = setUp();
+    await user.click(
+      await screen.findByRole("button", { name: "Hear it: Fraction Hop" }),
+    );
+    await user.click(screen.getByRole("button", { name: "Hear it again" }));
+    expect(spoken.at(-1)).toBe("Pick a game to play.");
+  });
+
   it("speaks every game's name", async () => {
     const { spoken, user } = setUp();
     await user.click(
@@ -282,6 +291,7 @@ describe("picking a grade in a split class", () => {
     await user.click(await screen.findByRole("button", { name: "Grade 3" }));
     await user.keyboard("{Escape}");
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Grade 3" })).toHaveFocus();
     expect(standInStudent(storage)?.classes[0]?.grade).toBeNull();
   });
 

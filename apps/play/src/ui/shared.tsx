@@ -100,8 +100,9 @@ export function Message({
 
 /**
  * A question over the screen, usable without reading: it's spoken when it
- * appears and can be heard again, and the answers are icons. The first
- * answer has focus, and Escape cancels.
+ * appears and can be heard again, and the answers are icons. It covers the
+ * screen, which the caller makes `inert` meanwhile. The first answer has
+ * focus, Escape cancels, and focus goes back to what opened it.
  */
 export function Question({
   line,
@@ -125,8 +126,14 @@ export function Question({
   }, [voice, line]);
   const id = useId();
   const answers = useRef<HTMLDivElement>(null);
+  // Read while rendering, before the screen behind goes inert and drops focus.
+  const opener = useRef(document.activeElement);
   useEffect(() => {
     answers.current?.querySelector("button")?.focus();
+    const back = opener.current;
+    return () => {
+      if (back instanceof HTMLElement) back.focus();
+    };
   }, []);
   return (
     <div

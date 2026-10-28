@@ -365,6 +365,7 @@ describe("leaving", () => {
     await user.click(leave());
     await user.keyboard("{Escape}");
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(leave()).toHaveFocus();
   });
 
   it("returns a student who came through a portal to it, keeping their attempts", async () => {

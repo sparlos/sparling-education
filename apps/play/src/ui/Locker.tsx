@@ -184,6 +184,7 @@ function Locker({
     void voice.say(line);
   }, [voice, line]);
 
+  // "Hear it again" repeats the instruction, never the last name heard.
   const hear = (name: string) => (
     <IconButton
       tone="neutral"
@@ -213,7 +214,7 @@ function Locker({
         <IconButton
           tone="neutral"
           label={shellT("hear-again")}
-          onClick={() => voice.again()}
+          onClick={() => void voice.say(line)}
         >
           <Icon name="speaker" size={32} />
         </IconButton>
@@ -305,41 +306,41 @@ function GradePick({
       {/* Out of reach while the question covers it. */}
       <div inert={asking !== null}>
         <Stack align="center" gap="lg">
-        <Portrait
-          look={student.look}
-          expression="happy"
-          size={120}
-          label={shellT("avatar")}
-        />
-        <div className={styles.header}>
-          <Title order={1} size="h2">
-            {shellT("pick-grade")}
-          </Title>
-          <IconButton
-            tone="neutral"
-            label={shellT("hear-again")}
-            onClick={() => voice.again()}
-          >
-            <Icon name="speaker" size={32} />
-          </IconButton>
-        </div>
-        <div className={styles.grades}>
-          {membership.grades.map((grade) => (
-            <Button
-              key={grade}
-              size="lg"
-              tone="student"
-              className={styles.gradeButton}
-              disabled={picking}
-              onClick={() => {
-                voice.stop();
-                setAsking(grade);
-              }}
+          <Portrait
+            look={student.look}
+            expression="happy"
+            size={120}
+            label={shellT("avatar")}
+          />
+          <div className={styles.header}>
+            <Title order={1} size="h2">
+              {shellT("pick-grade")}
+            </Title>
+            <IconButton
+              tone="neutral"
+              label={shellT("hear-again")}
+              onClick={() => voice.again()}
             >
-              {shellT(gradeLine(grade))}
-            </Button>
-          ))}
-        </div>
+              <Icon name="speaker" size={32} />
+            </IconButton>
+          </div>
+          <div className={styles.grades}>
+            {membership.grades.map((grade) => (
+              <Button
+                key={grade}
+                size="lg"
+                tone="student"
+                className={styles.gradeButton}
+                disabled={picking}
+                onClick={() => {
+                  voice.stop();
+                  setAsking(grade);
+                }}
+              >
+                {shellT(gradeLine(grade))}
+              </Button>
+            ))}
+          </div>
         </Stack>
       </div>
       {asking !== null && (
