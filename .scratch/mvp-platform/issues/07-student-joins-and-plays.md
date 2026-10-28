@@ -13,3 +13,13 @@
 - [ ] The play shell chooses stand-ins or real adapters by environment variable, and the stand-ins remain for API-less development
 - [ ] The locker stays within the play shell's Chromebook budgets and works without reading (every label is spoken)
 - [ ] Integration tests cover joining, grade setting, multiple classes and session. Rendered-app tests cover the grade pick and opening a game from the locker
+
+## Comments
+
+**2026-10-27, agent:** A note from ticket 05 on how students sign in. The teacher app uses Google's sign-in button in popup mode: the button hands an ID token to the page, which posts it to `POST /sign-in`. A browser that blocks pop-ups doesn't fall back to anything. Teachers on `/teach` should be fine, but students on school-managed Chromebooks are where a pop-up-blocking policy is most likely, so consider Google's redirect mode for the student sign-in:
+
+- An API endpoint receives Google's form post (`credential` plus the `g_csrf_token` field, which must match the `g_csrf_token` cookie Google sets), verifies the token with the same identity verifier, starts the session, and answers with a 303 to a same-origin `returnTo` (reuse `sameOriginPath` in `apps/api/src/accounts.ts`). The join code or game link has to survive the round trip. A short-lived cookie set before sign-in is the safe choice: `login_uri` must match a registered redirect URI, so check whether Google accepts a query string on it before relying on one.
+- Register that endpoint's URL under **Authorised redirect URIs** on the Google OAuth client, for each origin (dev and production).
+- Initialise the button with `ux_mode: "redirect"` and `login_uri`, always for students, or as a fallback when the popup is blocked.
+
+It's still an ID token, so it still needs no client secret. Check first whether Chrome on Chromebooks already shows the button as a built-in dialog (FedCM) rather than a pop-up; if it does, redirect mode may not be needed.

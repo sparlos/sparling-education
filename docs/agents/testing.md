@@ -35,8 +35,9 @@ describe("health", () => {
 - Send requests through `client`, the `testClient` from `hono/testing`. It's typed from the app's routes, so routes must stay chained in `createApp` (`const app = base.openapi(...).openapi(...)`). A route registered as a separate statement disappears from `client`'s type.
 - Set up state by calling the API, the way a user would. Seed through `db` (also exported from `test/client.ts`) only when no endpoint creates that state yet.
 - Assert on responses, not on Prisma calls or table contents (see "Testing Decisions" in `.scratch/mvp-platform/spec.md`).
-- For a dependency that isn't the database (e.g. the fake identity verifier), pass it to `createApp` the way `db` is passed.
+- For a dependency that isn't the database, pass it to `createApp` the way `db` is passed.
+- Google sign-in is faked by `google` from `test/client.ts`: `google.credentialFor({ sub, given_name, family_name })` hands out a credential the app accepts, as Google's button would. Sign in by posting it to `/sign-in`, then send `cookiesFrom(res)` as the `headers` of later requests to act as that browser.
 
 ## Other packages
 
-The harness in `@repo/db/testing` doesn't depend on Vitest. A package whose tests need the API over a real database (e.g. the contract suites against real adapters) copies the two files in `apps/api/test/`: the global setup and the per-file client.
+The harness in `@repo/db/testing` doesn't depend on Vitest. A package whose tests need the API over a real database (e.g. the contract suites against real adapters) copies the global setup from `apps/api/test/`, makes its own per-file database the way `test/client.ts` does, and gets the app and fake Google from `api/testing`. `apps/teach/src/platform/api/api.test.ts` shows the shape, including a cookie-keeping `fetch` handed to the generated client with `setFetch`.

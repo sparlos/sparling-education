@@ -3,8 +3,11 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "exports": {
+    "./testing": "./test/testing.ts"
+  },
   "scripts": {
-    "dev": "node --watch src/index.ts --api-reference",
+    "dev": "node --env-file-if-exists=.env.local --watch src/index.ts --dev",
     "start": "node src/index.ts",
     "generate": "node scripts/generate-openapi.ts",
     "check-types": "tsc --noEmit",
@@ -16,6 +19,7 @@
     "@repo/db": "workspace:*",
     "@scalar/hono-api-reference": "0.12.14",
     "hono": "4.13.13",
+    "jose": "6.2.13",
     "zod": "4.6.7"
   },
   "devDependencies": {

@@ -4,7 +4,7 @@
   "tasks": {
     "dev": {
       "dependsOn": ["$TURBO_EXTENDS$", "@repo/db#dev"],
-      "env": ["DATABASE_URL", "PORT"]
+      "env": ["DATABASE_URL", "GOOGLE_CLIENT_ID", "PORT"]
     },
     "test": {
       "passThroughEnv": ["DOCKER_*", "TESTCONTAINERS_*"]

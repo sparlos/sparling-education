@@ -8,6 +8,7 @@ interface TextInputProps {
   placeholder?: string;
   required?: boolean;
   autoComplete?: string;
+  maxLength?: number;
   error?: string;
   className?: string;
 }
@@ -19,6 +20,7 @@ export function TextInput({
   placeholder,
   required,
   autoComplete,
+  maxLength,
   error,
   className,
 }: TextInputProps) {
@@ -30,6 +32,7 @@ export function TextInput({
       placeholder={placeholder}
       required={required}
       autoComplete={autoComplete}
+      maxLength={maxLength}
       error={error}
       className={className}
       classNames={inputClassNames}

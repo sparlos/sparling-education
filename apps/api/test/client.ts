@@ -5,6 +5,7 @@ import { createTestDatabase } from "@repo/db/testing";
 import { testClient } from "hono/testing";
 import { afterAll, beforeEach, inject } from "vitest";
 import { type App, createApp } from "../src/app.ts";
+import { fakeGoogle } from "./fake-google.ts";
 
 const database = await createTestDatabase(inject("databaseUrl"));
 
@@ -12,5 +13,16 @@ beforeEach(() => database.reset());
 afterAll(() => database.drop());
 
 export const { db } = database;
-export const app = createApp({ db });
+/** Google sign-in for this file's tests. */
+export const google = fakeGoogle();
+export const app = createApp({ db, identity: google.verifier });
 export const client: ReturnType<typeof testClient<App>> = testClient(app);
+
+/** The `cookie` header a browser would send back after `res`. */
+export function cookiesFrom(res: Response): { cookie: string } {
+  const cookie = res.headers
+    .getSetCookie()
+    .map((c) => c.split(";")[0])
+    .join("; ");
+  return { cookie };
+}

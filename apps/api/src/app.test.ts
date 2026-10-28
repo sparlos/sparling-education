@@ -1,7 +1,7 @@
 import { createDb } from "@repo/db";
 import { testClient } from "hono/testing";
 import { describe, expect, it } from "vitest";
-import { app, client, db } from "../test/client.ts";
+import { app, client, db, google } from "../test/client.ts";
 import { createApp } from "./app.ts";
 
 describe("api", () => {
@@ -13,7 +13,9 @@ describe("api", () => {
 
   it("reports when it can't reach its database", async () => {
     const db = createDb("postgresql://kindling:kindling@localhost:1/kindling");
-    const res = await testClient(createApp({ db })).health.$get();
+    const res = await testClient(
+      createApp({ db, identity: google.verifier }),
+    ).health.$get();
     expect(res.status).toBe(503);
     expect(await res.json()).toEqual({ status: "unavailable" });
   });
@@ -32,7 +34,11 @@ describe("api", () => {
 
   it("serves the API reference only when asked to", async () => {
     expect((await app.request("/reference")).status).toBe(404);
-    const withReference = createApp({ db, apiReference: true });
+    const withReference = createApp({
+      db,
+      identity: google.verifier,
+      apiReference: true,
+    });
     const res = await withReference.request("/reference");
     expect(res.status).toBe(200);
     expect(await res.text()).toContain("/openapi.json");

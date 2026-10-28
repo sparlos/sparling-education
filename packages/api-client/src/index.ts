@@ -1,3 +1,11 @@
-export { getBaseUrl, setBaseUrl } from "./fetcher";
-export { getHealth } from "./generated/api";
+export { getBaseUrl, setBaseUrl, setFetch } from "./fetcher";
+export {
+  createClass,
+  getAccount,
+  getClass,
+  getClasses,
+  getHealth,
+  signIn,
+  signOut,
+} from "./generated/api";
 export * from "./generated/models";

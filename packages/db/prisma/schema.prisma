@@ -9,3 +9,52 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+// Who someone is to Kindling. Fixed when their account is made, by where they
+// first signed in: the teacher app makes a teacher, a class or game link a student.
+enum Role {
+  teacher
+  student
+}
+
+// One Google account. Kindling keeps only Google's opaque subject ID, the
+// first name and the last initial: never the email, the full surname or a photo.
+model Account {
+  id            String    @id @default(uuid()) @db.Uuid
+  googleSubject String    @unique
+  role          Role
+  firstName     String
+  lastInitial   String
+  createdAt     DateTime  @default(now())
+  sessions      Session[]
+  classes       Class[]
+}
+
+// A signed-in browser. The cookie holds a random token; only its hash is kept.
+model Session {
+  tokenHash String   @id
+  accountId String   @db.Uuid
+  account   Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+
+  @@index([accountId])
+}
+
+// A teacher's class. Students join it with its join code, which the class join
+// link and every game link carry.
+model Class {
+  id        String   @id @default(uuid()) @db.Uuid
+  teacherId String   @db.Uuid
+  teacher   Account  @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  name      String
+  // One or more of Grades 3–5, ascending.
+  grades    Int[]
+  joinCode  String   @unique
+  // The slugs of hosted games the teacher turned off. Every other hosted game
+  // is on, so a game Kindling starts hosting is on in every class.
+  gamesOff  String[] @default([])
+  createdAt DateTime @default(now())
+
+  @@index([teacherId])
+}

@@ -9,6 +9,7 @@ import { contrastRatio } from "@repo/tokens/color";
 import { Badge } from "@repo/ui/badge";
 import { Button } from "@repo/ui/button";
 import { Card } from "@repo/ui/card";
+import { CheckboxGroup } from "@repo/ui/checkbox-group";
 import { Container } from "@repo/ui/container";
 import { Icon } from "@repo/ui/icon";
 import { ComparisonTable } from "@repo/ui/marketing/comparison-table";
@@ -300,6 +301,15 @@ export default function DesignPage() {
               pendingLabel="Sending…"
               fineprint="Unsubscribe any time."
               tone="parent"
+            />
+            <CheckboxGroup
+              label="Grades"
+              name="grades"
+              defaultValue={["4"]}
+              options={[3, 4, 5].map((grade) => ({
+                value: String(grade),
+                label: `Grade ${grade}`,
+              }))}
             />
           </SimpleGrid>
         </Block>
