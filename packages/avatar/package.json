@@ -5,11 +5,14 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
+    "./parts": "./src/parts.ts",
+    "./art": "./src/art.ts",
     "./portrait": "./src/portrait.tsx"
   },
   "scripts": {
     "check-types": "tsc --noEmit",
-    "test": "node --test 'src/**/*.test.ts'"
+    "test": "node --test 'src/**/*.test.ts'",
+    "slice-sheet": "uv run scripts/slice_sheet.py"
   },
   "dependencies": {
     "@repo/tokens": "workspace:*"
