@@ -409,19 +409,19 @@ describe("the dashboard", () => {
       screen.getByRole("list", { name: "Understanding" }),
     ).toHaveTextContent("Developing");
     const plays = within(
-      screen.getByRole("region", { name: "Plays, oldest first" }),
+      screen.getByRole("region", { name: "Plays, newest first" }),
     ).getAllByRole("link");
     expect(plays).toHaveLength(2);
-    expect(plays[0]).toHaveTextContent("Fraction Hop");
-    expect(plays[0]).toHaveTextContent("Grade 4 tier · Finished");
-    expect(plays[0]).toHaveTextContent(
+    expect(plays[0]).toHaveTextContent("4 of 4 tasks on their own");
+    expect(plays[1]).toHaveTextContent("Fraction Hop");
+    expect(plays[1]).toHaveTextContent("Grade 4 tier · Finished");
+    expect(plays[1]).toHaveTextContent(
       "1 of 3 tasks on their own, 1 with help, 1 not yet",
     );
-    expect(plays[0]).toHaveTextContent(biggerWords);
-    expect(plays[1]).toHaveTextContent("4 of 4 tasks on their own");
+    expect(plays[1]).toHaveTextContent(biggerWords);
 
     // The play: each task's tries in order.
-    await user.click(plays[0] as HTMLElement);
+    await user.click(plays[1] as HTMLElement);
     expect(
       await screen.findByRole("heading", { level: 1, name: /Fraction Hop/ }),
     ).toBeInTheDocument();
@@ -502,7 +502,7 @@ describe("the dashboard", () => {
       within(await row("Ben O.")).getByRole("link", { name: /Ben O\./ }),
     );
     const [play] = within(
-      await screen.findByRole("region", { name: "Plays, oldest first" }),
+      await screen.findByRole("region", { name: "Plays, newest first" }),
     ).getAllByRole("link");
     expect(play).toHaveTextContent("3 tries, and 1 explored");
 
@@ -570,7 +570,7 @@ describe("the dashboard", () => {
       await screen.findByRole("heading", { level: 1, name: "Ben O." }),
     ).toBeInTheDocument();
     const [play] = within(
-      screen.getByRole("region", { name: "Plays, oldest first" }),
+      screen.getByRole("region", { name: "Plays, newest first" }),
     ).getAllByRole("link");
     expect(play).toHaveTextContent("2 of 4 tasks on their own, 2 not yet");
 

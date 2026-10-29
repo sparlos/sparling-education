@@ -471,7 +471,7 @@ export const EvidenceSchema = z
         "Their understanding at each tier they have evidence from, their own grade's first",
     }),
     plays: z.array(EvidencePlaySchema).openapi({
-      description: "Every play with evidence for it, oldest first",
+      description: "Every play with evidence for it, newest first",
     }),
   })
   .openapi("Evidence");

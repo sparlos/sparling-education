@@ -447,3 +447,121 @@ describe("the misconception strip", () => {
     ]);
   });
 });
+
+describe("a long history", () => {
+  const count = "numerator-not-a-count";
+  const bigger = "bigger-denominator-bigger";
+  const explore = { succeeded: false, exploring: true };
+  const daysBefore = (n: number) => new Date(+day(1) - n * 86_400_000);
+
+  it("gives the same results as the whole history, with crashed and exploring plays among the recent ones", async () => {
+    const { teacher, classId, student, who } = await classWithStudent();
+    // A school year of plays they got wrong, showing a misconception.
+    await play(
+      student,
+      Array.from({ length: 40 }, (_, i) =>
+        playOf(who, [[{ succeeded: false, misconception: bigger }]], {
+          at: daysBefore(40 - i),
+        }),
+      ),
+    );
+    // Then recent plays, among them crashed plays and plays of nothing but
+    // exploring, and a play whose crash hasn't arrived yet.
+    const crashing = playOf(who, right(2), { at: day(4), ending: "crashed" });
+    const crash = crashing.pop();
+    if (!crash) throw new Error("No end");
+    await play(student, [
+      playOf(
+        who,
+        Array.from({ length: 3 }, () => [
+          { succeeded: false, misconception: count },
+        ]),
+        { at: day(1) },
+      ),
+      playOf(who, right(2), { at: day(2) }),
+      playOf(who, [[{ succeeded: false, misconception: bigger }]], {
+        at: day(3),
+        ending: "crashed",
+      }),
+      crashing,
+      playOf(who, [[explore], [explore]], { at: day(5) }),
+      playOf(who, right(2), { at: day(6) }),
+      playOf(who, [[explore]], { at: day(7), ending: "crashed" }),
+      playOf(who, right(2), { at: day(8) }),
+      playOf(who, right(2), { at: day(9) }),
+    ]);
+
+    // Days 2, 4, 6, 8 and 9: 10 of 10 tasks.
+    const before = await dashboardOf(teacher, classId);
+    expect(before.students[0]?.results).toEqual([
+      expect.objectContaining({ understanding: "showing-consistently" }),
+    ]);
+    expect(before.misconceptions).toEqual([]);
+
+    // Day 4's crash arrives, and day 1 takes its place: 8 of 11 tasks.
+    await play(student, [[crash]]);
+    const after = await dashboardOf(teacher, classId);
+    expect(after.students[0]?.results).toEqual([
+      expect.objectContaining({ understanding: "developing" }),
+    ]);
+    expect(after.misconceptions).toEqual([
+      expect.objectContaining({
+        id: count,
+        students: [expect.objectContaining({ id: student.studentId })],
+      }),
+    ]);
+  });
+
+  it("still gives each tier's result when the recent plays are all at another tier", async () => {
+    const { teacher, classId, student, who } = await classWithStudent(
+      [4, 5],
+      4,
+    );
+    await play(student, [
+      playOf(who, right(4), { grade: 4, at: daysBefore(30) }),
+      ...Array.from({ length: 25 }, (_, i) =>
+        playOf(who, wrong(2), { grade: 5, at: daysBefore(25 - i) }),
+      ),
+    ]);
+    const { students } = await dashboardOf(teacher, classId);
+    expect(students[0]?.results).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          expectation: "math-2020.g4.B1.6",
+          understanding: "showing-consistently",
+          tierGrade: 4,
+        }),
+        expect.objectContaining({
+          expectation: "math-2020.g5.B1.3",
+          understanding: "not-yet-showing",
+          tierGrade: 5,
+          otherTier: true,
+        }),
+      ]),
+    );
+    expect(students[0]?.results).toHaveLength(2);
+  });
+
+  it("keeps each student's recent plays their own, across a class", async () => {
+    const headers = await teacher();
+    const cls = await createClass(headers, [4]);
+    const ana = await joinedStudent(cls, { name: ["Ana", "Diaz"] });
+    const ben = await joinedStudent(cls, { name: ["Ben", "Ode"] });
+    const of = (s: typeof ana) => ({ studentId: s.studentId, classId: cls.id });
+    // Ana played long ago and got it right; Ben has played every day since.
+    await play(ana, [playOf(of(ana), right(4), { at: daysBefore(60) })]);
+    await play(
+      ben,
+      Array.from({ length: 30 }, (_, i) =>
+        playOf(of(ben), wrong(2), { at: daysBefore(30 - i) }),
+      ),
+    );
+    const { students } = await dashboardOf(headers, cls.id);
+    expect(
+      students.map((s) => [s.firstName, s.results[0]?.understanding]),
+    ).toEqual([
+      ["Ana", "showing-consistently"],
+      ["Ben", "not-yet-showing"],
+    ]);
+  });
+});

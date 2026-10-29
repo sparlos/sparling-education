@@ -93,7 +93,7 @@ const biggerDescribed = {
 };
 
 describe("a cell's evidence", () => {
-  it("shows the student's understanding and every play with evidence for it, oldest first", async () => {
+  it("shows the student's understanding and every play with evidence for it, newest first", async () => {
     const { teacher, classId, student, who } = await classWithStudent();
     await play(student, [
       playOf(
@@ -134,6 +134,14 @@ describe("a cell's evidence", () => {
         },
       ],
       plays: [
+        expect.objectContaining({
+          play: "second",
+          ending: "finished",
+          tasks: 4,
+          onTheirOwn: 4,
+          misconceptions: [],
+          counts: true,
+        }),
         {
           play: "first",
           ...fractionHop,
@@ -151,14 +159,6 @@ describe("a cell's evidence", () => {
           misconceptions: [biggerDescribed],
           counts: true,
         },
-        expect.objectContaining({
-          play: "second",
-          ending: "finished",
-          tasks: 4,
-          onTheirOwn: 4,
-          misconceptions: [],
-          counts: true,
-        }),
       ],
     });
   });
@@ -173,14 +173,51 @@ describe("a cell's evidence", () => {
     ]);
     const { plays } = await evidenceOf(teacher, classId, student.studentId);
     expect(plays.map((p) => [p.play, p.counts])).toEqual([
-      ["day-1", false],
-      ["day-2", true],
-      ["day-3", true],
-      ["day-4", true],
-      ["day-5", true],
-      ["day-6", true],
       ["crashed", false],
+      ["day-6", true],
+      ["day-5", true],
+      ["day-4", true],
+      ["day-3", true],
+      ["day-2", true],
+      ["day-1", false],
     ]);
+  });
+
+  it("lists every play of a long history newest first, counting the same plays as the whole history would", async () => {
+    const { teacher, classId, student, who } = await classWithStudent();
+    const explore = { succeeded: false, exploring: true };
+    await play(student, [
+      ...Array.from({ length: 30 }, (_, i) =>
+        playOf(who, wrong(2), { at: day(1), play: `old-${i}` }),
+      ).map((records, i) =>
+        records.map((r) => ({
+          ...r,
+          at: new Date(+new Date(r.at) - (30 - i) * 86_400_000).toISOString(),
+        })),
+      ),
+      playOf(who, right(2), { at: day(2), play: "day-2" }),
+      playOf(who, right(2), { at: day(3), play: "crashed", ending: "crashed" }),
+      playOf(who, [[explore]], { at: day(4), play: "explored" }),
+      ...[5, 6, 7, 8].map((d) =>
+        playOf(who, right(2), { at: day(d), play: `day-${d}` }),
+      ),
+    ]);
+    const evidence = await evidenceOf(teacher, classId, student.studentId);
+    expect(evidence.results).toEqual([
+      expect.objectContaining({ understanding: "showing-consistently" }),
+    ]);
+    expect(evidence.plays).toHaveLength(37);
+    expect(evidence.plays.slice(0, 8).map((p) => [p.play, p.counts])).toEqual([
+      ["day-8", true],
+      ["day-7", true],
+      ["day-6", true],
+      ["day-5", true],
+      ["explored", false],
+      ["crashed", false],
+      ["day-2", true],
+      ["old-29", false],
+    ]);
+    expect(evidence.plays.at(-1)?.play).toBe("old-0");
   });
 
   it("shows a result from each tier, the student's own grade first", async () => {
@@ -327,14 +364,14 @@ describe("Fraction Hop's runs, one attempt each", () => {
     const evidence = await evidenceOf(teacher, classId, student.studentId);
     expect(evidence.plays).toEqual([
       expect.objectContaining({
-        play: "v1",
-        version: 1,
+        play: "v2",
+        version: manifest.version,
         tasks: 1,
         onTheirOwn: 1,
       }),
       expect.objectContaining({
-        play: "v2",
-        version: manifest.version,
+        play: "v1",
+        version: 1,
         tasks: 1,
         onTheirOwn: 1,
       }),

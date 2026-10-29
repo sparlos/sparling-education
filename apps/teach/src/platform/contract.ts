@@ -404,6 +404,11 @@ export function dashboardContract(
         results: [{ expectation: evidenced, understanding: "developing" }],
       });
       expect(evidence.plays).toEqual([
+        expect.objectContaining({
+          tasks: 4,
+          onTheirOwn: 4,
+          misconceptions: [],
+        }),
         {
           play: expect.any(String),
           game: "fraction-hop",
@@ -422,20 +427,15 @@ export function dashboardContract(
           misconceptions: [expect.objectContaining({ id: bigger })],
           counts: true,
         },
-        expect.objectContaining({
-          tasks: 4,
-          onTheirOwn: 4,
-          misconceptions: [],
-        }),
       ]);
-      const [first, second] = evidence.plays;
-      expect(Date.parse(first?.at ?? "")).toBeLessThanOrEqual(
-        Date.parse(second?.at ?? ""),
+      const [latest, earlier] = evidence.plays;
+      expect(Date.parse(latest?.at ?? "")).toBeGreaterThanOrEqual(
+        Date.parse(earlier?.at ?? ""),
       );
 
-      const opened = await port.play(made.id, samId, first?.play ?? "");
+      const opened = await port.play(made.id, samId, earlier?.play ?? "");
       expect(opened).toMatchObject({
-        play: first?.play,
+        play: earlier?.play,
         ending: "finished",
         student: { id: samId, firstName: "Sam", lastInitial: "R" },
       });

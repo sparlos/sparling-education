@@ -156,7 +156,7 @@ export interface Evidence {
   expectation: DashboardExpectation;
   /** Their understanding at each tier they have evidence from, their own grade's first. */
   results: Result[];
-  /** Every play with evidence for it, oldest first. */
+  /** Every play with evidence for it, newest first. */
   plays: EvidencePlay[];
 }
 

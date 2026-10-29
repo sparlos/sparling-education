@@ -79,6 +79,40 @@ export function understandingOf(
   all: readonly ScoredRecord[],
   manifestAt: (slug: string, version: number) => GameManifest | undefined,
 ): StudentResult[] {
+  return recentAtTiers(all, manifestAt).map(
+    ({ studentId, expectation, tierGrade, recent }) => {
+      const tallies = recent.map(tallyOf);
+      const tasks = sum(tallies.map((t) => t.tasks));
+      const succeeded = sum(tallies.map((t) => t.onTheirOwn));
+      const games = new Map(
+        recent
+          .flat()
+          .map(({ game, tier, gameVersion }) => [
+            `${game}|${tier}|${gameVersion}`,
+            { slug: game, tier, version: gameVersion },
+          ]),
+      );
+      return {
+        studentId,
+        expectation,
+        understanding: band(succeeded, tasks),
+        tierGrade,
+        games: [...games.values()],
+        latest: new Date(Math.max(...recent.flat().map((a) => +a.at))),
+        plays: recent.map(([first]) => first?.play ?? ""),
+      };
+    },
+  );
+}
+
+/**
+ * Each student's recent plays at each expectation and tier grade, each play
+ * as its attempts at that expectation: the plays understanding counts.
+ */
+function recentAtTiers<R extends Choosing>(
+  all: readonly R[],
+  manifestAt: (slug: string, version: number) => GameManifest | undefined,
+) {
   const records = scored(all);
   const crashed = crashedPlays(records);
 
@@ -89,7 +123,7 @@ export function understandingOf(
       studentId: string;
       expectation: string;
       tierGrade: number;
-      plays: Map<string, ScoredRecord[]>;
+      plays: Map<string, R[]>;
     }
   >();
   for (const record of records) {
@@ -116,32 +150,15 @@ export function understandingOf(
   }
 
   return [...groups.values()].map(
-    ({ studentId, expectation, tierGrade, plays }) => {
-      const recent = newestFirst([...plays.values()]).slice(
+    ({ studentId, expectation, tierGrade, plays }) => ({
+      studentId,
+      expectation,
+      tierGrade,
+      recent: newestFirst([...plays.values()]).slice(
         0,
         understandingRule.recentPlays,
-      );
-      const tallies = recent.map(tallyOf);
-      const tasks = sum(tallies.map((t) => t.tasks));
-      const succeeded = sum(tallies.map((t) => t.onTheirOwn));
-      const games = new Map(
-        recent
-          .flat()
-          .map(({ game, tier, gameVersion }) => [
-            `${game}|${tier}|${gameVersion}`,
-            { slug: game, tier, version: gameVersion },
-          ]),
-      );
-      return {
-        studentId,
-        expectation,
-        understanding: band(succeeded, tasks),
-        tierGrade,
-        games: [...games.values()],
-        latest: new Date(Math.max(...recent.flat().map((a) => +a.at))),
-        plays: recent.map(([first]) => first?.play ?? ""),
-      };
-    },
+      ),
+    }),
   );
 }
 
@@ -166,32 +183,87 @@ export interface ShownMisconception {
 export function misconceptionsOf(
   all: readonly ScoredRecord[],
 ): ShownMisconception[] {
+  return recentOfGames(all).flatMap((recent) =>
+    groupBy(
+      recent.flat().filter((r) => r.misconception),
+      (r) => r.misconception ?? "",
+    ).map((revealing) => {
+      const last = revealing.reduce((a, b) => (+b.at > +a.at ? b : a));
+      return {
+        studentId: last.studentId,
+        game: last.game,
+        gameVersion: last.gameVersion,
+        misconception: last.misconception ?? "",
+        expectation: last.expectation ?? "",
+        latest: last.at,
+      };
+    }),
+  );
+}
+
+/**
+ * Each student's recent plays of each game, each play as its attempts: the
+ * plays misconceptions come from.
+ */
+function recentOfGames<R extends Choosing>(all: readonly R[]) {
   const records = scored(all);
   const crashed = crashedPlays(records);
   const attempts = records.filter(
     (r) => r.kind === "attempt" && !crashed.has(playKey(r)),
   );
-  return groupBy(attempts, (r) => `${r.studentId}|${r.game}`).flatMap(
-    (theirs) => {
-      const recent = newestFirst(groupBy(theirs, (r) => r.play))
-        .slice(0, misconceptionRule.recentPlays)
-        .flat();
-      return groupBy(
-        recent.filter((r) => r.misconception),
-        (r) => r.misconception ?? "",
-      ).map((revealing) => {
-        const last = revealing.reduce((a, b) => (+b.at > +a.at ? b : a));
-        return {
-          studentId: last.studentId,
-          game: last.game,
-          gameVersion: last.gameVersion,
-          misconception: last.misconception ?? "",
-          expectation: last.expectation ?? "",
-          latest: last.at,
-        };
-      });
-    },
+  return groupBy(attempts, (r) => `${r.studentId}|${r.game}`).map((theirs) =>
+    newestFirst(groupBy(theirs, (r) => r.play)).slice(
+      0,
+      misconceptionRule.recentPlays,
+    ),
   );
+}
+
+/** What choosing which plays count reads of a record. */
+export type Choosing = Pick<
+  ScoredRecord,
+  (typeof choosingFields)[number] | "at" | "sequence"
+>;
+
+/**
+ * The fields of a record that which plays count depends on, besides when it
+ * was made and sent. Records grouped by these, keeping each group's earliest
+ * `at` and `sequence`, choose the same plays as the records themselves, so a
+ * query can find the plays to load without loading every record.
+ */
+export const choosingFields = [
+  "studentId",
+  "play",
+  "game",
+  "gameVersion",
+  "tier",
+  "kind",
+  "expectation",
+  "exploring",
+  "ending",
+] as const;
+
+/**
+ * The plays understanding and misconceptions count, from the records or
+ * their groups by `choosingFields`. Scoring just these plays' records gives
+ * the same results as scoring every record.
+ */
+export function playsCounted(
+  all: readonly Choosing[],
+  manifestAt: (slug: string, version: number) => GameManifest | undefined,
+): { studentId: string; play: string }[] {
+  const plays = [
+    ...recentAtTiers(all, manifestAt).flatMap((r) => r.recent),
+    ...recentOfGames(all).flat(),
+  ].flatMap(([first]) => (first ? [first] : []));
+  return [
+    ...new Map(
+      plays.map(({ studentId, play }) => [
+        playKey({ studentId, play }),
+        { studentId, play },
+      ]),
+    ).values(),
+  ];
 }
 
 /** How a play's tasks went, each counted once however many tries it took. */
@@ -229,11 +301,13 @@ export function tallyOf(all: readonly ScoredRecord[]): PlayTally {
 }
 
 /** The records scoring counts: all but tries that only explored. */
-function scored(records: readonly ScoredRecord[]) {
+function scored<R extends Pick<ScoredRecord, "exploring">>(
+  records: readonly R[],
+) {
   return records.filter((r) => !r.exploring);
 }
 
-function crashedPlays(records: readonly ScoredRecord[]) {
+function crashedPlays(records: readonly Choosing[]) {
   return new Set(
     records
       .filter((r) => r.kind === "end" && r.ending === "crashed")
@@ -242,7 +316,7 @@ function crashedPlays(records: readonly ScoredRecord[]) {
 }
 
 /** Plays, newest first by when they started; plays that started together, by arrival. */
-export function newestFirst<P extends readonly ScoredRecord[]>(
+export function newestFirst<P extends readonly Sent[]>(
   plays: readonly P[],
 ): P[] {
   return [...plays].sort(
@@ -250,7 +324,7 @@ export function newestFirst<P extends readonly ScoredRecord[]>(
   );
 }
 
-function firstSent(records: readonly ScoredRecord[]) {
+function firstSent(records: readonly Sent[]) {
   return Math.min(...records.map((r) => r.sequence));
 }
 
@@ -269,9 +343,12 @@ function playKey(record: { studentId: string; play: string }) {
 }
 
 /** When a play started, by device time: its earliest record. */
-export function startOf(attempts: readonly ScoredRecord[]) {
+export function startOf(attempts: readonly Sent[]) {
   return Math.min(...attempts.map((a) => +a.at));
 }
+
+/** When a record was made and sent. */
+type Sent = Pick<ScoredRecord, "at" | "sequence">;
 
 const sum = (ns: readonly number[]) => ns.reduce((a, b) => a + b, 0);
 

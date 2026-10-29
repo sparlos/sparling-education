@@ -327,7 +327,7 @@ export function fakeTeacherBackend(
             Number(b.tierGrade === grade) - Number(a.tierGrade === grade) ||
             a.tierGrade - b.tierGrade,
         ),
-      plays: theirs.map((p) => {
+      plays: [...theirs].reverse().map((p) => {
         const tasks = scoredTasks(p);
         const succeeded = tasks.filter((tries) =>
           tries.some((t) => t.succeeded),

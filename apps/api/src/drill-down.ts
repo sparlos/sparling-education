@@ -5,7 +5,7 @@
 
 import { type ExpectationId, expectationIds } from "@repo/curriculum";
 import type { Db } from "@repo/db";
-import { describedExpectation, toResult } from "./dashboard.ts";
+import { describedExpectation, toResult, unscored } from "./dashboard.ts";
 import { describedMisconception, gameName, manifestAt } from "./games.ts";
 import type { Evidence, Play } from "./schemas.ts";
 import {
@@ -32,7 +32,12 @@ export async function studentEvidence(
     return null;
   const member = await classMember(db, teacherId, classId, studentId);
   if (!member) return null;
-  const records = await recordsOf(db, classId, studentId);
+  const records = await recordsWithEvidence(
+    db,
+    classId,
+    studentId,
+    expectationId,
+  );
 
   const results = understandingOf(records, manifestAt)
     .filter((r) => r.expectation === expectationId)
@@ -43,32 +48,30 @@ export async function studentEvidence(
     );
   const counted = new Set(results.flatMap((r) => r.plays));
 
-  const plays = newestFirst(groupBy(records, (r) => r.play))
-    .reverse()
-    .flatMap((play) => {
-      const attempts = play.filter(
-        (r) => r.kind === "attempt" && r.expectation === expectationId,
-      );
-      if (attempts.length === 0) return [];
-      const misconceptions = groupBy(
-        attempts.filter((a) => a.misconception),
-        (a) => a.misconception ?? "",
-      ).map(([a]) =>
-        describedMisconception(
-          a?.game ?? "",
-          a?.gameVersion ?? 0,
-          a?.misconception ?? "",
-        ),
-      );
-      return [
-        {
-          ...aboutPlay(play),
-          ...tallyOf(attempts),
-          misconceptions,
-          counts: counted.has(attempts[0]?.play ?? ""),
-        },
-      ];
-    });
+  const plays = newestFirst(groupBy(records, (r) => r.play)).flatMap((play) => {
+    const attempts = play.filter(
+      (r) => r.kind === "attempt" && r.expectation === expectationId,
+    );
+    if (attempts.length === 0) return [];
+    const misconceptions = groupBy(
+      attempts.filter((a) => a.misconception),
+      (a) => a.misconception ?? "",
+    ).map(([a]) =>
+      describedMisconception(
+        a?.game ?? "",
+        a?.gameVersion ?? 0,
+        a?.misconception ?? "",
+      ),
+    );
+    return [
+      {
+        ...aboutPlay(play),
+        ...tallyOf(attempts),
+        misconceptions,
+        counts: counted.has(attempts[0]?.play ?? ""),
+      },
+    ];
+  });
 
   return {
     student: member.student,
@@ -160,10 +163,34 @@ async function classMember(
   };
 }
 
-/** The student's records for the class (or one play of it), in the order made. */
-function recordsOf(db: Db, classId: string, studentId: string, play?: string) {
+/** The student's records of one play for the class, in the order made. */
+function recordsOf(db: Db, classId: string, studentId: string, play: string) {
   return db.playRecord.findMany({
-    where: { classId, studentId, ...(play === undefined ? {} : { play }) },
+    where: { classId, studentId, play },
+    orderBy: { sequence: "asc" },
+  });
+}
+
+/**
+ * Every record of the student's plays for the class with an attempt at the
+ * expectation, in the order made: all its results can count, and every play
+ * its evidence lists.
+ */
+async function recordsWithEvidence(
+  db: Db,
+  classId: string,
+  studentId: string,
+  expectation: string,
+) {
+  const plays = await db.playRecord.findMany({
+    where: { classId, studentId, kind: "attempt", expectation },
+    select: { play: true },
+    distinct: ["play"],
+  });
+  if (plays.length === 0) return [];
+  return db.playRecord.findMany({
+    where: { classId, studentId, play: { in: plays.map((p) => p.play) } },
+    omit: unscored,
     orderBy: { sequence: "asc" },
   });
 }

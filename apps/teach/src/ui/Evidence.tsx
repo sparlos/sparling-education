@@ -1,5 +1,5 @@
 // A dashboard cell, opened: one student's evidence for one expectation. Their
-// understanding at each tier, then every play with evidence for it, oldest
+// understanding at each tier, then every play with evidence for it, newest
 // first, each opening on its attempts.
 import { Stack } from "@repo/ui/stack";
 import { Text } from "@repo/ui/text";
@@ -68,7 +68,7 @@ export function EvidenceScreen({
       {plays.length > 0 && (
         <section aria-labelledby="plays" className={classes.section}>
           <Title order={2} size="h4" id="plays">
-            Plays, oldest first
+            Plays, newest first
           </Title>
           <ol className={classes.plays}>
             {plays.map((play) => (

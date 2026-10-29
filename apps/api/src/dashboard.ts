@@ -12,8 +12,10 @@ import type { Db } from "@repo/db";
 import { describedMisconception, hostedGames, manifestAt } from "./games.ts";
 import type { Dashboard, Result } from "./schemas.ts";
 import {
+  choosingFields,
   groupBy,
   misconceptionsOf,
+  playsCounted,
   type StudentResult,
   understandingOf,
 } from "./scoring.ts";
@@ -38,13 +40,11 @@ export async function classDashboard(
   });
   if (!found) return null;
 
-  const records = await db.playRecord.findMany({
-    where: {
-      classId,
-      studentId: { in: found.memberships.map((m) => m.studentId) },
-    },
-    orderBy: { sequence: "asc" },
-  });
+  const records = await countedRecords(
+    db,
+    classId,
+    found.memberships.map((m) => m.studentId),
+  );
   const results = understandingOf(records, manifestAt);
 
   // What the class's games evidence at its grades, and anything its students
@@ -118,6 +118,40 @@ export async function classDashboard(
 
   return { expectations, students, misconceptions };
 }
+
+/**
+ * The students' records for the class that scoring counts, in the order
+ * made: every record of the plays it counts, found from the records grouped
+ * by what choosing them depends on, rather than every record they've made.
+ */
+async function countedRecords(db: Db, classId: string, studentIds: string[]) {
+  const groups = await db.playRecord.groupBy({
+    by: [...choosingFields],
+    where: { classId, studentId: { in: studentIds } },
+    _min: { at: true, sequence: true },
+  });
+  const plays = playsCounted(
+    groups.map(({ _min, ...group }) => ({
+      ...group,
+      at: _min.at ?? new Date(0),
+      sequence: _min.sequence ?? 0,
+    })),
+    manifestAt,
+  );
+  if (plays.length === 0) return [];
+  return db.playRecord.findMany({
+    where: { classId, OR: plays },
+    omit: unscored,
+    orderBy: { sequence: "asc" },
+  });
+}
+
+/** What a record keeps for teachers to read, which no result is made from. */
+export const unscored = {
+  asked: true,
+  detail: true,
+  receivedAt: true,
+} as const;
 
 /** An expectation, in Kindling's words (ADR 0001). */
 export function describedExpectation(id: ExpectationId) {
