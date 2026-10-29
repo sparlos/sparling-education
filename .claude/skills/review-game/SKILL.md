@@ -37,8 +37,9 @@ Then go through every check below. Each gets a verdict and its evidence: a test 
 
 - Every expectation in the manifest is in the product layer and matches its tier's grade, and every attempt evidences an expectation its task genuinely needs (no over-claiming).
 - The manifest's tiers, misconceptions and strings come from the rules or the spec tests, and the spec tests pass: code and SPEC.md agree.
-- `assisted` is recorded on every attempt after help, at the rung the spec gives.
-- If what a tier evidences changed since the last commit that touched it (`git log -p -- games/<slug>`), `Version` was bumped.
+- `assisted` on every attempt is the help that was on before that try, at the rung the spec gives.
+- Every try reaches `onAttempt` as it happens, each with a `detail`, and `asked` is the same on every try at a task.
+- If what a tier evidences or what its attempts record changed since the last commit that touched it (`git log -p -- games/<slug>`), `Version` was bumped and the old manifest is in the API's `earlierManifests`.
 - Every mutation is caught or marked `survives` with a reason that holds.
 
 ### Students

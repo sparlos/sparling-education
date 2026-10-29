@@ -36,11 +36,19 @@ Avatar: portrait | character
 ## Attempts
 
 - One task is: <...>
-- An attempt is recorded when: <...>
+- One try, recorded as one attempt as it happens: <...>
 - Success means: <...>
 - Retries of the same task are recognised by: <task ID scheme>
 - Exploring tries (if any), sent with `exploring: true` and never scored: <...>
-- What the teacher sees for each task and try: `asked` <e.g. "Reach 5/4 on a course in eighths. Blocks: 1/8, 1/4, 1/2.">, `detail` <e.g. "Hopped 1/8 + 1/8 + 1/4: splashed at 4/8.">
+- `assisted` on each attempt: the help that was on before that try.
+- Misconception: on the try that brings it over its threshold, at most once per task.
+
+**What the teacher sees for each task and try.** Plain text, fractions as `a/b`. One row per form, each rebuilt from the rules by the spec tests:
+
+| Field | When | Text |
+| --- | --- | --- |
+| `asked` | Every try at the task, the same | `<e.g. Reach 5/4 on a course in eighths. Blocks: 1/8, 1/4, 1/2, 1.>` |
+| `detail` | <each kind of try> | `<e.g. Hopped 1/8 + 1/8 + 1/4: splashed at 4/8.>` |
 
 ## Effort
 

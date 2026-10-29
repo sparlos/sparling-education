@@ -29,20 +29,21 @@ Done when the template game's tests pass under the new slug.
 
 ## 3. The rules
 
-Write the game's rules as plain TypeScript in `src/rules/`, with no React: generating a play per tier (seeded, from `@repo/game-kit/random`), judging each action, matching each misconception, the help ladder and the attempt each task emits. Rules tests run in Node (`// @vitest-environment node`).
+Write the game's rules as plain TypeScript in `src/rules/`, with no React: generating a play per tier (seeded, from `@repo/game-kit/random`), judging each action, matching each misconception, the help ladder and the attempt each try emits. Rules tests run in Node (`// @vitest-environment node`).
 
 - **Each misconception is a prediction:** what the student would do if they held the wrong idea. The generator keeps every prediction distinct from the right answer and from each other, and only makes tasks where each prediction is something the student can actually do with what's on screen. If an action still matches two misconceptions, record none: wrong evidence in front of a teacher is worse than none.
 - **Separate exploring from mistakes.** A probe (trying something to see what happens) never counts as a miss: send it as an attempt with `exploring: true` (never succeeded, no misconception, no help).
-- **Describe each task and try for teachers.** Every attempt carries `asked` (the same text on every try at the task) and `detail` (what the student did on this try), built in the rules from their state, never from the student strings: plain en-CA text, at most 200 characters, fractions as `a/b` and mixed numbers as `1 3/4`, nothing else written that way. Teachers read it; it's never spoken or voiced. Send each try as it happens.
+- **Every try is an attempt, sent as it happens:** a probe as `exploring`, a mistake as `succeeded: false`, the solve as `succeeded: true`. `assisted` is the help that was on *before* the try, so the try that triggers help reads as on their own. A misconception goes on the try that brings it over its threshold, at most once per task.
+- **Describe each task and try for teachers.** Every attempt carries `asked` (the same text on every try at the task) and `detail` (what the student did on this try), built in the rules from their state, never from the student strings: plain en-CA text, at most 200 characters, fractions as `a/b` and mixed numbers as `1 3/4`, nothing else written that way. Teachers read it; it's never spoken or voiced. Test the longest `detail` the game can write (the fullest plan the budget allows) against the limit: Fraction Hop writes three or more of the same hop as `12 × 1/10` to fit.
 - **Test the generator's invariants over many plays per tier** (Fraction Hop uses 150): every task within its tier's expectations, every misconception revealable where the spec says it is, every amount the game can speak has a string.
 
-Done when every misconception in the spec has a test that detects it, and every tier has an invariant test.
+Done when every misconception in the spec has a test that detects it, every tier has an invariant test, and every kind of try at every tier has a test of the attempt it sends.
 
 ## 4. Manifest, strings and spec tests
 
 Build the manifest's tiers and misconceptions from the rules' own tables, so what the game records and what it declares can't drift. Strings are whole sentences, with fragments only for families such as amounts (`frac.3-4`), typed with template literals. Give `strings` an explicit type: spreading template-literal keys drops them.
 
-Write `src/spec.test.ts` with `describeManifestSpec` from `@repo/game-kit/spec`, plus the game's own numbers and string families, so the tests read SPEC.md and fail when code and spec disagree.
+Write `src/spec.test.ts` with `describeManifestSpec` from `@repo/game-kit/spec`, plus the game's own numbers, string families and Attempts table (rebuild each `asked`/`detail` row from the rules), so the tests read SPEC.md and fail when code and spec disagree.
 
 Done when the spec tests pass and every string in SPEC.md's table is in `strings.ts`, word for word.
 
@@ -80,7 +81,9 @@ Done when the founder has been asked, with the number of new lines.
 
 ## 8. The founder plays
 
-Give the founder the game link (`/play/<slug>`), what isn't built yet, and your numbered **readings** of the spec for them to confirm. They play, ideally on a touchscreen, and give their calls. For each call: change the code, update SPEC.md (bump `Version` if what a tier evidences changed), re-run steps 5–6, and say what changed. Visual polish the founder raises (motion, feedback moments, layout finesse) goes on a list for `polish-game`, unless it blocks play.
+Give the founder the game link (`/play/<slug>`), what isn't built yet, and your numbered **readings** of the spec for them to confirm. They play, ideally on a touchscreen, and give their calls. For each call: change the code, update SPEC.md, re-run steps 5–6, and say what changed. Visual polish the founder raises (motion, feedback moments, layout finesse) goes on a list for `polish-game`, unless it blocks play.
+
+**Bump `Version`** in SPEC.md and the manifest when what a tier evidences, or what its attempts record, changes. Records made under the old version still arrive days late, so add the old manifest, frozen, to `earlierManifests` in `apps/api/src/games.ts` (Fraction Hop's `src/manifest-v1.ts` is the shape).
 
 Done when the founder accepts the game as playable, every reading is confirmed or changed, and SPEC.md matches the game.
 
