@@ -121,12 +121,10 @@ const manageRoute = createRoute({
         cls={cls}
         students={students}
         actions={{
-          switchGame: (slug, on) =>
-            then(teacher.switchGame(cls.id, slug, on)),
+          switchGame: (slug, on) => then(teacher.switchGame(cls.id, slug, on)),
           setGrade: (studentId, grade) =>
             then(teacher.setStudentGrade(cls.id, studentId, grade)),
-          remove: (studentId) =>
-            then(teacher.removeStudent(cls.id, studentId)),
+          remove: (studentId) => then(teacher.removeStudent(cls.id, studentId)),
         }}
       />
     );

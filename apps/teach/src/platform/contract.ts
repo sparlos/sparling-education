@@ -605,8 +605,18 @@ export function managingContract(
       await joinClass(student("Zoe", "Abbot"), made.joinCode, 5);
       await joinClass(student("Ana", "Diaz"), made.joinCode);
       expect(await port.students(made.id)).toEqual([
-        { id: expect.any(String), firstName: "Ana", lastInitial: "D", grade: null },
-        { id: expect.any(String), firstName: "Zoe", lastInitial: "A", grade: 5 },
+        {
+          id: expect.any(String),
+          firstName: "Ana",
+          lastInitial: "D",
+          grade: null,
+        },
+        {
+          id: expect.any(String),
+          firstName: "Zoe",
+          lastInitial: "A",
+          grade: 5,
+        },
       ]);
       await port.signIn(await credentialFor(newGoogleAccount()));
       await expect(port.students(made.id)).rejects.toBeInstanceOf(NotFound);

@@ -61,6 +61,17 @@ function remove(
   );
 }
 
+/** The response's body, once it's the success it should be. */
+async function ok<R extends { status: number; json(): Promise<unknown> }>(
+  res: R,
+) {
+  if (res.status >= 300) throw new Error(`Answered ${res.status}`);
+  return (await res.json()) as Exclude<
+    Awaited<ReturnType<R["json"]>>,
+    { error: string }
+  >;
+}
+
 async function dashboardOf(headers: Headers, classId: string) {
   const res = await client.classes[":classId"].dashboard.$get(
     { param: { classId } },
@@ -85,7 +96,7 @@ describe("turning a game off and on", () => {
 
     const off = await switchGame(headers, cls.id, "fraction-hop", false);
     expect(off.status).toBe(200);
-    expect((await off.json()).games).toEqual([
+    expect((await ok(off)).games).toEqual([
       expect.objectContaining({ slug: "fraction-hop", on: false }),
     ]);
     expect((await sessionOf(sam.headers)).classes[0]?.games).toEqual([]);
@@ -93,7 +104,7 @@ describe("turning a game off and on", () => {
     // Turning it off again changes nothing.
     await switchGame(headers, cls.id, "fraction-hop", false);
     const on = await switchGame(headers, cls.id, "fraction-hop", true);
-    expect((await on.json()).games).toEqual([
+    expect((await ok(on)).games).toEqual([
       expect.objectContaining({ slug: "fraction-hop", on: true }),
     ]);
     expect((await sessionOf(sam.headers)).classes[0]?.games).toEqual([
@@ -108,8 +119,7 @@ describe("turning a game off and on", () => {
       (await switchGame(headers, cls.id, "no-such-game", false)).status,
     ).toBe(404);
     expect(
-      (await switchGame(await teacher(), cls.id, "fraction-hop", false))
-        .status,
+      (await switchGame(await teacher(), cls.id, "fraction-hop", false)).status,
     ).toBe(404);
     expect(
       (await switchGame(await signInAsStudent(), cls.id, "fraction-hop", false))
@@ -119,12 +129,12 @@ describe("turning a game off and on", () => {
       (await switchGame(undefined, cls.id, "fraction-hop", false)).status,
     ).toBe(401);
     const [game] = (
-      await (
+      await ok(
         await client.classes[":classId"].$get(
           { param: { classId: cls.id } },
           { headers },
-        )
-      ).json()
+        ),
+      )
     ).games;
     expect(game?.on).toBe(true);
   });
@@ -139,7 +149,12 @@ describe("a class's students", () => {
     const res = await studentsOf(headers, cls.id);
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual([
-      { id: expect.any(String), firstName: "Ana", lastInitial: "D", grade: null },
+      {
+        id: expect.any(String),
+        firstName: "Ana",
+        lastInitial: "D",
+        grade: null,
+      },
       { id: expect.any(String), firstName: "Zoe", lastInitial: "A", grade: 5 },
     ]);
   });
@@ -268,9 +283,7 @@ describe("removing a student", () => {
     expect(dashboard.students.map((s) => s.id)).toEqual([ana.studentId]);
     expect(dashboard.misconceptions).toEqual([]);
     expect(
-      (await (await studentsOf(headers, cls.id)).json()).map(
-        (s: { id: string }) => s.id,
-      ),
+      (await ok(await studentsOf(headers, cls.id))).map((s) => s.id),
     ).toEqual([ana.studentId]);
     const evidence = await client.classes[":classId"].students[
       ":studentId"
@@ -337,9 +350,7 @@ describe("removing a student", () => {
     expect((await remove(await teacher(), cls.id, sam.studentId)).status).toBe(
       404,
     );
-    expect((await remove(sam.headers, cls.id, sam.studentId)).status).toBe(
-      403,
-    );
+    expect((await remove(sam.headers, cls.id, sam.studentId)).status).toBe(403);
     expect((await remove(undefined, cls.id, sam.studentId)).status).toBe(401);
     expect((await sessionOf(sam.headers)).classes).toHaveLength(1);
   });

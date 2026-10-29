@@ -818,8 +818,7 @@ describe("managing a class", () => {
     return user;
   }
 
-  const studentItem = (name: string) =>
-    screen.findByRole("listitem", { name });
+  const studentItem = (name: string) => screen.findByRole("listitem", { name });
 
   it("turns a game off, taking its link off the class, and back on", async () => {
     const user = await openManage({ classes: room12() });
@@ -830,7 +829,9 @@ describe("managing a class", () => {
     expect(
       await screen.findByText(/^Off: not in their lockers/),
     ).toBeInTheDocument();
-    expect(screen.getByRole("switch", { name: /Fraction Hop/ })).not.toBeChecked();
+    expect(
+      screen.getByRole("switch", { name: /Fraction Hop/ }),
+    ).not.toBeChecked();
 
     await user.click(screen.getByRole("link", { name: "The class's results" }));
     await user.click(await screen.findByRole("link", { name: "Your classes" }));
@@ -839,9 +840,15 @@ describe("managing a class", () => {
       within(card).queryByRole("button", { name: /Copy game link/ }),
     ).toBeNull();
 
-    await user.click(within(card).getByRole("link", { name: "Manage Room 12" }));
-    await user.click(await screen.findByRole("switch", { name: /Fraction Hop/ }));
-    expect(await screen.findByText(/^On: in your students' lockers/)).toBeInTheDocument();
+    await user.click(
+      within(card).getByRole("link", { name: "Manage Room 12" }),
+    );
+    await user.click(
+      await screen.findByRole("switch", { name: /Fraction Hop/ }),
+    );
+    expect(
+      await screen.findByText(/^On: in your students' lockers/),
+    ).toBeInTheDocument();
     await user.click(screen.getByRole("link", { name: "The class's results" }));
     await user.click(await screen.findByRole("link", { name: "Your classes" }));
     expect(
@@ -881,7 +888,9 @@ describe("managing a class", () => {
     await user.click(screen.getByRole("link", { name: "The class's results" }));
     const samRow = await screen.findByRole("row", { name: /^Sam R\./ });
     expect(within(samRow).getByText("Grade 5")).toBeInTheDocument();
-    expect(within(samRow).getByText("From the Grade 4 tier")).toBeInTheDocument();
+    expect(
+      within(samRow).getByText("From the Grade 4 tier"),
+    ).toBeInTheDocument();
   });
 
   it("sets the grade of a split-class student who hasn't picked one", async () => {
@@ -926,7 +935,9 @@ describe("managing a class", () => {
     expect(await studentItem("Ana D.")).toBeInTheDocument();
 
     await user.click(screen.getByRole("link", { name: "The class's results" }));
-    expect(await screen.findByRole("row", { name: /^Ana D\./ })).toBeInTheDocument();
+    expect(
+      await screen.findByRole("row", { name: /^Ana D\./ }),
+    ).toBeInTheDocument();
     expect(screen.queryByRole("row", { name: /^Sam R\./ })).toBeNull();
   });
 
@@ -960,17 +971,18 @@ describe("managing a class", () => {
     const classes = await screen.findByRole("navigation", {
       name: "Your classes",
     });
-    expect(within(classes).getByRole("link", { name: "Room 12" })).toHaveAttribute(
-      "aria-current",
-      "page",
-    );
+    expect(
+      within(classes).getByRole("link", { name: "Room 12" }),
+    ).toHaveAttribute("aria-current", "page");
     expect(screen.getByRole("row", { name: /^Sam R\./ })).toBeInTheDocument();
 
     await user.click(within(classes).getByRole("link", { name: "Room 14" }));
     expect(
       await screen.findByRole("heading", { level: 1, name: "Room 14" }),
     ).toBeInTheDocument();
-    expect(await screen.findByRole("row", { name: /^Ana D\./ })).toBeInTheDocument();
+    expect(
+      await screen.findByRole("row", { name: /^Ana D\./ }),
+    ).toBeInTheDocument();
     expect(screen.queryByRole("row", { name: /^Sam R\./ })).toBeNull();
     expect(
       within(
@@ -986,7 +998,9 @@ describe("managing a class", () => {
       await screen.findByRole("link", { name: "See results for Room 12" }),
     );
     await screen.findByRole("heading", { level: 1, name: "Room 12" });
-    expect(screen.queryByRole("navigation", { name: "Your classes" })).toBeNull();
+    expect(
+      screen.queryByRole("navigation", { name: "Your classes" }),
+    ).toBeNull();
   });
 
   it("opens the manage screen from its URL, and not for another teacher's class", async () => {

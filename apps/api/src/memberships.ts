@@ -87,7 +87,8 @@ export async function classStudents(
     where: { id: classId, teacherId },
     select: { memberships: { select: classStudentFields } },
   });
-  return found && found.memberships.map(toClassStudent).sort(byName);
+  if (!found) return null;
+  return found.memberships.map(toClassStudent).sort(byName);
 }
 
 export type GradeChange =

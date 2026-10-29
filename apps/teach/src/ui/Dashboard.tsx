@@ -106,7 +106,13 @@ export function DashboardScreen({
 }
 
 /** The teacher's other classes, one tap away: the dashboard shows one at a time. */
-function Switcher({ classes: all, current }: { classes: Class[]; current: string }) {
+function Switcher({
+  classes: all,
+  current,
+}: {
+  classes: Class[];
+  current: string;
+}) {
   return (
     <nav aria-label="Your classes" className={classes.switcher}>
       {all.map((c) => (

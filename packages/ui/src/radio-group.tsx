@@ -1,4 +1,4 @@
-import { Group, Radio, RadioGroup as MantineRadioGroup } from "@mantine/core";
+import { Group, RadioGroup as MantineRadioGroup, Radio } from "@mantine/core";
 import { inputClassNames } from "./input";
 
 interface RadioGroupProps {

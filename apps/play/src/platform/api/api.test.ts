@@ -254,7 +254,8 @@ describe("a game link over the API", () => {
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ name: "Room 12", grades }),
     });
-    return (await res.json()) as { id: string; joinCode: string };
+    const made = (await res.json()) as { id: string; joinCode: string };
+    return { ...made, teacher: teacher.send };
   }
 
   /** A signed-in student with an avatar, opening a game link. */
@@ -315,13 +316,18 @@ describe("a game link over the API", () => {
     });
   });
 
-  it("says when its class has the game turned off", async () => {
-    const { id, joinCode } = await newClass([4]);
-    await database.db.class.update({
-      where: { id },
-      data: { gamesOff: [fractionHop.slug] },
-    });
+  it("says when its class has the game turned off, and opens it once it's back on", async () => {
+    const { id, joinCode, teacher } = await newClass([4]);
+    const turn = (on: boolean) =>
+      teacher(`/classes/${id}/games/${fractionHop.slug}`, {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ on }),
+      });
+    expect((await turn(false)).status).toBe(200);
     expect((await open(joinCode)).result).toEqual({ kind: "game-off" });
+    expect((await turn(true)).status).toBe(200);
+    expect((await open(joinCode)).result).toMatchObject({ kind: "ready" });
   });
 
   it("says when no class has its join code", async () => {
