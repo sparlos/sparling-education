@@ -20,7 +20,7 @@ In development the app reaches the API through Vite's proxy at `/api`, so the se
 - `src/platform/ports.ts`: the teacher port, the only way the app talks to the rest of Kindling.
 - `src/platform/contract.ts`: the port's contract suite. It runs against the in-memory fake (`fake/`) and the API adapter (`api/`) over the in-process API and the test Postgres, so the fake can't drift from the API.
 - `src/platform/api/google-button.tsx`: Google's sign-in button. It hands Google's ID token to the port; the API verifies it.
-- `src/ui/`: the screens, built from `@repo/ui`. `Classes.tsx` is "your classes": making a class and copying its class join link and game links. `App.test.tsx` renders the app over the fake platform, at a URL, with a memory history.
+- `src/ui/`: the screens, built from `@repo/ui`. `NewClass.tsx` makes a class; `Share.tsx` is the dashboard's panel with the class join link, the game links and each game's switch; `StudentScreen.tsx` is a student's quick assess, with their plays opened on screen. `App.test.tsx` renders the app over the fake platform, at a URL, with a memory history.
 - `src/ui/routes.tsx`: every screen's URL (TanStack Router, code-based routes). Each route loads what its screen needs from the URL's params through the teacher port, so reloading or opening a link shows the same screen; everything for one class lives under `/teach/classes/<classId>/`. Signed out, any URL shows sign-in and then that screen.
 
 ## Serving it

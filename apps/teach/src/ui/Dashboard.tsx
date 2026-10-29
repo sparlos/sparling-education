@@ -2,18 +2,19 @@
 // students against the expectations its games evidence, each cell saying how
 // well that student's plays show understanding of that expectation, or that
 // there's no evidence yet. A cell, or a student under a misconception, opens
-// that student's evidence; a student's name opens their page. Below, the
-// students not recognised yet this term; any student can be recognised from
-// their row.
-import { Anchor } from "@repo/ui/anchor";
+// that student's page at that expectation; a student's name opens their page.
+// Below, the students not recognised yet this term. The header has the three
+// things a teacher does here: share the class, quick assess, manage it.
+import { Button } from "@repo/ui/button";
 import { Card } from "@repo/ui/card";
 import { Stack } from "@repo/ui/stack";
 import { Table } from "@repo/ui/table";
 import { Text } from "@repo/ui/text";
 import { Title } from "@repo/ui/title";
+import { Tooltip } from "@repo/ui/tooltip";
 import { VisuallyHidden } from "@repo/ui/visually-hidden";
 import { Link } from "@tanstack/react-router";
-import type { ReactNode } from "react";
+import { type ReactNode, useState } from "react";
 import type {
   Class,
   ClassMisconception,
@@ -22,16 +23,13 @@ import type {
   Result,
   Understanding,
 } from "../platform/ports.ts";
-import { gradesLabel } from "./Classes.tsx";
 import { type DemoActions, DemoCard } from "./Demo.tsx";
 import classes from "./dashboard.module.css";
-import { ButtonLink, useUp } from "./links.tsx";
-import {
-  NotYetRecognised,
-  type OnRecognise,
-  Recognise,
-  traitName,
-} from "./Recognition.tsx";
+import { ButtonLink } from "./links.tsx";
+import { gradesLabel } from "./NewClass.tsx";
+import { expectationLabel, OfficialCode } from "./OfficialCode.tsx";
+import { NotYetRecognised, type OnRecognise } from "./Recognition.tsx";
+import { type ShareActions, SharePanel } from "./Share.tsx";
 
 /** What each understanding band says. Descriptions, never marks or levels. */
 export const understandingLabels: Record<Understanding, string> = {
@@ -54,6 +52,7 @@ export function DashboardScreen({
   onMisconception,
   onRecognise,
   demo,
+  share,
 }: {
   cls: Class;
   /** All the teacher's classes, to switch between. */
@@ -65,22 +64,29 @@ export function DashboardScreen({
   onRecognise: OnRecognise;
   /** What can be done with the demo class, on its dashboard. */
   demo: DemoActions;
+  share: ShareActions;
 }) {
-  const up = useUp();
+  const [sharing, setSharing] = useState(false);
   return (
-    <Stack gap="lg">
-      <div>
-        <ButtonLink to="/" variant="subtle" onClick={up}>
-          Your classes
-        </ButtonLink>
-      </div>
-      {all.length > 1 && <Switcher classes={all} current={cls.id} />}
+    <Stack gap="md">
+      <Switcher classes={all} current={cls.id} />
       <div className={classes.heading}>
-        <div>
-          <Title order={1}>{cls.name}</Title>
+        <div className={classes.title}>
+          <Title order={1} size="h2">
+            {cls.name}
+          </Title>
           <Text c="muted">{gradesLabel(cls.grades)}</Text>
         </div>
         <div className={classes.actions}>
+          {!cls.demo && (
+            <Button
+              tone="educator"
+              aria-expanded={sharing}
+              onClick={() => setSharing(!sharing)}
+            >
+              Share
+            </Button>
+          )}
           <ButtonLink
             to="/classes/$classId/quick-assess"
             params={{ classId: cls.id }}
@@ -99,6 +105,7 @@ export function DashboardScreen({
           </ButtonLink>
         </div>
       </div>
+      {sharing && !cls.demo && <SharePanel cls={cls} actions={share} />}
       {cls.demo && <DemoCard actions={demo} />}
       {dashboard.students.length === 0 ? (
         <Card variant="soft" tone="educator">
@@ -117,6 +124,7 @@ export function DashboardScreen({
           <Strip
             classId={cls.id}
             misconceptions={dashboard.misconceptions}
+            showGame={cls.games.length > 1}
             open={misconception}
             onToggle={onMisconception}
           />
@@ -124,7 +132,6 @@ export function DashboardScreen({
             classId={cls.id}
             dashboard={dashboard}
             split={cls.grades.length > 1}
-            onRecognise={onRecognise}
           />
           <NotYetRecognised
             students={dashboard.students}
@@ -137,7 +144,7 @@ export function DashboardScreen({
   );
 }
 
-/** The teacher's other classes, one tap away: the dashboard shows one at a time. */
+/** The teacher's classes, the one shown marked, and the way to make another. */
 function Switcher({
   classes: all,
   current,
@@ -158,12 +165,15 @@ function Switcher({
           {c.name}
         </Link>
       ))}
+      <Link to="/new" className={classes.switch}>
+        New class
+      </Link>
     </nav>
   );
 }
 
-/** A link down to a student's evidence for one expectation. */
-function EvidenceLink({
+/** A link down to a student's page, at one expectation's plays. */
+export function EvidenceLink({
   classId,
   cell,
   className,
@@ -178,8 +188,9 @@ function EvidenceLink({
 }) {
   return (
     <Link
-      to="/classes/$classId/students/$studentId/expectations/$expectationId"
-      params={{ classId, ...cell }}
+      to="/classes/$classId/students/$studentId"
+      params={{ classId, studentId: cell.studentId }}
+      search={{ expectation: cell.expectationId }}
       state={{ fromAbove: true }}
       className={className}
       {...data}
@@ -190,30 +201,39 @@ function EvidenceLink({
 }
 
 /** The misconceptions showing up in the class, each opening on who showed it. */
-function Strip({
+export function Strip({
   classId,
   misconceptions,
+  showGame,
   open,
   onToggle,
 }: {
   classId: string;
   misconceptions: ClassMisconception[];
+  /** Name each one's game: only when the class has more than one. */
+  showGame: boolean;
   open: string | null;
   onToggle(key: string | null): void;
 }) {
+  const [all, setAll] = useState(false);
+  // One opened from a link is never hidden behind "All".
+  const hidden = misconceptions
+    .slice(commonMisconceptions)
+    .some((m) => `${m.game}|${m.id}` === open);
+  const shown =
+    all || hidden
+      ? misconceptions
+      : misconceptions.slice(0, commonMisconceptions);
   return (
     <section aria-labelledby="misconceptions" className={classes.strip}>
       <Title order={2} size="h4" id="misconceptions">
         Misconceptions showing up
       </Title>
       {misconceptions.length === 0 ? (
-        <Text c="muted">
-          None yet. When a game spots a wrong idea in a student's play, it shows
-          up here.
-        </Text>
+        <Text c="muted">None yet.</Text>
       ) : (
         <ul className={classes.misconceptions}>
-          {misconceptions.map((m) => {
+          {shown.map((m) => {
             const key = `${m.game}|${m.id}`;
             const isOpen = open === key;
             const panel = `misconception-${key}`;
@@ -232,9 +252,11 @@ function Strip({
                   <span className={classes.misconceptionDescription}>
                     {m.description}
                   </span>
-                  <span className={classes.misconceptionGame}>
-                    {m.gameName}
-                  </span>
+                  {showGame && (
+                    <span className={classes.misconceptionGame}>
+                      {m.gameName}
+                    </span>
+                  )}
                 </button>
                 {isOpen && (
                   <ul
@@ -263,9 +285,25 @@ function Strip({
           })}
         </ul>
       )}
+      {misconceptions.length > commonMisconceptions && !hidden && (
+        <div>
+          <Button
+            variant="subtle"
+            aria-expanded={all}
+            onClick={() => setAll(!all)}
+          >
+            {all
+              ? "Show the most common"
+              : `All ${misconceptions.length} misconceptions`}
+          </Button>
+        </div>
+      )}
     </section>
   );
 }
+
+/** How many misconceptions the strip shows before "All". */
+const commonMisconceptions = 3;
 
 function studentsLabel(n: number) {
   return n === 1 ? "1 student" : `${n} students`;
@@ -275,25 +313,35 @@ function Grid({
   classId,
   dashboard,
   split,
-  onRecognise,
 }: {
   classId: string;
   dashboard: Dashboard;
   split: boolean;
-  onRecognise: OnRecognise;
 }) {
   const { expectations, students } = dashboard;
   return (
     <div className={classes.scroller}>
       <Table
         classNames={{ table: classes.grid, caption: classes.caption }}
-        caption="How each student's plays show understanding of each expectation"
+        caption={
+          <VisuallyHidden>
+            How each student's plays show understanding of each expectation
+          </VisuallyHidden>
+        }
         head={[
           "Student",
           ...expectations.map((e) => (
             <span key={e.id} className={classes.expectation}>
-              <OfficialCode expectation={e} className={classes.code} />
-              <span className={classes.description}>{e.description}</span>
+              <OfficialCode
+                expectation={e}
+                className={classes.code}
+                label={shortCode(e)}
+              />
+              <Tooltip label={e.description}>
+                <span className={classes.description}>
+                  {shortLabel(e.description)}
+                </span>
+              </Tooltip>
             </span>
           )),
         ]}
@@ -314,21 +362,6 @@ function Grid({
                   Grade {student.grade}
                 </span>
               )}
-              {student.recognised.length > 0 && (
-                <span className={classes.recognised}>
-                  {`Recognised: ${student.recognised
-                    .map((t) => traitName(dashboard.recognition, t))
-                    .join(", ")}`}
-                </span>
-              )}
-              <Recognise
-                student={student}
-                settings={dashboard.recognition}
-                recognised={student.recognised}
-                onRecognise={onRecognise}
-                variant="subtle"
-                quiet
-              />
             </span>,
             ...expectations.map((e) => (
               <ResultCell
@@ -344,6 +377,17 @@ function Grid({
       />
     </div>
   );
+}
+
+/** "Gr 4 · B1.6", for a column header. */
+function shortCode({ grade, code }: DashboardExpectation) {
+  return `Gr ${grade} · ${code}`;
+}
+
+/** An expectation's first few words: enough to tell its columns apart. */
+export function shortLabel(description: string) {
+  const words = description.replace(/[,:;.]$/, "").split(" ");
+  return words.length <= 4 ? description : `${words.slice(0, 4).join(" ")}…`;
 }
 
 /** A cell: its band, which opens the evidence behind it. */
@@ -386,30 +430,6 @@ export function Band({ result }: { result: Result }) {
       )}
     </>
   );
-}
-
-/**
- * "Grade 4 · B1.6", linked to its official page on the curriculum site, in a
- * new tab: the ministry's wording, one tap away, without Kindling copying it.
- */
-export function OfficialCode({
-  expectation,
-  className,
-}: {
-  expectation: DashboardExpectation;
-  className?: string;
-}) {
-  return (
-    <Anchor href={expectation.link} newTab className={className}>
-      {expectationLabel(expectation)}
-      <VisuallyHidden>, official wording (opens in a new tab)</VisuallyHidden>
-    </Anchor>
-  );
-}
-
-/** "Grade 4 · B1.6" */
-export function expectationLabel({ grade, code }: DashboardExpectation) {
-  return `Grade ${grade} · ${code}`;
 }
 
 /** "Ada L." */

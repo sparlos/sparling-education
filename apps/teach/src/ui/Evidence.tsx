@@ -1,19 +1,12 @@
-// A dashboard cell, opened: one student's evidence for one expectation. Their
+// One student's evidence for one expectation, opened on their page: their
 // understanding at each tier, then every play with evidence for it, newest
 // first, each opening on its attempts.
-import { Stack } from "@repo/ui/stack";
 import { Text } from "@repo/ui/text";
 import { Title } from "@repo/ui/title";
 import { Link } from "@tanstack/react-router";
-import type {
-  Class,
-  Ending,
-  Evidence,
-  EvidencePlay,
-} from "../platform/ports.ts";
-import { Band, nameOf, OfficialCode } from "./Dashboard.tsx";
+import type { Ending, Evidence, EvidencePlay } from "../platform/ports.ts";
+import { Band } from "./Dashboard.tsx";
 import classes from "./drill-down.module.css";
-import { ButtonLink, useUp } from "./links.tsx";
 
 /** How each play ended, in a teacher's words. */
 export const endingLabels: Record<Exclude<Ending, null>, string> = {
@@ -25,33 +18,15 @@ export const endingLabels: Record<Exclude<Ending, null>, string> = {
 /** A play with no ending yet. */
 export const noEnding = "Not finished, or not all sent yet";
 
-export function EvidenceScreen({
-  cls,
-  evidence: { student, expectation, results, plays },
+export function EvidencePanel({
+  classId,
+  evidence: { student, results, plays },
 }: {
-  cls: Class;
+  classId: string;
   evidence: Evidence;
 }) {
-  const up = useUp();
   return (
-    <Stack gap="lg">
-      <div>
-        <ButtonLink
-          to="/classes/$classId"
-          params={{ classId: cls.id }}
-          variant="subtle"
-          onClick={up}
-        >
-          {`${cls.name} results`}
-        </ButtonLink>
-      </div>
-      <div>
-        <Title order={1}>{nameOf(student)}</Title>
-        <Text className={classes.code}>
-          <OfficialCode expectation={expectation} />
-        </Text>
-        <Text c="muted">{expectation.description}</Text>
-      </div>
+    <div className={classes.panel}>
       {results.length === 0 ? (
         <Text>No evidence yet.</Text>
       ) : (
@@ -68,20 +43,24 @@ export function EvidenceScreen({
         </ul>
       )}
       {plays.length > 0 && (
-        <section aria-labelledby="plays" className={classes.section}>
-          <Title order={2} size="h4" id="plays">
+        <section aria-label="Plays, newest first" className={classes.section}>
+          <Title order={3} size="h5">
             Plays, newest first
           </Title>
           <ol className={classes.plays}>
             {plays.map((play) => (
               <li key={play.play}>
-                <PlayCard classId={cls.id} studentId={student.id} play={play} />
+                <PlayCard
+                  classId={classId}
+                  studentId={student.id}
+                  play={play}
+                />
               </li>
             ))}
           </ol>
         </section>
       )}
-    </Stack>
+    </div>
   );
 }
 

@@ -26,24 +26,15 @@ export function PlayScreen({ classId, play }: { classId: string; play: Play }) {
   return (
     <Stack gap="lg">
       <div>
-        {expectationId ? (
-          <ButtonLink
-            to="/classes/$classId/students/$studentId/expectations/$expectationId"
-            params={{ classId, studentId: play.student.id, expectationId }}
-            variant="subtle"
-            onClick={up}
-          >
-            {`${student}'s evidence`}
-          </ButtonLink>
-        ) : (
-          <ButtonLink
-            to="/classes/$classId"
-            params={{ classId }}
-            variant="subtle"
-          >
-            The class's results
-          </ButtonLink>
-        )}
+        <ButtonLink
+          to="/classes/$classId/students/$studentId"
+          params={{ classId, studentId: play.student.id }}
+          search={expectationId ? { expectation: expectationId } : {}}
+          variant="subtle"
+          onClick={up}
+        >
+          {student}
+        </ButtonLink>
       </div>
       <div>
         <Title order={1}>

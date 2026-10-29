@@ -1,43 +1,4 @@
-.heading {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--mantine-spacing-md);
-}
-
 .actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--mantine-spacing-sm);
-}
-
-.linkRow {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--mantine-spacing-sm) var(--mantine-spacing-md);
-}
-
-.linkText {
-  min-width: 0;
-}
-
-.url {
-  overflow-wrap: anywhere;
-}
-
-.games {
-  display: grid;
-  gap: var(--mantine-spacing-sm);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.title {
   display: flex;
   flex-wrap: wrap;
   align-items: center;

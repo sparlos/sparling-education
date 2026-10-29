@@ -1,10 +1,8 @@
-// The demo class's card, on its dashboard: what the class is, viewing the
+// The demo class's banner, on its dashboard: what the class is, viewing the
 // play shell as one of its students, and deleting it.
 import { Button } from "@repo/ui/button";
 import { Card } from "@repo/ui/card";
-import { Stack } from "@repo/ui/stack";
 import { Text } from "@repo/ui/text";
-import { Title } from "@repo/ui/title";
 import { useState } from "react";
 import type { DemoView } from "../platform/ports.ts";
 import classes from "./dashboard.module.css";
@@ -47,36 +45,32 @@ export function DemoCard({ actions }: { actions: DemoActions }) {
   };
 
   return (
-    <Card variant="soft" tone="educator">
-      <section aria-label="Demo class">
-        <Stack gap="sm" align="flex-start">
-          <Title order={2} size="h4">
-            This is a demo class
-          </Title>
-          <Text>
-            Its students are simulated, with results already in, so you can see
-            what Kindling shows before your own students play.
-          </Text>
-          {confirming ? (
-            <>
-              <Text>
-                Delete the demo class and all its simulated students? It won't
-                come back.
-              </Text>
-              <div className={classes.actions}>
-                <Button
-                  tone="educator"
-                  disabled={state === "busy"}
-                  onClick={remove}
-                >
-                  Delete demo class
-                </Button>
-                <Button variant="subtle" onClick={() => setConfirming(false)}>
-                  Cancel
-                </Button>
-              </div>
-            </>
-          ) : (
+    <Card variant="soft" tone="educator" padding="md">
+      <section aria-label="Demo class" className={classes.banner}>
+        {confirming ? (
+          <>
+            <Text>
+              Delete the demo class and all its simulated students? It won't
+              come back.
+            </Text>
+            <div className={classes.actions}>
+              <Button
+                tone="educator"
+                disabled={state === "busy"}
+                onClick={remove}
+              >
+                Delete demo class
+              </Button>
+              <Button variant="subtle" onClick={() => setConfirming(false)}>
+                Cancel
+              </Button>
+            </div>
+          </>
+        ) : (
+          <>
+            <Text>
+              Demo class: simulated students, with results already in.
+            </Text>
             <div className={classes.actions}>
               <Button
                 tone="educator"
@@ -86,16 +80,16 @@ export function DemoCard({ actions }: { actions: DemoActions }) {
                 View as a student
               </Button>
               <Button variant="secondary" onClick={() => setConfirming(true)}>
-                Delete demo class
+                Delete
               </Button>
             </div>
-          )}
-          {state === "failed" && (
-            <Text size="sm">
-              That didn't work. Check your connection and try again.
-            </Text>
-          )}
-        </Stack>
+          </>
+        )}
+        {state === "failed" && (
+          <Text size="sm">
+            That didn't work. Check your connection and try again.
+          </Text>
+        )}
       </section>
     </Card>
   );

@@ -18,6 +18,8 @@ interface ButtonProps {
   /** Gets the click, so a router can take over a link's navigation. */
   onClick?: (event: MouseEvent<HTMLElement>) => void;
   disabled?: boolean;
+  /** For a button that opens and closes something: whether it's open. */
+  "aria-expanded"?: boolean;
   fullWidth?: boolean;
   leftSection?: ReactNode;
   rightSection?: ReactNode;
@@ -33,6 +35,7 @@ export function Button({
   type = "button",
   onClick,
   disabled,
+  "aria-expanded": expanded,
   fullWidth,
   leftSection,
   rightSection,
@@ -47,6 +50,7 @@ export function Button({
     "data-size": size,
     "data-tone": variant === "secondary" ? "neutral" : tone,
     "data-full-width": fullWidth || undefined,
+    "aria-expanded": expanded,
     onClick,
   };
   const content = (

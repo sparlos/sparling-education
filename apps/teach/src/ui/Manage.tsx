@@ -1,29 +1,22 @@
-// Managing a class: turning its games on and off, changing a student's
-// grade in a split class, and removing a student. Each change takes effect
-// at once.
+// Managing a class's students: changing a student's grade in a split class,
+// and removing a student. Each change takes effect at once.
 import { Button } from "@repo/ui/button";
 import { Card } from "@repo/ui/card";
+import { Menu } from "@repo/ui/menu";
 import { RadioGroup } from "@repo/ui/radio-group";
 import { Stack } from "@repo/ui/stack";
-import { Switch } from "@repo/ui/switch";
 import { Text } from "@repo/ui/text";
 import { Title } from "@repo/ui/title";
 import { VisuallyHidden } from "@repo/ui/visually-hidden";
 import { useState } from "react";
-import type {
-  Class,
-  ClassGame,
-  ClassGrade,
-  ClassStudent,
-} from "../platform/ports.ts";
-import { gradesLabel } from "./Classes.tsx";
+import type { Class, ClassGrade, ClassStudent } from "../platform/ports.ts";
 import { nameOf } from "./Dashboard.tsx";
 import { ButtonLink, useUp } from "./links.tsx";
 import classes from "./manage.module.css";
+import { gradesLabel } from "./NewClass.tsx";
 
 /** The changes a teacher can make; each resolves once the screen shows it. */
 export interface ManageActions {
-  switchGame(slug: string, on: boolean): Promise<void>;
   setGrade(studentId: string, grade: ClassGrade): Promise<void>;
   remove(studentId: string): Promise<void>;
 }
@@ -47,14 +40,13 @@ export function ManageScreen({
           variant="subtle"
           onClick={up}
         >
-          The class's results
+          {cls.name}
         </ButtonLink>
       </div>
       <div>
         <Title order={1}>Manage {cls.name}</Title>
         <Text c="muted">{gradesLabel(cls.grades)}</Text>
       </div>
-      <Games games={cls.games} onSwitch={actions.switchGame} />
       <Students cls={cls} students={students} actions={actions} />
     </Stack>
   );
@@ -82,63 +74,6 @@ function useChange() {
   return { busy: state === "busy", failed: state === "failed", run };
 }
 
-function Games({
-  games,
-  onSwitch,
-}: {
-  games: ClassGame[];
-  onSwitch(slug: string, on: boolean): Promise<void>;
-}) {
-  return (
-    <Card padding="lg">
-      <section aria-labelledby="games">
-        <Stack gap="md">
-          <div>
-            <Title order={2} size="h3" id="games">
-              Games
-            </Title>
-            <Text size="sm" c="muted">
-              Students see the games that are on in their locker.
-            </Text>
-          </div>
-          <ul className={classes.list}>
-            {games.map((game) => (
-              <GameSwitch key={game.slug} game={game} onSwitch={onSwitch} />
-            ))}
-          </ul>
-        </Stack>
-      </section>
-    </Card>
-  );
-}
-
-function GameSwitch({
-  game,
-  onSwitch,
-}: {
-  game: ClassGame;
-  onSwitch(slug: string, on: boolean): Promise<void>;
-}) {
-  const { busy, failed, run } = useChange();
-  return (
-    <li>
-      <Switch
-        tone="educator"
-        label={game.name}
-        description={
-          game.on
-            ? "On: in your students' lockers."
-            : "Off: not in their lockers, and its game link says it's turned off."
-        }
-        checked={game.on}
-        disabled={busy}
-        onChange={(on) => run(() => onSwitch(game.slug, on))}
-      />
-      {failed && <Text size="sm">{unsaved}</Text>}
-    </li>
-  );
-}
-
 function Students({
   cls,
   students,
@@ -156,13 +91,6 @@ function Students({
             <Title order={2} size="h3" id="students">
               Students
             </Title>
-            {cls.grades.length > 1 && (
-              <Text size="sm" c="muted">
-                Students pick their grade when they join. Change it if one
-                picked the wrong grade: it sets the tier of the games they play
-                next, and results they already have keep their tier.
-              </Text>
-            )}
           </div>
           {students.length === 0 ? (
             <Text c="muted">
@@ -237,23 +165,34 @@ function StudentRow({
           )}
         </div>
         {opened === "none" && (
-          <div className={classes.controls}>
-            {split && (
-              <Button variant="secondary" onClick={() => open("grade")}>
-                {student.grade === null ? "Set grade" : "Change grade"}{" "}
-                <VisuallyHidden>for {name}</VisuallyHidden>
-              </Button>
-            )}
-            <Button variant="secondary" onClick={() => open("remove")}>
-              Remove <VisuallyHidden>{name}</VisuallyHidden>
-            </Button>
-          </div>
+          <Menu
+            label={name}
+            items={[
+              ...(split
+                ? [
+                    {
+                      key: "grade",
+                      label:
+                        student.grade === null ? "Set grade" : "Change grade",
+                      onClick: () => open("grade"),
+                    },
+                  ]
+                : []),
+              {
+                key: "remove",
+                label: "Remove from class",
+                onClick: () => open("remove"),
+              },
+            ]}
+          >
+            <span aria-hidden="true">⋯</span>
+            <VisuallyHidden>Options for {name}</VisuallyHidden>
+          </Menu>
         )}
       </div>
       {changed !== null && (
         <Text size="sm" aria-live="polite">
-          {name} now plays at the Grade {changed} tier. Results they already
-          have keep their tier.
+          {name} now plays at the Grade {changed} tier.
         </Text>
       )}
       {opened === "grade" && (
@@ -270,8 +209,8 @@ function StudentRow({
               onChange={setPicked}
             />
             <Text size="sm" c="muted">
-              Their next plays are at this grade's tier. Results they already
-              have keep the tier they were earned at.
+              Students pick their grade when they join. Their next plays are at
+              this grade's tier; results they already have keep theirs.
             </Text>
             <div className={classes.controls}>
               <Button tone="educator" disabled={busy} onClick={save}>

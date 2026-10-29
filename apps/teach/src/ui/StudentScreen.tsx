@@ -1,151 +1,135 @@
-// A student's page, opened from their row of the dashboard: their effort
-// evidence by Learning Skill, then their results, each opening on its
-// evidence, then the recognition they were given, and their quick assess.
+// A student's page, opened from the dashboard: their quick assess, laid out
+// as a report card is written (math by expectation, next steps seen in play,
+// then Learning Skills, which report cards keep apart), ready to print. On
+// screen, each expectation opens on its bands and plays, newest first, and
+// the student can be recognised. Counts only, never a level: the grade is the
+// teacher's.
+import { Button } from "@repo/ui/button";
 import { Stack } from "@repo/ui/stack";
 import { Text } from "@repo/ui/text";
 import { Title } from "@repo/ui/title";
-import { Link } from "@tanstack/react-router";
+import { VisuallyHidden } from "@repo/ui/visually-hidden";
+import { useEffect } from "react";
 import type {
   Class,
-  EffortKind,
-  EffortSkill,
+  Evidence,
+  QuickAssessExpectation,
+  QuickAssessStudent,
   StudentPage,
 } from "../platform/ports.ts";
-import { Band, expectationLabel, nameOf } from "./Dashboard.tsx";
+import { Band, nameOf } from "./Dashboard.tsx";
+import { EvidencePanel } from "./Evidence.tsx";
 import { ButtonLink, useUp } from "./links.tsx";
+import { expectationLabel } from "./OfficialCode.tsx";
+import { StudentBlock } from "./QuickAssess.tsx";
+import classes from "./quick-assess.module.css";
 import { type OnRecognise, StudentRecognition } from "./Recognition.tsx";
-import classes from "./student.module.css";
-
-/** Each kind of effort evidence, counted, in a teacher's words. */
-export const effortLabels: Record<EffortKind, (n: number) => string> = {
-  improvedAfterMistake: (n) =>
-    `${n} ${n === 1 ? "task" : "tasks"} got right after a mistake`,
-  finishedPlays: (n) => `${n} ${n === 1 ? "play" : "plays"} finished`,
-};
 
 export function StudentScreen({
   cls,
-  page: { student, effort, results, recognised, recognition },
+  page,
+  assessed,
+  evidence,
+  open,
+  onOpen,
   onRecognise,
+  today,
 }: {
   cls: Class;
   page: StudentPage;
+  assessed: QuickAssessStudent;
+  /** The open expectation's evidence, when one is open. */
+  evidence: Evidence | null;
+  /** The expectation open on its bands and plays. */
+  open: string | null;
+  onOpen(expectationId: string | null): void;
   onRecognise: OnRecognise;
+  /** The date it's printed on. */
+  today: Date;
 }) {
   const up = useUp();
+  const { student, recognised, recognition } = page;
+  const who = `${nameOf(student)}, ${cls.name}`;
+  const date = today.toLocaleDateString("en-CA", { dateStyle: "long" });
+  // Saving as a PDF names the file after the page's title.
+  useEffect(() => {
+    const before = document.title;
+    document.title = `Quick assess, ${who}, ${date}`;
+    return () => {
+      document.title = before;
+    };
+  }, [who, date]);
+
+  const toggle = ({ expectation }: QuickAssessExpectation) => {
+    const result = page.results.find(
+      (r) => r.expectation.id === expectation.id,
+    );
+    if (!result) return null;
+    const isOpen = open === expectation.id;
+    return (
+      <div className={`${classes.screenOnly} ${classes.extra}`}>
+        <Button
+          variant="secondary"
+          aria-expanded={isOpen}
+          onClick={() => onOpen(isOpen ? null : expectation.id)}
+        >
+          <span>
+            <Band result={result.result} />
+          </span>
+          <VisuallyHidden>
+            {" "}
+            — {expectationLabel(expectation)}: plays
+          </VisuallyHidden>
+        </Button>
+        {isOpen && evidence && evidence.expectation.id === expectation.id && (
+          <EvidencePanel classId={cls.id} evidence={evidence} />
+        )}
+      </div>
+    );
+  };
+
   return (
     <Stack gap="lg">
-      <div>
+      <div className={classes.screenOnly}>
         <ButtonLink
           to="/classes/$classId"
           params={{ classId: cls.id }}
           variant="subtle"
           onClick={up}
         >
-          {`${cls.name} results`}
+          {cls.name}
         </ButtonLink>
       </div>
-      <div>
-        <Title order={1}>{nameOf(student)}</Title>
-        <Text c="muted">
-          {student.grade === null
-            ? "No grade picked yet"
-            : `Grade ${student.grade}`}
-        </Text>
-      </div>
-      <section aria-labelledby="effort" className={classes.section}>
-        <Title order={2} size="h4" id="effort">
-          Effort, by Learning Skill
-        </Title>
-        <ul className={classes.skills}>
-          {effort.map((skill) => (
-            <li key={skill.skill}>
-              <Skill skill={skill} />
-            </li>
-          ))}
-        </ul>
-        <Text size="sm" c="muted">
-          Effort counts tasks got right after a mistake, and plays finished.
-          Never time spent or how many tries, and never a play stopped by a
-          technical problem.
-        </Text>
-      </section>
-      <section aria-labelledby="results" className={classes.section}>
-        <Title order={2} size="h4" id="results">
-          Results
-        </Title>
-        {results.length === 0 ? (
-          <Text>No evidence yet.</Text>
-        ) : (
-          <ul className={classes.results}>
-            {/* Not `fromAbove`: the evidence's way up is the dashboard. */}
-            {results.map(({ expectation, result }) => (
-              <li key={expectation.id}>
-                <Link
-                  to="/classes/$classId/students/$studentId/expectations/$expectationId"
-                  params={{
-                    classId: cls.id,
-                    studentId: student.id,
-                    expectationId: expectation.id,
-                  }}
-                  className={classes.result}
-                >
-                  <span className={classes.code}>
-                    {expectationLabel(expectation)}
-                  </span>
-                  <span className={classes.muted}>
-                    {expectation.description}
-                  </span>
-                  <span
-                    className={classes.band}
-                    data-understanding={result.understanding}
-                  >
-                    <Band result={result} />
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-      <StudentRecognition
-        student={student}
-        recognised={recognised}
-        settings={recognition}
-        onRecognise={onRecognise}
-      />
-      <section aria-labelledby="quick-assess" className={classes.section}>
-        <Title order={2} size="h4" id="quick-assess">
-          Quick assess
-        </Title>
-        <Text>
-          What {nameOf(student)}'s plays are evidence of, ready to print for
-          report cards.
-        </Text>
+      <div className={classes.heading}>
         <div>
-          <ButtonLink
-            to="/classes/$classId/students/$studentId/quick-assess"
-            params={{ classId: cls.id, studentId: student.id }}
-            state={{ fromAbove: true }}
-            variant="secondary"
-          >
-            {`Quick assess for ${nameOf(student)}`}
-          </ButtonLink>
+          <Title order={1}>{nameOf(student)}</Title>
+          <Text c="muted">
+            {student.grade === null
+              ? "No grade picked yet"
+              : `Grade ${student.grade}`}
+          </Text>
+          <Text className={classes.printOnly}>{`${cls.name} · ${date}`}</Text>
         </div>
-      </section>
+        <Button
+          variant="secondary"
+          className={classes.screenOnly}
+          onClick={() => window.print()}
+        >
+          Print
+        </Button>
+      </div>
+      <Text className={classes.note}>
+        Kindling never gives a level: the grade is yours.
+      </Text>
+      <StudentBlock assessed={assessed} named={false} extra={toggle} />
+      <div className={classes.screenOnly}>
+        <StudentRecognition
+          student={student}
+          recognised={recognised}
+          settings={recognition}
+          onRecognise={onRecognise}
+        />
+      </div>
     </Stack>
-  );
-}
-
-function Skill({ skill }: { skill: EffortSkill }) {
-  return (
-    <section aria-labelledby={`skill-${skill.skill}`} className={classes.skill}>
-      <Title order={3} size="h5" id={`skill-${skill.skill}`}>
-        {skill.name}
-      </Title>
-      {skill.evidence.map(({ kind, count }) => (
-        <Text key={kind}>{effortLabels[kind](count)}</Text>
-      ))}
-    </section>
   );
 }

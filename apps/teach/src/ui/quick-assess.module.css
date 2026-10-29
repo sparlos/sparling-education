@@ -11,6 +11,18 @@
   max-width: 48rem;
 }
 
+.extra {
+  display: grid;
+  gap: var(--mantine-spacing-sm);
+  justify-items: start;
+  margin-top: var(--mantine-spacing-xs);
+}
+
+/* Only on paper. */
+.printOnly {
+  display: none;
+}
+
 /* The layout table that lets print repeat the page header. */
 .pages {
   width: 100%;
@@ -37,6 +49,13 @@
   border-radius: var(--mantine-radius-md);
   box-sizing: border-box;
   background-color: var(--k-surface-raised);
+}
+
+/* A student's own page: the block without its card. */
+.bare {
+  display: grid;
+  gap: var(--mantine-spacing-md);
+  max-width: 48rem;
 }
 
 .name {
@@ -81,12 +100,28 @@
     display: none;
   }
 
+  .printOnly {
+    display: block;
+  }
+
   .pageHeader {
     display: table-cell;
     padding-bottom: var(--mantine-spacing-xs);
     border-bottom: 1px solid var(--k-border-strong);
     font-size: var(--mantine-font-size-sm);
     color: var(--k-ink);
+  }
+
+  .bare {
+    gap: var(--mantine-spacing-xs);
+    max-width: none;
+    font-size: var(--mantine-font-size-sm);
+    line-height: 1.4;
+  }
+
+  .bare h3 {
+    font-size: inherit;
+    line-height: inherit;
   }
 
   .student {

@@ -3,3 +3,8 @@
   --k-font-heading: "Nunito Variable";
   --k-font-body: "Nunito Sans Variable";
 }
+
+/* Teacher targets are 48px at least: a teacher taps while running a class. */
+main :is(button, a)[data-size="md"][data-tone] {
+  min-height: 3rem;
+}

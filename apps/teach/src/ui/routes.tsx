@@ -1,7 +1,8 @@
 // The teacher app's screens, each at its own URL under /teach/. Every screen
 // loads what it needs from its URL's params through the teacher port, so a
 // reload, a bookmark or a shared link opens the same screen. Everything for
-// one class lives under /classes/<classId>/.
+// one class lives under /classes/<classId>/. "/" opens the class the teacher
+// last had open, or their only one, or makes a first.
 import { Button } from "@repo/ui/button";
 import { Card } from "@repo/ui/card";
 import { Loader } from "@repo/ui/loader";
@@ -15,44 +16,81 @@ import {
   type ErrorComponentProps,
   notFound,
   type RouterHistory,
+  redirect,
   useParams,
   useRouter,
 } from "@tanstack/react-router";
 import { type ReactNode, useEffect } from "react";
 import { NotFound, type TeacherPort } from "../platform/ports.ts";
-import { ClassesScreen } from "./Classes.tsx";
 import { DashboardScreen } from "./Dashboard.tsx";
-import { EvidenceScreen } from "./Evidence.tsx";
 import { ButtonLink } from "./links.tsx";
 import { ManageScreen } from "./Manage.tsx";
+import { NewClassScreen } from "./NewClass.tsx";
 import { PlayScreen } from "./PlayScreen.tsx";
-import {
-  ClassQuickAssessScreen,
-  StudentQuickAssessScreen,
-} from "./QuickAssess.tsx";
+import { ClassQuickAssessScreen } from "./QuickAssess.tsx";
 import { StudentScreen } from "./StudentScreen.tsx";
 
 const root = createRootRouteWithContext<{ teacher: TeacherPort }>()({});
 
-const classesRoute = createRoute({
+/** Where this browser remembers the class the teacher last opened. */
+const lastClassKey = "kindling.teach.last-class";
+
+function lastClass(): string | null {
+  try {
+    return localStorage.getItem(lastClassKey);
+  } catch {
+    return null;
+  }
+}
+
+function rememberClass(classId: string) {
+  try {
+    localStorage.setItem(lastClassKey, classId);
+  } catch {
+    // Opens the first class next time; nothing is lost.
+  }
+}
+
+/** The new-class form, for a teacher with no classes or the switcher's "New class". */
+function NewClassRoute({ first }: { first: boolean }) {
+  const router = useRouter();
+  const { teacher } = router.options.context;
+  return (
+    <NewClassScreen
+      first={first}
+      onCreate={async (draft) => {
+        const made = await teacher.createClass(draft);
+        await router.navigate({
+          to: "/classes/$classId",
+          params: { classId: made.id },
+        });
+      }}
+      onCancel={() => router.history.back()}
+    />
+  );
+}
+
+const indexRoute = createRoute({
   getParentRoute: () => root,
   path: "/",
-  loader: ({ context: { teacher } }) => teacher.classes(),
-  component: function Classes() {
-    const list = classesRoute.useLoaderData();
-    const { teacher } = classesRoute.useRouteContext();
-    const router = useRouter();
-    return (
-      <ClassesScreen
-        list={list}
-        onCreate={async (draft) => {
-          await teacher.createClass(draft);
-          await router.invalidate();
-        }}
-      />
-    );
+  loader: async ({ context: { teacher } }) => {
+    const list = await teacher.classes();
+    const open = list.find((c) => c.id === lastClass()) ?? list[0];
+    if (open)
+      throw redirect({
+        to: "/classes/$classId",
+        params: { classId: open.id },
+        replace: true,
+      });
   },
+  component: () => <NewClassRoute first />,
   ...loading("your classes"),
+});
+
+const newClassRoute = createRoute({
+  getParentRoute: () => root,
+  path: "new",
+  component: () => <NewClassRoute first={false} />,
 });
 
 const classRoute = createRoute({
@@ -84,6 +122,7 @@ const dashboardRoute = createRoute({
     const navigate = dashboardRoute.useNavigate();
     const { teacher } = dashboardRoute.useRouteContext();
     const router = useRouter();
+    useEffect(() => rememberClass(cls.id), [cls.id]);
     return (
       <DashboardScreen
         cls={cls}
@@ -102,6 +141,12 @@ const dashboardRoute = createRoute({
         onRecognise={async (studentId, trait) => {
           await teacher.recognise(cls.id, studentId, trait);
           await router.invalidate();
+        }}
+        share={{
+          switchGame: async (slug, on) => {
+            await teacher.switchGame(cls.id, slug, on);
+            await router.invalidate();
+          },
         }}
         demo={{
           viewAsStudent: () => teacher.viewDemoAsStudent(),
@@ -139,7 +184,6 @@ const manageRoute = createRoute({
         cls={cls}
         students={students}
         actions={{
-          switchGame: (slug, on) => then(teacher.switchGame(cls.id, slug, on)),
           setGrade: (studentId, grade) =>
             then(teacher.setStudentGrade(cls.id, studentId, grade)),
           remove: (studentId) => then(teacher.removeStudent(cls.id, studentId)),
@@ -153,23 +197,50 @@ const manageRoute = createRoute({
 const studentRoute = createRoute({
   getParentRoute: () => classRoute,
   path: "students/$studentId",
-  loader: async ({ context: { teacher }, params: { classId, studentId } }) => {
-    const [cls, page] = await found(
+  // The expectation open on its bands and plays.
+  validateSearch: (search): { expectation?: string } =>
+    typeof search.expectation === "string"
+      ? { expectation: search.expectation }
+      : {},
+  loaderDeps: ({ search: { expectation } }) => ({ expectation }),
+  loader: async ({
+    context: { teacher },
+    params: { classId, studentId },
+    deps: { expectation },
+  }) => {
+    const [cls, page, assessed, evidence] = await found(
       Promise.all([
         teacher.class(classId),
         teacher.studentPage(classId, studentId),
+        teacher.studentQuickAssess(classId, studentId),
+        expectation ? teacher.evidence(classId, studentId, expectation) : null,
       ]),
     );
-    return { cls, page };
+    return { cls, page, assessed, evidence };
   },
   component: function Student() {
-    const { cls, page } = studentRoute.useLoaderData();
+    const { cls, page, assessed, evidence } = studentRoute.useLoaderData();
+    const { expectation } = studentRoute.useSearch();
+    const navigate = studentRoute.useNavigate();
     const { teacher } = studentRoute.useRouteContext();
     const router = useRouter();
     return (
       <StudentScreen
         cls={cls}
         page={page}
+        assessed={assessed}
+        evidence={evidence}
+        open={expectation ?? null}
+        // Opening and closing one doesn't pile up history, or scroll.
+        onOpen={(id) =>
+          navigate({
+            search: id ? { expectation: id } : {},
+            replace: true,
+            resetScroll: false,
+            state: (before) => before,
+          })
+        }
+        today={new Date()}
         onRecognise={async (studentId, trait) => {
           await teacher.recognise(cls.id, studentId, trait);
           await router.invalidate();
@@ -180,26 +251,19 @@ const studentRoute = createRoute({
   ...loading("the student's page", { label: "The class's results" }),
 });
 
+// The evidence screen's old URL, so shared links don't break: the student's
+// page, at that expectation.
 const evidenceRoute = createRoute({
   getParentRoute: () => classRoute,
   path: "students/$studentId/expectations/$expectationId",
-  loader: async ({
-    context: { teacher },
-    params: { classId, studentId, expectationId },
-  }) => {
-    const [cls, evidence] = await found(
-      Promise.all([
-        teacher.class(classId),
-        teacher.evidence(classId, studentId, expectationId),
-      ]),
-    );
-    return { cls, evidence };
+  beforeLoad: ({ params: { classId, studentId, expectationId } }) => {
+    throw redirect({
+      to: "/classes/$classId/students/$studentId",
+      params: { classId, studentId },
+      search: { expectation: expectationId },
+      replace: true,
+    });
   },
-  component: function Evidence() {
-    const { cls, evidence } = evidenceRoute.useLoaderData();
-    return <EvidenceScreen cls={cls} evidence={evidence} />;
-  },
-  ...loading("the student's evidence", { label: "The class's results" }),
 });
 
 const playRoute = createRoute({
@@ -237,33 +301,9 @@ const quickAssessRoute = createRoute({
   ...loading("quick assess", { label: "The class's results" }),
 });
 
-const studentQuickAssessRoute = createRoute({
-  getParentRoute: () => classRoute,
-  path: "students/$studentId/quick-assess",
-  loader: async ({ context: { teacher }, params: { classId, studentId } }) => {
-    const [cls, assessed] = await found(
-      Promise.all([
-        teacher.class(classId),
-        teacher.studentQuickAssess(classId, studentId),
-      ]),
-    );
-    return { cls, assessed };
-  },
-  component: function StudentQuickAssess() {
-    const { cls, assessed } = studentQuickAssessRoute.useLoaderData();
-    return (
-      <StudentQuickAssessScreen
-        cls={cls}
-        assessed={assessed}
-        today={new Date()}
-      />
-    );
-  },
-  ...loading("quick assess", { label: "The class's results" }),
-});
-
 const routeTree = root.addChildren([
-  classesRoute,
+  indexRoute,
+  newClassRoute,
   classRoute.addChildren([
     dashboardRoute,
     manageRoute,
@@ -271,7 +311,6 @@ const routeTree = root.addChildren([
     evidenceRoute,
     playRoute,
     quickAssessRoute,
-    studentQuickAssessRoute,
   ]),
 ]);
 

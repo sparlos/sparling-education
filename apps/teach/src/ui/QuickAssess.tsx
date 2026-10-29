@@ -15,10 +15,11 @@ import type {
   QuickAssessExpectation,
   QuickAssessStudent,
 } from "../platform/ports.ts";
-import { nameOf, OfficialCode } from "./Dashboard.tsx";
+import { nameOf } from "./Dashboard.tsx";
+import { effortLabels, withEvidence } from "./effort.ts";
 import { ButtonLink, useUp } from "./links.tsx";
+import { OfficialCode } from "./OfficialCode.tsx";
 import classes from "./quick-assess.module.css";
-import { effortLabels } from "./StudentScreen.tsx";
 
 export function ClassQuickAssessScreen({
   cls,
@@ -40,42 +41,12 @@ export function ClassQuickAssessScreen({
           variant="subtle"
           onClick={up}
         >
-          {`${cls.name} results`}
+          {cls.name}
         </ButtonLink>
       }
       who={cls.name}
       today={today}
       students={students}
-    />
-  );
-}
-
-export function StudentQuickAssessScreen({
-  cls,
-  assessed,
-  today,
-}: {
-  cls: Class;
-  assessed: QuickAssessStudent;
-  today: Date;
-}) {
-  const up = useUp();
-  const { student } = assessed;
-  return (
-    <QuickAssessPage
-      back={
-        <ButtonLink
-          to="/classes/$classId/students/$studentId"
-          params={{ classId: cls.id, studentId: student.id }}
-          variant="subtle"
-          onClick={up}
-        >
-          {nameOf(student)}
-        </ButtonLink>
-      }
-      who={`${nameOf(student)}, ${cls.name}`}
-      today={today}
-      students={[assessed]}
     />
   );
 }
@@ -147,23 +118,34 @@ function QuickAssessPage({
   );
 }
 
-function StudentBlock({
+export function StudentBlock({
   assessed: { student, expectations, nextSteps, learningSkills },
+  named = true,
+  extra,
 }: {
   assessed: QuickAssessStudent;
+  /** Whether the block names its student: not on their own page. */
+  named?: boolean;
+  /** Screen-only extras after an expectation's lines, e.g. its plays. */
+  extra?: (expectation: QuickAssessExpectation) => ReactNode;
 }) {
   const id = `student-${student.id}`;
   const part = (name: string) => `${id}-${name}`;
   return (
-    <section aria-labelledby={id} className={classes.student}>
-      <div className={classes.name}>
-        <Title order={2} size="h3" id={id}>
-          {nameOf(student)}
-        </Title>
-        {student.grade !== null && (
-          <Text c="muted">{`Grade ${student.grade}`}</Text>
-        )}
-      </div>
+    <section
+      aria-labelledby={named ? id : undefined}
+      className={named ? classes.student : classes.bare}
+    >
+      {named && (
+        <div className={classes.name}>
+          <Title order={2} size="h3" id={id}>
+            {nameOf(student)}
+          </Title>
+          {student.grade !== null && (
+            <Text c="muted">{`Grade ${student.grade}`}</Text>
+          )}
+        </div>
+      )}
       {expectations.length === 0 ? (
         <Text>No plays yet.</Text>
       ) : (
@@ -173,9 +155,15 @@ function StudentBlock({
               Math: what their plays show
             </Title>
             <ul className={classes.list}>
-              {expectations.map((line) => (
+              {expectations.map((line, i) => (
                 <li key={`${line.expectation.id}|${line.tierGrade}`}>
                   <ExpectationLine line={line} />
+                  {/* Once for an expectation, however many tiers it has. */}
+                  {extra &&
+                    expectations.findIndex(
+                      (l) => l.expectation.id === line.expectation.id,
+                    ) === i &&
+                    extra(line)}
                 </li>
               ))}
             </ul>
@@ -201,8 +189,11 @@ function StudentBlock({
             <Title order={3} size="h5" id={part("skills")}>
               Learning Skills
             </Title>
+            {withEvidence(learningSkills).length === 0 && (
+              <Text c="muted">None yet.</Text>
+            )}
             <ul className={classes.list}>
-              {learningSkills.map((skill) => (
+              {withEvidence(learningSkills).map((skill) => (
                 <li key={skill.skill}>
                   <span className={classes.strong}>{skill.name}:</span>{" "}
                   {skill.evidence
@@ -221,7 +212,7 @@ function StudentBlock({
   );
 }
 
-function ExpectationLine({ line }: { line: QuickAssessExpectation }) {
+export function ExpectationLine({ line }: { line: QuickAssessExpectation }) {
   const plays =
     line.plays === 1 ? "most recent play" : `${line.plays} most recent plays`;
   return (
@@ -250,7 +241,7 @@ function ExpectationLine({ line }: { line: QuickAssessExpectation }) {
 }
 
 /** "Oct 3 to Oct 20", or one day. By the student's device clock. */
-function span(first: string, last: string) {
+export function span(first: string, last: string) {
   const day = (at: string) =>
     new Date(at).toLocaleDateString("en-CA", {
       month: "short",

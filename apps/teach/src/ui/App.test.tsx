@@ -3,7 +3,7 @@ import { UIProvider } from "@repo/ui/provider";
 import { createMemoryHistory } from "@tanstack/react-router";
 import { act, cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Try } from "../platform/contract.ts";
 import {
   createFakePlatform,
@@ -12,6 +12,10 @@ import {
 import type { FakeStudentSeed } from "../platform/fake/teacher.ts";
 import type { NewClass } from "../platform/ports.ts";
 import { App } from "./App.tsx";
+import { Strip } from "./Dashboard.tsx";
+
+// The class last opened is remembered in the browser; each test starts fresh.
+beforeEach(() => localStorage.clear());
 
 function renderApp(options?: FakePlatformOptions) {
   return openAt("/teach/", options).user;
@@ -31,43 +35,44 @@ function openAt(url: string, options?: FakePlatformOptions) {
 async function signInAsNewTeacher() {
   const user = renderApp();
   await user.click(await signInButton());
-  await screen.findByText("No classes yet");
+  await screen.findByRole("heading", { name: "Make your first class" });
   return user;
 }
 
+/** Fills in the new-class form, and makes the class: it opens on its dashboard. */
 async function createClass(
   user: ReturnType<typeof userEvent.setup>,
   name: string,
   grades: string[],
 ) {
-  await user.click(screen.getByRole("button", { name: "New class" }));
   const form = screen.getByRole("form", { name: "New class" });
   await user.type(within(form).getByLabelText("Class name"), name);
   for (const grade of grades)
     await user.click(within(form).getByRole("checkbox", { name: grade }));
   await user.click(within(form).getByRole("button", { name: "Create class" }));
-  return screen.findByRole("region", { name });
+  return screen.findByRole("heading", { level: 1, name });
 }
 
 const signInButton = () =>
   screen.findByRole("button", { name: "Sign in with Google" });
 
 describe("the teacher app", () => {
-  it("signs a new teacher in to an empty classes screen, and back out", async () => {
+  it("signs a new teacher in to a first-class form, and back out", async () => {
     const user = renderApp({
       google: { subject: "g-1", firstName: "Ada", lastName: "Lovelace" },
     });
     await user.click(await signInButton());
 
     expect(
-      await screen.findByRole("heading", { name: "Your classes" }),
+      await screen.findByRole("heading", { name: "Make your first class" }),
     ).toBeInTheDocument();
-    expect(screen.getByText("No classes yet")).toBeInTheDocument();
     expect(screen.getByText("Ada L.")).toBeInTheDocument();
+    // Nothing to go back to yet.
+    expect(screen.queryByRole("button", { name: "Cancel" })).toBeNull();
 
     await user.click(screen.getByRole("button", { name: "Sign out" }));
     expect(await signInButton()).toBeInTheDocument();
-    expect(screen.queryByText("Your classes")).not.toBeInTheDocument();
+    expect(screen.queryByText("Make your first class")).not.toBeInTheDocument();
   });
 
   it("tells a student this is for teachers", async () => {
@@ -77,7 +82,7 @@ describe("the teacher app", () => {
     expect(
       await screen.findByRole("heading", { name: "This is for teachers" }),
     ).toBeInTheDocument();
-    expect(screen.queryByText("Your classes")).not.toBeInTheDocument();
+    expect(screen.queryByText("Make your first class")).not.toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Sign out" }));
     expect(await signInButton()).toBeInTheDocument();
   });
@@ -109,52 +114,117 @@ describe("the teacher app", () => {
     expect(await signInButton()).toBeInTheDocument();
   });
 
-  it("creates a class in one short form", async () => {
+  it("makes a class in one short form, and opens its dashboard", async () => {
     const user = await signInAsNewTeacher();
-    const room = await createClass(user, "Room 12", ["Grade 5", "Grade 4"]);
+    await createClass(user, "Room 12", ["Grade 5", "Grade 4"]);
 
-    expect(within(room).getByText("Grades 4 and 5")).toBeInTheDocument();
-    expect(within(room).getByText("Fraction Hop")).toBeInTheDocument();
-    expect(screen.queryByText("No classes yet")).not.toBeInTheDocument();
+    expect(screen.getByText("Grades 4 and 5")).toBeInTheDocument();
     expect(screen.queryByRole("form", { name: "New class" })).toBeNull();
 
-    const second = await createClass(user, "Room 14", ["Grade 3"]);
-    expect(within(second).getByText("Grade 3")).toBeInTheDocument();
-    expect(screen.getAllByRole("region").map((r) => r.ariaLabel)).toEqual([
-      "Room 12",
-      "Room 14",
-    ]);
+    // The switcher is the way to another: "New class" is at its end.
+    await user.click(screen.getByRole("link", { name: "New class" }));
+    await createClass(user, "Room 14", ["Grade 3"]);
+    expect(screen.getByText("Grade 3")).toBeInTheDocument();
+    const switcher = screen.getByRole("navigation", { name: "Your classes" });
+    expect(
+      within(switcher)
+        .getAllByRole("link")
+        .map((link) => link.textContent),
+    ).toEqual(["Room 12", "Room 14", "New class"]);
   });
 
   it("asks for a name and a grade before making a class", async () => {
     const user = await signInAsNewTeacher();
-    await user.click(screen.getByRole("button", { name: "New class" }));
     await user.click(screen.getByRole("button", { name: "Create class" }));
 
     expect(screen.getByText("Give the class a name.")).toBeInTheDocument();
     expect(screen.getByText("Pick at least one grade.")).toBeInTheDocument();
-    expect(screen.queryByRole("region")).toBeNull();
-
-    await user.click(screen.getByRole("button", { name: "Cancel" }));
-    expect(screen.getByText("No classes yet")).toBeInTheDocument();
   });
 
-  it("copies the class join link and a game link in one tap each", async () => {
+  it("cancels a new class back to the class it came from", async () => {
     const user = await signInAsNewTeacher();
-    const room = await createClass(user, "Room 12", ["Grade 4"]);
+    await createClass(user, "Room 12", ["Grade 4"]);
+    await user.click(screen.getByRole("link", { name: "New class" }));
+    await user.click(screen.getByRole("button", { name: "Cancel" }));
+    expect(
+      await screen.findByRole("heading", { level: 1, name: "Room 12" }),
+    ).toBeInTheDocument();
+  });
+});
+
+describe("opening the app", () => {
+  const rooms: FakePlatformOptions = {
+    classes: [
+      { draft: { name: "Room 12", grades: [4] }, students: [] },
+      { draft: { name: "Room 14", grades: [5] }, students: [] },
+    ],
+  };
+  const heading = (name: string) =>
+    screen.findByRole("heading", { level: 1, name });
+
+  it("opens the only class straight away", async () => {
+    const { user, history } = openAt("/teach/", {
+      classes: [rooms.classes?.[0] as never],
+    });
+    await user.click(await signInButton());
+    expect(await heading("Room 12")).toBeInTheDocument();
+    expect(history.location.pathname).toMatch(/^\/teach\/classes\/[^/]+$/);
+  });
+
+  it("opens the class the teacher opened last", async () => {
+    const first = openAt("/teach/", rooms);
+    await first.user.click(await signInButton());
+    expect(await heading("Room 12")).toBeInTheDocument();
+    await first.user.click(screen.getByRole("link", { name: "Room 14" }));
+    expect(await heading("Room 14")).toBeInTheDocument();
+    cleanup();
+
+    const again = openAt("/teach/", rooms);
+    await again.user.click(await signInButton());
+    expect(await heading("Room 14")).toBeInTheDocument();
+  });
+
+  it("opens the first class when the last one is gone", async () => {
+    localStorage.setItem("kindling.teach.last-class", "no-such-class");
+    const { user } = openAt("/teach/", rooms);
+    await user.click(await signInButton());
+    expect(await heading("Room 12")).toBeInTheDocument();
+  });
+});
+
+describe("sharing a class", () => {
+  async function openShare(options?: FakePlatformOptions) {
+    const user = renderApp({
+      classes: [{ draft: { name: "Room 12", grades: [4] }, students: [] }],
+      ...options,
+    });
+    await user.click(await signInButton());
+    await screen.findByRole("heading", { level: 1, name: "Room 12" });
+    expect(
+      screen.queryByRole("region", { name: "Share this class" }),
+    ).toBeNull();
+    await user.click(screen.getByRole("button", { name: "Share" }));
+    return {
+      user,
+      panel: await screen.findByRole("region", { name: "Share this class" }),
+    };
+  }
+
+  it("copies the class join link and a game link in one tap each", async () => {
+    const { user, panel } = await openShare();
 
     await user.click(
-      within(room).getByRole("button", { name: "Copy join link" }),
+      within(panel).getByRole("button", { name: "Copy join link" }),
     );
     const joinLink = new URL(await navigator.clipboard.readText());
     expect(joinLink.pathname).toMatch(/^\/play\/join\/[A-Z2-9]{8}$/);
-    expect(within(room).getByText(joinLink.href)).toBeInTheDocument();
+    expect(within(panel).getByText(joinLink.href)).toBeInTheDocument();
     expect(
-      within(room).getByRole("button", { name: "Copied" }),
+      within(panel).getByRole("button", { name: "Copied" }),
     ).toBeInTheDocument();
 
     await user.click(
-      within(room).getByRole("button", {
+      within(panel).getByRole("button", {
         name: "Copy game link for Fraction Hop",
       }),
     );
@@ -163,6 +233,61 @@ describe("the teacher app", () => {
     expect(gameLink.searchParams.get("join")).toBe(
       joinLink.pathname.split("/").at(-1),
     );
+  });
+
+  it("turns a game off, taking its link away, and back on", async () => {
+    const { user, panel } = await openShare();
+    const game = within(panel).getByRole("switch", { name: /Fraction Hop/ });
+    expect(game).toBeChecked();
+
+    await user.click(game);
+    await vi.waitFor(() =>
+      expect(
+        within(
+          screen.getByRole("region", { name: "Share this class" }),
+        ).getByRole("switch", { name: /Fraction Hop/ }),
+      ).not.toBeChecked(),
+    );
+    expect(screen.queryByRole("button", { name: /Copy game link/ })).toBeNull();
+
+    await user.click(screen.getByRole("switch", { name: /Fraction Hop/ }));
+    expect(
+      await screen.findByRole("button", {
+        name: /Copy game link for Fraction Hop/,
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it("says when a game's switch didn't save", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    let offline = false;
+    const { user } = await openShare({ offline: () => offline });
+    offline = true;
+    await user.click(screen.getByRole("switch", { name: /Fraction Hop/ }));
+    expect(
+      await screen.findByText(
+        "That didn't save. Check your connection and try again.",
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("is in the dashboard's header with quick assess and manage, and not on the demo class", async () => {
+    const { user } = await openShare();
+    const header = screen.getByRole("heading", { level: 1 }).parentElement
+      ?.parentElement as HTMLElement;
+    expect(
+      [...header.querySelectorAll("a, button")].map((e) => e.textContent),
+    ).toEqual(["Share", "Quick assess", "Manage class"]);
+    await user.click(screen.getByRole("button", { name: "Share" }));
+    expect(
+      screen.queryByRole("region", { name: "Share this class" }),
+    ).toBeNull();
+
+    cleanup();
+    const demo = renderApp({ demoClass: true });
+    await demo.click(await signInButton());
+    await screen.findByRole("region", { name: "Demo class" });
+    expect(screen.queryByRole("button", { name: "Share" })).toBeNull();
   });
 });
 
@@ -191,11 +316,6 @@ describe("the dashboard", () => {
   ) {
     const user = renderApp(options);
     await user.click(await signInButton());
-    await user.click(
-      await screen.findByRole("link", {
-        name: `See results for ${className}`,
-      }),
-    );
     expect(
       await screen.findByRole("heading", { name: className }),
     ).toBeInTheDocument();
@@ -224,11 +344,17 @@ describe("the dashboard", () => {
       ],
     });
 
+    // Short: the full description is on the student's page.
     const { description } = expectation("math-2020.g4.B1.6");
     const header = await screen.findByRole("columnheader", {
-      name: /Grade 4 · B1.6/,
+      name: /Gr 4 · B1.6/,
     });
-    expect(header).toHaveTextContent(description);
+    expect(header).toHaveTextContent("Counts up to 10…");
+    expect(header).not.toHaveTextContent(description);
+    expect(within(header).getByRole("link")).toHaveAttribute(
+      "href",
+      expectation("math-2020.g4.B1.6").link,
+    );
 
     expect(await row("Ana D.")).toHaveTextContent("Showing consistently");
     expect(await row("Ben O.")).toHaveTextContent("Developing");
@@ -265,15 +391,31 @@ describe("the dashboard", () => {
     expect(g5).toHaveTextContent("From the Grade 5 tier");
   });
 
-  it("says when no students have joined yet, and goes back to the classes", async () => {
-    const user = await openDashboard({
+  it("says when no students have joined yet", async () => {
+    await openDashboard({
       classes: [{ draft: { name: "Room 12", grades: [3] }, students: [] }],
     });
     expect(await screen.findByText("No students yet")).toBeInTheDocument();
-    await user.click(screen.getByRole("link", { name: "Your classes" }));
-    expect(
-      await screen.findByRole("heading", { name: "Your classes" }),
-    ).toBeInTheDocument();
+  });
+
+  it("gives a student a row of one name, and the grade in a split class", async () => {
+    await openDashboard(
+      {
+        classes: [
+          {
+            draft: { name: "Room 14", grades: [4, 5] },
+            students: [student("Sam", "Rivera", { grade: 4 })],
+          },
+        ],
+      },
+      "Room 14",
+    );
+    const sam = await row("Sam R.");
+    const [name] = within(sam).getAllByRole("rowheader");
+    expect(name).toHaveTextContent(/^Sam R\.Grade 4$/);
+    expect(within(name as HTMLElement).getAllByRole("link")).toHaveLength(1);
+    expect(within(sam).queryByRole("button")).toBeNull();
+    expect(sam).not.toHaveTextContent("Recognised");
   });
 
   it("offers to try again when the results can't be loaded", async () => {
@@ -281,18 +423,18 @@ describe("the dashboard", () => {
     const user = renderApp({
       offline: () => offline,
       classes: [
+        { draft: { name: "Room 12", grades: [4] }, students: [] },
         {
-          draft: { name: "Room 12", grades: [4] },
+          draft: { name: "Room 14", grades: [4] },
           students: [student("Ana", "Diaz")],
         },
       ],
     });
     await user.click(await signInButton());
-    const open = await screen.findByRole("link", {
-      name: "See results for Room 12",
-    });
+    const other = await screen.findByRole("link", { name: "Room 14" });
     offline = true;
-    await user.click(open);
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    await user.click(other);
     expect(
       await screen.findByText("The class's results couldn't be loaded."),
     ).toBeInTheDocument();
@@ -331,7 +473,8 @@ describe("the dashboard", () => {
     const [first, second] = within(strip).getAllByRole("button");
     expect(first).toHaveTextContent("2 students");
     expect(first).toHaveTextContent(biggerWords);
-    expect(first).toHaveTextContent("Fraction Hop");
+    // One game: its name would only repeat.
+    expect(first).not.toHaveTextContent("Fraction Hop");
     expect(second).toHaveTextContent("1 student");
     expect(first).toHaveAttribute("aria-expanded", "false");
 
@@ -366,7 +509,50 @@ describe("the dashboard", () => {
     expect(strip).toHaveTextContent(/None yet/);
   });
 
-  it("goes from a misconception to a student's evidence, down to a play, and back up", async () => {
+  it("shows the 3 most common misconceptions, then all of them, with the game only when there is more than one", async () => {
+    const misconception = (n: number) => ({
+      game: "fraction-hop",
+      gameName: "Fraction Hop",
+      id: `idea-${n}`,
+      description: `Wrong idea ${n}`,
+      students: [
+        { id: "ana", firstName: "Ana", lastInitial: "D", expectation: "e" },
+      ],
+    });
+    const many = [1, 2, 3, 4, 5].map(misconception);
+    const strip = (showGame: boolean, open: string | null = null) => (
+      <UIProvider>
+        <Strip
+          classId="c"
+          misconceptions={many}
+          showGame={showGame}
+          open={open}
+          onToggle={() => {}}
+        />
+      </UIProvider>
+    );
+    const view = render(strip(false));
+    const user = userEvent.setup();
+    const section = screen.getByRole("region", {
+      name: "Misconceptions showing up",
+    });
+    expect(within(section).getAllByText(/^Wrong idea/)).toHaveLength(3);
+    expect(section).not.toHaveTextContent("Fraction Hop");
+
+    await user.click(
+      within(section).getByRole("button", { name: "All 5 misconceptions" }),
+    );
+    expect(within(section).getAllByText(/^Wrong idea/)).toHaveLength(5);
+    await user.click(
+      within(section).getByRole("button", { name: "Show the most common" }),
+    );
+    expect(within(section).getAllByText(/^Wrong idea/)).toHaveLength(3);
+
+    view.rerender(strip(true));
+    expect(section).toHaveTextContent("Fraction Hop");
+  });
+
+  it("goes from a misconception to the student's page at that expectation, down to a play, and back up", async () => {
     const user = await openDashboard({
       classes: [
         {
@@ -398,7 +584,7 @@ describe("the dashboard", () => {
     await user.click(within(strip).getByRole("button", { name: biggerWords }));
     await user.click(within(strip).getByRole("link", { name: "Ana D." }));
 
-    // The evidence: who, which expectation, their band and each play.
+    // The student's page at that expectation: its bands and each play.
     expect(
       await screen.findByRole("heading", { level: 1, name: "Ana D." }),
     ).toBeInTheDocument();
@@ -447,11 +633,14 @@ describe("the dashboard", () => {
     expect(screen.getByText(/^How it ended: Finished/)).toBeInTheDocument();
 
     // And back up, one tap at a time, to the strip as it was left.
-    await user.click(screen.getByRole("link", { name: "Ana D.'s evidence" }));
+    await user.click(screen.getByRole("link", { name: "Ana D." }));
     expect(
       await screen.findByRole("heading", { level: 1, name: "Ana D." }),
     ).toBeInTheDocument();
-    await user.click(screen.getByRole("link", { name: "Room 12 results" }));
+    expect(
+      screen.getByRole("region", { name: "Plays, newest first" }),
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole("link", { name: "Room 12" }));
     const again = await screen.findByRole("region", {
       name: "Misconceptions showing up",
     });
@@ -581,10 +770,8 @@ describe("the dashboard", () => {
     expect(
       await screen.findAllByRole("heading", { level: 2, name: /^Task/ }),
     ).toHaveLength(4);
-    await user.click(screen.getByRole("link", { name: "Ben O.'s evidence" }));
-    await user.click(
-      await screen.findByRole("link", { name: "Room 12 results" }),
-    );
+    await user.click(screen.getByRole("link", { name: "Ben O." }));
+    await user.click(await screen.findByRole("link", { name: "Room 12" }));
     expect(await row("Ben O.")).toHaveTextContent("Developing");
   });
 
@@ -607,8 +794,9 @@ describe("the dashboard", () => {
         name: /Showing consistently/,
       }),
     );
+    vi.spyOn(console, "error").mockImplementation(() => {});
     expect(
-      await screen.findByText("The student's evidence couldn't be loaded."),
+      await screen.findByText("The student's page couldn't be loaded."),
     ).toBeInTheDocument();
     offline = false;
     await user.click(screen.getByRole("button", { name: "Try again" }));
@@ -662,9 +850,6 @@ describe("a student's page", () => {
       classes: [{ draft: { name: "Room 12", grades: [4] }, students }],
     });
     await user.click(await signInButton());
-    await user.click(
-      await screen.findByRole("link", { name: "See results for Room 12" }),
-    );
     const row = await screen.findByRole("row", {
       name: new RegExp(`^${name}`),
     });
@@ -672,80 +857,96 @@ describe("a student's page", () => {
     return { user, history };
   }
 
-  const skill = (name: string) => screen.getByRole("region", { name });
+  const part = (name: string) => screen.getByRole("region", { name });
 
-  it("opens from a student's row on their effort by Learning Skill", async () => {
+  it("is the student's quick assess: math by expectation, next steps, then Learning Skills", async () => {
     await openStudentPage([ben()], "Ben O.");
     expect(
       await screen.findByRole("heading", { level: 1, name: "Ben O." }),
     ).toBeInTheDocument();
     expect(screen.getByText("Grade 4")).toBeInTheDocument();
-    const effort = screen.getByRole("region", {
-      name: "Effort, by Learning Skill",
-    });
-    expect(
-      within(effort)
-        .getAllByRole("heading", { level: 3 })
-        .map((h) => h.textContent),
-    ).toEqual(["Responsibility", "Self-Regulation"]);
+    const { description } = expectation("math-2020.g4.B1.6");
+    const math = part("Math: what their plays show");
+    expect(math).toHaveTextContent(description);
+    expect(math).toHaveTextContent(
+      "3 of 5 tasks on their own, in their 2 most recent plays",
+    );
+    expect(part("Next steps seen in play")).toHaveTextContent(
+      "No misconceptions in their recent plays.",
+    );
     // The left play isn't finished; the spammed task was never got right.
-    expect(skill("Responsibility")).toHaveTextContent("1 play finished");
-    expect(skill("Self-Regulation")).toHaveTextContent(
-      "2 tasks got right after a mistake",
+    const skills = part("Learning Skills");
+    expect(skills).toHaveTextContent("Responsibility: 1 play finished");
+    expect(skills).toHaveTextContent(
+      "Self-Regulation: 2 tasks got right after a mistake",
+    );
+    expect(skills).toHaveTextContent(
+      "Reported separately from the math grade.",
     );
     // Never a raw count of tries, a mark or a rating.
-    expect(effort).not.toHaveTextContent(/\d+ (tries|minutes|seconds)/);
+    expect(skills).not.toHaveTextContent(/\d+ (tries|minutes|seconds)/);
     expect(screen.queryByText(/%/)).not.toBeInTheDocument();
+    // The old screens' explanations are gone.
+    expect(screen.queryByText(/Effort counts tasks/)).toBeNull();
+    expect(
+      screen.queryByRole("link", { name: /^Quick assess for/ }),
+    ).toBeNull();
   });
 
-  it("links each result to its evidence, and goes back up to the dashboard", async () => {
+  it("prints", async () => {
+    const { user } = await openStudentPage([ben()], "Ben O.");
+    const print = vi.spyOn(window, "print").mockImplementation(() => {});
+    await user.click(await screen.findByRole("button", { name: "Print" }));
+    expect(print).toHaveBeenCalledOnce();
+  });
+
+  it("opens an expectation on its bands and plays, and closes it, without piling up history", async () => {
     const { user, history } = await openStudentPage([ben()], "Ben O.");
-    const page = history.location.pathname;
-    const results = await screen.findByRole("region", { name: "Results" });
-    const { description } = expectation("math-2020.g4.B1.6");
-    const link = within(results).getByRole("link", {
-      name: /Grade 4 · B1\.6/,
+    const toggle = await screen.findByRole("button", {
+      name: /Developing.*Grade 4 · B1\.6/,
     });
-    expect(link).toHaveTextContent(description);
-    // 3 of 4 tasks on their own in the first play, none in the spammed one.
-    expect(link).toHaveTextContent("Developing");
-
-    await user.click(link);
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
     expect(
+      screen.queryByRole("region", { name: "Plays, newest first" }),
+    ).toBeNull();
+    const entries = history.length;
+
+    await user.click(toggle);
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
+    expect(
+      new URLSearchParams(history.location.search).get("expectation"),
+    ).toBe("math-2020.g4.B1.6");
+    expect(
+      screen.getByRole("list", { name: "Understanding" }),
+    ).toHaveTextContent("Developing");
+    const plays = within(
       await screen.findByRole("region", { name: "Plays, newest first" }),
-    ).toBeInTheDocument();
-    // The evidence's way up is the dashboard, even come to from here.
-    await user.click(screen.getByRole("link", { name: "Room 12 results" }));
-    expect(
-      await screen.findByRole("heading", { level: 1, name: "Room 12" }),
-    ).toBeInTheDocument();
+    ).getAllByRole("link");
+    expect(plays).toHaveLength(2);
 
-    act(() => history.back());
-    act(() => history.back());
+    await user.click(toggle);
+    expect(history.location.search).toBe("");
+    expect(history.length).toBe(entries);
     expect(
-      await screen.findByRole("heading", { level: 1, name: "Ben O." }),
-    ).toBeInTheDocument();
-    expect(history.location.pathname).toBe(page);
-    await user.click(screen.getByRole("link", { name: "Room 12 results" }));
+      screen.queryByRole("region", { name: "Plays, newest first" }),
+    ).toBeNull();
+  });
+
+  it("goes back up to the dashboard by the class's name", async () => {
+    const { user } = await openStudentPage([ben()], "Ben O.");
+    await user.click(await screen.findByRole("link", { name: "Room 12" }));
     expect(
       await screen.findByRole("heading", { level: 1, name: "Room 12" }),
     ).toBeInTheDocument();
   });
 
-  it("says when a student has no effort or results yet", async () => {
+  it("says when a student has no plays yet, and leaves out Learning Skills counting nothing", async () => {
     await openStudentPage([student("Dee", "Lam")], "Dee L.");
     expect(
       await screen.findByRole("heading", { level: 1, name: "Dee L." }),
     ).toBeInTheDocument();
-    expect(skill("Responsibility")).toHaveTextContent("0 plays finished");
-    expect(skill("Self-Regulation")).toHaveTextContent(
-      "0 tasks got right after a mistake",
-    );
-    expect(
-      within(screen.getByRole("region", { name: "Results" })).getByText(
-        "No evidence yet.",
-      ),
-    ).toBeInTheDocument();
+    expect(screen.getByText("No plays yet.")).toBeInTheDocument();
+    expect(document.body).not.toHaveTextContent(/\b0 (plays|tasks)/);
   });
 
   it("offers to try again when the student's page can't be loaded", async () => {
@@ -755,9 +956,6 @@ describe("a student's page", () => {
       classes: [{ draft: { name: "Room 12", grades: [4] }, students: [ben()] }],
     });
     await user.click(await signInButton());
-    await user.click(
-      await screen.findByRole("link", { name: "See results for Room 12" }),
-    );
     const row = await screen.findByRole("row", { name: /^Ben O\./ });
     offline = true;
     vi.spyOn(console, "error").mockImplementation(() => {});
@@ -806,14 +1004,14 @@ describe("the teacher app's URLs", () => {
   async function walkDown() {
     const { user, history } = openAt("/teach/", room12);
     await user.click(await signInButton());
-    const dashboard = await hrefOf("See results for Room 12");
-    await user.click(await screen.findByRole("link", { name: /See results/ }));
+    await heading("Room 12");
+    const dashboard = history.location.pathname;
     const evidence = await hrefOf(/Ana D\., Grade 4 · B1\.6/);
     await user.click(await screen.findByRole("link", { name: /Ana D\.,/ }));
     const play = await hrefOf(/Fraction Hop/);
     await user.click(await screen.findByRole("link", { name: /Fraction Hop/ }));
     await screen.findByText(/^How it ended/);
-    const student = evidence.replace(/\/expectations\/.+$/, "");
+    const student = evidence.replace(/\?.+$/, "");
     return { user, history, urls: { dashboard, evidence, play, student } };
   }
 
@@ -821,7 +1019,7 @@ describe("the teacher app's URLs", () => {
     const { urls } = await walkDown();
     expect(urls.dashboard).toMatch(/^\/teach\/classes\/[^/]+$/);
     expect(urls.evidence).toMatch(
-      /^\/teach\/classes\/[^/]+\/students\/[^/]+\/expectations\/math-2020\.g4\.B1\.6$/,
+      /^\/teach\/classes\/[^/]+\/students\/[^/]+\?expectation=math-2020\.g4\.B1\.6$/,
     );
     expect(urls.play).toMatch(
       /^\/teach\/classes\/[^/]+\/students\/[^/]+\/plays\/[^/]+$/,
@@ -829,7 +1027,6 @@ describe("the teacher app's URLs", () => {
     cleanup();
     const { user } = openAt("/teach/", room12);
     await user.click(await signInButton());
-    await user.click(await screen.findByRole("link", { name: /See results/ }));
     expect(await hrefOf("Ana D.")).toBe(urls.student);
     expect(urls.student).toMatch(/^\/teach\/classes\/[^/]+\/students\/[^/]+$/);
   });
@@ -837,7 +1034,6 @@ describe("the teacher app's URLs", () => {
   it("opens each screen straight from its URL, after signing in", async () => {
     const { urls } = await walkDown();
     const screens: [string, () => Promise<unknown>][] = [
-      ["/teach/", () => heading("Your classes")],
       [urls.dashboard, () => heading("Room 12")],
       [urls.evidence, () => heading("Ana D.")],
       [urls.play, () => heading(/Fraction Hop/)],
@@ -848,19 +1044,33 @@ describe("the teacher app's URLs", () => {
       const { user, history } = openAt(url, room12);
       await user.click(await signInButton());
       expect(await shows()).toBeInTheDocument();
-      expect(history.location.pathname).toBe(url);
+      expect(history.location.pathname + history.location.search).toBe(url);
     }
   });
 
-  it("moves back and forward through the dashboard, the evidence and a play", async () => {
+  it("opens the student's page at the expectation from the old evidence URL", async () => {
+    const { urls } = await walkDown();
+    cleanup();
+    const { user, history } = openAt(
+      `${urls.student}/expectations/math-2020.g4.B1.6`,
+      room12,
+    );
+    await user.click(await signInButton());
+    expect(await heading("Ana D.")).toBeInTheDocument();
+    expect(history.location.pathname).toBe(urls.student);
+    expect(
+      new URLSearchParams(history.location.search).get("expectation"),
+    ).toBe("math-2020.g4.B1.6");
+    expect(
+      await screen.findByRole("region", { name: "Plays, newest first" }),
+    ).toBeInTheDocument();
+  });
+
+  it("moves back and forward through the dashboard, the student's page and a play", async () => {
     const { history } = await walkDown();
     act(() => history.back());
     expect(await heading("Ana D.")).toBeInTheDocument();
     act(() => history.back());
-    expect(await heading("Room 12")).toBeInTheDocument();
-    act(() => history.back());
-    expect(await heading("Your classes")).toBeInTheDocument();
-    act(() => history.forward());
     expect(await heading("Room 12")).toBeInTheDocument();
     act(() => history.forward());
     expect(await heading("Ana D.")).toBeInTheDocument();
@@ -873,14 +1083,13 @@ describe("the teacher app's URLs", () => {
     cleanup();
     const { user, history } = openAt(urls.play, room12);
     await user.click(await signInButton());
-    await user.click(
-      await screen.findByRole("link", { name: "Ana D.'s evidence" }),
-    );
+    // To the student's page, with the play's expectation open.
+    await user.click(await screen.findByRole("link", { name: "Ana D." }));
     expect(await heading("Ana D.")).toBeInTheDocument();
-    expect(history.location.pathname).toBe(urls.evidence);
-    await user.click(
-      await screen.findByRole("link", { name: "Room 12 results" }),
+    expect(history.location.pathname + history.location.search).toBe(
+      urls.evidence,
     );
+    await user.click(await screen.findByRole("link", { name: "Room 12" }));
     expect(await heading("Room 12")).toBeInTheDocument();
     expect(history.location.pathname).toBe(urls.dashboard);
   });
@@ -922,17 +1131,15 @@ describe("the teacher app's URLs", () => {
     expect(await heading("Not found")).toBeInTheDocument();
     expect(screen.queryByText("Their room")).not.toBeInTheDocument();
     await user.click(screen.getByRole("link", { name: "Your classes" }));
-    expect(await heading("Your classes")).toBeInTheDocument();
+    expect(await heading("Make your first class")).toBeInTheDocument();
   });
 
   it("shows a made-up student, expectation or play, or an unknown path, as not found", async () => {
     const { urls } = await walkDown();
     const madeUp = [
-      urls.evidence.replace(/students\/[^/]+/, "students/nobody"),
-      urls.evidence.replace(
-        /expectations\/.+$/,
-        "expectations/math-2020.g4.Z9.9",
-      ),
+      `${urls.student.replace(/students\/[^/]+$/, "students/nobody")}/expectations/math-2020.g4.B1.6`,
+      `${urls.student}/expectations/math-2020.g4.Z9.9`,
+      `${urls.student}?expectation=math-2020.g4.Z9.9`,
       urls.play.replace(/plays\/.+$/, "plays/no-such-play"),
       urls.student.replace(/students\/[^/]+$/, "students/nobody"),
       "/teach/classes/no-such-class",
@@ -975,9 +1182,6 @@ describe("managing a class", () => {
   async function openManage(options: FakePlatformOptions) {
     const user = renderApp(options);
     await user.click(await signInButton());
-    await user.click(
-      await screen.findByRole("link", { name: "See results for Room 12" }),
-    );
     await user.click(await screen.findByRole("link", { name: "Manage class" }));
     expect(
       await screen.findByRole("heading", { level: 1, name: "Manage Room 12" }),
@@ -987,42 +1191,35 @@ describe("managing a class", () => {
 
   const studentItem = (name: string) => screen.findByRole("listitem", { name });
 
-  it("turns a game off, taking its link off the class, and back on", async () => {
-    const user = await openManage({ classes: room12() });
-    const game = screen.getByRole("switch", { name: /Fraction Hop/ });
-    expect(game).toBeChecked();
-
-    await user.click(game);
-    expect(
-      await screen.findByText(/^Off: not in their lockers/),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("switch", { name: /Fraction Hop/ }),
-    ).not.toBeChecked();
-
-    await user.click(screen.getByRole("link", { name: "The class's results" }));
-    await user.click(await screen.findByRole("link", { name: "Your classes" }));
-    const card = await screen.findByRole("region", { name: "Room 12" });
-    expect(
-      within(card).queryByRole("button", { name: /Copy game link/ }),
-    ).toBeNull();
-
+  /** Opens a student's "⋯" menu, and picks an item. */
+  async function pick(
+    user: ReturnType<typeof userEvent.setup>,
+    row: HTMLElement,
+    name: string,
+    item: string,
+  ) {
     await user.click(
-      within(card).getByRole("link", { name: "Manage Room 12" }),
+      within(row).getByRole("button", { name: `Options for ${name}` }),
     );
+    await user.click(await screen.findByRole("menuitem", { name: item }));
+  }
+
+  it("is about students only: the games are in Share", async () => {
+    await openManage({ classes: room12([sam]) });
+    expect(screen.queryByRole("switch")).toBeNull();
+    expect(screen.queryByRole("heading", { name: "Games" })).toBeNull();
+  });
+
+  it("gives each student one menu instead of two buttons", async () => {
+    const user = await openManage({ classes: room12([sam, ana]) });
+    const row = await studentItem("Sam R.");
+    expect(within(row).getAllByRole("button")).toHaveLength(1);
     await user.click(
-      await screen.findByRole("switch", { name: /Fraction Hop/ }),
+      within(row).getByRole("button", { name: "Options for Sam R." }),
     );
     expect(
-      await screen.findByText(/^On: in your students' lockers/),
-    ).toBeInTheDocument();
-    await user.click(screen.getByRole("link", { name: "The class's results" }));
-    await user.click(await screen.findByRole("link", { name: "Your classes" }));
-    expect(
-      await within(
-        await screen.findByRole("region", { name: "Room 12" }),
-      ).findByRole("button", { name: /Copy game link for Fraction Hop/ }),
-    ).toBeInTheDocument();
+      (await screen.findAllByRole("menuitem")).map((i) => i.textContent),
+    ).toEqual(["Change grade", "Remove from class"]);
   });
 
   it("changes a student's grade in a split class, once the teacher saves, keeping their results' tier", async () => {
@@ -1030,29 +1227,23 @@ describe("managing a class", () => {
     const row = await studentItem("Sam R.");
     expect(within(row).getByText("Grade 4")).toBeInTheDocument();
 
-    await user.click(
-      within(row).getByRole("button", { name: "Change grade for Sam R." }),
-    );
+    await pick(user, row, "Sam R.", "Change grade");
     await user.click(within(row).getByRole("radio", { name: "Grade 5" }));
     await user.click(within(row).getByRole("button", { name: "Cancel" }));
     expect(within(row).getByText("Grade 4")).toBeInTheDocument();
     expect(within(row).queryByRole("radio")).toBeNull();
 
-    await user.click(
-      within(row).getByRole("button", { name: "Change grade for Sam R." }),
-    );
+    await pick(user, row, "Sam R.", "Change grade");
     expect(within(row).getByRole("radio", { name: "Grade 4" })).toBeChecked();
     await user.click(within(row).getByRole("radio", { name: "Grade 5" }));
     await user.click(within(row).getByRole("button", { name: "Save grade" }));
     const saved = await studentItem("Sam R.");
     expect(
-      await within(saved).findByText(
-        "Sam R. now plays at the Grade 5 tier. Results they already have keep their tier.",
-      ),
+      await within(saved).findByText("Sam R. now plays at the Grade 5 tier."),
     ).toBeInTheDocument();
     expect(within(saved).getByText("Grade 5")).toBeInTheDocument();
 
-    await user.click(screen.getByRole("link", { name: "The class's results" }));
+    await user.click(screen.getByRole("link", { name: "Room 12" }));
     const samRow = await screen.findByRole("row", { name: /^Sam R\./ });
     expect(within(samRow).getByText("Grade 5")).toBeInTheDocument();
     expect(
@@ -1066,9 +1257,7 @@ describe("managing a class", () => {
     });
     const row = await studentItem("Ana D.");
     expect(within(row).getByText("No grade picked yet")).toBeInTheDocument();
-    await user.click(
-      within(row).getByRole("button", { name: "Set grade for Ana D." }),
-    );
+    await pick(user, row, "Ana D.", "Set grade");
     await user.click(within(row).getByRole("radio", { name: "Grade 4" }));
     await user.click(within(row).getByRole("button", { name: "Save grade" }));
     expect(
@@ -1077,23 +1266,36 @@ describe("managing a class", () => {
   });
 
   it("offers no grade change in a single-grade class", async () => {
-    await openManage({ classes: room12([{ ...sam, grade: undefined }], [4]) });
+    const user = await openManage({
+      classes: room12([{ ...sam, grade: undefined }], [4]),
+    });
     const row = await studentItem("Sam R.");
-    expect(within(row).queryByRole("button", { name: /grade/ })).toBeNull();
     expect(within(row).queryByText("Grade 4")).toBeNull();
+    await user.click(
+      within(row).getByRole("button", { name: "Options for Sam R." }),
+    );
+    expect(
+      (await screen.findAllByRole("menuitem")).map((i) => i.textContent),
+    ).toEqual(["Remove from class"]);
   });
 
   it("removes a student once the teacher confirms, taking them off the dashboard", async () => {
     const user = await openManage({ classes: room12([sam, ana]) });
-    await user.click(
-      within(await studentItem("Sam R.")).getByRole("button", {
-        name: "Remove Sam R.",
-      }),
+    await pick(
+      user,
+      await studentItem("Sam R."),
+      "Sam R.",
+      "Remove from class",
     );
     await user.click(screen.getByRole("button", { name: "Cancel" }));
     expect(screen.queryByText(/^Remove Sam R\. from Room 12\?/)).toBeNull();
 
-    await user.click(screen.getByRole("button", { name: "Remove Sam R." }));
+    await pick(
+      user,
+      await studentItem("Sam R."),
+      "Sam R.",
+      "Remove from class",
+    );
     expect(
       screen.getByText(/^Remove Sam R\. from Room 12\?/),
     ).toBeInTheDocument();
@@ -1101,7 +1303,7 @@ describe("managing a class", () => {
     await waitForGone(() => screen.queryByRole("listitem", { name: "Sam R." }));
     expect(await studentItem("Ana D.")).toBeInTheDocument();
 
-    await user.click(screen.getByRole("link", { name: "The class's results" }));
+    await user.click(screen.getByRole("link", { name: "Room 12" }));
     expect(
       await screen.findByRole("row", { name: /^Ana D\./ }),
     ).toBeInTheDocument();
@@ -1112,11 +1314,13 @@ describe("managing a class", () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
     let offline = false;
     const user = await openManage({
-      classes: room12(),
+      classes: room12([sam, ana]),
       offline: () => offline,
     });
+    const row = await studentItem("Ana D.");
+    await pick(user, row, "Ana D.", "Remove from class");
     offline = true;
-    await user.click(screen.getByRole("switch", { name: /Fraction Hop/ }));
+    await user.click(screen.getByRole("button", { name: "Remove from class" }));
     expect(
       await screen.findByText(
         "That didn't save. Check your connection and try again.",
@@ -1132,16 +1336,19 @@ describe("managing a class", () => {
       ],
     });
     await user.click(await signInButton());
-    await user.click(
-      await screen.findByRole("link", { name: "See results for Room 12" }),
-    );
     const classes = await screen.findByRole("navigation", {
       name: "Your classes",
     });
     expect(
       within(classes).getByRole("link", { name: "Room 12" }),
     ).toHaveAttribute("aria-current", "page");
-    expect(screen.getByRole("row", { name: /^Sam R\./ })).toBeInTheDocument();
+    expect(
+      await screen.findByRole("row", { name: /^Sam R\./ }),
+    ).toBeInTheDocument();
+    // "New class" ends the switcher.
+    expect(within(classes).getAllByRole("link").at(-1)).toHaveTextContent(
+      "New class",
+    );
 
     await user.click(within(classes).getByRole("link", { name: "Room 14" }));
     expect(
@@ -1156,18 +1363,8 @@ describe("managing a class", () => {
         screen.getByRole("navigation", { name: "Your classes" }),
       ).getByRole("link", { name: "Room 14" }),
     ).toHaveAttribute("aria-current", "page");
-  });
-
-  it("shows no class switcher to a teacher with one class", async () => {
-    const user = renderApp({ classes: room12() });
-    await user.click(await signInButton());
-    await user.click(
-      await screen.findByRole("link", { name: "See results for Room 12" }),
-    );
-    await screen.findByRole("heading", { level: 1, name: "Room 12" });
-    expect(
-      screen.queryByRole("navigation", { name: "Your classes" }),
-    ).toBeNull();
+    // There is no classes screen to go back to.
+    expect(screen.queryByRole("link", { name: "Your classes" })).toBeNull();
   });
 
   it("opens the manage screen from its URL, and not for another teacher's class", async () => {
@@ -1216,9 +1413,6 @@ describe("recognition", () => {
       ],
     });
     await user.click(await signInButton());
-    await user.click(
-      await screen.findByRole("link", { name: "See results for Room 12" }),
-    );
     await screen.findByRole("heading", { name: "Room 12" });
     return user;
   }
@@ -1252,11 +1446,10 @@ describe("recognition", () => {
     ).toEqual(["Ana D.", "Ben O."]);
   });
 
-  it("recognises a student from their row in two taps, offering every trait", async () => {
+  it("recognises a student from the not-yet list in two taps, offering every trait", async () => {
     const user = await openDashboard();
-    const row = await screen.findByRole("row", { name: /^Ben O\./ });
     await user.click(
-      within(row).getByRole("button", { name: "Recognise Ben O." }),
+      within(notYet()).getByRole("button", { name: "Recognise Ben O." }),
     );
     const kindness = await screen.findByRole("menuitem", { name: "Kindness" });
     expect(screen.getAllByRole("menuitem").map((i) => i.textContent)).toEqual([
@@ -1265,11 +1458,6 @@ describe("recognition", () => {
       "Leadership",
     ]);
     await user.click(kindness);
-    expect(
-      await within(
-        await screen.findByRole("row", { name: /^Ben O\./ }),
-      ).findByText("Recognised: Kindness"),
-    ).toBeInTheDocument();
     expect(
       await screen.findByText(
         "Ben O. recognised for Kindness. They'll see a sticker in their locker.",
@@ -1282,26 +1470,25 @@ describe("recognition", () => {
     ).toEqual(["Ana D."]);
   });
 
-  it("ticks the traits a student was already recognised for this term", async () => {
+  it("has no Recognise button in the grid, nor for a student already recognised this term", async () => {
     const user = await openDashboard();
-    const row = () => screen.findByRole("row", { name: /^Ben O\./ });
-    await recognise(user, await row(), "Ben O.", "Kindness");
-    await within(await row()).findByText("Recognised: Kindness");
-    await user.click(
-      within(await row()).getByRole("button", { name: "Recognise Ben O." }),
+    const grid = screen.getByRole("table");
+    expect(within(grid).queryByRole("button")).toBeNull();
+    expect(screen.getAllByRole("button", { name: /^Recognise/ })).toHaveLength(
+      2,
     );
-    const ticked = await screen.findByRole("menuitem", {
-      name: "Kindness, recognised this term",
-    });
-    expect(ticked).toHaveAttribute("data-checked");
-    const others = screen
-      .getAllByRole("menuitem")
-      .filter((item) => item !== ticked);
-    expect(others.map((item) => item.textContent)).toEqual([
-      "Perseverance",
-      "Leadership",
-    ]);
-    for (const item of others) expect(item).not.toHaveAttribute("data-checked");
+
+    await recognise(user, notYet(), "Ben O.", "Kindness");
+    await within(notYet()).findByText(/^Ben O\. recognised for Kindness/);
+    expect(
+      screen
+        .getAllByRole("button", { name: /^Recognise/ })
+        .map((b) => b.textContent),
+    ).toEqual(["Recognise Ana D."]);
+    // And no "Recognised: …" line in their row.
+    expect(
+      await screen.findByRole("row", { name: /^Ben O\./ }),
+    ).not.toHaveTextContent("Recognised");
   });
 
   it("ticks them on the student's page too", async () => {
@@ -1365,10 +1552,9 @@ describe("recognition", () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
     const user = await openDashboard({ offline: () => offline });
     offline = true;
-    const row = await screen.findByRole("row", { name: /^Ben O\./ });
-    await recognise(user, row, "Ben O.", "Kindness");
+    await recognise(user, notYet(), "Ben O.", "Kindness");
     expect(
-      await within(row).findByText(
+      await within(notYet()).findByText(
         "That didn't save. Check your connection and try again.",
       ),
     ).toBeInTheDocument();
@@ -1415,9 +1601,6 @@ describe("quick assess", () => {
   async function openDashboard() {
     const { user, history } = openAt("/teach/", { classes: [room()] });
     await user.click(await signInButton());
-    await user.click(
-      await screen.findByRole("link", { name: "See results for Room 12" }),
-    );
     await screen.findByRole("heading", { level: 1, name: "Room 12" });
     return { user, history };
   }
@@ -1482,33 +1665,54 @@ describe("quick assess", () => {
       /Developing|Showing consistently|Not yet showing|%/,
     );
 
-    await user.click(screen.getByRole("link", { name: "Room 12 results" }));
+    await user.click(screen.getByRole("link", { name: "Room 12" }));
     expect(
       await screen.findByRole("heading", { level: 1, name: "Room 12" }),
     ).toBeInTheDocument();
   });
 
-  it("opens for one student from their page, and goes back up to it", async () => {
+  it("is the student's page for one student, with a print button and recognition on screen only", async () => {
     const { user } = await openDashboard();
     const row = screen.getByRole("row", { name: /^Ben O\./ });
     await user.click(within(row).getByRole("link", { name: "Ben O." }));
-    await user.click(
-      await screen.findByRole("link", { name: "Quick assess for Ben O." }),
-    );
     expect(
-      await screen.findByRole("heading", { level: 1, name: "Quick assess" }),
+      await screen.findByRole("heading", { level: 1, name: "Ben O." }),
     ).toBeInTheDocument();
-    expect(screen.getByText("Ben O., Room 12")).toBeInTheDocument();
-    expect(screen.getByRole("region", { name: "Ben O." })).toBeInTheDocument();
+    const math = part(document.body, "Math: what their plays show");
+    const [atFour, atFive] = within(math).getAllByRole("listitem");
+    expect(atFour).toHaveTextContent(
+      "3 of 4 tasks on their own, in their 2 most recent plays",
+    );
+    expect(atFive).toHaveTextContent("Grade 5 tier, not their grade");
+    expect(part(document.body, "Next steps seen in play")).toHaveTextContent(
+      /bigger.*\(Fraction Hop\)/i,
+    );
+    expect(part(document.body, "Learning Skills")).toHaveTextContent(
+      "Responsibility: 2 plays finished",
+    );
+    // The print has the counts, never a level.
+    for (const line of within(math).getAllByRole("listitem")) {
+      expect(
+        within(line).queryByText(
+          /^(Developing|Showing consistently|Not yet showing)/,
+          {
+            selector: ":not(button *)",
+          },
+        ),
+      ).toBeNull();
+    }
+    expect(
+      screen.getByRole("region", { name: "Recognition" }),
+    ).toBeInTheDocument();
     expect(screen.queryByRole("region", { name: "Dee L." })).toBeNull();
 
     const print = vi.spyOn(window, "print").mockImplementation(() => {});
     await user.click(screen.getByRole("button", { name: "Print" }));
     expect(print).toHaveBeenCalledOnce();
 
-    await user.click(screen.getByRole("link", { name: "Ben O." }));
+    await user.click(screen.getByRole("link", { name: "Room 12" }));
     expect(
-      await screen.findByRole("heading", { level: 1, name: "Ben O." }),
+      await screen.findByRole("heading", { level: 1, name: "Room 12" }),
     ).toBeInTheDocument();
   });
 
@@ -1520,7 +1724,7 @@ describe("quick assess", () => {
     expect(
       await screen.findByRole("heading", { level: 1, name: "Quick assess" }),
     ).toBeInTheDocument();
-    expect(screen.getByText("Room 12")).toBeInTheDocument();
+    expect(screen.getAllByText("Room 12").length).toBeGreaterThan(0);
     cleanup();
 
     const other = openAt(
@@ -1535,33 +1739,32 @@ describe("quick assess", () => {
 });
 
 describe("the demo class", () => {
-  async function signInWithDemo() {
+  async function openDemo() {
     const user = renderApp({ demoClass: true });
     await user.click(await signInButton());
-    const card = await screen.findByRole("region", { name: "Demo class" });
-    return { user, card };
+    const banner = await screen.findByRole("region", { name: "Demo class" });
+    return { user, banner };
   }
 
-  async function openDemo() {
-    const { user, card } = await signInWithDemo();
-    await user.click(
-      within(card).getByRole("link", { name: "See results for Demo class" }),
-    );
-    await screen.findByRole("heading", { name: "This is a demo class" });
-    return user;
-  }
-
-  it("is a new teacher's first class, labelled, with no links to share", async () => {
-    const { card } = await signInWithDemo();
-    expect(within(card).getByText("Demo")).toBeInTheDocument();
+  it("is a new teacher's first class, opened at sign-in, labelled, with no links to share", async () => {
+    const { banner } = await openDemo();
     expect(
-      within(card).getByText(
-        "Simulated students in Grades 3, 4 and 5, with results already in",
-      ),
+      screen.getByRole("heading", { level: 1, name: "Demo class" }),
     ).toBeInTheDocument();
+    expect(banner).toHaveTextContent(
+      "Demo class: simulated students, with results already in.",
+    );
+    expect(screen.queryByRole("button", { name: "Share" })).toBeNull();
+    expect(screen.queryByRole("button", { name: /Copy/ })).toBeNull();
+  });
+
+  it("has a one-line banner with two actions", async () => {
+    const { banner } = await openDemo();
     expect(
-      within(card).queryByRole("button", { name: /Copy/ }),
-    ).not.toBeInTheDocument();
+      within(banner)
+        .getAllByRole("button")
+        .map((b) => b.textContent),
+    ).toEqual(["View as a student", "Delete"]);
   });
 
   it("has results and misconceptions in on its dashboard", async () => {
@@ -1575,7 +1778,7 @@ describe("the demo class", () => {
   });
 
   it("opens the play shell as one of its students, in a new tab", async () => {
-    const user = await openDemo();
+    const { user } = await openDemo();
     const tab = { location: { href: "" }, close: vi.fn() };
     const open = vi
       .spyOn(window, "open")
@@ -1589,22 +1792,26 @@ describe("the demo class", () => {
   });
 
   it("is deleted in one step after a confirm, and doesn't come back", async () => {
-    const user = await openDemo();
-    await user.click(screen.getByRole("button", { name: "Delete demo class" }));
+    const { user } = await openDemo();
+    await user.click(screen.getByRole("button", { name: "Delete" }));
     expect(
       screen.getByText(/Delete the demo class and all its simulated students/),
     ).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Delete demo class" }));
 
-    expect(await screen.findByText("No classes yet")).toBeInTheDocument();
+    expect(
+      await screen.findByRole("heading", { name: "Make your first class" }),
+    ).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Sign out" }));
     await user.click(await signInButton());
-    expect(await screen.findByText("No classes yet")).toBeInTheDocument();
+    expect(
+      await screen.findByRole("heading", { name: "Make your first class" }),
+    ).toBeInTheDocument();
   });
 
   it("can be kept: cancelling the delete changes nothing", async () => {
-    const user = await openDemo();
-    await user.click(screen.getByRole("button", { name: "Delete demo class" }));
+    const { user } = await openDemo();
+    await user.click(screen.getByRole("button", { name: "Delete" }));
     await user.click(screen.getByRole("button", { name: "Cancel" }));
     expect(
       screen.getByRole("button", { name: "View as a student" }),
