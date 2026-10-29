@@ -86,16 +86,15 @@ export const mutations = defineMutations([
   {
     name: "reruns don't climb the ladder",
     file: "src/rules/task.ts",
-    find: 'if (v === "rerun") return { verdict: v, ...afterMiss(state, ["run.splash"]) };',
-    replace:
-      'if (v === "rerun") return { verdict: v, state, say: ["run.splash"] };',
+    find: '      ...afterMiss(state, ["run.splash"]),',
+    replace: '      state,\n      say: ["run.splash"],',
   },
   {
     name: "help ranking",
     file: "src/rules/task.ts",
-    find: 'const assisted = state.guided\n    ? "guided"',
+    find: 'const assisted = before.guided\n    ? "guided"',
     replace:
-      'const assisted = state.guided && state.hint === 0\n    ? "guided"',
+      'const assisted = before.guided && before.hint === 0\n    ? "guided"',
   },
   {
     name: "a full plan counts every time",
@@ -114,6 +113,67 @@ export const mutations = defineMutations([
     file: "src/rules/task.ts",
     find: "  if (i < state.locked || i >= state.plan.length) return state;",
     replace: "  if (i >= state.plan.length) return state;",
+  },
+  {
+    name: "probes sent as misses",
+    file: "src/rules/task.ts",
+    find: 'if (kind === "explored")\n    return { ...attempt, succeeded: false, exploring: true };',
+    replace: "",
+  },
+  {
+    name: "help recorded once the miss has climbed the ladder",
+    file: "src/rules/task.ts",
+    find: '    attempt: attemptFor(before, next, "missed", detail),',
+    replace:
+      '    attempt: attemptFor(afterMiss(next, say).state, next, "missed", detail),',
+  },
+  {
+    name: "a misconception on every miss past its threshold",
+    file: "src/rules/task.ts",
+    find: "recordedMisconception(before.matches)\n    ? undefined",
+    replace: "false\n    ? undefined",
+  },
+  {
+    name: "every rerun reads as the same hops",
+    file: "src/rules/task.ts",
+    find: 'v === "rerun" && before.splashRuns.includes(taken)',
+    replace: 'v === "rerun"',
+  },
+  {
+    name: "full-plan tap not sent",
+    file: "src/rules/task.ts",
+    find: '    attempt: attemptFor(state, next, "missed", fullPlanDetail(state.course)),\n',
+    replace: "",
+  },
+  {
+    name: "landings described in the goal's unit",
+    file: "src/rules/teacher.ts",
+    find: "fraction(at, course.unit)",
+    replace: "fraction(at, course.shown.d)",
+  },
+  {
+    name: "runs of the same hop never counted",
+    file: "src/rules/teacher.ts",
+    find: "if (k >= groupedFrom)",
+    replace: "if (false)",
+  },
+  {
+    name: "the whole plan described, not the hops taken",
+    file: "src/rules/teacher.ts",
+    find: "plan.slice(0, run.landings.length)",
+    replace: "plan",
+  },
+  {
+    name: "misses not sent",
+    file: "src/game/FractionHop.tsx",
+    find: "      commit(step.state);\n      record(step.attempt);",
+    replace: "      commit(step.state);",
+  },
+  {
+    name: "solves not sent",
+    file: "src/game/FractionHop.tsx",
+    find: "          commit(step.state);\n          record(step.attempt);",
+    replace: "          commit(step.state);",
   },
   {
     name: "Grade 4 budget",

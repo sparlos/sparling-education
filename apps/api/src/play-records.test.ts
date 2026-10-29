@@ -72,6 +72,18 @@ describe("sending play records", () => {
     expect(res.status).toBe(200);
   });
 
+  it("accepts records made under the game's earlier versions, as well as its current one", async () => {
+    const who = await student();
+    for (const version of [1, 2]) {
+      const res = await sendRecords(
+        who.headers,
+        playOf(who, right(1), { version }),
+      );
+      expect(res.status).toBe(200);
+      expect(await stored(res)).toBe(2);
+    }
+  });
+
   it("accepts the end of a play in a later batch than its attempts", async () => {
     const who = await student();
     const records = playOf(who, right(2));

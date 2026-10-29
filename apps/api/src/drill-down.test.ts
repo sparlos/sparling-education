@@ -128,7 +128,9 @@ describe("a cell's evidence", () => {
           understanding: "developing",
           tierGrade: 4,
           otherTier: false,
-          games: [{ slug: "fraction-hop", tier: "g4", version: 1 }],
+          games: [
+            { slug: "fraction-hop", tier: "g4", version: manifest.version },
+          ],
         },
       ],
       plays: [
@@ -137,7 +139,7 @@ describe("a cell's evidence", () => {
           ...fractionHop,
           tier: "g4",
           tierGrade: 4,
-          version: 1,
+          version: manifest.version,
           at: new Date(+day(1) + 1000).toISOString(),
           ending: "left",
           tasks: 3,
@@ -254,6 +256,100 @@ describe("a cell's evidence", () => {
   });
 });
 
+// Since version 2, Fraction Hop sends an attempt for every run, where
+// version 1 sent one per solved task. What that changes for results.
+describe("Fraction Hop's runs, one attempt each", () => {
+  const asked = "Reach 3/8 on a course in eighths. Blocks: 1/8, 1/4, 1.";
+  const probe = {
+    succeeded: false,
+    exploring: true,
+    asked,
+    detail: "Hopped 1/4: stopped short, on 2/8.",
+  };
+  const miss = {
+    succeeded: false,
+    asked,
+    detail: "Hopped 1/4 + 1/4: landed past the goal, on 4/8.",
+  };
+  const solve = {
+    succeeded: true,
+    asked,
+    detail: "Hopped 1/4 + 1/8: reached the goal.",
+  };
+  const evidenceAfter = async (tasks: Parameters<typeof playOf>[1]) => {
+    const { teacher, classId, student, who } = await classWithStudent();
+    await play(student, [playOf(who, tasks, { at: day(1), ending: "left" })]);
+    return evidenceOf(teacher, classId, student.studentId);
+  };
+
+  it("counts a task solved after misses once, as version 1's one attempt did", async () => {
+    const runs = await evidenceAfter([
+      [probe, { ...miss, misconception: "numerator-not-a-count" }, miss, solve],
+      [solve],
+    ]);
+    const v1 = await evidenceAfter([
+      [{ succeeded: true, misconception: "numerator-not-a-count" }],
+      [{ succeeded: true }],
+    ]);
+    expect(runs.results).toEqual(v1.results);
+    expect(runs.plays[0]).toMatchObject({
+      tasks: 2,
+      onTheirOwn: 2,
+      notYet: 0,
+      tries: 4,
+      explored: 1,
+    });
+    expect(v1.plays[0]).toMatchObject({ tasks: 2, onTheirOwn: 2, notYet: 0 });
+  });
+
+  it("shows a task left after misses as not yet, where version 1 sent nothing for it", async () => {
+    const runs = await evidenceAfter([[solve], [probe, miss, miss]]);
+    expect(runs.plays[0]).toMatchObject({
+      tasks: 2,
+      onTheirOwn: 1,
+      notYet: 1,
+    });
+    expect(runs.results).toEqual([
+      expect.objectContaining({ understanding: "developing" }),
+    ]);
+  });
+
+  it("still reads version 1's records, sent days late, as before", async () => {
+    const { teacher, classId, student, who } = await classWithStudent();
+    await play(student, [
+      playOf(who, [[{ succeeded: false }, { succeeded: true }]], {
+        at: day(1),
+        play: "v1",
+        version: 1,
+      }),
+      playOf(who, [[probe, miss, solve]], { at: day(2), play: "v2" }),
+    ]);
+    const evidence = await evidenceOf(teacher, classId, student.studentId);
+    expect(evidence.plays).toEqual([
+      expect.objectContaining({
+        play: "v1",
+        version: 1,
+        tasks: 1,
+        onTheirOwn: 1,
+      }),
+      expect.objectContaining({
+        play: "v2",
+        version: manifest.version,
+        tasks: 1,
+        onTheirOwn: 1,
+      }),
+    ]);
+    expect(evidence.results).toEqual([
+      expect.objectContaining({
+        games: [
+          { slug: "fraction-hop", tier: "g4", version: manifest.version },
+          { slug: "fraction-hop", tier: "g4", version: 1 },
+        ],
+      }),
+    ]);
+  });
+});
+
 describe("a play", () => {
   it("shows each task's attempts in order, with retries, help and how it ended", async () => {
     const { teacher, classId, student, who } = await classWithStudent();
@@ -279,7 +375,7 @@ describe("a play", () => {
       ...fractionHop,
       tier: "g4",
       tierGrade: 4,
-      version: 1,
+      version: manifest.version,
       at: second(1),
       ending: "finished",
       student: { id: student.studentId, firstName: "Sam", lastInitial: "R" },

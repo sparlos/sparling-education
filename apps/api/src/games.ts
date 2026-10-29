@@ -3,6 +3,7 @@
 // dev-only games. Each game's name is its manifest's `title` string, so it's
 // written once and voiced with the game's other lines.
 import { manifest as fractionHop } from "@games/fraction-hop/manifest";
+import { manifestV1 as fractionHopV1 } from "@games/fraction-hop/manifest-v1";
 import type { GameManifest } from "@repo/game-contract";
 
 export interface HostedGame {
@@ -17,7 +18,7 @@ const manifests: readonly GameManifest[] = [fractionHop];
 
 // When a game's version is bumped, add its old manifest here: records made
 // under it can still arrive, days late, and are checked against it.
-const earlierManifests: readonly GameManifest[] = [];
+const earlierManifests: readonly GameManifest[] = [fractionHopV1];
 
 export const hostedGames: readonly HostedGame[] = manifests.map((manifest) => ({
   slug: manifest.slug,

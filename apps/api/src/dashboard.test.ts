@@ -119,7 +119,7 @@ describe("the dashboard", () => {
       understanding: "showing-consistently",
       tierGrade: 4,
       otherTier: false,
-      games: [{ slug: "fraction-hop", tier: "g4", version: 1 }],
+      games: [{ slug: "fraction-hop", tier: "g4", version: manifest.version }],
     });
   });
 
@@ -310,7 +310,7 @@ describe("understanding", () => {
       understanding: "showing-consistently",
       tierGrade: 3,
       otherTier: true,
-      games: [{ slug: "fraction-hop", tier: "g3", version: 1 }],
+      games: [{ slug: "fraction-hop", tier: "g3", version: manifest.version }],
     });
   });
 

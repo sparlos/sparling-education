@@ -5,7 +5,8 @@
   "type": "module",
   "exports": {
     ".": "./src/index.tsx",
-    "./manifest": "./src/manifest.ts"
+    "./manifest": "./src/manifest.ts",
+    "./manifest-v1": "./src/manifest-v1.ts"
   },
   "scripts": {
     "check-types": "tsc --noEmit",

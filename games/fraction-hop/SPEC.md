@@ -2,7 +2,7 @@
 
 Status: approved
 Slug: fraction-hop (game link: /play/fraction-hop)
-Version: 1
+Version: 2
 Renderer: dom
 Avatar: character
 
@@ -97,12 +97,28 @@ Every run ends as one of:
 Plus one plan event that counts as a miss: `no-equivalence`'s full-plan tap (G5).
 
 - One task is: one course, from showing the goal to reaching it.
-- An attempt is recorded when: the task is solved. Exactly **one attempt per task**. Leaving mid-task records no attempt for it (the shell records the play as left by the student).
-- Success means: the goal was reached. With guided help every task ends solved, so `succeeded` is always true, and `assisted` carries how: absent (on their own), `hint` (either hint level was used) or `guided`. `demonstration` is never used.
-- Misconception: at most one per attempt, from the task's misses, as each misconception's threshold says. If several qualify, the most matches wins, and on a tie the one seen first. It's recorded even though the task was then solved: "got there, but showed this along the way" is what a teacher reteaches from.
+- An attempt is recorded for **every run**, and for the G5 full-plan tap, as it happens (founder's call, 2026-10-29). A probe is `exploring`. A miss, a rerun or the full-plan tap is `succeeded: false`, and a solve is `succeeded: true`. Leaving mid-task leaves the task's runs so far (the shell records the play as left by the student).
+- Success means: the goal was reached. `assisted` on each attempt is the help that was on before that run: absent (on their own), `hint` (either hint level) or `guided`. A probe never has help. `demonstration` is never used.
+- Misconception: at most one per task, on the miss that brings it over its threshold. If that miss brings several over, the most matches wins, and on a tie the one seen first. A probe, a rerun and a solve never carry one.
 - Expectation: the tier's single expectation.
-- Retries of the same task are recognised by: the task ID `task-<n>`, n = 1–6 in the play. Runs inside a task are never separate attempts.
+- Retries of the same task are recognised by: the task ID `task-<n>`, n = 1–6 in the play. Every run inside a task is a try at that task.
 - Logged locally only (for tuning, never sent): the hint level reached, and the miss and probe counts per task.
+
+**What the teacher sees for each task and try.** Plain text, built from the rules' state; fractions as `a/b`, in the course's ticks as the student sees them, with improper fractions kept improper:
+
+| Field | When | Text |
+| --- | --- | --- |
+| `asked` | Every attempt in the task, the same | `Reach 3/8 on a course in eighths. Blocks: 1/8, 1/4, 1.` |
+| `asked` | Grade 5: the goal in simplest form, and the ticks | `Reach 5/4 on a course in eighths. Blocks: 1/8, 1/4, 1/2, 1.` |
+| `detail` | A splash | `Hopped 1/8 + 1/8 + 1/4: splashed at 4/8.` |
+| `detail` | Past the goal | `Hopped 1/4 + 1/4: landed past the goal, on 4/8.` |
+| `detail` | A probe | `Hopped 1/4: stopped short, on 2/8.` |
+| `detail` | A solve | `Hopped 1/2 + 1/2 + 1/4: reached the goal.` |
+| `detail` | A rerun of the very same hops | `Ran the same hops again: splashed at 4/8.` |
+| `detail` | The G5 full-plan tap | `Filled the plan with 1/12 hops.` |
+| `detail` | 3 or more of the same hop in a row | `Hopped 12 × 1/10 + 1/5: splashed at 14/10.` |
+
+Blocks are listed smallest hop first, the whole hop as `1`. A rerun that reaches the same splash by other hops says its hops, as any splash does. A run of the same hop is counted once it's 3 long, so even a Grade 4 plan of 26 tenths stays within the 200 characters.
 
 The thresholds (2, 3 and 4 misses for the help steps, 1 or 2 matches per misconception) are starting numbers, to be tuned from real play.
 
@@ -241,7 +257,7 @@ Placeholder SVG first, from the style kit, each in a fixed frame with an anchor.
   - `math-2020.g4.B1.6`: Counts on by a unit fraction past one whole, for example one fourth, two fourths and on to eleven fourths, with or without a model.
   - `math-2020.g5.B1.3`: Makes and recognises equal-value fractions up to twelfths by splitting or merging parts, including fractions greater than one written as improper fractions or mixed numbers.
 - The mechanic in 30 seconds: a goal is hidden over the water, and only its fraction is shown. Students build a route from fraction hops, press play, and watch their avatar hop it. A wrong hop splashes at the exact spot, or lands past the goal, so students see what went wrong and fix it. Trying things out never counts against them.
-- Results: per expectation, each task reads *on their own*, *with a hint* or *guided*, plus any misconception shown along the way.
+- Results: per expectation, each task reads *on their own*, *with a hint*, *guided* or, when the student left it unsolved, *not yet*, plus any misconception shown along the way. The play view lists every run of every task: what it asked, then each try ("Explored", "Not yet", "Got it") and what the hops did.
 - Misconceptions it reveals:
   - `bigger-denominator-bigger`: "Thinks a fraction with a bigger bottom number is a bigger piece (e.g. ⅛ > ¼)." Reteach: fold paper strips into fourths and eighths and compare the pieces.
   - `numerator-not-a-count`: "Counts the right number of pieces, but pieces of the wrong size (e.g. three fourths for three eighths)." Reteach: name the unit aloud while counting: "one eighth, two eighths…".
@@ -264,5 +280,6 @@ Whether visual polish becomes its own skill is decided after this build (see `.s
 
 - **`numerator-not-a-count` with a smaller wrong unit is a probe.** Two 1⁄12 hops for ⅔ stop short on grass, which never counts, so that direction goes unseen. Only the overshoot direction (three ¼ for ³⁄₈) is recorded. Accepted for v1; revisit if teachers miss it.
 - **The tutorial plays every play** until the contract can remember per student which block types they've seen. Add that to the contract during the build if it's cheap.
+- **Every run is an attempt** (since version 2): a teacher can follow a task run by run. Probes are sent as exploring tries, which never count. A task left after misses now reads "not yet", where version 1 recorded nothing for it.
 - **Thresholds** (misses per help step, matches per misconception) are starting numbers, to tune from the locally logged counts.
 - **Separate tasks, not this game's:** the portrait's expressions look "weird/ugly" (fix in `@repo/avatar`'s portrait, shared by every game). A repeat block ("3 × ¼ hop", like Lightbot's loops) would evidence `math-2020.g4.B2.7`: prototype it later, maybe as the second MVP game.

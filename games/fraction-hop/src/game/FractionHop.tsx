@@ -9,7 +9,6 @@ import { type Run, type RunEnd, runPlan } from "../rules/course.ts";
 import { generatePlay, tasksPerPlay } from "../rules/generate.ts";
 import {
   addBlock,
-  attemptFor,
   finishRun,
   introLines,
   moveBlock,
@@ -17,6 +16,7 @@ import {
   removeAt,
   type Step,
   startTask,
+  type TaskAttempt,
   type TaskState,
   tapHint,
   tuningLog,
@@ -244,6 +244,19 @@ export function FractionHop(props: GameProps<Manifest>) {
     };
   }, [mode, pause, speak, commit, hop, beginTask, clearTimers]);
 
+  /** Sends a run's attempt as it happens, so a student who leaves still leaves their tries. */
+  const record = useCallback(
+    (attempt: TaskAttempt | undefined) => {
+      if (!attempt) return;
+      onAttempt({
+        ...attempt,
+        // Each tier evidences one expectation.
+        expectation: manifest.tiers[tier].expectations[0],
+      });
+    },
+    [onAttempt, tier],
+  );
+
   /**
    * After a step, the ghost hand points at any hop guided just placed. When
    * the hint button starts to glow, the result is said first; then, while
@@ -253,6 +266,7 @@ export function FractionHop(props: GameProps<Manifest>) {
   const apply = useCallback(
     async (before: TaskState, step: Step) => {
       commit(step.state);
+      record(step.attempt);
       if (step.state.locked > before.locked) {
         setHand(`slot-${step.state.locked - 1}`);
         later(pointMs, () => setHand(null));
@@ -273,17 +287,11 @@ export function FractionHop(props: GameProps<Manifest>) {
       await pause(nudgeHoldMs);
       setHand((at) => (at === "hint" ? null : at));
     },
-    [commit, speak, later, pause],
+    [commit, record, speak, later, pause],
   );
 
   const solved = async (done: TaskState, fixed: boolean) => {
     const cheer: StringId[] = fixed ? ["run.nice-fix"] : [];
-    onAttempt({
-      ...attemptFor(done),
-      // Each tier evidences one expectation.
-      expectation: manifest.tiers[tier].expectations[0],
-      succeeded: true,
-    });
     onProgress({ done: done.index, total: tasksPerPlay });
     console.info("[fraction-hop] tuning (local only)", tuningLog(done));
     if (done.index < tasksPerPlay) {
@@ -352,6 +360,7 @@ export function FractionHop(props: GameProps<Manifest>) {
         }
         if (step.verdict === "solve") {
           commit(step.state);
+          record(step.attempt);
           await solved(step.state, step.fixed !== undefined);
         } else {
           void apply(before, step);

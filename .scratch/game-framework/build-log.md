@@ -372,3 +372,26 @@ Fraction Hop 73 tests, kit 22 + 3, play 127, voice 26; types clean; Biome clean.
 
 - Not tested yet: step 11 (the second MVP game) is the first real run of `build-game` and `review-game`. `add-curriculum` and `polish-game` run when first needed.
 - `.scratch/playtest-notes/fraction-hop.md` (guided becomes "I added the first hop for you", dragging and reordering blocks) is new founder feedback for Fraction Hop. The guided change is a spec change; dragging may be polish. Not acted on here.
+
+## Fraction Hop v2: an attempt for every run (2026-10-29)
+
+Ticket `.scratch/mvp-platform/issues/23-fraction-hop-records-every-run.md`, on ticket 22's `asked`, `detail` and `exploring`.
+
+### What's where
+
+- `src/rules/teacher.ts`: `asked` and `detail` text from rules state. `task.ts`'s `Step` carries the attempt a run (or G5 full-plan tap) records; `attemptFor(before, after, kind, detail)` builds it. The screen sends it as it happens (`record` in `FractionHop.tsx`).
+- `src/manifest-v1.ts` (exported as `@games/fraction-hop/manifest-v1`): version 1 frozen, in the API's `earlierManifests`. The play shell has no earlier-manifest list: it only records under the live manifest, and its outbox resends stored records without re-checking them.
+- Spec tests read the `asked`/`detail` table in SPEC.md's Attempts section and rebuild every row from the rules.
+
+### Readings (for the founder)
+
+1. The whole hop is listed among the blocks as `1`: `Blocks: 1/8, 1/4, 1/2, 1.`
+2. The G5 full-plan tap says `Filled the plan with 1/12 hops.` ("plan", not the ticket's "course": the course isn't filled).
+3. "Ran the same hops again" only when the run took the very hops of an earlier splash. A rerun that reaches the same splash by other hops says its hops.
+4. Three or more of the same hop in a row are written `12 × 1/10`, so a 26-hop Grade 4 plan fits in 200 characters.
+5. A misconception goes on the miss that brings it over its threshold. That can differ from v1, which picked the winner at the solve (e.g. `numerator-not-a-count` at its first match, though `bigger-denominator-bigger` later had more).
+
+### Gotchas
+
+- A run ends at the first landing past the goal, so three 1/4 hops for 3/8 land "past the goal, on 4/8", not 6/8 as the `numerator-not-a-count` section of SPEC.md says. Left for the founder.
+- Two first-draft mutations were equivalent (a solve adds no matches; `after` is the state before the ladder climbs). `pnpm mutate` showed them up; the redundant check was removed.

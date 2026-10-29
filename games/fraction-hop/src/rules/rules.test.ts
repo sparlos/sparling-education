@@ -1,7 +1,9 @@
 // @vitest-environment node
 
-import { seeded } from "@repo/game-kit/random";
+import { attemptProblem } from "@repo/game-contract";
+import { int, pick, seeded } from "@repo/game-kit/random";
 import { describe, expect, it } from "vitest";
+import { manifest } from "../manifest.ts";
 import { strings } from "../strings.ts";
 import {
   type Course,
@@ -26,12 +28,12 @@ import {
 } from "./judge.ts";
 import {
   addBlock,
-  attemptFor,
   finishRun,
   moveBlock,
   pressPlay,
   removeAt,
   startTask,
+  type TaskAttempt,
   type TaskState,
   tapHint,
 } from "./task.ts";
@@ -396,22 +398,189 @@ describe("a task", () => {
     // The route is all placed: nothing more to add.
     expect(run(state, [1, 4, 4]).say).not.toContain("guided.one-more");
   });
+});
 
-  it("ends in one attempt: the most help used and the misconception seen", () => {
-    const solve = (s: TaskState) => run(s, [4, 8]).state;
-    expect(attemptFor(solve(startTask("g3", 2, eighths)))).toEqual({
-      task: "task-2",
+describe("attempts: one for every run", () => {
+  const run = (state: TaskState, plan: number[]) => {
+    const pressed = pressPlay({ ...state, plan });
+    if (!("run" in pressed)) throw new Error("no run");
+    return finishRun({ ...state, plan }, pressed.run);
+  };
+  // Every run kind at every tier: a probe, a splash, a rerun of the same
+  // hops, an overshoot and a solve, on a course of the tier's kind.
+  const kinds = {
+    g3: {
+      course: eighths,
+      asked: "Reach 3/8 on a course in eighths. Blocks: 1/8, 1/4, 1.",
+      probe: [[4], "Hopped 1/4: stopped short, on 2/8."],
+      splash: [[8], "Hopped 1/8: splashed at 1/8."],
+      past: [[4, 4], "Hopped 1/4 + 1/4: landed past the goal, on 4/8."],
+      solve: [[4, 8], "Hopped 1/4 + 1/8: reached the goal."],
+    },
+    g4: {
+      // Fourths: the goal at 7/4, water at 1/4, 3/4 and 5/4.
+      course: course("#~#~#~#G#~~~", { n: 7, d: 4 }, [4, 2, 1], 8),
+      asked: "Reach 7/4 on a course in fourths. Blocks: 1/4, 1/2, 1.",
+      probe: [[2, 2], "Hopped 1/2 + 1/2: stopped short, on 4/4."],
+      splash: [[2, 4], "Hopped 1/2 + 1/4: splashed at 3/4."],
+      past: [[1, 1], "Hopped 1 + 1: landed past the goal, on 8/4."],
+      solve: [[1, 2, 4], "Hopped 1 + 1/2 + 1/4: reached the goal."],
+    },
+    g5: {
+      // Twelfths: the goal at 1/2.
+      course: course("#~##~~G~##~~~", { n: 1, d: 2 }, [12, 6, 4, 3, 1], 2),
+      asked:
+        "Reach 1/2 on a course in twelfths. Blocks: 1/12, 1/6, 1/4, 1/3, 1.",
+      probe: [[6], "Hopped 1/6: stopped short, on 2/12."],
+      // One 1/12 hop for 1/2 would be numerator-not-a-count: two 1/6 hops aren't.
+      splash: [[6, 6], "Hopped 1/6 + 1/6: splashed at 4/12."],
+      past: [
+        [6, 3, 6],
+        "Hopped 1/6 + 1/3 + 1/6: landed past the goal, on 8/12.",
+      ],
+      solve: [[4, 4], "Hopped 1/4 + 1/4: reached the goal."],
+    },
+  } as const;
+
+  describe.each(["g3", "g4", "g5"] as const)("at %s", (tier) => {
+    const k = kinds[tier];
+    const start = startTask(tier, 3, k.course);
+    const tried = (plan: readonly number[], from = start) =>
+      run(from, [...plan]).attempt;
+
+    it("sends a probe as exploring: never succeeded, no misconception, no help", () => {
+      const hinted = tapHint(start).state;
+      expect(tried(k.probe[0], hinted)).toEqual({
+        task: "task-3",
+        succeeded: false,
+        exploring: true,
+        asked: k.asked,
+        detail: k.probe[1],
+      });
     });
-    const hinted = solve(tapHint(startTask("g3", 1, eighths)).state);
-    expect(attemptFor(hinted)).toEqual({ task: "task-1", assisted: "hint" });
+
+    it("sends a splash, an overshoot and a rerun as not succeeded", () => {
+      const splash = run(start, [...k.splash[0]]);
+      expect(splash.attempt).toEqual({
+        task: "task-3",
+        succeeded: false,
+        asked: k.asked,
+        detail: k.splash[1],
+      });
+      const rerun = run(splash.state, [...k.splash[0]]);
+      expect(rerun.verdict).toBe("rerun");
+      expect(rerun.attempt?.detail).toBe(
+        `Ran the same hops again: ${k.splash[1].split(": ")[1]}`,
+      );
+      expect(rerun.attempt?.succeeded).toBe(false);
+      expect(tried(k.past[0])?.detail).toBe(k.past[1]);
+      expect(tried(k.past[0])?.succeeded).toBe(false);
+    });
+
+    it("sends a solve as succeeded, with the same asked as every other try", () => {
+      expect(tried(k.solve[0])).toEqual({
+        task: "task-3",
+        succeeded: true,
+        asked: k.asked,
+        detail: k.solve[1],
+      });
+    });
+  });
+
+  it("sends Grade 5's full-plan tap as a miss, carrying no-equivalence", () => {
+    const c = kinds.g5.course;
+    const step = addBlock({ ...startTask("g5", 3, c), plan: [12, 12] }, 4);
+    expect(step.attempt).toEqual({
+      task: "task-3",
+      succeeded: false,
+      misconception: "no-equivalence",
+      asked: kinds.g5.asked,
+      detail: "Filled the plan with 1/12 hops.",
+    });
+    // The same full plan again counts no more, and sends nothing.
+    expect(addBlock(step.state, 4).attempt).toBeUndefined();
+    // Nor does a tap on a full plan with a bigger hop in it.
+    const mixed = { ...startTask("g5", 3, c), plan: [12, 6] };
+    expect(addBlock(mixed, 4).attempt).toBeUndefined();
+    // Or a block added to a plan with room.
+    expect(addBlock(startTask("g5", 3, c), 4).attempt).toBeUndefined();
+  });
+
+  it("says its hops when a rerun reaches the same splash by other hops", () => {
+    // Water at 3/8 and 5/8: 1/4 + 1/8 and three 1/8 hops splash at 3/8 from 2/8.
+    const c = course("###~#~#G#", { n: 7, d: 8 }, [8, 4, 1], 6);
+    const first = run(startTask("g3", 1, c), [4, 8]);
+    const other = run(first.state, [8, 8, 8]);
+    expect(other.verdict).toBe("rerun");
+    expect(other.attempt?.detail).toBe("Hopped 3 × 1/8: splashed at 3/8.");
+    // A splash elsewhere in between doesn't stop the very same hops reading as run again.
+    const between = run(other.state, [4, 4, 8]);
+    expect(run(between.state, [4, 8]).attempt?.detail).toBe(
+      "Ran the same hops again: splashed at 3/8.",
+    );
+  });
+
+  it("records the help that was on before each run", () => {
+    const miss = (s: TaskState) => run(s, [4, 1]);
     let state = startTask("g3", 1, eighths);
-    state = run(state, [4, 4, 4]).state;
-    expect(attemptFor(solve(state))).toEqual({
-      task: "task-1",
-      misconception: "numerator-not-a-count",
+    const first = miss(state);
+    expect(first.attempt?.assisted).toBeUndefined();
+    state = tapHint(first.state).state;
+    const hinted = miss(state);
+    expect(hinted.attempt?.assisted).toBe("hint");
+    // The miss that starts guided ran with only a hint on.
+    state = miss(miss(hinted.state).state).state;
+    expect(state.guided).not.toBeNull();
+    // Without hints, the miss that starts guided ran on their own.
+    let alone = startTask("g3", 1, eighths);
+    for (let i = 0; i < 3; i++) alone = miss(alone).state;
+    const starts = miss(alone);
+    expect(starts.state.guided).not.toBeNull();
+    expect(starts.attempt?.assisted).toBeUndefined();
+    // Every run after it is guided, the solve too.
+    expect(miss(starts.state).attempt?.assisted).toBe("guided");
+    expect(run(starts.state, [4, 8]).attempt).toMatchObject({
+      succeeded: true,
+      assisted: "guided",
     });
-    for (let i = 0; i < 4; i++) state = run(state, [4, 4, 4, 4, 4]).state;
-    expect(attemptFor(solve(state)).assisted).toBe("guided");
+    expect(run(state, [4, 8]).attempt?.assisted).toBe("guided");
+  });
+
+  it("puts a misconception on the miss that brings it over its threshold, once per task", () => {
+    // Eighths: water at 1/8, 3/8 and 5/8, the goal at 7/8.
+    const c = course("#~#~#~#G#", { n: 7, d: 8 }, [8, 4, 1], 6);
+    let state = startTask("g3", 1, c);
+    // bigger-denominator-bigger needs 2 matches: the first splash has none.
+    const first = run(state, [8]);
+    expect(first.attempt?.misconception).toBeUndefined();
+    // A rerun adds no match.
+    const rerun = run(first.state, [8]);
+    expect(rerun.attempt?.misconception).toBeUndefined();
+    const second = run(rerun.state, [4, 8]);
+    expect(second.attempt?.misconception).toBe("bigger-denominator-bigger");
+    // Once per task: a third match records nothing more.
+    const third = run(second.state, [4, 4, 8]);
+    state = third.state;
+    expect(state.matches[0]?.count).toBe(3);
+    expect(third.attempt?.misconception).toBeUndefined();
+    // Nor does the solve.
+    expect(run(state, [4, 4, 4, 8]).attempt?.misconception).toBeUndefined();
+    // numerator-not-a-count needs 1: three 1/4 hops for 3/8.
+    const nnc = run(startTask("g3", 1, eighths), [4, 4, 4]);
+    expect(nnc.attempt?.misconception).toBe("numerator-not-a-count");
+    expect(run(nnc.state, [4, 4, 4]).attempt?.misconception).toBeUndefined();
+  });
+
+  it("records the one a miss brings over its threshold, when it matches two", () => {
+    // From 0, a 1/8 hop splashes where 1/4 lands, and the plan is three 1/8
+    // hops for 3/4: both match, and only numerator-not-a-count is over.
+    const c = course("#~#~#~G#~", { n: 3, d: 4 }, [8, 4, 1], 6);
+    const both = run(startTask("g3", 1, c), [8, 8, 8]);
+    expect(both.state.matches.map((m) => m.id)).toEqual([
+      "bigger-denominator-bigger",
+      "numerator-not-a-count",
+    ]);
+    expect(both.attempt?.misconception).toBe("numerator-not-a-count");
   });
 });
 
@@ -422,6 +591,67 @@ describe.each(["g3", "g4", "g5"] as const)("%s plays", (tier) => {
   const all = plays.flat();
   const tasks = (from: number, to: number) =>
     plays.flatMap((p) => p.slice(from - 1, to));
+
+  it("send attempts the contract accepts, one per run, with every text within 200 characters", () => {
+    const random = seeded(7);
+    for (const c of all) {
+      let state = startTask(tier, 1, c);
+      const sent: TaskAttempt[] = [];
+      // Random plans, full-plan taps at Grade 5, then the shortest route.
+      for (let i = 0; i < 10 && !state.solved; i++) {
+        const plan = Array.from(
+          { length: int(random, 1, c.budget) },
+          () => pick(random, c.blocks).d,
+        );
+        const tap = addBlock(
+          { ...state, plan: plan.slice(0, c.budget) },
+          plan[0] as number,
+        );
+        if (tap.attempt) sent.push(tap.attempt);
+        const step = finishRun({ ...tap.state, plan }, runPlan(c, plan));
+        if (step.attempt) sent.push(step.attempt);
+        expect(step.attempt?.exploring === true).toBe(step.verdict === "probe");
+        state = step.state;
+      }
+      const route = state.guided ?? shortestRoute(c) ?? [];
+      if (!state.solved) {
+        const step = finishRun({ ...state, plan: route }, runPlan(c, route));
+        expect(step.verdict).toBe("solve");
+        if (step.attempt) sent.push(step.attempt);
+      }
+      expect(sent.at(-1)?.succeeded).toBe(true);
+      expect(sent.filter((a) => a.succeeded)).toHaveLength(1);
+      expect(sent.filter((a) => a.misconception).length).toBeLessThanOrEqual(1);
+      for (const a of sent) {
+        const attempt = {
+          ...a,
+          expectation: manifest.tiers[tier].expectations[0],
+        };
+        expect(
+          attemptProblem(manifest, tier, attempt, sent[0]?.asked),
+        ).toBeNull();
+        expect(a.detail.length).toBeLessThanOrEqual(200);
+      }
+    }
+  });
+
+  it("describe even the longest plan, of the smallest hop all the way past the goal, within 200 characters", () => {
+    for (const c of all) {
+      const smallest = c.blocks[0]?.d as number;
+      const plan = Array.from({ length: c.budget }, () => smallest);
+      // On a course with no water, so the run goes as far as the plan does.
+      const open = {
+        ...c,
+        stones: Array.from({ length: c.end + 1 }, (_, i) => i),
+      };
+      const step = finishRun(
+        { ...startTask(tier, 1, open), plan },
+        runPlan(open, plan),
+      );
+      expect(step.attempt?.detail.length).toBeLessThanOrEqual(200);
+      expect(step.attempt?.asked.length).toBeLessThanOrEqual(200);
+    }
+  });
 
   it("have 6 tasks, each solvable within its budget", () => {
     for (const play of plays) expect(play).toHaveLength(6);

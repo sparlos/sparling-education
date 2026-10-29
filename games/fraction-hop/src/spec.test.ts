@@ -9,6 +9,7 @@ import {
 } from "@repo/game-kit/spec";
 import { describe, expect, it } from "vitest";
 import { manifest } from "./manifest.ts";
+import type { Course, Run } from "./rules/course.ts";
 import { distractors, g5Sets, tasksPerPlay } from "./rules/generate.ts";
 import { misconceptionTiers, thresholds } from "./rules/judge.ts";
 import {
@@ -16,6 +17,12 @@ import {
   missesForHint1,
   missesForHint2,
 } from "./rules/task.ts";
+import {
+  askedFor,
+  fullPlanDetail,
+  groupedFrom,
+  runDetail,
+} from "./rules/teacher.ts";
 import { denominators, fixedStrings, strings } from "./strings.ts";
 
 const spec = readSpec(new URL("../SPEC.md", import.meta.url));
@@ -119,5 +126,76 @@ describe("the rules match SPEC.md", () => {
       `After **${missesForHint2} misses** in all, at least one of them with hint 1 on`,
     );
     expect(effort).toContain(`After **${missesBeforeGuided} misses** in all`);
+  });
+});
+
+describe("what teachers read matches SPEC.md", () => {
+  const course = (
+    unit: number,
+    n: number,
+    d: number,
+    offer: number[],
+  ): Course => ({
+    unit,
+    end: 3 * unit,
+    stones: [],
+    goal: (n * unit) / d,
+    shown: { n, d },
+    blocks: offer
+      .map((b) => ({ d: b, size: unit / b }))
+      .sort((a, b) => a.size - b.size),
+    budget: 30,
+  });
+  const g3 = course(8, 3, 8, [8, 4, 1]);
+  const g5 = course(8, 5, 4, [8, 4, 2, 1]);
+  const tenths = course(10, 23, 10, [10, 5, 1]);
+  const twelfths = course(12, 2, 3, [12, 6, 4, 3, 1]);
+  const run = (landings: number[], end: Run["end"]): Run => ({
+    landings,
+    end,
+  });
+  const splash = run([1, 2, 4], { kind: "splash", at: 4, from: 2, hop: 2 });
+
+  it("has every asked and detail text the rules write", () => {
+    const rows = [
+      ...section("Attempts").matchAll(
+        /^\| `(asked|detail)` \| [^|]+ \| `([^`]+)` \|$/gm,
+      ),
+    ].map((m) => [m[1], m[2]]);
+    expect(rows).toEqual([
+      ["asked", askedFor(g3)],
+      ["asked", askedFor(g5)],
+      ["detail", runDetail(g5, [8, 8, 4], splash)],
+      [
+        "detail",
+        runDetail(g3, [4, 4, 4], run([2, 4], { kind: "past", at: 4 })),
+      ],
+      ["detail", runDetail(g3, [4], run([2], { kind: "short", at: 2 }))],
+      [
+        "detail",
+        runDetail(g5, [2, 2, 4], run([4, 8, 10], { kind: "goal", at: 10 })),
+      ],
+      ["detail", runDetail(g5, [8, 8, 4], splash, true)],
+      ["detail", fullPlanDetail(twelfths)],
+      [
+        "detail",
+        runDetail(
+          tenths,
+          [...Array(12).fill(10), 5, 5],
+          run([...Array.from({ length: 12 }, (_, i) => i + 1), 14], {
+            kind: "splash",
+            at: 14,
+            from: 12,
+            hop: 12,
+          }),
+        ),
+      ],
+    ]);
+  });
+
+  it("counts runs of the same hop from the length it names", () => {
+    expect(section("Attempts")).toContain(
+      `A run of the same hop is counted once it's ${groupedFrom} long`,
+    );
   });
 });

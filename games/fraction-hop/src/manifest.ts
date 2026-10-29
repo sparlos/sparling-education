@@ -6,7 +6,7 @@ import { strings } from "./strings.ts";
 
 export const manifest = {
   slug: "fraction-hop",
-  version: 1,
+  version: 2,
   renderer: "dom",
   avatar: "character",
   progress: true,

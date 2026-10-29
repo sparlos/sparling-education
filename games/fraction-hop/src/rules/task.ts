@@ -1,6 +1,6 @@
 // One task, from showing the goal to reaching it: the plan, what each run
-// counts as, the help ladder, and the attempt it ends in (SPEC.md's Attempts
-// and Effort sections). Plain state in, plain state out; the screen renders it.
+// counts as, the help ladder, and the attempt each run records (SPEC.md's
+// Attempts and Effort sections). Plain state in, plain state out; the screen renders it.
 import { amountId, hopId, type StringId } from "../strings.ts";
 import {
   type Course,
@@ -21,6 +21,7 @@ import {
   type Verdict,
   verdict,
 } from "./judge.ts";
+import { askedFor, fullPlanDetail, hopsTaken, runDetail } from "./teacher.ts";
 
 /** Misses in all before the hint button glows for hint 1. */
 export const missesForHint1 = 2;
@@ -48,6 +49,8 @@ export interface TaskState {
   /** The route guided is placing, once it has started. */
   guided: Plan | null;
   splashed: readonly string[];
+  /** The hops each splashing run took, to tell a rerun of the very same hops. */
+  splashRuns: readonly string[];
   /** Full plans already counted as `no-equivalence` misses. */
   fullPlans: readonly string[];
   matches: readonly Match[];
@@ -65,6 +68,8 @@ export interface Step {
   state: TaskState;
   /** What to say, in a row, as one instruction. */
   say: StringId[];
+  /** The attempt this step records, if it records one. */
+  attempt?: TaskAttempt;
 }
 
 export function startTask(
@@ -85,6 +90,7 @@ export function startTask(
     glow: false,
     guided: null,
     splashed: [],
+    splashRuns: [],
     fullPlans: [],
     matches: [],
     revealed: false,
@@ -128,14 +134,15 @@ export function addBlock(
     state.fullPlans.includes(key)
   )
     return { state, say };
-  return afterMiss(
-    {
-      ...state,
-      fullPlans: [...state.fullPlans, key],
-      matches: addMatches(state.matches, ["no-equivalence"]),
-    },
-    say,
-  );
+  const next = {
+    ...state,
+    fullPlans: [...state.fullPlans, key],
+    matches: addMatches(state.matches, ["no-equivalence"]),
+  };
+  return {
+    ...afterMiss(next, say),
+    attempt: attemptFor(state, next, "missed", fullPlanDetail(state.course)),
+  };
 }
 
 export function removeAt(state: TaskState, i: number): TaskState {
@@ -209,21 +216,37 @@ export function finishRun(before: TaskState, run: Run): RunResult {
   const { end } = run;
   const fixed = niceFix(before, run);
   const cheer: StringId[] = fixed === undefined ? [] : ["run.nice-fix"];
-  // Remembered for the next run's "Nice fix!".
+  const taken = hopsTaken(before.plan, run).join(",");
+  // Remembered for the next run's "Nice fix!", and to tell a rerun of the same hops.
   const lastSplash = end.kind === "splash" ? end.at : null;
-  const state: TaskState = { ...before, lastSplash };
+  const state: TaskState = {
+    ...before,
+    lastSplash,
+    splashRuns:
+      end.kind === "splash" && !before.splashRuns.includes(taken)
+        ? [...before.splashRuns, taken]
+        : before.splashRuns,
+  };
+  const detail = runDetail(
+    course,
+    before.plan,
+    run,
+    v === "rerun" && before.splashRuns.includes(taken),
+  );
   if (v === "solve")
     return {
       verdict: v,
       fixed,
       state: { ...state, solved: true, revealed: true },
       say: [...cheer, "run.solved"],
+      attempt: attemptFor(before, state, "solved", detail),
     };
   if (v === "probe")
     return {
       verdict: v,
       fixed,
       state: { ...state, probes: state.probes + 1 },
+      attempt: attemptFor(before, state, "explored", detail),
       say: [
         ...cheer,
         "run.stopped-at",
@@ -233,7 +256,12 @@ export function finishRun(before: TaskState, run: Run): RunResult {
     };
   // A known mistake run again: no new evidence, but a sign of being stuck,
   // so it climbs the help ladder (founder's call).
-  if (v === "rerun") return { verdict: v, ...afterMiss(state, ["run.splash"]) };
+  if (v === "rerun")
+    return {
+      verdict: v,
+      ...afterMiss(state, ["run.splash"]),
+      attempt: attemptFor(before, state, "missed", detail),
+    };
 
   const say: StringId[] =
     end.kind === "past"
@@ -259,7 +287,11 @@ export function finishRun(before: TaskState, run: Run): RunResult {
       missMatches(course, state.plan, run, state.tier),
     ),
   };
-  return { verdict: v, ...afterMiss(next, say) };
+  return {
+    verdict: v,
+    ...afterMiss(next, say),
+    attempt: attemptFor(before, next, "missed", detail),
+  };
 }
 
 /** Counts a miss and climbs the help ladder. */
@@ -321,20 +353,54 @@ function afterMiss(state: TaskState, say: StringId[]): Step {
 
 export interface TaskAttempt {
   task: string;
+  succeeded: boolean;
+  exploring?: true;
   misconception?: MisconceptionId;
   assisted?: "hint" | "guided";
+  asked: string;
+  detail: string;
 }
 
-/** The one attempt a solved task records. */
-export function attemptFor(state: TaskState): TaskAttempt {
-  const misconception = recordedMisconception(state.matches);
-  const assisted = state.guided
+/**
+ * - explored: a probe, which never counts.
+ * - missed: a miss, a rerun, or Grade 5's full-plan tap.
+ * - solved: the goal reached.
+ */
+export type AttemptKind = "explored" | "missed" | "solved";
+
+/**
+ * The attempt one run (or full-plan tap) records, from the task before it
+ * and after it (with the run's matches, before the help ladder climbs).
+ * `assisted` is the help that was on before the run. A
+ * misconception goes on the miss that brings it over its threshold, at most
+ * once per task: matches only grow, so one was recorded already when the
+ * task before this miss had one past its threshold.
+ */
+export function attemptFor(
+  before: TaskState,
+  after: TaskState,
+  kind: AttemptKind,
+  detail: string,
+): TaskAttempt {
+  const attempt = {
+    task: `task-${before.index}`,
+    asked: askedFor(before.course),
+    detail,
+  };
+  if (kind === "explored")
+    return { ...attempt, succeeded: false, exploring: true };
+  // Only a miss adds matches, so only a miss can bring one over.
+  const misconception = recordedMisconception(before.matches)
+    ? undefined
+    : recordedMisconception(after.matches);
+  const assisted = before.guided
     ? "guided"
-    : state.hint > 0
+    : before.hint > 0
       ? "hint"
       : undefined;
   return {
-    task: `task-${state.index}`,
+    ...attempt,
+    succeeded: kind === "solved",
     ...(misconception && { misconception }),
     ...(assisted && { assisted }),
   };

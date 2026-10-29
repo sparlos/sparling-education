@@ -16,6 +16,7 @@ import {
 } from "./rules/course.ts";
 import { generatePlay, type TierId } from "./rules/generate.ts";
 import { verdict } from "./rules/judge.ts";
+import { askedFor, runDetail } from "./rules/teacher.ts";
 
 const seedFrom = 0.5;
 
@@ -208,27 +209,50 @@ describe("the tutorial", () => {
 });
 
 describe.each(["g3", "g4", "g5"] as const)("a %s play", (tier) => {
-  it("records one attempt per solved task, then finishes", async () => {
+  it("records every run as it happens: a probe, a miss and a solve per task, then finishes", async () => {
     const { user, shell, courses, lastSaid } = setUp(tier);
     await skipTutorial(user);
-    for (const course of courses) {
-      expect(screen.getAllByTestId("empty-slot")).toHaveLength(course.budget);
-      await enter(user, shortestRoute(course) as Plan);
-      await play(user);
-    }
     const expectation = {
       g3: "math-2020.g3.B2.8",
       g4: "math-2020.g4.B1.6",
       g5: "math-2020.g5.B1.3",
     }[tier];
-    expect(shell.attempts()).toEqual(
-      courses.map((_, i) => ({
-        task: `task-${i + 1}`,
-        expectation,
-        succeeded: true,
-      })),
-    );
-    expect(lastSaid()).toEqual(["run.solved", "play.done"]);
+    for (const [i, course] of courses.entries()) {
+      expect(screen.getAllByTestId("empty-slot")).toHaveLength(course.budget);
+      const route = shortestRoute(course) as Plan;
+      const miss = missPlan(course);
+      const sent = shell.attempts().length;
+      for (const plan of [route.slice(0, 1), miss, route]) {
+        await enter(user, plan);
+        await play(user);
+      }
+      const task = `task-${i + 1}`;
+      const asked = askedFor(course);
+      const detail = (plan: Plan) =>
+        runDetail(course, plan, runPlan(course, plan));
+      // Each run is sent as it happens; the miss may also show a misconception.
+      expect(shell.attempts().slice(sent)).toEqual([
+        {
+          task,
+          expectation,
+          succeeded: false,
+          exploring: true,
+          asked,
+          detail: detail(route.slice(0, 1)),
+        },
+        expect.objectContaining({
+          task,
+          expectation,
+          succeeded: false,
+          asked,
+          detail: detail(miss),
+        }),
+        { task, expectation, succeeded: true, asked, detail: detail(route) },
+      ]);
+    }
+    expect(shell.attempts()).toHaveLength(18);
+    // After a splash, the solve may also cheer the fix.
+    expect(lastSaid().slice(-2)).toEqual(["run.solved", "play.done"]);
     // Progress: none done at the start, then one more per solved task.
     expect(shell.progress()).toEqual(
       [0, 1, 2, 3, 4, 5, 6].map((done) => ({ done, total: 6 })),
@@ -449,8 +473,16 @@ describe("a task", () => {
     );
     await enter(user, route);
     await play(user);
+    // One attempt per run: the help on before each, the solve guided.
+    expect(shell.attempts().map((a) => a.assisted)).toEqual([
+      undefined,
+      undefined,
+      "hint",
+      "hint",
+      "guided",
+    ]);
     expect(shell.attempts().at(-1)).toEqual(
-      expect.objectContaining({ task: "task-1", assisted: "guided" }),
+      expect.objectContaining({ task: "task-1", succeeded: true }),
     );
   });
 });

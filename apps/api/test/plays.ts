@@ -2,6 +2,7 @@
 // play records as the play shell would send them, for Fraction Hop.
 
 import { randomUUID } from "node:crypto";
+import { manifest } from "@games/fraction-hop/manifest";
 import type { PlayRecord } from "../src/schemas.ts";
 import { client, cookiesFrom, google, signInAsStudent } from "./client.ts";
 
@@ -90,6 +91,8 @@ export function playOf(
     ending?: "finished" | "left" | "crashed" | null;
     at?: Date;
     play?: string;
+    /** The game's manifest version; its current one by default. */
+    version?: number;
   } = {},
 ): PlayRecord[] {
   const { tier, expectation } = tiers[options.grade ?? 4];
@@ -103,7 +106,7 @@ export function playOf(
       student: who.studentId,
       class: who.classId,
       game: "fraction-hop",
-      gameVersion: 1,
+      gameVersion: options.version ?? manifest.version,
       tier,
       at: new Date(time).toISOString(),
     };
