@@ -1,7 +1,6 @@
 // A student's page, opened from their row of the dashboard: their effort
 // evidence by Learning Skill, then their results, each opening on its
-// evidence, then the recognition they were given. Quick assess joins it
-// here later.
+// evidence, then the recognition they were given, and their quick assess.
 import { Stack } from "@repo/ui/stack";
 import { Text } from "@repo/ui/text";
 import { Title } from "@repo/ui/title";
@@ -18,7 +17,7 @@ import { type OnRecognise, StudentRecognition } from "./Recognition.tsx";
 import classes from "./student.module.css";
 
 /** Each kind of effort evidence, counted, in a teacher's words. */
-const effortLabels: Record<EffortKind, (n: number) => string> = {
+export const effortLabels: Record<EffortKind, (n: number) => string> = {
   improvedAfterMistake: (n) =>
     `${n} ${n === 1 ? "task" : "tasks"} got right after a mistake`,
   finishedPlays: (n) => `${n} ${n === 1 ? "play" : "plays"} finished`,
@@ -115,6 +114,25 @@ export function StudentScreen({
         settings={recognition}
         onRecognise={onRecognise}
       />
+      <section aria-labelledby="quick-assess" className={classes.section}>
+        <Title order={2} size="h4" id="quick-assess">
+          Quick assess
+        </Title>
+        <Text>
+          What {nameOf(student)}'s plays are evidence of, ready to print for
+          report cards.
+        </Text>
+        <div>
+          <ButtonLink
+            to="/classes/$classId/students/$studentId/quick-assess"
+            params={{ classId: cls.id, studentId: student.id }}
+            state={{ fromAbove: true }}
+            variant="secondary"
+          >
+            {`Quick assess for ${nameOf(student)}`}
+          </ButtonLink>
+        </div>
+      </section>
     </Stack>
   );
 }

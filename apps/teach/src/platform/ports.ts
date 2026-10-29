@@ -160,6 +160,20 @@ export interface TeacherPort {
    * theirs, the student isn't in it, or they have no such play.
    */
   play(classId: string, studentId: string, playId: string): Promise<Play>;
+  /**
+   * The class's quick assess, for writing report cards: each student's
+   * evidence. Rejects when no teacher is signed in, and with `NotFound` when
+   * the class isn't theirs.
+   */
+  quickAssess(classId: string): Promise<QuickAssess>;
+  /**
+   * One student's quick assess. Rejects when no teacher is signed in, and
+   * with `NotFound` when the class isn't theirs or the student isn't in it.
+   */
+  studentQuickAssess(
+    classId: string,
+    studentId: string,
+  ): Promise<QuickAssessStudent>;
 }
 
 /**
@@ -260,6 +274,54 @@ export interface EffortSkill {
  */
 export type EffortKind = "improvedAfterMistake" | "finishedPlays";
 
+export interface QuickAssess {
+  /** By first name, then last initial. */
+  students: QuickAssessStudent[];
+}
+
+/**
+ * One student's quick assess, laid out as a report card is written: what
+ * their plays show for each expectation, next steps, then Learning Skills,
+ * which report cards keep apart from achievement. Counts only, never a
+ * level, rating or mark: the judgement is the teacher's.
+ */
+export interface QuickAssessStudent {
+  student: {
+    id: string;
+    firstName: string;
+    lastInitial: string;
+    grade: number | null;
+  };
+  /** By grade, then code. None until they've played. */
+  expectations: QuickAssessExpectation[];
+  /**
+   * The misconceptions they showed in their recent plays, as the dashboard's
+   * strip counts them, by game name.
+   */
+  nextSteps: Misconception[];
+  /** Their effort evidence by Learning Skill, as on their page. */
+  learningSkills: EffortSkill[];
+}
+
+/** What a student's recent plays show for one expectation, at one tier. */
+export interface QuickAssessExpectation {
+  expectation: DashboardExpectation;
+  tierGrade: number;
+  /** A tier other than the student's grade in the class. */
+  otherTier: boolean;
+  /** Tasks at it in the plays its result counts, each once however many tries. */
+  tasks: number;
+  /** Of those, the ones done without help. */
+  onTheirOwn: number;
+  /** How many plays: their most recent at the tier. */
+  plays: number;
+  /** The games the plays were of. */
+  games: { slug: string; name: string }[];
+  /** When the first and last of the plays started, by the device's clock, as ISO date-times. */
+  first: string;
+  last: string;
+}
+
 /** A student's evidence for one expectation: a dashboard cell, opened. */
 export interface Evidence {
   student: {
@@ -350,6 +412,8 @@ export interface DashboardExpectation {
   code: string;
   /** Kindling's own words, from the curriculum package; never the ministry's. */
   description: string;
+  /** Its official page on the DCP, where the ministry's wording is. */
+  link: string;
 }
 
 export interface DashboardStudent {

@@ -45,10 +45,11 @@ Done when `reference/<edition>/` and `reference/<edition>.json` are written.
 
 - `reference/<edition>/index.md` lists every grade the curriculum covers, every strand per grade, and plausible expectation counts. Read one strand file in full: the text, examples and sample tasks are readable, with no HTML left over.
 - Pick a few expectations across grades and strands and ask the human to compare them with the DCP page.
+- **Page links.** Every product-layer entry links to its expectation's page on dcp.edu.gov.on.ca, so teachers are one tap from the official wording (see the README's product layer). Search the saved response for what builds those links: a URL or slug element on each specific expectation, or on its course and strand. If it's there, make the script record each expectation's `link` in `reference/<edition>.json`, and have the human open three, across grades and strands, to confirm each lands on its expectation. If it isn't, tell the human and note it under the edition in the README's Importing section: links then come from the human, one per entry, as `design-game` adds them.
 - Add `src/<edition>.ts` as an empty product layer (copy the header of `src/math-2020.ts`), and spread it into `descriptions` in `src/index.ts`. `design-game` adds entries as games need them.
 - Run `pnpm --filter @repo/curriculum test` and `pnpm --filter play test` (the lab's grounding test reads the reference layer).
 
-Done when the tests pass and the human has reviewed the diff and the spot checks.
+Done when the tests pass, the human has reviewed the diff and the spot checks, and the links are either recorded and spot-checked or noted as coming one per entry.
 
 ## 5. Retro
 

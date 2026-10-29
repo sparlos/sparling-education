@@ -9,7 +9,9 @@ import {
   getDashboard,
   getEvidence,
   getPlay,
+  getQuickAssess,
   getStudentPage,
+  getStudentQuickAssess,
   type RecognitionTrait,
   recogniseStudent,
   removeStudent,
@@ -123,6 +125,17 @@ export function apiTeacherPort(options: {
     async play(classId, studentId, playId) {
       const res = await getPlay(classId, studentId, playId);
       if (res.status !== 200) throw unexpected("play", res.status);
+      return res.data;
+    },
+    async quickAssess(classId) {
+      const res = await getQuickAssess(classId);
+      if (res.status !== 200) throw unexpected("quick assess", res.status);
+      return res.data;
+    },
+    async studentQuickAssess(classId, studentId) {
+      const res = await getStudentQuickAssess(classId, studentId);
+      if (res.status !== 200)
+        throw unexpected("student quick assess", res.status);
       return res.data;
     },
   };

@@ -20,11 +20,13 @@ import {
   classNameMaxLength,
   type Dashboard,
   type EffortKind,
+  type EffortSkill,
   type Evidence,
   type Misconception,
   type NewClass,
   NotFound,
   type Play,
+  type QuickAssessStudent,
   type RecognitionSettings,
   type Result,
   type StudentPage,
@@ -293,18 +295,12 @@ export function fakeTeacherBackend(
     ]);
     const expectations = expectationIds
       .filter((id) => ids.has(id))
-      .map(expectation)
+      .map(describedExpectation)
       .sort(
         (a, b) =>
           a.grade - b.grade ||
           a.code.localeCompare(b.code, "en", { numeric: true }),
-      )
-      .map(({ id, grade, code, description }) => ({
-        id,
-        grade,
-        code,
-        description,
-      }));
+      );
     return {
       expectations,
       students,
@@ -383,7 +379,6 @@ export function fakeTeacherBackend(
           .map((p) => p.id),
       ),
     );
-    const { id, grade: g, code, description } = expectation(known);
     return {
       student: {
         id: student.id,
@@ -391,7 +386,7 @@ export function fakeTeacherBackend(
         lastInitial: student.lastInitial,
         grade,
       },
-      expectation: { id, grade: g, code, description },
+      expectation: describedExpectation(known),
       results: resultsOf(studentId, cls.id, grade)
         .filter((r) => r.expectation === expectationId)
         .sort(
@@ -428,14 +423,6 @@ export function fakeTeacherBackend(
     const theirs = plays.filter(
       (p) => p.studentId === studentId && p.classId === cls.id,
     );
-    const count: Record<EffortKind, number> = {
-      improvedAfterMistake: theirs.flatMap(scoredTasks).filter((tries) => {
-        const failed = tries.findIndex((t) => !t.succeeded);
-        return failed >= 0 && tries.slice(failed).some((t) => t.succeeded);
-      }).length,
-      finishedPlays: theirs.filter((p) => p.ending === "finished").length,
-    };
-    const kinds = Object.keys(effortSkills) as EffortKind[];
     return {
       student: {
         id: student.id,
@@ -443,26 +430,14 @@ export function fakeTeacherBackend(
         lastInitial: student.lastInitial,
         grade,
       },
-      effort: (Object.keys(learningSkills) as LearningSkill[]).flatMap(
-        (skill) => {
-          const evidence = kinds
-            .filter((kind) => effortSkills[kind] === skill)
-            .map((kind) => ({ kind, count: count[kind] }));
-          return evidence.length > 0
-            ? [{ skill, name: learningSkills[skill], evidence }]
-            : [];
-        },
-      ),
+      effort: effortSkillsOf(theirs),
       results: resultsOf(studentId, cls.id, grade)
-        .map((result) => {
-          const {
-            id,
-            grade: g,
-            code,
-            description,
-          } = expectation(result.expectation as ExpectationId);
-          return { expectation: { id, grade: g, code, description }, result };
-        })
+        .map((result) => ({
+          expectation: describedExpectation(
+            result.expectation as ExpectationId,
+          ),
+          result,
+        }))
         .sort(
           (a, b) =>
             a.expectation.grade - b.expectation.grade ||
@@ -590,6 +565,76 @@ export function fakeTeacherBackend(
     });
   }
 
+  function quickAssessOf(
+    cls: Class,
+    member: (typeof memberships)[number],
+  ): QuickAssessStudent {
+    const { student, grade } = member;
+    const theirs = plays.filter(
+      (p) => p.studentId === student.id && p.classId === cls.id,
+    );
+    const tierGrades = [
+      ...new Set(
+        theirs.filter((p) => scoredTasks(p).length > 0).map((p) => p.tierGrade),
+      ),
+    ];
+    const name = {
+      id: student.id,
+      firstName: student.firstName,
+      lastInitial: student.lastInitial,
+    };
+    return {
+      student: { ...name, grade },
+      expectations: tierGrades
+        .flatMap((tierGrade) => {
+          const recent = theirs
+            .filter(
+              (p) => p.tierGrade === tierGrade && scoredTasks(p).length > 0,
+            )
+            .slice(-recentPlays);
+          const [first] = recent;
+          const id = first?.game.tiers[tierGrade]?.expectation;
+          const known = expectationIds.find((e) => e === id);
+          if (!first || !known) return [];
+          const tasks = recent.flatMap(scoredTasks);
+          return [
+            {
+              expectation: describedExpectation(known),
+              tierGrade,
+              otherTier: grade !== null && grade !== tierGrade,
+              tasks: tasks.length,
+              onTheirOwn: tasks.filter((tries) =>
+                tries.some((t) => t.succeeded && !t.assisted),
+              ).length,
+              plays: recent.length,
+              games: [...new Set(recent.map((p) => p.game))].map((g) => ({
+                slug: g.slug,
+                name: g.name,
+              })),
+              first: summaryOf(first).at,
+              last: summaryOf(recent.at(-1) ?? first).at,
+            },
+          ];
+        })
+        .sort(
+          (a, b) =>
+            a.expectation.grade - b.expectation.grade ||
+            a.expectation.code.localeCompare(b.expectation.code, "en", {
+              numeric: true,
+            }) ||
+            a.tierGrade - b.tierGrade,
+        ),
+      nextSteps: misconceptionsOf(cls.id, [name])
+        .map(({ students: _, ...misconception }) => misconception)
+        .sort(
+          (a, b) =>
+            a.gameName.localeCompare(b.gameName, "en-CA") ||
+            a.id.localeCompare(b.id),
+        ),
+      learningSkills: effortSkillsOf(theirs),
+    };
+  }
+
   function accountFor(google: GoogleAccount, role: Account["role"]) {
     const existing = accounts.get(google.subject);
     const account: Account = {
@@ -706,6 +751,18 @@ export function fakeTeacherBackend(
         reachable();
         return playOf(teachersClass(classId), studentId, playId);
       },
+      async quickAssess(classId) {
+        reachable();
+        const cls = teachersClass(classId);
+        return {
+          students: membersOf(cls.id).map((m) => quickAssessOf(cls, m)),
+        };
+      },
+      async studentQuickAssess(classId, studentId) {
+        reachable();
+        const cls = teachersClass(classId);
+        return quickAssessOf(cls, memberOf(cls, studentId));
+      },
     },
     credentialFor(google) {
       const credential = `fake-google-${issued.size + 1}`;
@@ -742,6 +799,32 @@ interface FakePlay {
   ending: FakeEnding;
   /** When it started, by the device's clock, in ms. */
   at: number;
+}
+
+/** The plays' effort evidence by Learning Skill, in the curriculum's order. */
+function effortSkillsOf(theirs: readonly FakePlay[]): EffortSkill[] {
+  const count: Record<EffortKind, number> = {
+    improvedAfterMistake: theirs.flatMap(scoredTasks).filter((tries) => {
+      const failed = tries.findIndex((t) => !t.succeeded);
+      return failed >= 0 && tries.slice(failed).some((t) => t.succeeded);
+    }).length,
+    finishedPlays: theirs.filter((p) => p.ending === "finished").length,
+  };
+  const kinds = Object.keys(effortSkills) as EffortKind[];
+  return (Object.keys(learningSkills) as LearningSkill[]).flatMap((skill) => {
+    const evidence = kinds
+      .filter((kind) => effortSkills[kind] === skill)
+      .map((kind) => ({ kind, count: count[kind] }));
+    return evidence.length > 0
+      ? [{ skill, name: learningSkills[skill], evidence }]
+      : [];
+  });
+}
+
+/** An expectation, in Kindling's words. */
+function describedExpectation(id: ExpectationId) {
+  const { grade, code, description, link } = expectation(id);
+  return { id, grade, code, description, link };
 }
 
 function summaryOf(p: FakePlay) {

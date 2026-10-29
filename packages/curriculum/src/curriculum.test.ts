@@ -8,9 +8,12 @@ import { expectation, expectationIds, parseExpectationId } from "./index.ts";
 // probably edited copies of it, not Kindling's own words.
 const COPIED_RUN = 6;
 
-const references = new Map<string, Map<string, string>>();
+const references = new Map<
+  string,
+  Map<string, { text: string; link: string }>
+>();
 
-function officialText(edition: string): Map<string, string> {
+function official(edition: string) {
   let texts = references.get(edition);
   if (!texts) {
     const curriculum: ReferenceCurriculum = JSON.parse(
@@ -24,7 +27,7 @@ function officialText(edition: string): Map<string, string> {
       for (const strand of grade.strands) {
         for (const overall of strand.overall) {
           for (const specific of overall.specific)
-            texts.set(specific.id, specific.text);
+            texts.set(specific.id, specific);
         }
       }
     }
@@ -46,7 +49,7 @@ function runs(text: string, length: number): Set<string> {
 test("every product-layer expectation exists in the reference layer", () => {
   for (const id of expectationIds) {
     assert.ok(
-      officialText(parseExpectationId(id).edition).has(id),
+      official(parseExpectationId(id).edition).has(id),
       `${id} is not in the official curriculum`,
     );
   }
@@ -56,15 +59,25 @@ test("descriptions are Kindling's own words", () => {
   for (const id of expectationIds) {
     const { edition, description } = expectation(id);
     assert.ok(description.trim(), `${id} has no description`);
-    const official = runs(officialText(edition).get(id) ?? "", COPIED_RUN);
+    const officialRuns = runs(
+      official(edition).get(id)?.text ?? "",
+      COPIED_RUN,
+    );
     const copied = [...runs(description, COPIED_RUN)].find((run) =>
-      official.has(run),
+      officialRuns.has(run),
     );
     assert.equal(
       copied,
       undefined,
       `${id}'s description copies the official wording: "${copied}"`,
     );
+  }
+});
+
+test("every product-layer expectation links to its official page", () => {
+  for (const id of expectationIds) {
+    const { edition, link } = expectation(id);
+    assert.equal(link, official(edition).get(id)?.link, `${id}'s link`);
   }
 });
 

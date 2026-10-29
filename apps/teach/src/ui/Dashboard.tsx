@@ -5,6 +5,7 @@
 // that student's evidence; a student's name opens their page. Below, the
 // students not recognised yet this term; any student can be recognised from
 // their row.
+import { Anchor } from "@repo/ui/anchor";
 import { Card } from "@repo/ui/card";
 import { Stack } from "@repo/ui/stack";
 import { Table } from "@repo/ui/table";
@@ -75,14 +76,24 @@ export function DashboardScreen({
           <Title order={1}>{cls.name}</Title>
           <Text c="muted">{gradesLabel(cls.grades)}</Text>
         </div>
-        <ButtonLink
-          to="/classes/$classId/manage"
-          params={{ classId: cls.id }}
-          state={{ fromAbove: true }}
-          variant="secondary"
-        >
-          Manage class
-        </ButtonLink>
+        <div className={classes.actions}>
+          <ButtonLink
+            to="/classes/$classId/quick-assess"
+            params={{ classId: cls.id }}
+            state={{ fromAbove: true }}
+            variant="secondary"
+          >
+            Quick assess
+          </ButtonLink>
+          <ButtonLink
+            to="/classes/$classId/manage"
+            params={{ classId: cls.id }}
+            state={{ fromAbove: true }}
+            variant="secondary"
+          >
+            Manage class
+          </ButtonLink>
+        </div>
       </div>
       {dashboard.students.length === 0 ? (
         <Card variant="soft" tone="educator">
@@ -276,7 +287,7 @@ function Grid({
           "Student",
           ...expectations.map((e) => (
             <span key={e.id} className={classes.expectation}>
-              <span className={classes.code}>{expectationLabel(e)}</span>
+              <OfficialCode expectation={e} className={classes.code} />
               <span className={classes.description}>{e.description}</span>
             </span>
           )),
@@ -369,6 +380,25 @@ export function Band({ result }: { result: Result }) {
         </span>
       )}
     </>
+  );
+}
+
+/**
+ * "Grade 4 · B1.6", linked to its official page on the curriculum site, in a
+ * new tab: the ministry's wording, one tap away, without Kindling copying it.
+ */
+export function OfficialCode({
+  expectation,
+  className,
+}: {
+  expectation: DashboardExpectation;
+  className?: string;
+}) {
+  return (
+    <Anchor href={expectation.link} newTab className={className}>
+      {expectationLabel(expectation)}
+      <VisuallyHidden>, official wording (opens in a new tab)</VisuallyHidden>
+    </Anchor>
   );
 }
 

@@ -414,6 +414,12 @@ export const DashboardExpectationSchema = z
     description: z
       .string()
       .openapi({ description: "Kindling's own words; never the ministry's" }),
+    link: z.url().openapi({
+      description:
+        "Its official page on the Ontario Digital Curriculum Platform, where the ministry's wording is",
+      example:
+        "https://www.dcp.edu.gov.on.ca/en/curriculum/elementary-mathematics/grades/g4-math/strand-b/b1#b1-6",
+    }),
   })
   .openapi("DashboardExpectation");
 
@@ -692,3 +698,68 @@ export const StudentPageSchema = z
   .openapi("StudentPage");
 
 export type StudentPage = z.infer<typeof StudentPageSchema>;
+
+export const QuickAssessExpectationSchema = z
+  .object({
+    expectation: DashboardExpectationSchema,
+    tierGrade: z.number().int().openapi({
+      description: "The grade of the tier the plays were at",
+    }),
+    otherTier: z.boolean().openapi({
+      description: "A tier other than the student's grade in the class",
+    }),
+    tasks: z.number().int().openapi({
+      description:
+        "Tasks at the expectation in the plays its result counts, each once however many tries",
+    }),
+    onTheirOwn: z.number().int().openapi({
+      description: "Of those, the ones succeeded at without help",
+    }),
+    plays: z.number().int().openapi({
+      description: "How many plays: the student's most recent at this tier",
+    }),
+    games: z
+      .array(z.object({ slug: z.string(), name: z.string() }))
+      .openapi({ description: "The games the plays were of" }),
+    first: z.iso.datetime().openapi({
+      description: "When the first of the plays started, by the device's clock",
+    }),
+    last: z.iso.datetime().openapi({
+      description: "When the last of the plays started, by the device's clock",
+    }),
+  })
+  .openapi("QuickAssessExpectation", {
+    description:
+      "What a student's recent plays show for one expectation, as counts: never a level, rating or mark",
+  });
+
+export const QuickAssessStudentSchema = z
+  .object({
+    student: StudentNameSchema.extend({
+      grade: z.union([z.number().int(), z.null()]),
+    }),
+    expectations: z.array(QuickAssessExpectationSchema).openapi({
+      description: "By grade, then code",
+    }),
+    nextSteps: z.array(MisconceptionSchema).openapi({
+      description:
+        "The misconceptions the student showed in their recent plays, as the dashboard's strip counts them, by game name",
+    }),
+    learningSkills: z.array(EffortSkillSchema).openapi({
+      description:
+        "Their effort evidence by Learning Skill, as on their page: reported separately from achievement",
+    }),
+  })
+  .openapi("QuickAssessStudent");
+
+export type QuickAssessStudent = z.infer<typeof QuickAssessStudentSchema>;
+
+export const QuickAssessSchema = z
+  .object({
+    students: z.array(QuickAssessStudentSchema).openapi({
+      description: "By first name, then last initial",
+    }),
+  })
+  .openapi("QuickAssess");
+
+export type QuickAssess = z.infer<typeof QuickAssessSchema>;

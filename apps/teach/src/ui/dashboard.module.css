@@ -223,6 +223,12 @@
   gap: var(--mantine-spacing-sm) var(--mantine-spacing-md);
 }
 
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--mantine-spacing-sm);
+}
+
 /* The teacher's classes, the one shown marked. */
 .switcher {
   display: flex;

@@ -99,6 +99,7 @@ describe("a student's page", () => {
             grade: 4,
             code: "B1.6",
             description: expectation("math-2020.g4.B1.6").description,
+            link: expectation("math-2020.g4.B1.6").link,
           },
           result: expect.objectContaining({
             expectation: "math-2020.g4.B1.6",

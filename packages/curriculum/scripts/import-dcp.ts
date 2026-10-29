@@ -35,6 +35,8 @@ interface DcpResponse {
 }
 
 const API = "https://ws.api.dcp.edu.gov.on.ca/content/api/items";
+/** The DCP's public site, where its pages for each expectation are. */
+const SITE = "https://www.dcp.edu.gov.on.ca/en/curriculum";
 
 const { values: args } = parseArgs({
   options: {
@@ -138,7 +140,24 @@ function elaborationsOf(specific: Item): ReferenceElaboration[] {
   return linked(specific, "elaborations").flatMap((item) => flatten(item));
 }
 
-function importStrand(strand: Item, grade: number): ReferenceStrand {
+/**
+ * A specific expectation's page: built from the URL slugs of its curriculum,
+ * course, strand and overall expectation, anchored at its code ("b1-5") the
+ * way the DCP's own links to expectations are.
+ */
+function linkTo(base: string, strand: Item, overall: Item, code: string) {
+  const path = [text(strand, "url_slug"), text(overall, "url_slug")];
+  if (path.some((slug) => !slug))
+    throw new Error(`${overall.system.codename} has no URL slug for its page`);
+  const anchor = code.toLowerCase().replace(/\./g, "-");
+  return `${base}/${path.join("/")}#${anchor}`;
+}
+
+function importStrand(
+  strand: Item,
+  grade: number,
+  base: string,
+): ReferenceStrand {
   return {
     code: text(strand, "title_index"),
     title: text(strand, "title"),
@@ -160,6 +179,7 @@ function importStrand(strand: Item, grade: number): ReferenceStrand {
             code,
             topic: text(specific, "title"),
             text: richText(specific, "content"),
+            link: linkTo(base, strand, overall, code),
             elaborations: elaborationsOf(specific),
           };
         }),
@@ -175,8 +195,14 @@ const grades: ReferenceGrade[] = linked(response.item, "specific_courses").map(
     const grade = Number(gradeTag?.name);
     if (!Number.isInteger(grade))
       throw new Error(`${course.system.codename} has no grade`);
+    const [view] = linked(course, "part_of");
+    const base = `${SITE}/${view ? text(view, "url_slug") : ""}/grades/${text(course, "course_slug")}`;
+    if (!view || base.includes("//grades") || base.endsWith("/grades/"))
+      throw new Error(
+        `${course.system.codename} has no URL slug for its pages`,
+      );
     const strands = strandsOf(course).map((strand) =>
-      importStrand(strand, grade),
+      importStrand(strand, grade, base),
     );
     const codes = strands.map((strand) => strand.code);
     if (new Set(codes).size !== codes.length) {

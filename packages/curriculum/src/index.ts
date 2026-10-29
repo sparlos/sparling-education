@@ -23,6 +23,8 @@ export interface Expectation {
   code: string;
   /** Kindling's own words; never the ministry's. */
   description: string;
+  /** Its official page on the DCP, where teachers read the ministry's wording. */
+  link: string;
 }
 
 const ID = /^([a-z]+-\d{4})\.g(\d)\.(([A-Z])\d+(?:\.\d+)?)$/;
@@ -37,5 +39,5 @@ export function parseExpectationId(id: string) {
 export const expectationIds = Object.keys(descriptions) as ExpectationId[];
 
 export function expectation(id: ExpectationId): Expectation {
-  return { id, ...parseExpectationId(id), description: descriptions[id] };
+  return { id, ...parseExpectationId(id), ...descriptions[id] };
 }

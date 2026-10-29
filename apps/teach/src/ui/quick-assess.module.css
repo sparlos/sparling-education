@@ -1,0 +1,143 @@
+/* Quick assess: a block per student on screen, made to print in black and white. */
+.heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--mantine-spacing-sm) var(--mantine-spacing-md);
+}
+
+.note {
+  max-width: 48rem;
+}
+
+/* The layout table that lets print repeat the page header. */
+.pages {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 var(--mantine-spacing-md);
+  margin-top: calc(-1 * var(--mantine-spacing-md));
+}
+
+.pages td {
+  padding: 0;
+}
+
+/* Only on paper: the header every printed page repeats. */
+.pageHeader {
+  display: none;
+}
+
+.student {
+  display: grid;
+  gap: var(--mantine-spacing-md);
+  max-width: 48rem;
+  padding: var(--mantine-spacing-md) var(--mantine-spacing-lg);
+  border: 1px solid var(--k-border-subtle);
+  border-radius: var(--mantine-radius-md);
+  box-sizing: border-box;
+  background-color: var(--k-surface-raised);
+}
+
+.name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
+}
+
+.part {
+  display: grid;
+  gap: var(--mantine-spacing-xs);
+}
+
+.list {
+  display: grid;
+  gap: var(--mantine-spacing-sm);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.line {
+  display: grid;
+  gap: 2px;
+}
+
+.strong {
+  font-weight: 700;
+}
+
+.muted {
+  color: var(--k-ink-muted);
+}
+
+@page {
+  margin: 15mm;
+}
+
+@media print {
+  .screenOnly {
+    display: none;
+  }
+
+  .pageHeader {
+    display: table-cell;
+    padding-bottom: var(--mantine-spacing-xs);
+    border-bottom: 1px solid var(--k-border-strong);
+    font-size: var(--mantine-font-size-sm);
+    color: var(--k-ink);
+  }
+
+  .student {
+    /* A student stays on one page where they fit. */
+    break-inside: avoid;
+    max-width: none;
+    padding: 0 0 var(--mantine-spacing-md);
+    border: 0;
+    border-bottom: 1px solid var(--k-border-strong);
+    border-radius: 0;
+    background-color: transparent;
+  }
+
+  /* Tighter than on screen, so a class takes as few pages as it can. */
+  .pages {
+    border-spacing: 0 var(--mantine-spacing-sm);
+  }
+
+  .student {
+    gap: var(--mantine-spacing-xs);
+    font-size: var(--mantine-font-size-sm);
+    line-height: 1.4;
+  }
+
+  .student p,
+  .student h2,
+  .student h3 {
+    font-size: inherit;
+    line-height: inherit;
+  }
+
+  .student h2 {
+    font-size: var(--mantine-font-size-lg);
+  }
+
+  .part,
+  .list {
+    gap: 2px;
+  }
+
+  .list li {
+    break-inside: avoid;
+  }
+
+  /* Plain ink: legible in greyscale, with nothing told by colour alone. */
+  .muted {
+    color: var(--k-ink);
+  }
+
+  /* The codes' links, too. */
+  .student {
+    --tone-text: var(--k-ink);
+  }
+}

@@ -253,9 +253,9 @@ Placeholder SVG first, from the style kit, each in a fixed frame with an anchor.
 - Teaches: fractions as counts of unit pieces and as distances on a number line, through to equivalent fractions.
 - Grades and tiers: Grade 3 (g3), Grade 4 (g4), Grade 5 (g5).
 - Expectations:
-  - `math-2020.g3.B2.8`: Understands the top number of a fraction as a count of equal unit pieces, so three fifths is one fifth taken three times.
-  - `math-2020.g4.B1.6`: Counts on by a unit fraction past one whole, for example one fourth, two fourths and on to eleven fourths, with or without a model.
-  - `math-2020.g5.B1.3`: Makes and recognises equal-value fractions up to twelfths by splitting or merging parts, including fractions greater than one written as improper fractions or mixed numbers.
+  - `math-2020.g3.B2.8`: Shows with tools, drawings and fraction notation that the numerator counts unit fractions: three fifths is one fifth added three times.
+  - `math-2020.g4.B1.6`: Counts up to 10 in unit fractions, halves to tenths (not sevenths or ninths), with or without tools: one fourth, two fourths, and on to forty fourths.
+  - `math-2020.g5.B1.3`: Finds and shows fractions that are equal in value, from halves to twelfths, including ones greater than one (improper fractions and mixed numbers), with tools and in different situations.
 - The mechanic in 30 seconds: a goal is hidden over the water, and only its fraction is shown. Students build a route from fraction hops, press play, and watch their avatar hop it. A wrong hop splashes at the exact spot, or lands past the goal, so students see what went wrong and fix it. Trying things out never counts against them.
 - Results: per expectation, each task reads *on their own*, *with a hint*, *guided* or, when the student left it unsolved, *not yet*, plus any misconception shown along the way. The play view lists every run of every task: what it asked, then each try ("Explored", "Not yet", "Got it") and what the hops did.
 - Misconceptions it reveals:

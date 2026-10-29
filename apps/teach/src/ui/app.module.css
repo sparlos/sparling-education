@@ -28,3 +28,16 @@
   padding-block: var(--mantine-spacing-xl);
   background-color: var(--k-surface-page);
 }
+
+/* Printed pages (quick assess) carry no navigation, and no page tint. */
+@media print {
+  .header {
+    display: none;
+  }
+
+  .main {
+    min-height: 0;
+    padding-block: 0;
+    background-color: transparent;
+  }
+}

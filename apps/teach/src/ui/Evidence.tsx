@@ -11,7 +11,7 @@ import type {
   Evidence,
   EvidencePlay,
 } from "../platform/ports.ts";
-import { Band, expectationLabel, nameOf } from "./Dashboard.tsx";
+import { Band, nameOf, OfficialCode } from "./Dashboard.tsx";
 import classes from "./drill-down.module.css";
 import { ButtonLink, useUp } from "./links.tsx";
 
@@ -47,7 +47,9 @@ export function EvidenceScreen({
       </div>
       <div>
         <Title order={1}>{nameOf(student)}</Title>
-        <Text className={classes.code}>{expectationLabel(expectation)}</Text>
+        <Text className={classes.code}>
+          <OfficialCode expectation={expectation} />
+        </Text>
         <Text c="muted">{expectation.description}</Text>
       </div>
       {results.length === 0 ? (

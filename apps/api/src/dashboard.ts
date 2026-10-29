@@ -170,8 +170,8 @@ export const unscored = {
 
 /** An expectation, in Kindling's words (ADR 0001). */
 export function describedExpectation(id: ExpectationId) {
-  const { grade, code, description } = expectation(id);
-  return { id, grade, code, description };
+  const { grade, code, description, link } = expectation(id);
+  return { id, grade, code, description, link };
 }
 
 /** By first name, then last initial. */

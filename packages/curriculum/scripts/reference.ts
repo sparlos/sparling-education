@@ -42,6 +42,12 @@ export interface ReferenceSpecificExpectation {
   /** The DCP's topic heading, e.g. "Fractions and Decimals". */
   topic: string;
   text: string;
+  /**
+   * Its page on the DCP's public site, anchored at the expectation, e.g.
+   * ".../grades/g4-math/strand-b/b1#b1-5": where teachers read the official
+   * wording, which Kindling links to and never reproduces.
+   */
+  link: string;
   elaborations: ReferenceElaboration[];
 }
 

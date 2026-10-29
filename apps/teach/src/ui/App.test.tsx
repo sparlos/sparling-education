@@ -10,6 +10,7 @@ import {
   type FakePlatformOptions,
 } from "../platform/fake/index.tsx";
 import type { FakeStudentSeed } from "../platform/fake/teacher.ts";
+import type { NewClass } from "../platform/ports.ts";
 import { App } from "./App.tsx";
 
 function renderApp(options?: FakePlatformOptions) {
@@ -1370,6 +1371,165 @@ describe("recognition", () => {
       await within(row).findByText(
         "That didn't save. Check your connection and try again.",
       ),
+    ).toBeInTheDocument();
+  });
+});
+
+describe("quick assess", () => {
+  let subject = 0;
+  function student(
+    firstName: string,
+    lastName: string,
+    seed: Omit<FakeStudentSeed, "google"> = {},
+  ): FakeStudentSeed {
+    subject += 1;
+    return {
+      google: { subject: `assess-${subject}`, firstName, lastName },
+      ...seed,
+    };
+  }
+  const ben = () =>
+    student("Ben", "Ode", {
+      grade: 4,
+      plays: [
+        {
+          grade: 4,
+          tasks: [
+            [
+              { succeeded: false, misconception: "bigger-denominator-bigger" },
+              { succeeded: true },
+            ],
+            [{ succeeded: false }, { succeeded: false }, { succeeded: true }],
+            [{ succeeded: true }],
+          ],
+        },
+        { grade: 4, tasks: [[{ succeeded: false }]], ending: "left" },
+        { grade: 5, tasks: [[{ succeeded: true }]] },
+      ],
+    });
+  const room = (): { draft: NewClass; students: FakeStudentSeed[] } => ({
+    draft: { name: "Room 12", grades: [4, 5] },
+    students: [ben(), student("Dee", "Lam", { grade: 4 })],
+  });
+
+  async function openDashboard() {
+    const { user, history } = openAt("/teach/", { classes: [room()] });
+    await user.click(await signInButton());
+    await user.click(
+      await screen.findByRole("link", { name: "See results for Room 12" }),
+    );
+    await screen.findByRole("heading", { level: 1, name: "Room 12" });
+    return { user, history };
+  }
+
+  /** A part of a student's block, by its heading. */
+  const part = (block: HTMLElement, name: string) =>
+    within(block).getByRole("region", { name });
+
+  it("opens for the class from the dashboard, laid out as a report card is written, without a level", async () => {
+    const { user, history } = await openDashboard();
+    await user.click(screen.getByRole("link", { name: "Quick assess" }));
+    expect(
+      await screen.findByRole("heading", { level: 1, name: "Quick assess" }),
+    ).toBeInTheDocument();
+    expect(history.location.pathname).toMatch(
+      /^\/teach\/classes\/[^/]+\/quick-assess$/,
+    );
+    const date = new Date().toLocaleDateString("en-CA", { dateStyle: "long" });
+    // The header every printed page repeats.
+    expect(
+      screen.getByText(`Quick assess · Room 12 · ${date}`),
+    ).toBeInTheDocument();
+
+    const benBlock = screen.getByRole("region", { name: "Ben O." });
+    const math = part(benBlock, "Math: what their plays show");
+    const [atFour, atFive] = within(math).getAllByRole("listitem");
+    if (!atFour || !atFive) throw new Error("No expectation lines");
+    const { description } = expectation("math-2020.g4.B1.6");
+    expect(atFour).toHaveTextContent(description);
+    // The code opens its official wording, in a new tab.
+    expect(
+      within(atFour).getByRole("link", { name: /^Grade 4 · B1\.6/ }),
+    ).toHaveAttribute(
+      "href",
+      "https://www.dcp.edu.gov.on.ca/en/curriculum/elementary-mathematics/grades/g4-math/strand-b/b1#b1-6",
+    );
+    // The left play's task is one of theirs, not done yet.
+    expect(atFour).toHaveTextContent(
+      "3 of 4 tasks on their own, in their 2 most recent plays",
+    );
+    expect(atFour).toHaveTextContent("Fraction Hop · Oct 1");
+    expect(atFive).toHaveTextContent(
+      "1 of 1 task on their own, in their most recent play",
+    );
+    expect(atFive).toHaveTextContent("Grade 5 tier, not their grade");
+    expect(part(benBlock, "Next steps seen in play")).toHaveTextContent(
+      /bigger.*\(Fraction Hop\)/i,
+    );
+    const skills = part(benBlock, "Learning Skills");
+    expect(skills).toHaveTextContent("Responsibility: 2 plays finished");
+    expect(skills).toHaveTextContent(
+      "Self-Regulation: 2 tasks got right after a mistake",
+    );
+    expect(skills).toHaveTextContent(
+      "Reported separately from the math grade.",
+    );
+
+    const deeBlock = screen.getByRole("region", { name: "Dee L." });
+    expect(deeBlock).toHaveTextContent("No plays yet.");
+    // Evidence, never a judgement of it.
+    expect(document.body).not.toHaveTextContent(
+      /Developing|Showing consistently|Not yet showing|%/,
+    );
+
+    await user.click(screen.getByRole("link", { name: "Room 12 results" }));
+    expect(
+      await screen.findByRole("heading", { level: 1, name: "Room 12" }),
+    ).toBeInTheDocument();
+  });
+
+  it("opens for one student from their page, and goes back up to it", async () => {
+    const { user } = await openDashboard();
+    const row = screen.getByRole("row", { name: /^Ben O\./ });
+    await user.click(within(row).getByRole("link", { name: "Ben O." }));
+    await user.click(
+      await screen.findByRole("link", { name: "Quick assess for Ben O." }),
+    );
+    expect(
+      await screen.findByRole("heading", { level: 1, name: "Quick assess" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Ben O., Room 12")).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "Ben O." })).toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: "Dee L." })).toBeNull();
+
+    const print = vi.spyOn(window, "print").mockImplementation(() => {});
+    await user.click(screen.getByRole("button", { name: "Print" }));
+    expect(print).toHaveBeenCalledOnce();
+
+    await user.click(screen.getByRole("link", { name: "Ben O." }));
+    expect(
+      await screen.findByRole("heading", { level: 1, name: "Ben O." }),
+    ).toBeInTheDocument();
+  });
+
+  it("opens straight from its URL, and not for a made-up student", async () => {
+    const { user } = openAt("/teach/classes/class-1/quick-assess", {
+      classes: [room()],
+    });
+    await user.click(await signInButton());
+    expect(
+      await screen.findByRole("heading", { level: 1, name: "Quick assess" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Room 12")).toBeInTheDocument();
+    cleanup();
+
+    const other = openAt(
+      "/teach/classes/class-1/students/nobody/quick-assess",
+      { classes: [room()] },
+    );
+    await other.user.click(await signInButton());
+    expect(
+      await screen.findByRole("heading", { level: 1, name: "Not found" }),
     ).toBeInTheDocument();
   });
 });

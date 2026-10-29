@@ -261,6 +261,11 @@ export function dashboardContract(
           grade: e.grade,
           code: expect.stringMatching(/^[A-Z]\d+\.\d+$/),
           description: expect.stringMatching(/\w{3,}/),
+          link: expect.stringMatching(
+            new RegExp(
+              `^https://www\\.dcp\\.edu\\.gov\\.on\\.ca/en/curriculum/.+/g${e.grade}-math/.+#${e.code.toLowerCase().replace(".", "-")}$`,
+            ),
+          ),
         });
     });
 
@@ -620,6 +625,105 @@ export function dashboardContract(
       await expect(port.studentPage(made.id, samId)).rejects.toBeInstanceOf(
         NotFound,
       );
+    });
+
+    it("counts what each student's recent plays show, with next steps and Learning Skills, never a level", async () => {
+      const { port, made, joinClass, play } = await teacherWithClass([4, 5]);
+      const [sam, ana] = [student("Sam", "Rivera"), student("Ana", "Diaz")];
+      await joinClass(sam, made.joinCode, 4);
+      await joinClass(ana, made.joinCode, 4);
+      const atFour = await play(sam, made.id, 4, [
+        [{ succeeded: false, misconception: bigger }, { succeeded: true }],
+        [{ succeeded: false }, { succeeded: true, assisted: "hint" }],
+        ...wrong(1),
+      ]);
+      await play(sam, made.id, 4, right(2), "left");
+      const atFive = await play(sam, made.id, 5, right(2));
+      // Only explored: evidence of nothing.
+      await play(sam, made.id, 4, [[{ succeeded: false, exploring: true }]]);
+
+      const assessed = await port.quickAssess(made.id);
+      expect(assessed.students.map((s) => s.student.firstName)).toEqual([
+        "Ana",
+        "Sam",
+      ]);
+      expect(assessed.students[0]).toMatchObject({
+        expectations: [],
+        nextSteps: [],
+      });
+      const samAssessed = assessed.students[1];
+      expect(samAssessed?.student).toEqual({
+        id: expect.any(String),
+        firstName: "Sam",
+        lastInitial: "R",
+        grade: 4,
+      });
+      expect(samAssessed?.expectations).toEqual([
+        {
+          expectation: expect.objectContaining({ id: atFour, grade: 4 }),
+          tierGrade: 4,
+          otherTier: false,
+          // The retried one counts; the hinted one and the wrong one don't.
+          tasks: 5,
+          onTheirOwn: 3,
+          plays: 2,
+          games: [{ slug: "fraction-hop", name: expect.any(String) }],
+          first: expect.any(String),
+          last: expect.any(String),
+        },
+        expect.objectContaining({
+          expectation: expect.objectContaining({ id: atFive, grade: 5 }),
+          tierGrade: 5,
+          otherTier: true,
+          tasks: 2,
+          onTheirOwn: 2,
+          plays: 1,
+        }),
+      ]);
+      const [atFourLine] = samAssessed?.expectations ?? [];
+      expect(Date.parse(atFourLine?.first ?? "")).toBeLessThan(
+        Date.parse(atFourLine?.last ?? ""),
+      );
+      expect(samAssessed?.nextSteps).toEqual([
+        {
+          game: "fraction-hop",
+          gameName: expect.any(String),
+          id: bigger,
+          description: expect.stringMatching(/\w{3,}/),
+        },
+      ]);
+      expect(samAssessed?.learningSkills).toEqual([
+        {
+          skill: "responsibility",
+          name: "Responsibility",
+          evidence: [{ kind: "finishedPlays", count: 3 }],
+        },
+        {
+          skill: "self-regulation",
+          name: "Self-Regulation",
+          evidence: [{ kind: "improvedAfterMistake", count: 2 }],
+        },
+      ]);
+      expect(
+        await port.studentQuickAssess(made.id, samAssessed?.student.id ?? ""),
+      ).toEqual(samAssessed);
+    });
+
+    it("shows a teacher only their own classes' quick assess", async () => {
+      const { port, made, joinClass, credentialFor } = await teacherWithClass([
+        4,
+      ]);
+      await joinClass(student("Sam", "Rivera"), made.joinCode);
+      const [{ id: samId } = { id: "" }] = (await port.dashboard(made.id))
+        .students;
+      await expect(
+        port.studentQuickAssess(made.id, "no-such-student"),
+      ).rejects.toBeInstanceOf(NotFound);
+      await port.signIn(await credentialFor(newGoogleAccount()));
+      await expect(port.quickAssess(made.id)).rejects.toBeInstanceOf(NotFound);
+      await expect(
+        port.studentQuickAssess(made.id, samId),
+      ).rejects.toBeInstanceOf(NotFound);
     });
   });
 }

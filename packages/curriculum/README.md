@@ -25,4 +25,6 @@ The DCP API is undocumented: run the script only when needed, never in CI, and r
 What apps import: each expectation ID (e.g. `math-2020.g4.B1.5`) with a description written by Kindling, plus the Learning Skills and Work Habits. Entries are added as games need them, in `src/<edition>.ts`.
 
 - Write each description from what the expectation means; don't edit the official sentence. The tests fail if a description shares six or more consecutive words with the official text.
+- Describe the whole expectation, in plain words a teacher reads at a glance, not just the part a game evidences: teachers read it as the expectation.
+- Each entry has a `link` to its expectation's official page on the DCP. Every screen that shows the code links to it, so the official wording is one tap away without Kindling reproducing it. Links come from the reference layer when its import recorded them, otherwise from a human, one per entry.
 - A human checks each ID against the DCP before it's merged.

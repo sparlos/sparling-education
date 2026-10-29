@@ -30,6 +30,7 @@ import {
   setStudentGrade,
 } from "./memberships.ts";
 import { ingestPlayRecords } from "./play-records.ts";
+import { classQuickAssess, studentQuickAssess } from "./quick-assess.ts";
 import { recognise } from "./recognition.ts";
 import {
   type Account,
@@ -51,6 +52,8 @@ import {
   PlayRecordBatchSchema,
   PlayRecordsStoredSchema,
   PlaySchema,
+  QuickAssessSchema,
+  QuickAssessStudentSchema,
   RecogniseSchema,
   RecognitionSchema,
   SeenSchema,
@@ -637,6 +640,49 @@ const playRoute = createRoute({
   },
 });
 
+const quickAssessRoute = createRoute({
+  method: "get",
+  path: "/classes/{classId}/quick-assess",
+  operationId: "getQuickAssess",
+  summary: "A class's quick assess, for writing report cards",
+  description:
+    "For each student: for each expectation, how many of its tasks they did on their own in their recent plays; the misconceptions those plays showed, as next steps; and their effort evidence by Learning Skill, which is reported separately. Counts only, never a level, rating or mark.",
+  request: { params: z.object({ classId: z.uuid() }) },
+  responses: {
+    200: {
+      description: "The class's quick assess",
+      content: { "application/json": { schema: QuickAssessSchema } },
+    },
+    ...teacherOnly,
+    404: {
+      description: "No class of this teacher's has that ID",
+      content: { "application/json": { schema: ErrorSchema } },
+    },
+  },
+});
+
+const studentQuickAssessRoute = createRoute({
+  method: "get",
+  path: "/classes/{classId}/students/{studentId}/quick-assess",
+  operationId: "getStudentQuickAssess",
+  summary: "One student's quick assess, for writing their report card",
+  description:
+    "For each expectation, how many of its tasks they did on their own in their recent plays; the misconceptions those plays showed, as next steps; and their effort evidence by Learning Skill, which is reported separately. Counts only, never a level, rating or mark.",
+  request: { params: z.object({ classId: z.uuid(), studentId: z.uuid() }) },
+  responses: {
+    200: {
+      description: "The student's quick assess",
+      content: { "application/json": { schema: QuickAssessStudentSchema } },
+    },
+    ...teacherOnly,
+    404: {
+      description:
+        "No class of this teacher's has that ID, or the student isn't in it",
+      content: { "application/json": { schema: ErrorSchema } },
+    },
+  },
+});
+
 // Where each entry point lands when sign-in isn't given somewhere to return to.
 const homes = { teacher: "/teach/" } as const;
 
@@ -971,6 +1017,32 @@ export function createApp({
       const found = await studentPlay(db, teacher.id, classId, studentId, play);
       if (!found) return c.json({ error: "not-found" }, 404);
       return c.json(found, 200);
+    })
+    .openapi(quickAssessRoute, async (c) => {
+      const teacher = await teacherOf(c);
+      if (teacher === "signed-out") return c.json({ error: teacher }, 401);
+      if (teacher === "not-a-teacher") return c.json({ error: teacher }, 403);
+      const assessed = await classQuickAssess(
+        db,
+        teacher.id,
+        c.req.valid("param").classId,
+      );
+      if (!assessed) return c.json({ error: "no-such-class" }, 404);
+      return c.json(assessed, 200);
+    })
+    .openapi(studentQuickAssessRoute, async (c) => {
+      const teacher = await teacherOf(c);
+      if (teacher === "signed-out") return c.json({ error: teacher }, 401);
+      if (teacher === "not-a-teacher") return c.json({ error: teacher }, 403);
+      const { classId, studentId } = c.req.valid("param");
+      const assessed = await studentQuickAssess(
+        db,
+        teacher.id,
+        classId,
+        studentId,
+      );
+      if (!assessed) return c.json({ error: "not-found" }, 404);
+      return c.json(assessed, 200);
     });
 
   app.doc31("/openapi.json", openApiConfig);

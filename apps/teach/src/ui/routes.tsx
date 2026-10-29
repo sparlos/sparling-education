@@ -26,6 +26,10 @@ import { EvidenceScreen } from "./Evidence.tsx";
 import { ButtonLink } from "./links.tsx";
 import { ManageScreen } from "./Manage.tsx";
 import { PlayScreen } from "./PlayScreen.tsx";
+import {
+  ClassQuickAssessScreen,
+  StudentQuickAssessScreen,
+} from "./QuickAssess.tsx";
 import { StudentScreen } from "./StudentScreen.tsx";
 
 const root = createRootRouteWithContext<{ teacher: TeacherPort }>()({});
@@ -204,6 +208,53 @@ const playRoute = createRoute({
   ...loading("the play", { label: "The class's results" }),
 });
 
+const quickAssessRoute = createRoute({
+  getParentRoute: () => classRoute,
+  path: "quick-assess",
+  loader: async ({ context: { teacher }, params: { classId } }) => {
+    const [cls, assessed] = await found(
+      Promise.all([teacher.class(classId), teacher.quickAssess(classId)]),
+    );
+    return { cls, assessed };
+  },
+  component: function QuickAssess() {
+    const { cls, assessed } = quickAssessRoute.useLoaderData();
+    return (
+      <ClassQuickAssessScreen
+        cls={cls}
+        students={assessed.students}
+        today={new Date()}
+      />
+    );
+  },
+  ...loading("quick assess", { label: "The class's results" }),
+});
+
+const studentQuickAssessRoute = createRoute({
+  getParentRoute: () => classRoute,
+  path: "students/$studentId/quick-assess",
+  loader: async ({ context: { teacher }, params: { classId, studentId } }) => {
+    const [cls, assessed] = await found(
+      Promise.all([
+        teacher.class(classId),
+        teacher.studentQuickAssess(classId, studentId),
+      ]),
+    );
+    return { cls, assessed };
+  },
+  component: function StudentQuickAssess() {
+    const { cls, assessed } = studentQuickAssessRoute.useLoaderData();
+    return (
+      <StudentQuickAssessScreen
+        cls={cls}
+        assessed={assessed}
+        today={new Date()}
+      />
+    );
+  },
+  ...loading("quick assess", { label: "The class's results" }),
+});
+
 const routeTree = root.addChildren([
   classesRoute,
   classRoute.addChildren([
@@ -212,6 +263,8 @@ const routeTree = root.addChildren([
     studentRoute,
     evidenceRoute,
     playRoute,
+    quickAssessRoute,
+    studentQuickAssessRoute,
   ]),
 ]);
 

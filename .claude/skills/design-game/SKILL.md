@@ -62,7 +62,7 @@ Done when every section of the spec template below can be filled without guessin
 
 Write `games/<slug>/SPEC.md` from [SPEC-TEMPLATE.md](SPEC-TEMPLATE.md), with `Status: draft`. Then archive the prototypes the human didn't pick: set `isArchived: true` in their `meta`, so they stay playable under the lab's Archive tab. Never delete a prototype unless the human asks. Archive the winner once its real game exists. Never archive `clothesline/`, the model prototype.
 
-Add each expectation the spec uses to the product layer, `packages/curriculum/src/<edition>.ts`, with a description in Kindling's own words, written from what the expectation means rather than by editing the official sentence. Run `pnpm --filter @repo/curriculum test`.
+Add each expectation the spec uses to the product layer, `packages/curriculum/src/<edition>.ts`, with a description in Kindling's own words, written from what the expectation means rather than by editing the official sentence, and its `link` to the expectation's page on dcp.edu.gov.on.ca: from `reference/<edition>.json` when the import recorded links, otherwise from the human, who opens the page and pastes its address. Run `pnpm --filter @repo/curriculum test`.
 
 Done when the tests pass and the spec is consistent:
 - "Why it's fun" says what the human played and picked, and why,

@@ -96,6 +96,22 @@ export function effortOf(all: readonly EffortRecord[]): StudentEffort[] {
   });
 }
 
+/**
+ * The fields of a record effort depends on, besides arrival order. Records
+ * grouped by these (or more), each group read as one record at its first
+ * `sequence` and one at its last, give the same effort as the records
+ * themselves, so a query can load the groups rather than every attempt.
+ */
+export const effortFields = [
+  "studentId",
+  "play",
+  "kind",
+  "task",
+  "succeeded",
+  "exploring",
+  "ending",
+] as const;
+
 /** A task's tries include a failed one with a success after it. */
 function improvedAfterMistake(tries: readonly EffortRecord[]) {
   const inOrder = [...tries].sort((a, b) => a.sequence - b.sequence);
