@@ -23,6 +23,7 @@ import type {
   Understanding,
 } from "../platform/ports.ts";
 import { gradesLabel } from "./Classes.tsx";
+import { type DemoActions, DemoCard } from "./Demo.tsx";
 import classes from "./dashboard.module.css";
 import { ButtonLink, useUp } from "./links.tsx";
 import {
@@ -52,6 +53,7 @@ export function DashboardScreen({
   misconception,
   onMisconception,
   onRecognise,
+  demo,
 }: {
   cls: Class;
   /** All the teacher's classes, to switch between. */
@@ -61,6 +63,8 @@ export function DashboardScreen({
   misconception: string | null;
   onMisconception(key: string | null): void;
   onRecognise: OnRecognise;
+  /** What can be done with the demo class, on its dashboard. */
+  demo: DemoActions;
 }) {
   const up = useUp();
   return (
@@ -95,6 +99,7 @@ export function DashboardScreen({
           </ButtonLink>
         </div>
       </div>
+      {cls.demo && <DemoCard actions={demo} />}
       {dashboard.students.length === 0 ? (
         <Card variant="soft" tone="educator">
           <Stack gap="xs" align="flex-start">

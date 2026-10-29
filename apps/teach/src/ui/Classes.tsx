@@ -1,5 +1,6 @@
 // The "your classes" screen: the teacher's classes, making a new one, and
 // copying the links to share with students.
+import { Badge } from "@repo/ui/badge";
 import { Button } from "@repo/ui/button";
 import { Card } from "@repo/ui/card";
 import { CheckboxGroup } from "@repo/ui/checkbox-group";
@@ -149,17 +150,27 @@ function NewClassForm({
 }
 
 function ClassCard({ cls }: { cls: Class }) {
-  const games = cls.games.filter((game) => game.on);
   return (
     <Card padding="lg">
       <section aria-label={cls.name}>
         <Stack gap="md">
           <div className={classes.linkRow}>
             <div>
-              <Title order={2} size="h3">
-                {cls.name}
-              </Title>
-              <Text c="muted">{gradesLabel(cls.grades)}</Text>
+              <div className={classes.title}>
+                <Title order={2} size="h3">
+                  {cls.name}
+                </Title>
+                {cls.demo && (
+                  <Badge tone="educator" size="md">
+                    Demo
+                  </Badge>
+                )}
+              </div>
+              <Text c="muted">
+                {cls.demo
+                  ? `Simulated students in ${gradesLabel(cls.grades)}, with results already in`
+                  : gradesLabel(cls.grades)}
+              </Text>
             </div>
             <div className={classes.actions}>
               <ButtonLink
@@ -179,38 +190,47 @@ function ClassCard({ cls }: { cls: Class }) {
               </ButtonLink>
             </div>
           </div>
-          <div className={classes.linkRow}>
-            <div className={classes.linkText}>
-              <Text>Class join link</Text>
-              <Text size="sm" c="muted" className={classes.url}>
-                {cls.joinLink}
-              </Text>
-            </div>
-            <CopyButton text={cls.joinLink}>Copy join link</CopyButton>
-          </div>
-          <Stack gap="xs">
-            <Title order={3} size="h5">
-              Game links
-            </Title>
-            <Text size="sm" c="muted">
-              Each one opens its game for this class, joining students who
-              aren't in it yet.
-            </Text>
-            <ul className={classes.games}>
-              {games.map((game) => (
-                <li key={game.slug} className={classes.linkRow}>
-                  <Text>{game.name}</Text>
-                  <CopyButton text={game.link}>
-                    Copy game link{" "}
-                    <VisuallyHidden>for {game.name}</VisuallyHidden>
-                  </CopyButton>
-                </li>
-              ))}
-            </ul>
-          </Stack>
+          {!cls.demo && <ClassLinks cls={cls} />}
         </Stack>
       </section>
     </Card>
+  );
+}
+
+/** The links students join the class and open its games with. */
+function ClassLinks({ cls }: { cls: Class }) {
+  const games = cls.games.filter((game) => game.on);
+  return (
+    <>
+      <div className={classes.linkRow}>
+        <div className={classes.linkText}>
+          <Text>Class join link</Text>
+          <Text size="sm" c="muted" className={classes.url}>
+            {cls.joinLink}
+          </Text>
+        </div>
+        <CopyButton text={cls.joinLink}>Copy join link</CopyButton>
+      </div>
+      <Stack gap="xs">
+        <Title order={3} size="h5">
+          Game links
+        </Title>
+        <Text size="sm" c="muted">
+          Each one opens its game for this class, joining students who aren't in
+          it yet.
+        </Text>
+        <ul className={classes.games}>
+          {games.map((game) => (
+            <li key={game.slug} className={classes.linkRow}>
+              <Text>{game.name}</Text>
+              <CopyButton text={game.link}>
+                Copy game link <VisuallyHidden>for {game.name}</VisuallyHidden>
+              </CopyButton>
+            </li>
+          ))}
+        </ul>
+      </Stack>
+    </>
   );
 }
 

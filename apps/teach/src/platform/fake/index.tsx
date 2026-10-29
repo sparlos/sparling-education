@@ -22,6 +22,8 @@ export interface FakePlatformOptions {
   otherTeachersClasses?: NewClass[];
   /** The time it is now, for which term it is. The real time by default. */
   now?: Date;
+  /** Give the teacher a demo class at their first sign-in, as Kindling does. */
+  demoClass?: boolean;
 }
 
 const newTeacher: GoogleAccount = {
@@ -44,6 +46,7 @@ export function createFakePlatform(
     offline: options.offline,
     origin: options.origin,
     now: options.now ? () => options.now ?? new Date() : undefined,
+    demoClass: options.demoClass,
   });
   if (options.student) backend.addStudent(google);
   for (const draft of options.otherTeachersClasses ?? [])

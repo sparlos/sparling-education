@@ -11,6 +11,7 @@ import {
   sessionAccount,
   sessionCookie,
   startSession,
+  viewingAs,
 } from "./accounts.ts";
 import {
   createClass,
@@ -19,6 +20,7 @@ import {
   teacherClasses,
 } from "./classes.ts";
 import { classDashboard } from "./dashboard.ts";
+import { deleteDemoClass, giveDemoClass, viewDemoAsStudent } from "./demo.ts";
 import { studentEvidence, studentPlay } from "./drill-down.ts";
 import { type IdentityVerifier, identityFrom } from "./identity.ts";
 import { markSeen, placeStickers, studentLocker, wearLook } from "./locker.ts";
@@ -38,6 +40,7 @@ import {
   ClassSchema,
   ClassStudentSchema,
   DashboardSchema,
+  DemoViewSchema,
   ErrorSchema,
   EvidenceSchema,
   GameSwitchSchema,
@@ -102,7 +105,7 @@ const signInRoute = createRoute({
   operationId: "signIn",
   summary: "Sign in with a Google ID token",
   description:
-    "Verifies the token, makes the account if it's new, and starts a session in an HTTP-only cookie. Kindling keeps only Google's subject ID, the first name and the last initial.",
+    "Verifies the token, makes the account if it's new, and starts a session in an HTTP-only cookie. Kindling keeps only Google's subject ID, the first name and the last initial. A teacher's first sign-in gives them their demo class.",
   request: {
     body: { content: { "application/json": { schema: SignInSchema } } },
   },
@@ -167,6 +170,8 @@ const sessionRoute = createRoute({
   path: "/session",
   operationId: "getSession",
   summary: "The signed-in student, as the play shell needs them",
+  description:
+    "Every student route acts as the signed-in student, or as the demo student a teacher is viewing as.",
   responses: {
     200: {
       description: "The signed-in student, or null when signed out",
@@ -210,7 +215,8 @@ const joinRoute = createRoute({
     },
     ...studentOnly,
     404: {
-      description: "No class has that join code",
+      description:
+        "No class has that join code, or the student is a demo student and it isn't their demo class",
       content: { "application/json": { schema: ErrorSchema } },
     },
   },
@@ -683,6 +689,43 @@ const studentQuickAssessRoute = createRoute({
   },
 });
 
+const deleteDemoRoute = createRoute({
+  method: "delete",
+  path: "/demo-class",
+  operationId: "deleteDemoClass",
+  summary: "Delete the signed-in teacher's demo class",
+  description:
+    "Deletes it, its simulated students and everything of theirs, in one step. It never comes back.",
+  responses: {
+    204: { description: "Deleted" },
+    ...teacherOnly,
+    404: {
+      description: "The teacher has no demo class",
+      content: { "application/json": { schema: ErrorSchema } },
+    },
+  },
+});
+
+const viewDemoRoute = createRoute({
+  method: "post",
+  path: "/demo-class/view-as-student",
+  operationId: "viewDemoAsStudent",
+  summary: "View the play shell as one of the demo class's students",
+  description:
+    "From now on this browser's student routes act as that demo student, so the play shell opens their locker, and their plays count only in the demo class. Teacher routes are unchanged.",
+  responses: {
+    200: {
+      description: "Who they're viewing as, and where to open the play shell",
+      content: { "application/json": { schema: DemoViewSchema } },
+    },
+    ...teacherOnly,
+    404: {
+      description: "The teacher has no demo class",
+      content: { "application/json": { schema: ErrorSchema } },
+    },
+  },
+});
+
 // Where each entry point lands when sign-in isn't given somewhere to return to.
 const homes = { teacher: "/teach/" } as const;
 
@@ -696,6 +739,11 @@ export interface AppDeps {
   apiReference?: boolean;
   /** The time now, for which term it is. Tests pass their own. */
   clock?: () => Date;
+  /**
+   * Give each new teacher a demo class at their first sign-in. Tests about
+   * anything else turn it off, so a teacher starts with no classes.
+   */
+  demoClass?: boolean;
 }
 
 // Routes are chained so the app's type carries them, for `testClient`.
@@ -705,6 +753,7 @@ export function createApp({
   secureCookies = true,
   apiReference = false,
   clock = () => new Date(),
+  demoClass = true,
 }: AppDeps) {
   const base = new OpenAPIHono();
   base.use("*", cors());
@@ -718,13 +767,18 @@ export function createApp({
     return account.role === "teacher" ? account : "not-a-teacher";
   }
 
-  /** The browser's student, or why it hasn't got one. */
+  /**
+   * The browser's student, or the demo student its teacher is viewing as,
+   * or why it hasn't got one.
+   */
   async function studentOf(
     c: Context,
   ): Promise<Account | "signed-out" | "not-a-student"> {
-    const account = await sessionAccount(db, getCookie(c, sessionCookie.name));
+    const token = getCookie(c, sessionCookie.name);
+    const account = await sessionAccount(db, token);
     if (!account) return "signed-out";
-    return account.role === "student" ? account : "not-a-student";
+    if (account.role === "student") return account;
+    return (await viewingAs(db, token)) ?? "not-a-student";
   }
 
   async function startSessionCookie(c: Context, accountId: string) {
@@ -752,6 +806,8 @@ export function createApp({
       const claims = await identity.verify(credential);
       if (!claims) return c.json({ error: "credential-rejected" }, 401);
       const account = await accountFor(db, identityFrom(claims), as);
+      if (demoClass && account.role === "teacher")
+        await giveDemoClass(db, account.id, clock());
       await startSessionCookie(c, account.id);
       return c.json(
         { account, returnTo: sameOriginPath(returnTo, homes[as]) },
@@ -1043,6 +1099,26 @@ export function createApp({
       );
       if (!assessed) return c.json({ error: "not-found" }, 404);
       return c.json(assessed, 200);
+    })
+    .openapi(deleteDemoRoute, async (c) => {
+      const teacher = await teacherOf(c);
+      if (teacher === "signed-out") return c.json({ error: teacher }, 401);
+      if (teacher === "not-a-teacher") return c.json({ error: teacher }, 403);
+      if (!(await deleteDemoClass(db, teacher.id)))
+        return c.json({ error: "no-demo-class" }, 404);
+      return c.body(null, 204);
+    })
+    .openapi(viewDemoRoute, async (c) => {
+      const teacher = await teacherOf(c);
+      if (teacher === "signed-out") return c.json({ error: teacher }, 401);
+      if (teacher === "not-a-teacher") return c.json({ error: teacher }, 403);
+      const view = await viewDemoAsStudent(
+        db,
+        teacher.id,
+        getCookie(c, sessionCookie.name) ?? "",
+      );
+      if (!view) return c.json({ error: "no-demo-class" }, 404);
+      return c.json(view, 200);
     });
 
   app.doc31("/openapi.json", openApiConfig);

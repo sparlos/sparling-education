@@ -4,7 +4,9 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.tsx"
+    ".": "./src/index.tsx",
+    "./manifest": "./src/manifest.ts",
+    "./simulate": "./src/rules/simulate.ts"
   },
   "scripts": {
     "check-types": "tsc --noEmit",

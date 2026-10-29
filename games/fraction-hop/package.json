@@ -6,7 +6,8 @@
   "exports": {
     ".": "./src/index.tsx",
     "./manifest": "./src/manifest.ts",
-    "./manifest-v1": "./src/manifest-v1.ts"
+    "./manifest-v1": "./src/manifest-v1.ts",
+    "./simulate": "./src/rules/simulate.ts"
   },
   "scripts": {
     "check-types": "tsc --noEmit",

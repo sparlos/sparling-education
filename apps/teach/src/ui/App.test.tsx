@@ -1533,3 +1533,81 @@ describe("quick assess", () => {
     ).toBeInTheDocument();
   });
 });
+
+describe("the demo class", () => {
+  async function signInWithDemo() {
+    const user = renderApp({ demoClass: true });
+    await user.click(await signInButton());
+    const card = await screen.findByRole("region", { name: "Demo class" });
+    return { user, card };
+  }
+
+  async function openDemo() {
+    const { user, card } = await signInWithDemo();
+    await user.click(
+      within(card).getByRole("link", { name: "See results for Demo class" }),
+    );
+    await screen.findByRole("heading", { name: "This is a demo class" });
+    return user;
+  }
+
+  it("is a new teacher's first class, labelled, with no links to share", async () => {
+    const { card } = await signInWithDemo();
+    expect(within(card).getByText("Demo")).toBeInTheDocument();
+    expect(
+      within(card).getByText(
+        "Simulated students in Grades 3, 4 and 5, with results already in",
+      ),
+    ).toBeInTheDocument();
+    expect(
+      within(card).queryByRole("button", { name: /Copy/ }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("has results and misconceptions in on its dashboard", async () => {
+    await openDemo();
+    expect(screen.getAllByText("Showing consistently").length).toBeGreaterThan(
+      0,
+    );
+    expect(
+      screen.getByRole("heading", { name: /misconceptions/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("opens the play shell as one of its students, in a new tab", async () => {
+    const user = await openDemo();
+    const tab = { location: { href: "" }, close: vi.fn() };
+    const open = vi
+      .spyOn(window, "open")
+      .mockReturnValue(tab as unknown as Window);
+    await user.click(screen.getByRole("button", { name: "View as a student" }));
+    expect(open).toHaveBeenCalledWith("", "_blank");
+    await vi.waitFor(() =>
+      expect(tab.location.href).toBe("https://kindling.test/play/"),
+    );
+    open.mockRestore();
+  });
+
+  it("is deleted in one step after a confirm, and doesn't come back", async () => {
+    const user = await openDemo();
+    await user.click(screen.getByRole("button", { name: "Delete demo class" }));
+    expect(
+      screen.getByText(/Delete the demo class and all its simulated students/),
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Delete demo class" }));
+
+    expect(await screen.findByText("No classes yet")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Sign out" }));
+    await user.click(await signInButton());
+    expect(await screen.findByText("No classes yet")).toBeInTheDocument();
+  });
+
+  it("can be kept: cancelling the delete changes nothing", async () => {
+    const user = await openDemo();
+    await user.click(screen.getByRole("button", { name: "Delete demo class" }));
+    await user.click(screen.getByRole("button", { name: "Cancel" }));
+    expect(
+      screen.getByRole("button", { name: "View as a student" }),
+    ).toBeInTheDocument();
+  });
+});

@@ -115,6 +115,32 @@ export interface Attempt<M extends GameManifest> {
 /** The most characters `asked` or `detail` may have. */
 export const teacherTextMaxLength = 200;
 
+/** How a simulated student plays, for Kindling's demo class. */
+export interface SimulatedStudent {
+  /** How likely (0 to 1) each try at a task is right, before any help. */
+  accuracy: number;
+  /**
+   * The misconceptions they hold, by the game's IDs: where a task lets them
+   * show one, their mistakes follow it. Ones the tier can't reveal are ignored.
+   */
+  misconceptions: readonly string[];
+  /** How likely (0 to 1) they take help when the game offers it. */
+  helpRate: number;
+}
+
+/**
+ * Plays one whole play as a simulated student, from the game's own rules
+ * (`src/rules/`, no React), and returns the attempts the game would have
+ * sent, in order: every try, exploring ones included. The same seed, tier
+ * and student always give the same attempts. Kindling's demo class is made
+ * of these, so every game provides one.
+ */
+export type Simulate<M extends GameManifest> = (options: {
+  seed: number;
+  tier: TierId<M>;
+  student: SimulatedStudent;
+}) => Attempt<M>[];
+
 export type { AvatarExpression } from "@repo/avatar";
 
 export interface Progress {

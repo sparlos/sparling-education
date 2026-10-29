@@ -23,7 +23,8 @@ export async function studentClasses(
 
 /**
  * Joins the student to the class with this join code, or finds them already
- * in it, keeping the grade they have. Null when no class has the code.
+ * in it, keeping the grade they have. Null when no class has the code, and
+ * between a demo class and anyone but its own simulated students.
  */
 export async function joinClass(
   db: Db,
@@ -34,6 +35,12 @@ export async function joinClass(
     where: { joinCode: joinCode.trim().toUpperCase() },
   });
   if (!found) return null;
+  const { demoClassId } = await db.account.findUniqueOrThrow({
+    where: { id: studentId },
+    select: { demoClassId: true },
+  });
+  // A demo student stays in their demo class, and only they are ever in it.
+  if (demoClassId !== null ? demoClassId !== found.id : found.demo) return null;
   const [onlyGrade] = found.grades.length === 1 ? found.grades : [];
   const row = await db.membership.upsert({
     where: { studentId_classId: { studentId, classId: found.id } },

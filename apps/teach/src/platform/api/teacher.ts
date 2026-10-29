@@ -2,6 +2,7 @@
 import {
   type Class as ApiClass,
   createClass,
+  deleteDemoClass,
   getAccount,
   getClass,
   getClasses,
@@ -19,6 +20,7 @@ import {
   signIn,
   signOut,
   switchGame,
+  viewDemoAsStudent,
 } from "@repo/api-client";
 import {
   type Class,
@@ -137,6 +139,16 @@ export function apiTeacherPort(options: {
       if (res.status !== 200)
         throw unexpected("student quick assess", res.status);
       return res.data;
+    },
+    async deleteDemoClass() {
+      const res = await deleteDemoClass();
+      if (res.status !== 204) throw unexpected("demo class", res.status);
+    },
+    async viewDemoAsStudent() {
+      const res = await viewDemoAsStudent();
+      if (res.status !== 200) throw unexpected("demo class", res.status);
+      const { student, path } = res.data;
+      return { student, link: new URL(path, options.origin).href };
     },
   };
 }

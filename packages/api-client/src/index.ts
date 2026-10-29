@@ -1,6 +1,7 @@
 export { getBaseUrl, setBaseUrl, setFetch } from "./fetcher";
 export {
   createClass,
+  deleteDemoClass,
   getAccount,
   getClass,
   getClasses,
@@ -25,6 +26,7 @@ export {
   signIn,
   signOut,
   switchGame,
+  viewDemoAsStudent,
   wearLook,
 } from "./generated/api";
 export * from "./generated/models";

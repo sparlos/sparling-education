@@ -90,7 +90,7 @@ export async function setGameOn(
   return toClass(row);
 }
 
-function newJoinCode() {
+export function newJoinCode() {
   let code = "";
   for (let i = 0; i < joinCodeLength; i++)
     code += joinCodeAlphabet[randomInt(joinCodeAlphabet.length)];
@@ -101,18 +101,20 @@ function isUniqueViolation(error: unknown) {
   return (error as { code?: unknown } | null)?.code === "P2002";
 }
 
-function toClass(row: {
+export function toClass(row: {
   id: string;
   name: string;
   grades: number[];
   joinCode: string;
   gamesOff: string[];
+  demo: boolean;
 }): Class {
-  const { id, name, grades, joinCode, gamesOff } = row;
+  const { id, name, grades, joinCode, gamesOff, demo } = row;
   return {
     id,
     name,
     grades,
+    demo,
     joinCode,
     joinPath: joinPath(joinCode),
     games: hostedGames.map(({ slug, name }) => ({

@@ -6,6 +6,7 @@ import { createApp, fakeGoogle } from "api/testing";
 import { afterAll, beforeEach, inject } from "vitest";
 import {
   dashboardContract,
+  demoClassContract,
   type GoogleAccount,
   managingContract,
   recognitionContract,
@@ -21,10 +22,17 @@ afterAll(() => database.drop());
 const { db } = database;
 const google = fakeGoogle();
 let now = new Date();
-const app = createApp({ db, identity: google.verifier, clock: () => now });
+// Most suites start teachers with no classes; the demo class's has them given one.
+const app = createApp({
+  db,
+  identity: google.verifier,
+  clock: () => now,
+  demoClass: false,
+});
+const demoApp = createApp({ db, identity: google.verifier, clock: () => now });
 
 /** A browser of its own: requests go to the in-process API, with its cookies. */
-function browser(): typeof fetch {
+function browser(api = app): typeof fetch {
   const cookies = new Map<string, string>();
   return async (input, init) => {
     const headers = new Headers(init?.headers);
@@ -33,7 +41,7 @@ function browser(): typeof fetch {
         "cookie",
         [...cookies].map(([name, value]) => `${name}=${value}`).join("; "),
       );
-    const res = await app.request(String(input), { ...init, headers });
+    const res = await api.request(String(input), { ...init, headers });
     for (const cookie of res.headers.getSetCookie()) {
       const [pair = ""] = cookie.split(";");
       const [name = "", value = ""] = pair.split("=");
@@ -51,8 +59,8 @@ const tiers: Record<number, { tier: string; expectation: string }> = {
   5: { tier: "g5", expectation: "math-2020.g5.B1.3" },
 };
 
-function harness(): TeacherPortHarness {
-  setFetch(browser());
+function harness(demoClass = false): TeacherPortHarness {
+  setFetch(browser(demoClass ? demoApp : app));
   // Each student's own browser, by Google subject.
   const students = new Map<string, { send: typeof fetch; id: string }>();
   const credentialFor = ({ subject, firstName, lastName }: GoogleAccount) =>
@@ -149,3 +157,4 @@ teacherPortContract("API teacher port", harness);
 dashboardContract("API teacher port", harness);
 managingContract("API teacher port", harness);
 recognitionContract("API teacher port", harness);
+demoClassContract("API teacher port", () => harness(true));

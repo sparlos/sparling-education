@@ -19,6 +19,7 @@ const platform =
     ? createFakePlatform({
         origin: window.location.origin,
         classes: fakeSampleClasses,
+        demoClass: true,
       })
     : createApiPlatform({
         apiBase: "/api",

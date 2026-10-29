@@ -226,4 +226,22 @@ export const mutations = defineMutations([
     find: "    onProgress({ done: done.index, total: tasksPerPlay });\n",
     replace: "",
   },
+  {
+    name: "simulated students never follow their misconceptions",
+    file: "src/rules/simulate.ts",
+    find: "if (shown.length > 0 && random() < misconceptionPull)",
+    replace: "if (false)",
+  },
+  {
+    name: "simulated slips can show misconceptions",
+    file: "src/rules/simulate.ts",
+    find: "missMatches(course, plan, runPlan(course, plan), tier).length === 0",
+    replace: "true",
+  },
+  {
+    name: "simulated students never take help",
+    file: "src/rules/simulate.ts",
+    find: "if (state.glow && random() < player.helpRate)",
+    replace: "if (false)",
+  },
 ]);

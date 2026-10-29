@@ -1047,3 +1047,108 @@ export function recognitionContract(
     });
   });
 }
+
+/**
+ * The demo class. `make` gives a harness whose teachers get a demo class at
+ * their first sign-in, as Kindling's do.
+ */
+export function demoClassContract(
+  name: string,
+  make: () => TeacherPortHarness | Promise<TeacherPortHarness>,
+) {
+  describe(`${name}'s demo class`, () => {
+    async function newTeacher() {
+      const harness = await make();
+      const google = newGoogleAccount();
+      await harness.port.signIn(await harness.credentialFor(google));
+      return { ...harness, google };
+    }
+
+    async function demoOf(port: TeacherPort) {
+      const demo = (await port.classes()).find((c) => c.demo);
+      if (!demo) throw new Error("No demo class");
+      return demo;
+    }
+
+    it("is given at the first sign-in, labelled, with students across Grades 3–5", async () => {
+      const { port } = await newTeacher();
+      const classes = await port.classes();
+      expect(classes).toEqual([
+        expect.objectContaining({
+          name: "Demo class",
+          grades: [3, 4, 5],
+          demo: true,
+        }),
+      ]);
+      const students = await port.students(classes[0]?.id ?? "");
+      expect(students).toHaveLength(24);
+      expect(new Set(students.map((s) => s.grade))).toEqual(new Set([3, 4, 5]));
+    });
+
+    it("has results in, and misconceptions several students share", async () => {
+      const { port } = await newTeacher();
+      const dashboard = await port.dashboard((await demoOf(port)).id);
+      for (const student of dashboard.students)
+        expect(student.results.length).toBeGreaterThan(0);
+      expect(dashboard.misconceptions.length).toBeGreaterThan(0);
+      for (const m of dashboard.misconceptions)
+        expect(m.students.length).toBeGreaterThanOrEqual(2);
+    });
+
+    it("has some students recognised this term already, and others not yet", async () => {
+      const { port } = await newTeacher();
+      const { students } = await port.dashboard((await demoOf(port)).id);
+      const recognised = students.filter((s) => s.recognised.length > 0);
+      expect(recognised.length).toBeGreaterThan(0);
+      expect(recognised.length).toBeLessThan(students.length);
+    });
+
+    it("is given once", async () => {
+      const { port, credentialFor, google } = await newTeacher();
+      await port.signOut();
+      await port.signIn(await credentialFor(google));
+      expect((await port.classes()).filter((c) => c.demo)).toHaveLength(1);
+    });
+
+    it("leaves real classes as they are", async () => {
+      const { port } = await newTeacher();
+      const real = await port.createClass({ name: "Room 12", grades: [4] });
+      expect(real.demo).toBe(false);
+      expect(await port.students(real.id)).toEqual([]);
+      await port.deleteDemoClass();
+      expect(await port.classes()).toEqual([real]);
+    });
+
+    it("is deleted in one step, for good", async () => {
+      const { port, credentialFor, google } = await newTeacher();
+      const demo = await demoOf(port);
+      await port.deleteDemoClass();
+      expect(await port.classes()).toEqual([]);
+      await expect(port.class(demo.id)).rejects.toBeInstanceOf(NotFound);
+      await expect(port.deleteDemoClass()).rejects.toBeInstanceOf(NotFound);
+      await port.signOut();
+      await port.signIn(await credentialFor(google));
+      expect(await port.classes()).toEqual([]);
+    });
+
+    it("can be viewed as one of its students, in the play shell", async () => {
+      const { port } = await newTeacher();
+      const students = await port.students((await demoOf(port)).id);
+      const view = await port.viewDemoAsStudent();
+      expect(students.map((s) => s.id)).toContain(view.student.id);
+      expect(view.link).toBe("https://kindling.test/play/");
+    });
+
+    it("can't be viewed as a student once deleted", async () => {
+      const { port } = await newTeacher();
+      await port.deleteDemoClass();
+      await expect(port.viewDemoAsStudent()).rejects.toBeInstanceOf(NotFound);
+    });
+
+    it("needs a teacher signed in", async () => {
+      const { port } = await make();
+      await expect(port.deleteDemoClass()).rejects.toThrow();
+      await expect(port.viewDemoAsStudent()).rejects.toThrow();
+    });
+  });
+}

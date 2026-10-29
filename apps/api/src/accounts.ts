@@ -60,6 +60,39 @@ export async function sessionAccount(
   return toAccount(session.account);
 }
 
+/**
+ * The demo student a teacher's session is viewing the play shell as, or null
+ * when it isn't viewing as one.
+ */
+export async function viewingAs(
+  db: Db,
+  token: string | undefined,
+): Promise<Account | null> {
+  if (!token) return null;
+  const session = await db.session.findUnique({
+    where: { tokenHash: hash(token) },
+    include: { account: true, viewingAs: { include: { demoClass: true } } },
+  });
+  const student = session?.viewingAs;
+  if (!session || session.expiresAt <= new Date() || !student) return null;
+  // Only ever one of the teacher's own demo students.
+  if (session.account.role !== "teacher") return null;
+  if (student.demoClass?.teacherId !== session.accountId) return null;
+  return toAccount(student);
+}
+
+/** Has the teacher's session view the play shell as this demo student, from now on. */
+export async function startViewingAs(
+  db: Db,
+  token: string,
+  studentId: string,
+): Promise<void> {
+  await db.session.update({
+    where: { tokenHash: hash(token) },
+    data: { viewingAsId: studentId },
+  });
+}
+
 export async function endSession(db: Db, token: string | undefined) {
   if (!token) return;
   await db.session.deleteMany({ where: { tokenHash: hash(token) } });

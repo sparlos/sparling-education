@@ -29,7 +29,7 @@ A direct link to one game for one class, usually shared by a teacher in a class 
 _Avoid_: Deep link, assignment link
 
 **Demo class**:
-A class of simulated students with results already in, which every new teacher gets alongside their own classes and can explore as both teacher and student. Runs on the same foundations as a real class, and the teacher can delete it in one step.
+A class of simulated students with results already in, which every new teacher gets at their first sign-in, alongside their own classes, and can explore as both teacher and student ("view as a student"). Its plays come from each game's **simulator** and are scored like any others. Only its own simulated students are ever in it. The teacher can delete it in one step, and it never comes back.
 _Avoid_: Sandbox, trial, test class
 
 **Welcome walkthrough**:
@@ -93,6 +93,10 @@ _Avoid_: Score, grade, mark
 **Attempt**:
 One try at one task within a game: which curriculum expectation it evidences, whether it succeeded, and which misconception it revealed, if any. It can also carry, for teachers, what the task asked and what the student did on this try, in the game's own short text. An exploring try (a probe, e.g. a test run before committing) is an attempt that never counts: teachers see it as "Explored", and scoring and effort ignore it. Games record attempts; Kindling turns a play's attempts into its result.
 _Avoid_: Answer, response, question, event (unqualified)
+
+**Simulator**:
+A game's way of playing a whole play as a **simulated student** (how often they're right, the misconceptions they hold, how often they take help), through the game's own rules, giving the attempts the game would have sent. The demo class is made of simulated plays. Every game has one.
+_Avoid_: Bot, fake player, generator (that makes a play's tasks)
 
 **Misconception**:
 A specific, named wrong idea an attempt can reveal (e.g. "thinks a larger denominator means a larger fraction"). Each game defines the misconceptions its mechanic can surface.

@@ -33,6 +33,11 @@ export interface Class {
   name: string;
   /** Ascending. */
   grades: ClassGrade[];
+  /**
+   * The demo class every new teacher gets at their first sign-in: simulated
+   * students, with results already in.
+   */
+  demo: boolean;
   joinCode: string;
   /** The class join link, as a full URL to share. */
   joinLink: string;
@@ -174,6 +179,26 @@ export interface TeacherPort {
     classId: string,
     studentId: string,
   ): Promise<QuickAssessStudent>;
+  /**
+   * Deletes the signed-in teacher's demo class, its students and everything
+   * of theirs, in one step. It never comes back. Rejects when no teacher is
+   * signed in, and with `NotFound` when they have no demo class.
+   */
+  deleteDemoClass(): Promise<void>;
+  /**
+   * Has this browser view the play shell as one of the demo class's
+   * students: opening `link` shows their locker, and their plays count only
+   * in the demo class. Rejects when no teacher is signed in, and with
+   * `NotFound` when they have no demo class.
+   */
+  viewDemoAsStudent(): Promise<DemoView>;
+}
+
+/** Viewing the play shell as a demo student. */
+export interface DemoView {
+  student: { id: string; firstName: string; lastInitial: string };
+  /** The play shell, as a full URL: their locker. */
+  link: string;
 }
 
 /**

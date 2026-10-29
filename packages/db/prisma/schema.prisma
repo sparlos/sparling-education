@@ -30,9 +30,18 @@ model Account {
   // @repo/avatar reads them. Null until they design their avatar; always
   // null for a teacher.
   look          Json?
-  sessions      Session[]
+  // A teacher: whether they've been given their demo class. They get it once,
+  // at their first sign-in, and it never comes back once they delete it.
+  demoGiven     Boolean      @default(false)
+  // A demo student: the demo class they were made for, and are only ever in.
+  // Deleting the class deletes them, and everything of theirs with them.
+  demoClassId   String?      @db.Uuid
+  demoClass     Class?       @relation("DemoStudents", fields: [demoClassId], references: [id], onDelete: Cascade)
+  sessions      Session[]    @relation("SessionAccount")
+  // Teachers' sessions viewing the play shell as this demo student.
+  viewedBy      Session[]    @relation("ViewingAs")
   // A teacher's classes.
-  classes       Class[]
+  classes       Class[]      @relation("TeacherClasses")
   // A student's classes.
   memberships   Membership[]
   // A student's plays, as the play shell sent them.
@@ -47,11 +56,15 @@ model Account {
 
 // A signed-in browser. The cookie holds a random token; only its hash is kept.
 model Session {
-  tokenHash String   @id
-  accountId String   @db.Uuid
-  account   Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
-  expiresAt DateTime
+  tokenHash   String   @id
+  accountId   String   @db.Uuid
+  account     Account  @relation("SessionAccount", fields: [accountId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  expiresAt   DateTime
+  // A teacher's session viewing the play shell as one of their demo class's
+  // students: student routes act as that student. Teacher routes are unchanged.
+  viewingAsId String?  @db.Uuid
+  viewingAs   Account? @relation("ViewingAs", fields: [viewingAsId], references: [id], onDelete: SetNull)
 
   @@index([accountId])
 }
@@ -61,7 +74,7 @@ model Session {
 model Class {
   id          String       @id @default(uuid()) @db.Uuid
   teacherId   String       @db.Uuid
-  teacher     Account      @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  teacher     Account      @relation("TeacherClasses", fields: [teacherId], references: [id], onDelete: Cascade)
   name        String
   // One or more of Grades 3–5, ascending.
   grades      Int[]
@@ -69,7 +82,11 @@ model Class {
   // The slugs of hosted games the teacher turned off. Every other hosted game
   // is on, so a game Kindling starts hosting is on in every class.
   gamesOff    String[]     @default([])
+  // The demo class every new teacher gets: simulated students, with results
+  // already in. Its students are made for it (`Account.demoClassId`).
+  demo        Boolean      @default(false)
   createdAt   DateTime     @default(now())
+  demoStudents Account[]   @relation("DemoStudents")
   memberships  Membership[]
   playRecords  PlayRecord[]
   recognitions Recognition[]

@@ -149,7 +149,8 @@ async function problemWith(
   return null;
 }
 
-function toRow(studentId: string, record: PlayRecord) {
+/** A record as it's stored. */
+export function toRow(studentId: string, record: PlayRecord) {
   const common = {
     studentId,
     id: record.id,

@@ -86,6 +86,10 @@ export const ClassSchema = z
     id: z.string().openapi({ description: "Stable and opaque" }),
     name: z.string(),
     grades: z.array(z.number().int()).openapi({ description: "Ascending" }),
+    demo: z.boolean().openapi({
+      description:
+        "The demo class every new teacher gets: simulated students, with results already in",
+    }),
     joinCode: z.string().openapi({ example: "K7QM4XRT" }),
     joinPath: z.string().openapi({
       description: "The class join link, as a path on this domain",
@@ -763,3 +767,20 @@ export const QuickAssessSchema = z
   .openapi("QuickAssess");
 
 export type QuickAssess = z.infer<typeof QuickAssessSchema>;
+
+export const DemoViewSchema = z
+  .object({
+    student: z.object({
+      id: z.string(),
+      firstName: z.string(),
+      lastInitial: z.string(),
+    }),
+    path: z.string().openapi({
+      description:
+        "Where to open the play shell, as a path on this domain: their locker",
+      example: "/play/",
+    }),
+  })
+  .openapi("DemoView");
+
+export type DemoView = z.infer<typeof DemoViewSchema>;

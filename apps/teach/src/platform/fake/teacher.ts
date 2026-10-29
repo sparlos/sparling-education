@@ -33,6 +33,11 @@ import {
   type TeacherPort,
   type Understanding,
 } from "../ports.ts";
+import {
+  fakeDemoDraft,
+  fakeDemoRecognition,
+  fakeDemoStudents,
+} from "./demo.ts";
 
 /** A game the fake hosts. */
 export interface FakeGame {
@@ -156,6 +161,11 @@ export function fakeTeacherBackend(
     games?: readonly FakeGame[];
     /** The time now, for which term it is. */
     now?: () => Date;
+    /**
+     * Give each new teacher a demo class at their first sign-in, as Kindling
+     * does. Off by default, so a teacher starts with no classes.
+     */
+    demoClass?: boolean;
   } = {},
 ): FakeTeacherBackend {
   const { origin = "https://kindling.test", games = fakeGames } = options;
@@ -180,6 +190,10 @@ export function fakeTeacherBackend(
   // The device clock plays are made by: a minute apart.
   let clock = Date.UTC(2026, 9, 1, 14);
   let signedIn: Account | null = null;
+  // Never reused, though a deleted class leaves a gap.
+  let classesMade = 0;
+  /** Teachers who've been given their demo class, deleted or not. */
+  const demoGiven = new Set<string>();
 
   function reachable() {
     if (options.offline?.()) throw new Error("Can't reach Kindling (fake)");
@@ -202,7 +216,11 @@ export function fakeTeacherBackend(
       : code;
   }
 
-  function createClass(teacherId: string, draft: NewClass): Class {
+  function createClass(
+    teacherId: string,
+    draft: NewClass,
+    demo = false,
+  ): Class {
     const name = draft.name.trim();
     if (!name || name.length > classNameMaxLength)
       throw new Error("A class needs a name (fake)");
@@ -210,9 +228,10 @@ export function fakeTeacherBackend(
       throw new Error("A class needs a grade (fake)");
     const joinCode = newJoinCode();
     const made: Class = {
-      id: `class-${classes.length + 1}`,
+      id: `class-${++classesMade}`,
       name,
       grades: [...new Set(draft.grades)].sort((a, b) => a - b),
+      demo,
       joinCode,
       joinLink: `${origin}/play/join/${joinCode}`,
       games: games.map(({ slug, name }) => ({
@@ -658,6 +677,20 @@ export function fakeTeacherBackend(
         const google = issued.get(credential);
         if (!google) throw new CredentialRejected();
         signedIn = accountFor(google, "teacher");
+        if (
+          options.demoClass &&
+          signedIn.role === "teacher" &&
+          !demoGiven.has(signedIn.id)
+        ) {
+          demoGiven.add(signedIn.id);
+          const demo = seedClass(
+            google,
+            fakeDemoDraft,
+            fakeDemoStudents(signedIn.id),
+            true,
+          );
+          recogniseInDemo(demo.id);
+        }
         return signedIn;
       },
       async signOut() {
@@ -763,6 +796,25 @@ export function fakeTeacherBackend(
         const cls = teachersClass(classId);
         return quickAssessOf(cls, memberOf(cls, studentId));
       },
+      async deleteDemoClass() {
+        reachable();
+        const demo = demoClassOf(signedInTeacher().id);
+        classes.splice(classes.indexOf(demo), 1);
+        for (const list of [memberships, plays, recognitions])
+          for (let i = list.length - 1; i >= 0; i--)
+            if (list[i]?.classId === demo.class.id) list.splice(i, 1);
+      },
+      async viewDemoAsStudent() {
+        reachable();
+        const demo = demoClassOf(signedInTeacher().id);
+        const [first] = membersOf(demo.class.id);
+        if (!first) throw new NotFound("demo class");
+        const { id, firstName, lastInitial } = first.student;
+        return {
+          student: { id, firstName, lastInitial },
+          link: `${origin}/play/`,
+        };
+      },
     },
     credentialFor(google) {
       const credential = `fake-google-${issued.size + 1}`;
@@ -774,16 +826,55 @@ export function fakeTeacherBackend(
     },
     joinClass,
     play,
-    seedClass(teacher, draft, students) {
-      const made = createClass(accountFor(teacher, "teacher").id, draft);
-      for (const seed of students) {
-        joinClass(seed.google, made.joinCode, seed.grade);
-        for (const { grade, tasks, ending } of seed.plays ?? [])
-          play(seed.google, made.id, grade, tasks, ending);
-      }
-      return made;
-    },
+    seedClass: (teacher, draft, students) =>
+      seedClass(teacher, draft, students),
   };
+
+  function seedClass(
+    teacher: GoogleAccount,
+    draft: NewClass,
+    students: FakeStudentSeed[],
+    demo = false,
+  ) {
+    const made = createClass(accountFor(teacher, "teacher").id, draft, demo);
+    for (const seed of students) {
+      joinClass(seed.google, made.joinCode, seed.grade);
+      for (const { grade, tasks, ending } of seed.plays ?? [])
+        play(seed.google, made.id, grade, tasks, ending);
+    }
+    return made;
+  }
+
+  /** Recognition already given in a new demo class, this term and last. */
+  function recogniseInDemo(classId: string) {
+    const at = now();
+    const thisTerm = termOf(at);
+    const lastTerm = termOf(
+      new Date(Date.parse(`${thisTerm.start}T12:00:00Z`) - 24 * 60 * 60 * 1000),
+    );
+    for (const [firstName, trait, term] of fakeDemoRecognition) {
+      const member = membersOf(classId).find(
+        (m) => m.student.firstName === firstName,
+      );
+      if (!member) continue;
+      recognitions.push({
+        classId,
+        studentId: member.student.id,
+        trait,
+        term: (term === "this" ? thisTerm : lastTerm).start,
+        awardedAt: (term === "this"
+          ? at
+          : new Date(`${lastTerm.end}T15:00:00Z`)
+        ).toISOString(),
+      });
+    }
+  }
+
+  function demoClassOf(teacherId: string) {
+    const demo = classes.find((c) => c.teacherId === teacherId && c.class.demo);
+    if (!demo) throw new NotFound("demo class");
+    return demo;
+  }
 }
 
 /** How a fake play ends: it never crashes. */

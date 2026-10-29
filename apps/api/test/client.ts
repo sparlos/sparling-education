@@ -15,7 +15,12 @@ afterAll(() => database.drop());
 export const { db } = database;
 /** Google sign-in for this file's tests. */
 export const google = fakeGoogle();
-export const app = createApp({ db, identity: google.verifier });
+// No demo class: a new teacher starts with none. demo.test.ts turns it on.
+export const app = createApp({
+  db,
+  identity: google.verifier,
+  demoClass: false,
+});
 export const client: ReturnType<typeof testClient<App>> = testClient(app);
 
 /** The `cookie` header a browser would send back after `res`. */

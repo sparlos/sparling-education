@@ -103,6 +103,13 @@ const dashboardRoute = createRoute({
           await teacher.recognise(cls.id, studentId, trait);
           await router.invalidate();
         }}
+        demo={{
+          viewAsStudent: () => teacher.viewDemoAsStudent(),
+          delete: async () => {
+            await teacher.deleteDemoClass();
+            await navigate({ to: "/", replace: true });
+          },
+        }}
       />
     );
   },

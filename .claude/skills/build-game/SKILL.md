@@ -35,9 +35,10 @@ Write the game's rules as plain TypeScript in `src/rules/`, with no React: gener
 - **Separate exploring from mistakes.** A probe (trying something to see what happens) never counts as a miss: send it as an attempt with `exploring: true` (never succeeded, no misconception, no help).
 - **Every try is an attempt, sent as it happens:** a probe as `exploring`, a mistake as `succeeded: false`, the solve as `succeeded: true`. `assisted` is the help that was on *before* the try, so the try that triggers help reads as on their own. A misconception goes on the try that brings it over its threshold, at most once per task.
 - **Describe each task and try for teachers.** Every attempt carries `asked` (the same text on every try at the task) and `detail` (what the student did on this try), built in the rules from their state, never from the student strings: plain en-CA text, at most 200 characters, fractions as `a/b` and mixed numbers as `1 3/4`, nothing else written that way. Teachers read it; it's never spoken or voiced. Test the longest `detail` the game can write (the fullest plan the budget allows) against the limit: Fraction Hop writes three or more of the same hop as `12 × 1/10` to fit.
+- **Write the simulator** (`src/rules/simulate.ts`, exported as `./simulate`): the game contract's `Simulate`, which plays a whole play as a simulated student (accuracy, the misconceptions they hold, how often they take help) through the same rules functions the screen calls, and returns the attempts the game would have sent. Kindling's demo class is made of these plays, so they must look like real ones: probes as `exploring`, every miss, help taken when offered, `asked` and `detail` on each. A student's mistakes follow a misconception they hold where the task lets it show; otherwise they're slips that match none, so a student never shows one they don't hold. Test it: the same seed gives the same attempts, every attempt passes `attemptProblem`, and each misconception shows up for students who hold it at the tiers that reveal it, never for those who don't. Fraction Hop's `src/rules/simulate.ts` is the reference.
 - **Test the generator's invariants over many plays per tier** (Fraction Hop uses 150): every task within its tier's expectations, every misconception revealable where the spec says it is, every amount the game can speak has a string.
 
-Done when every misconception in the spec has a test that detects it, every tier has an invariant test, and every kind of try at every tier has a test of the attempt it sends.
+Done when every misconception in the spec has a test that detects it, every tier has an invariant test, every kind of try at every tier has a test of the attempt it sends, and the simulator's tests pass.
 
 ## 4. Manifest, strings and spec tests
 
@@ -82,6 +83,8 @@ Done when the founder has been asked, with the number of new lines.
 ## 8. The founder plays
 
 Give the founder the game link (`/play/<slug>`), what isn't built yet, and your numbered **readings** of the spec for them to confirm. They play, ideally on a touchscreen, and give their calls. For each call: change the code, update SPEC.md, re-run steps 5–6, and say what changed. Visual polish the founder raises (motion, feedback moments, layout finesse) goes on a list for `polish-game`, unless it blocks play.
+
+**Host it in the API** once the founder accepts it: add `hosted(manifest, simulate)` to `games` in `apps/api/src/games.ts`. New teachers' demo classes then play it, with its own misconceptions.
 
 **Bump `Version`** in SPEC.md and the manifest when what a tier evidences, or what its attempts record, changes. Records made under the old version still arrive days late, so add the old manifest, frozen, to `earlierManifests` in `apps/api/src/games.ts` (Fraction Hop's `src/manifest-v1.ts` is the shape).
 
