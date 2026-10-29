@@ -2,7 +2,7 @@
 
 **What to build:** A new teacher's first visit to the dashboard shows the welcome walkthrough: three steps on the demo class (share a game link, spot the misconceptions showing up in the class, view quick assess). It's skippable and can be replayed from help.
 
-**Blocked by:** 16, 17, 21
+**Blocked by:** 16, 17, 21, 28
 
 **Status:** ready-for-agent
 
