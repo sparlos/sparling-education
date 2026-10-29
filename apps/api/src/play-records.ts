@@ -82,6 +82,22 @@ async function problemWith(
     ).map((r) => r.play),
   );
 
+  // What each task in these plays asked, from its first attempt that said
+  // (newest first, so the first is set last).
+  const asked = new Map<string, string>();
+  const askedKey = (r: { play: string; task: string }) => `${r.play}|${r.task}`;
+  for (const r of await db.playRecord.findMany({
+    where: {
+      studentId,
+      kind: "attempt",
+      asked: { not: null },
+      play: { in: [...new Set(fresh.map((r) => r.play))] },
+    },
+    select: { play: true, task: true, asked: true },
+    orderBy: { sequence: "desc" },
+  }))
+    asked.set(askedKey({ play: r.play, task: r.task ?? "" }), r.asked ?? "");
+
   for (const record of fresh) {
     const about = `record ${record.id}`;
     if (!classes.has(record.class))
@@ -97,8 +113,15 @@ async function problemWith(
       ended.add(record.play);
       continue;
     }
-    const problem = attemptProblem(manifest, record.tier, record);
+    const problem = attemptProblem(
+      manifest,
+      record.tier,
+      record,
+      asked.get(askedKey(record)),
+    );
     if (problem) return `${about}: ${problem}`;
+    if (record.asked !== undefined && !asked.has(askedKey(record)))
+      asked.set(askedKey(record), record.asked);
   }
   return null;
 }
@@ -124,5 +147,8 @@ function toRow(studentId: string, record: PlayRecord) {
         succeeded: record.succeeded,
         misconception: record.misconception ?? null,
         assisted: record.assisted ?? null,
+        asked: record.asked ?? null,
+        detail: record.detail ?? null,
+        exploring: record.exploring ?? false,
       };
 }

@@ -128,6 +128,12 @@ model PlayRecord {
   succeeded     Boolean?
   misconception String?
   assisted      Assistance?
+  // For teachers, as the game wrote them: what the task asked, and what the
+  // student did on this try. Plain text; never scored.
+  asked         String?
+  detail        String?
+  // A try that only explored: shown to teachers, never scored.
+  exploring     Boolean         @default(false)
   // An end's.
   ending        PlayEnding?
   // Arrival order, which within a play is the order the shell made them in.

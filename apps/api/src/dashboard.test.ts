@@ -267,6 +267,33 @@ describe("understanding", () => {
     });
   });
 
+  it("ignores tries that only explored, even in a play with nothing else", async () => {
+    const { teacher, classId, student, who } = await classWithStudent();
+    const explore = { succeeded: false, exploring: true };
+    await play(student, [
+      playOf(who, [...right(2), ...wrong(2)], { at: day(1) }),
+    ]);
+    const before = await onlyResult(teacher, classId);
+    expect(before).toMatchObject({ understanding: "developing" });
+    // Explored tries before a right one, and newer plays of nothing but
+    // exploring: none of it changes the result.
+    await play(student, [
+      playOf(who, [[explore, explore, { succeeded: true }]], {
+        at: day(2),
+        ending: null,
+      }),
+    ]);
+    const mixed = await onlyResult(teacher, classId);
+    await play(
+      student,
+      [3, 4, 5, 6, 7].map((d) =>
+        playOf(who, [[explore], [explore]], { at: day(d) }),
+      ),
+    );
+    expect(await onlyResult(teacher, classId)).toEqual(mixed);
+    expect(mixed).toMatchObject({ understanding: "developing" });
+  });
+
   it("marks evidence from a tier other than the student's grade", async () => {
     const { teacher, classId, student, who } = await classWithStudent(
       [3, 4],
@@ -383,6 +410,20 @@ describe("the misconception strip", () => {
       [2, 3, 4, 5, 6].map((d) => playOf(who, right(2), { at: day(d) })),
     );
     expect((await dashboardOf(teacher, classId)).misconceptions).toEqual([]);
+  });
+
+  it("isn't pushed out by plays of nothing but exploring", async () => {
+    const { teacher, classId, student, who } = await classWithStudent();
+    await play(student, [playOf(who, showed(bigger), { at: day(1) })]);
+    await play(
+      student,
+      [2, 3, 4, 5, 6].map((d) =>
+        playOf(who, [[{ succeeded: false, exploring: true }]], { at: day(d) }),
+      ),
+    );
+    expect((await dashboardOf(teacher, classId)).misconceptions).toHaveLength(
+      1,
+    );
   });
 
   it("leaves out crashed plays", async () => {

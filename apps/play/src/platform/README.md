@@ -91,6 +91,9 @@ plus, by `kind`:
   succeeded: boolean;
   misconception?: string;
   assisted?: "hint" | "demonstration" | "guided";
+  asked?: string;        // what the task asked, for teachers: same on every try at it
+  detail?: string;       // what the student did on this try, for teachers
+  exploring?: boolean;   // a try that only explored: never succeeded, never scored
 }
 
 // How the play ended. At most one per play, after its attempts.

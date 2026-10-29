@@ -1,5 +1,6 @@
 import { z } from "@hono/zod-openapi";
 import { itemsIn, type PartSlot } from "@repo/avatar/parts";
+import { teacherTextMaxLength } from "@repo/game-contract";
 
 export const HealthSchema = z
   .object({ status: z.literal("ok") })
@@ -246,6 +247,18 @@ export const AttemptRecordSchema = z
     succeeded: z.boolean(),
     misconception: z.string().optional(),
     assisted: z.enum(["hint", "demonstration", "guided"]).optional(),
+    asked: z.string().max(teacherTextMaxLength).optional().openapi({
+      description:
+        "What the task asked, for teachers: plain text, fractions as a/b. The same on every attempt at the task within a play",
+    }),
+    detail: z.string().max(teacherTextMaxLength).optional().openapi({
+      description:
+        "What the student did on this try, for teachers: plain text, fractions as a/b",
+    }),
+    exploring: z.boolean().optional().openapi({
+      description:
+        "A try that only explored: never succeeded, no misconception or help, and never scored",
+    }),
   })
   .openapi("AttemptRecord", { description: "One try at one task" });
 
@@ -431,6 +444,12 @@ export const EvidencePlaySchema = z
       .number()
       .int()
       .openapi({ description: "Tasks never succeeded at" }),
+    tries: z.number().int().openapi({
+      description: "Attempts at the tasks, retries included; not explored ones",
+    }),
+    explored: z.number().int().openapi({
+      description: "Tries that only explored, which are never scored",
+    }),
     misconceptions: z.array(MisconceptionSchema).openapi({
       description: "Revealed in the play, in the order first revealed",
     }),
@@ -463,6 +482,13 @@ export const PlayAttemptSchema = z
   .object({
     at: z.iso.datetime().openapi({ description: "By the device's clock" }),
     succeeded: z.boolean(),
+    exploring: z.boolean().openapi({
+      description: "A try that only explored: never scored, never wrong",
+    }),
+    detail: z.union([z.string(), z.null()]).openapi({
+      description:
+        "What the student did on this try, as the game wrote it; fractions as a/b",
+    }),
     assisted: z.union([z.enum(["hint", "demonstration", "guided"]), z.null()]),
     misconception: z.union([MisconceptionSchema, z.null()]),
   })
@@ -477,6 +503,10 @@ export const PlaySchema = z
         z.object({
           task: z.string(),
           expectation: z.string(),
+          asked: z.union([z.string(), z.null()]).openapi({
+            description:
+              "What the task asked, as the game wrote it (fractions as a/b), from its first attempt that said",
+          }),
           attempts: z.array(PlayAttemptSchema).openapi({
             description: "In order; every one after the first is a retry",
           }),

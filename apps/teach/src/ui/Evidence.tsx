@@ -114,6 +114,10 @@ function PlayCard({
         {play.ending ? endingLabels[play.ending] : noEnding}
       </span>
       <span>{tally}</span>
+      <span className={classes.muted}>
+        {`${play.tries} ${play.tries === 1 ? "try" : "tries"}`}
+        {play.explored > 0 && `, and ${play.explored} explored`}
+      </span>
       {play.misconceptions.map((m) => (
         <span key={m.id} className={classes.showed}>
           Showed: {m.description}

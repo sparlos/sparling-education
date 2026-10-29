@@ -81,6 +81,22 @@ describe("sending play records", () => {
     expect((await sendRecords(who.headers, [end])).status).toBe(200);
   });
 
+  it("accepts what a task asked, what each try did, and tries that explored", async () => {
+    const who = await student();
+    const asked = "Reach 5/4 on a course in eighths. Blocks: 1/8, 1/4, 1/2.";
+    const records = playOf(who, [
+      [
+        { succeeded: false, exploring: true, asked, detail: "Hopped 1/8." },
+        // Later tries may leave out what was asked.
+        { succeeded: true, detail: "Landed on 5/4." },
+        { succeeded: true, asked },
+      ],
+    ]);
+    const res = await sendRecords(who.headers, records);
+    expect(res.status).toBe(200);
+    expect(await stored(res)).toBe(records.length);
+  });
+
   it("accepts a resent play after its end is stored", async () => {
     const who = await student();
     const records = playOf(who, right(2));
@@ -156,6 +172,63 @@ describe("play records that will never be accepted", () => {
     expect(await stored(await sendRecords(who.headers, rest))).toBe(
       rest.length,
     );
+  });
+
+  it.each([
+    ["an empty ask", { asked: "" }],
+    ["an ask over 200 characters", { asked: "x".repeat(201) }],
+    ["a detail of only spaces", { detail: "  " }],
+    ["a detail over 200 characters", { detail: "x".repeat(201) }],
+    ["an exploring try that succeeded", { exploring: true, succeeded: true }],
+    [
+      "an exploring try that revealed a misconception",
+      {
+        exploring: true,
+        succeeded: false,
+        misconception: "bigger-denominator-bigger",
+      },
+    ],
+    [
+      "an exploring try with help",
+      { exploring: true, succeeded: false, assisted: "hint" },
+    ],
+  ])("refuses an attempt with %s", async (_, change) => {
+    const who = await student();
+    const [attempt, ...rest] = playOf(who, right(1));
+    if (!attempt) throw new Error("No attempt");
+    const res = await sendRecords(who.headers, [
+      { ...attempt, ...change } as typeof attempt,
+      ...rest,
+    ]);
+    expect(res.status).toBe(400);
+  });
+
+  it("refuses a task that asks something else than it did earlier in the play, in the same batch or a later one", async () => {
+    const who = await student();
+    const [first, second] = playOf(
+      who,
+      [
+        [
+          { succeeded: false, asked: "Reach 5/4." },
+          { succeeded: true, asked: "Reach 3/4." },
+        ],
+      ],
+      { ending: null },
+    );
+    if (!first || !second) throw new Error("No records");
+    expect((await sendRecords(who.headers, [first, second])).status).toBe(400);
+    expect((await sendRecords(who.headers, [first])).status).toBe(200);
+    expect((await sendRecords(who.headers, [second])).status).toBe(400);
+    // Another play can ask something else of a task with the same ID.
+    const [elsewhere] = playOf(
+      who,
+      [[{ succeeded: true, asked: "Reach 3/4." }]],
+      {
+        ending: null,
+      },
+    );
+    if (!elsewhere) throw new Error("No record");
+    expect((await sendRecords(who.headers, [elsewhere])).status).toBe(200);
   });
 
   it("accepts a misconception that belongs to the expectation", async () => {

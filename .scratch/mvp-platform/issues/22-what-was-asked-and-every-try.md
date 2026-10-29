@@ -4,7 +4,7 @@
 
 **Blocked by:** none
 
-**Status:** ready-for-agent
+**Status:** done
 
 ## Design (agent's call, founder deferred)
 
@@ -18,15 +18,27 @@
 
 ## Acceptance
 
-- [ ] `@repo/game-contract`: `Attempt` gains optional `asked`, `detail` and `exploring`, with doc comments covering the rules above. `attemptProblem` refuses: either text over 200 characters or empty; `exploring` with `succeeded: true`, a misconception or `assisted`; and a task whose `asked` changes between its attempts within a play (checked in the shell and in the API, which already sees each play's records)
-- [ ] The play shell passes all three fields through to its records. Its contract suite and stand-ins cover them
-- [ ] API: `POST /play-records` accepts and validates them. A migration adds nullable `asked` and `detail` text columns and an `exploring` boolean (default false) to `PlayRecord`. Old records keep working with all three absent
-- [ ] Scoring (`scoring.ts`) leaves out exploring attempts everywhere: understanding, the misconception strip, the evidence tallies (a task with only exploring tries isn't counted), and effort when ticket 13 lands. Integration tests show an exploring try changes no result
-- [ ] `GET …/plays/{play}`: each task has `asked` (from its first attempt that has one, or null), and each attempt has `detail` and `exploring`. `GET …/expectations/{id}`: each play also counts its tries, `tries` and `explored`, next to the task tallies
-- [ ] Teacher app:
-  - [ ] Port types, the fake and the API adapter carry the new fields. The contract suite covers them
-  - [ ] The play view heads each task with what it asked, then lists every try in order: "Explored" (muted, never styled as wrong), "Not yet" or "Got it", plus help, its detail and any misconception
-  - [ ] A shared `<TeacherText>` renders `a/b` and mixed numbers as stacked fractions with a screen-reader label ("five fourths"), and everything else as plain text. Unit-test the parsing: `3/8`, `1 3/4`, `5/4`, a date-like `10/29` inside words (render it anyway: games are told to write only fractions as `a/b`), and text with no fractions
-  - [ ] An attempt with neither field reads as it does today
-- [ ] Docs: the glossary's **Attempt** says an attempt can carry what was asked and what the student did, and that an exploring try is an attempt that never counts. ADR 0002 gets a consequences line: games describe tasks and tries in text for teachers, and the platform never parses it except to draw fractions. Update `build-game` and `design-game` (SPEC-TEMPLATE's Attempts section: "What the teacher sees for each task and try") so new games fill these in
-- [ ] Tests: integration tests (the fields stored and read back, validation 400s, exploring ignored by scoring, the play and evidence responses) and rendered-app tests (the play view with asked, explored, missed and solved tries, and fractions drawn). Check the play view at 1366 and 360 px in headless Chrome with long details
+- [x] `@repo/game-contract`: `Attempt` gains optional `asked`, `detail` and `exploring`, with doc comments covering the rules above. `attemptProblem` refuses: either text over 200 characters or empty; `exploring` with `succeeded: true`, a misconception or `assisted`; and a task whose `asked` changes between its attempts within a play (checked in the shell and in the API, which already sees each play's records)
+- [x] The play shell passes all three fields through to its records. Its contract suite and stand-ins cover them
+- [x] API: `POST /play-records` accepts and validates them. A migration adds nullable `asked` and `detail` text columns and an `exploring` boolean (default false) to `PlayRecord`. Old records keep working with all three absent
+- [x] Scoring (`scoring.ts`) leaves out exploring attempts everywhere: understanding, the misconception strip, the evidence tallies (a task with only exploring tries isn't counted), and effort when ticket 13 lands. Integration tests show an exploring try changes no result
+- [x] `GET …/plays/{play}`: each task has `asked` (from its first attempt that has one, or null), and each attempt has `detail` and `exploring`. `GET …/expectations/{id}`: each play also counts its tries, `tries` and `explored`, next to the task tallies
+- [x] Teacher app:
+  - [x] Port types, the fake and the API adapter carry the new fields. The contract suite covers them
+  - [x] The play view heads each task with what it asked, then lists every try in order: "Explored" (muted, never styled as wrong), "Not yet" or "Got it", plus help, its detail and any misconception
+  - [x] A shared `<TeacherText>` renders `a/b` and mixed numbers as stacked fractions with a screen-reader label ("five fourths"), and everything else as plain text. Unit-test the parsing: `3/8`, `1 3/4`, `5/4`, a date-like `10/29` inside words (render it anyway: games are told to write only fractions as `a/b`), and text with no fractions
+  - [x] An attempt with neither field reads as it does today
+- [x] Docs: the glossary's **Attempt** says an attempt can carry what was asked and what the student did, and that an exploring try is an attempt that never counts. ADR 0002 gets a consequences line: games describe tasks and tries in text for teachers, and the platform never parses it except to draw fractions. Update `build-game` and `design-game` (SPEC-TEMPLATE's Attempts section: "What the teacher sees for each task and try") so new games fill these in
+- [x] Tests: integration tests (the fields stored and read back, validation 400s, exploring ignored by scoring, the play and evidence responses) and rendered-app tests (the play view with asked, explored, missed and solved tries, and fractions drawn). Check the play view at 1366 and 360 px in headless Chrome with long details
+
+## Comments
+
+**Agent, 2026-10-29:** Built; over to the founder to check and commit.
+
+- Contract: `Attempt` gains `asked`, `detail` and `exploring`, plus `teacherTextMaxLength` (200). `attemptProblem` takes an optional `askedBefore`, so the shell, the API and the game-kit fake shell each check that a task's `asked` never changes within a play. An attempt may leave `asked` off after the first; only a *different* value is refused.
+- Migration `20261029140000_attempt_asked_and_detail` adds the three columns. `pnpm dev` applies it; the Prisma client and API client regenerate with `pnpm generate`.
+- Scoring drops exploring tries before any rule, so a play with nothing but exploring isn't one of the "recent plays" and can't push real evidence out of the window.
+- Evidence play cards also show "N tries, and M explored". Explored tries still take a "First try" / "Retry n" label in the play view, so the order stays clear.
+- `<TeacherText>` (`apps/teach/src/ui/TeacherText.tsx`, parsing in `teacher-text.ts`) draws fractions as `role="img"` with a spoken label. `2 5/4` is drawn as "2" then five fourths, not a mixed number. `3/0` stays plain text.
+- The fake's sample class gives Ben T.'s first task a description, with two explored tries and a long detail. Checked in headless Chrome at 1366 and 360 px: no horizontal scroll, and long details wrap.
+- `biome check .` still reports `packages/ui/src/checkbox-group.tsx` (import order). That was already there; this ticket didn't touch it.

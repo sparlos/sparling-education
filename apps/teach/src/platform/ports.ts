@@ -188,6 +188,10 @@ export interface EvidencePlay extends PlaySummary {
   withHelp: number;
   /** Never succeeded at. */
   notYet: number;
+  /** Tries at those tasks, retries included; not explored ones. */
+  tries: number;
+  /** Tries that only explored, which are never scored. */
+  explored: number;
   /** Revealed in the play, in the order first revealed. */
   misconceptions: Misconception[];
   /** Whether the result counts it: only recent plays do, and never a crashed one. */
@@ -200,6 +204,11 @@ export interface Play extends PlaySummary {
   tasks: {
     task: string;
     expectation: string;
+    /**
+     * What the task asked, as the game wrote it for teachers (fractions as
+     * `a/b`), or null when the game didn't say.
+     */
+    asked: string | null;
     /** In order; every one after the first is a retry. */
     attempts: Attempt[];
   }[];
@@ -209,6 +218,10 @@ export interface Attempt {
   /** By the device's clock, as an ISO date-time. */
   at: string;
   succeeded: boolean;
+  /** A try that only explored: neither right nor wrong, and never scored. */
+  exploring: boolean;
+  /** What the student did on it, as the game wrote it (fractions as `a/b`), if it said. */
+  detail: string | null;
   /** The help the game gave before it, if any. */
   assisted: "hint" | "demonstration" | "guided" | null;
   misconception: Misconception | null;

@@ -45,10 +45,12 @@ export function createPlay(options: {
     ((problem, attempt) =>
       console.error(`[play] Dropped an attempt: ${problem}`, attempt));
   let ended: Promise<string> | null = null;
+  /** What each task asked, from its first recorded attempt that said. */
+  const asked = new Map<string, string>();
 
   function problemWith(attempt: Attempt<GameManifest>): string | null {
     if (ended) return "the play has already ended";
-    return attemptProblem(manifest, tier, attempt);
+    return attemptProblem(manifest, tier, attempt, asked.get(attempt.task));
   }
 
   function common() {
@@ -69,6 +71,8 @@ export function createPlay(options: {
     record(attempt) {
       const problem = problemWith(attempt);
       if (problem) return onInvalid(problem, attempt);
+      if (attempt.asked !== undefined && !asked.has(attempt.task))
+        asked.set(attempt.task, attempt.asked);
       outbox.add({
         ...common(),
         kind: "attempt",
@@ -79,6 +83,9 @@ export function createPlay(options: {
           misconception: attempt.misconception,
         }),
         ...(attempt.assisted !== undefined && { assisted: attempt.assisted }),
+        ...(attempt.asked !== undefined && { asked: attempt.asked }),
+        ...(attempt.detail !== undefined && { detail: attempt.detail }),
+        ...(attempt.exploring && { exploring: true }),
       });
     },
     end(ending, timeoutMs = 4000) {

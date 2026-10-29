@@ -112,6 +112,27 @@ export function playRecordsPortContract(
       expect(await stored()).toEqual(batch);
     });
 
+    it("stores what a task asked, what each try did, and tries that explored", async () => {
+      const { port, stored, attempt } = await harness();
+      const asked = "Reach 5/4 on a course in eighths. Blocks: 1/8, 1/4, 1/2.";
+      const batch = [
+        attempt({
+          task: "task-1",
+          succeeded: false,
+          asked,
+          detail: "Hopped 1/8 + 1/4: stopped at 3/8.",
+          exploring: true,
+        }),
+        attempt({
+          task: "task-1",
+          asked,
+          detail: "Hopped 1/2 + 1/2 + 1/4: landed on 5/4.",
+        }),
+      ];
+      await port.send(batch);
+      expect(await stored()).toEqual(batch);
+    });
+
     it("stores a play's end after its attempts, in order", async () => {
       const { port, stored, attempt, end } = await harness();
       const batch = [attempt(), end({ ending: "left" })];

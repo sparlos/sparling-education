@@ -39,6 +39,8 @@ Avatar: portrait | character
 - An attempt is recorded when: <...>
 - Success means: <...>
 - Retries of the same task are recognised by: <task ID scheme>
+- Exploring tries (if any), sent with `exploring: true` and never scored: <...>
+- What the teacher sees for each task and try: `asked` <e.g. "Reach 5/4 on a course in eighths. Blocks: 1/8, 1/4, 1/2.">, `detail` <e.g. "Hopped 1/8 + 1/8 + 1/4: splashed at 4/8.">
 
 ## Effort
 

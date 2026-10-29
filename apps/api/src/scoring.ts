@@ -42,6 +42,8 @@ export interface ScoredRecord {
   succeeded: boolean | null;
   misconception: string | null;
   assisted: string | null;
+  /** A try that only explored: every rule here leaves it out. */
+  exploring: boolean;
   ending: string | null;
   /** Arrival order: within a play, the order the shell made them in. */
   sequence: number;
@@ -70,12 +72,14 @@ export interface StudentResult {
  * succeeding at without help, over their recent plays at that tier. A task
  * counts once however many tries it took; it's succeeded at without help
  * when one of its attempts succeeded with no help before it. A crashed play
- * counts neither for nor against them.
+ * counts neither for nor against them, and tries that only explored don't
+ * count at all: a play with nothing else isn't one of their recent plays.
  */
 export function understandingOf(
-  records: readonly ScoredRecord[],
+  all: readonly ScoredRecord[],
   manifestAt: (slug: string, version: number) => GameManifest | undefined,
 ): StudentResult[] {
+  const records = scored(all);
   const crashed = crashedPlays(records);
 
   // Each play's attempts, grouped by student, expectation and tier grade.
@@ -156,12 +160,13 @@ export interface ShownMisconception {
 
 /**
  * The misconceptions each student is showing: those revealed by any attempt
- * in their recent plays of a game. Crashed plays don't count, as for
- * understanding.
+ * in their recent plays of a game. Crashed plays and exploring tries don't
+ * count, as for understanding.
  */
 export function misconceptionsOf(
-  records: readonly ScoredRecord[],
+  all: readonly ScoredRecord[],
 ): ShownMisconception[] {
+  const records = scored(all);
   const crashed = crashedPlays(records);
   const attempts = records.filter(
     (r) => r.kind === "attempt" && !crashed.has(playKey(r)),
@@ -191,6 +196,10 @@ export function misconceptionsOf(
 
 /** How a play's tasks went, each counted once however many tries it took. */
 export interface PlayTally {
+  /** Tries at the tasks, retries included. */
+  tries: number;
+  /** Tries that only explored, which nothing else here counts. */
+  explored: number;
   tasks: number;
   /** Succeeded at without help: what understanding counts. */
   onTheirOwn: number;
@@ -200,7 +209,8 @@ export interface PlayTally {
   notYet: number;
 }
 
-export function tallyOf(attempts: readonly ScoredRecord[]): PlayTally {
+export function tallyOf(all: readonly ScoredRecord[]): PlayTally {
+  const attempts = scored(all);
   const tasks = groupBy(attempts, (a) => a.task ?? "");
   const onTheirOwn = tasks.filter((tries) =>
     tries.some((a) => a.succeeded && !a.assisted),
@@ -209,11 +219,18 @@ export function tallyOf(attempts: readonly ScoredRecord[]): PlayTally {
     tries.some((a) => a.succeeded),
   ).length;
   return {
+    tries: attempts.length,
+    explored: all.length - attempts.length,
     tasks: tasks.length,
     onTheirOwn,
     withHelp: succeeded - onTheirOwn,
     notYet: tasks.length - succeeded,
   };
+}
+
+/** The records scoring counts: all but tries that only explored. */
+function scored(records: readonly ScoredRecord[]) {
+  return records.filter((r) => !r.exploring);
 }
 
 function crashedPlays(records: readonly ScoredRecord[]) {

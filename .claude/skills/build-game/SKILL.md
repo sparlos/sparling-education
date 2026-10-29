@@ -32,7 +32,8 @@ Done when the template game's tests pass under the new slug.
 Write the game's rules as plain TypeScript in `src/rules/`, with no React: generating a play per tier (seeded, from `@repo/game-kit/random`), judging each action, matching each misconception, the help ladder and the attempt each task emits. Rules tests run in Node (`// @vitest-environment node`).
 
 - **Each misconception is a prediction:** what the student would do if they held the wrong idea. The generator keeps every prediction distinct from the right answer and from each other, and only makes tasks where each prediction is something the student can actually do with what's on screen. If an action still matches two misconceptions, record none: wrong evidence in front of a teacher is worse than none.
-- **Separate exploring from mistakes.** A probe (trying something to see what happens) never counts as a miss.
+- **Separate exploring from mistakes.** A probe (trying something to see what happens) never counts as a miss: send it as an attempt with `exploring: true` (never succeeded, no misconception, no help).
+- **Describe each task and try for teachers.** Every attempt carries `asked` (the same text on every try at the task) and `detail` (what the student did on this try), built in the rules from their state, never from the student strings: plain en-CA text, at most 200 characters, fractions as `a/b` and mixed numbers as `1 3/4`, nothing else written that way. Teachers read it; it's never spoken or voiced. Send each try as it happens.
 - **Test the generator's invariants over many plays per tier** (Fraction Hop uses 150): every task within its tier's expectations, every misconception revealable where the spec says it is, every amount the game can speak has a string.
 
 Done when every misconception in the spec has a test that detects it, and every tier has an invariant test.

@@ -1,0 +1,25 @@
+/* A fraction in a game's text for teachers, stacked: numerator over denominator. */
+.number {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15em;
+  vertical-align: middle;
+}
+
+.whole {
+  font-weight: 700;
+}
+
+.fraction {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 0.8em;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.numerator {
+  padding: 0 0.15em;
+  border-bottom: 1px solid currentColor;
+}

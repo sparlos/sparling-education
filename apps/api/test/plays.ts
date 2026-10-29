@@ -73,6 +73,9 @@ type Try = {
   succeeded: boolean;
   assisted?: "hint" | "demonstration" | "guided";
   misconception?: string;
+  asked?: string;
+  detail?: string;
+  exploring?: boolean;
 };
 
 /**

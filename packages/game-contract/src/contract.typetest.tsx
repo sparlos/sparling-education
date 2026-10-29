@@ -115,6 +115,22 @@ props.onAttempt({
   // @ts-expect-error not a kind of help
   assisted: "answer",
 });
+// What was asked and done, for teachers, and a try that only explored.
+props.onAttempt({
+  task: "task-1",
+  expectation: "math-2020.g3.B2.8",
+  succeeded: false,
+  asked: "Reach 5/4 on a course in eighths.",
+  detail: "Hopped 1/8 + 1/4: splashed at 3/8.",
+  exploring: true,
+});
+props.onAttempt({
+  task: "task-1",
+  expectation: "math-2020.g3.B2.8",
+  succeeded: true,
+  // @ts-expect-error text, not a per-game shape
+  detail: { hops: ["1/8"] },
+});
 // @ts-expect-error an attempt needs its task ID
 props.onAttempt({ expectation: "math-2020.g3.B2.8", succeeded: true });
 

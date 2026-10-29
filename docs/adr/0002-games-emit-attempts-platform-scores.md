@@ -10,3 +10,4 @@ A game never scores itself or calls the API. It emits **attempts** (task, expect
 ## Consequences
 
 - Every attempt records the game version, the tier, and each expectation as a code plus its curriculum edition, so old results stay accurate after a game or the curriculum changes.
+- Games describe each task (`asked`) and each try (`detail`) in short plain text for teachers, the same way in every game, instead of a per-game schema. The platform stores and shows that text and never parses it, except to draw `a/b` and mixed numbers as fractions. Tries that only explored are sent too, marked `exploring`, and scoring never counts them.

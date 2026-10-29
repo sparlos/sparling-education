@@ -52,6 +52,12 @@ export interface Try {
   assisted?: "hint" | "demonstration" | "guided";
   /** One of Fraction Hop's misconceptions, revealed by the try. */
   misconception?: string;
+  /** What the task asked, for teachers. */
+  asked?: string;
+  /** What the student did on the try, for teachers. */
+  detail?: string;
+  /** Only explored: never succeeded, never scored. */
+  exploring?: boolean;
 }
 
 const right = (n: number): Try[][] =>
@@ -411,6 +417,8 @@ export function dashboardContract(
           onTheirOwn: 1,
           withHelp: 1,
           notYet: 1,
+          tries: 4,
+          explored: 0,
           misconceptions: [expect.objectContaining({ id: bigger })],
           counts: true,
         },
@@ -442,6 +450,57 @@ export function dashboardContract(
         ],
         [[true, "hint", undefined]],
         [[false, null, undefined]],
+      ]);
+    });
+
+    it("shows what each task asked and every try, explored ones included, scoring none of the explored", async () => {
+      const { port, made, joinClass, play } = await teacherWithClass([4]);
+      const sam = student("Sam", "Rivera");
+      await joinClass(sam, made.joinCode);
+      const asked = "Reach 5/4 on a course in eighths.";
+      const explore = { succeeded: false, exploring: true };
+      const evidenced = await play(sam, made.id, 4, [
+        [
+          { ...explore, asked, detail: "Hopped 1/8." },
+          { succeeded: true, asked, detail: "Landed on 5/4." },
+        ],
+        [explore],
+        [{ succeeded: false }],
+      ]);
+      const [{ id: samId, results } = { id: "", results: [] }] = (
+        await port.dashboard(made.id)
+      ).students;
+      // One of two scored tasks: the task only explored isn't one.
+      expect(results).toEqual([
+        expect.objectContaining({ understanding: "developing" }),
+      ]);
+
+      const [evidencePlay] = (await port.evidence(made.id, samId, evidenced))
+        .plays;
+      expect(evidencePlay).toMatchObject({
+        tasks: 2,
+        onTheirOwn: 1,
+        notYet: 1,
+        tries: 2,
+        explored: 2,
+      });
+
+      const opened = await port.play(made.id, samId, evidencePlay?.play ?? "");
+      expect(
+        opened.tasks.map((t) => [
+          t.asked,
+          t.attempts.map((a) => [a.succeeded, a.exploring, a.detail]),
+        ]),
+      ).toEqual([
+        [
+          asked,
+          [
+            [false, true, "Hopped 1/8."],
+            [true, false, "Landed on 5/4."],
+          ],
+        ],
+        [null, [[false, true, null]]],
+        [null, [[false, false, null]]],
       ]);
     });
 

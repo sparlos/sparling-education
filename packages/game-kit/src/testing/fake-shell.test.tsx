@@ -43,6 +43,29 @@ function Breaker(props: GameProps<typeof manifest>) {
         succeeded: false,
         misconception: "g4-only",
       }),
+    "long detail": () =>
+      loose.onAttempt({
+        task: "t",
+        expectation: "math-2020.g3.B2.8",
+        succeeded: false,
+        detail: "x".repeat(201),
+      }),
+    "exploring success": () =>
+      loose.onAttempt({
+        task: "t",
+        expectation: "math-2020.g3.B2.8",
+        succeeded: true,
+        exploring: true,
+      }),
+    "changed ask": () => {
+      for (const asked of ["Reach 5/4.", "Reach 3/4."])
+        loose.onAttempt({
+          task: "t",
+          expectation: "math-2020.g3.B2.8",
+          succeeded: false,
+          asked,
+        });
+    },
     "unknown string": () => void loose.say("nope"),
     "no progress": () => props.onProgress({ done: 0, total: 1 }),
     "finish twice": () => {
@@ -82,6 +105,12 @@ describe("mountGame", () => {
   it.each([
     ["other tier", /math-2020.g4.B1.4 isn't one of tier g3's expectations/],
     ["wrong misconception", /g4-only doesn't belong to math-2020.g3.B2.8/],
+    ["long detail", /detail is over 200 characters/],
+    ["exploring success", /an exploring try succeeded/],
+    [
+      "changed ask",
+      /asked "Reach 3\/4\.", but earlier tries asked "Reach 5\/4\."/,
+    ],
     ["unknown string", /say\("nope"\): no such string/],
     ["no progress", /the manifest doesn't set progress/],
     ["finish twice", /onFinish called more than once/],

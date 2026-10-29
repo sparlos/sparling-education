@@ -91,7 +91,7 @@ The record of a student's play of a game, always including the tier it was playe
 _Avoid_: Score, grade, mark
 
 **Attempt**:
-One try at one task within a game: what was asked, which curriculum expectation it evidences, whether it succeeded, and which misconception it revealed, if any. Games record attempts; Kindling turns a play's attempts into its result.
+One try at one task within a game: which curriculum expectation it evidences, whether it succeeded, and which misconception it revealed, if any. It can also carry, for teachers, what the task asked and what the student did on this try, in the game's own short text. An exploring try (a probe, e.g. a test run before committing) is an attempt that never counts: teachers see it as "Explored", and scoring and effort ignore it. Games record attempts; Kindling turns a play's attempts into its result.
 _Avoid_: Answer, response, question, event (unqualified)
 
 **Misconception**:

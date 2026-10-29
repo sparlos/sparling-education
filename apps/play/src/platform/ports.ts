@@ -149,6 +149,12 @@ export interface AttemptRecord extends PlayRecordBase {
   succeeded: boolean;
   misconception?: string;
   assisted?: Attempt<GameManifest>["assisted"];
+  /** What the task asked, for teachers; see the game contract's `Attempt`. */
+  asked?: string;
+  /** What the student did on this try, for teachers. */
+  detail?: string;
+  /** A try that only explored: shown to teachers, never scored. */
+  exploring?: boolean;
 }
 
 /**

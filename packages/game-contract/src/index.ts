@@ -85,7 +85,35 @@ export interface Attempt<M extends GameManifest> {
    * Kindling's scoring decides what it means for understanding and effort.
    */
   assisted?: "hint" | "demonstration" | "guided";
+  /**
+   * What the task asked, for teachers: the same on every attempt at the task
+   * within a play, e.g. "Reach 5/4 on a course in eighths. Blocks: 1/8, 1/4,
+   * 1/2." It may be left off later attempts, but never changed.
+   *
+   * `asked` and `detail` are plain en-CA text of at most
+   * `teacherTextMaxLength` characters, with no markup. Write a fraction as
+   * `a/b` and a mixed number as `1 3/4`, and nothing else that way (no dates
+   * like 10/29): the teacher app draws them as fractions. Build them from the
+   * game's rules state, never from its student strings: teachers read them,
+   * no one hears them. When French comes for teachers, they become string IDs
+   * with parameters, like the student strings.
+   */
+  asked?: string;
+  /**
+   * What the student did on this try, for teachers, e.g. "Hopped 1/8 + 1/8 +
+   * 1/4: splashed at 4/8." Written as `asked` is.
+   */
+  detail?: string;
+  /**
+   * A try that only explored (e.g. a probe before committing): neither right
+   * nor wrong, so it has `succeeded: false`, no misconception and no help.
+   * Scoring and effort ignore it; teachers see it as "Explored".
+   */
+  exploring?: boolean;
 }
+
+/** The most characters `asked` or `detail` may have. */
+export const teacherTextMaxLength = 200;
 
 export type { AvatarExpression } from "@repo/avatar";
 
@@ -154,7 +182,12 @@ export function attemptProblem(
     succeeded: unknown;
     misconception?: unknown;
     assisted?: unknown;
+    asked?: unknown;
+    detail?: unknown;
+    exploring?: unknown;
   },
+  /** What an earlier attempt at the same task in this play asked, if one did. */
+  askedBefore?: string,
 ): string | null {
   const expectations: readonly string[] =
     manifest.tiers[tier]?.expectations ?? [];
@@ -186,5 +219,29 @@ export function attemptProblem(
     !assistance.includes(attempt.assisted as string)
   )
     return `${attempt.assisted} isn't a kind of help`;
+  for (const field of ["asked", "detail"] as const) {
+    const text = attempt[field];
+    if (text === undefined) continue;
+    if (typeof text !== "string" || !text.trim()) return `${field} is empty`;
+    if (text.length > teacherTextMaxLength)
+      return `${field} is over ${teacherTextMaxLength} characters`;
+  }
+  if (attempt.exploring !== undefined) {
+    if (typeof attempt.exploring !== "boolean")
+      return "exploring isn't true or false";
+    if (attempt.exploring) {
+      if (attempt.succeeded) return "an exploring try can't succeed";
+      if (attempt.misconception !== undefined)
+        return "an exploring try can't reveal a misconception";
+      if (attempt.assisted !== undefined)
+        return "an exploring try can't have help";
+    }
+  }
+  if (
+    askedBefore !== undefined &&
+    attempt.asked !== undefined &&
+    attempt.asked !== askedBefore
+  )
+    return `task ${attempt.task} asked "${askedBefore}" before, not "${attempt.asked}"`;
   return null;
 }

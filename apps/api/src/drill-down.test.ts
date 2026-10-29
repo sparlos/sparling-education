@@ -144,6 +144,8 @@ describe("a cell's evidence", () => {
           onTheirOwn: 1,
           withHelp: 1,
           notYet: 1,
+          tries: 4,
+          explored: 0,
           misconceptions: [biggerDescribed],
           counts: true,
         },
@@ -199,6 +201,34 @@ describe("a cell's evidence", () => {
       expect.objectContaining({ tierGrade: 5, otherTier: false }),
     ]);
     expect(evidence.plays.map((p) => p.tierGrade)).toEqual([5]);
+  });
+
+  it("counts each play's tries and explored tries, and scores none of the explored", async () => {
+    const { teacher, classId, student, who } = await classWithStudent();
+    const explore = { succeeded: false, exploring: true };
+    await play(student, [
+      playOf(
+        who,
+        [
+          [explore, explore, { succeeded: false }, { succeeded: true }],
+          [explore],
+        ],
+        { at: day(1), play: "explored" },
+      ),
+    ]);
+    const evidence = await evidenceOf(teacher, classId, student.studentId);
+    expect(evidence.plays).toEqual([
+      expect.objectContaining({
+        play: "explored",
+        // The task with only explored tries isn't one of them.
+        tasks: 1,
+        onTheirOwn: 1,
+        notYet: 0,
+        tries: 2,
+        explored: 3,
+        counts: true,
+      }),
+    ]);
   });
 
   it("is empty for an expectation with no evidence yet", async () => {
@@ -257,22 +287,29 @@ describe("a play", () => {
         {
           task: "t1",
           expectation: "math-2020.g4.B1.6",
+          asked: null,
           attempts: [
             {
               at: second(1),
               succeeded: false,
+              exploring: false,
+              detail: null,
               assisted: null,
               misconception: biggerDescribed,
             },
             {
               at: second(2),
               succeeded: false,
+              exploring: false,
+              detail: null,
               assisted: null,
               misconception: null,
             },
             {
               at: second(3),
               succeeded: true,
+              exploring: false,
+              detail: null,
               assisted: "guided",
               misconception: null,
             },
@@ -281,10 +318,13 @@ describe("a play", () => {
         {
           task: "t2",
           expectation: "math-2020.g4.B1.6",
+          asked: null,
           attempts: [
             {
               at: second(4),
               succeeded: true,
+              exploring: false,
+              detail: null,
               assisted: null,
               misconception: null,
             },
@@ -292,6 +332,60 @@ describe("a play", () => {
         },
       ],
     });
+  });
+
+  it("shows what each task asked and what every try did, explored ones included", async () => {
+    const { teacher, classId, student, who } = await classWithStudent();
+    const asked = "Reach 5/4 on a course in eighths. Blocks: 1/8, 1/4, 1/2.";
+    await play(student, [
+      playOf(
+        who,
+        [
+          [
+            { succeeded: false, exploring: true, asked, detail: "Hopped 1/8." },
+            {
+              succeeded: false,
+              misconception: bigger,
+              detail: "Hopped 1/8 + 1/8 + 1/4: splashed at 4/8.",
+            },
+            { succeeded: true, asked, detail: "Landed on 5/4." },
+          ],
+          [{ succeeded: true }],
+        ],
+        { play: "described" },
+      ),
+    ]);
+    const { tasks } = await playIn(
+      teacher,
+      classId,
+      student.studentId,
+      "described",
+    );
+    expect(tasks).toEqual([
+      expect.objectContaining({
+        task: "t1",
+        asked,
+        attempts: [
+          expect.objectContaining({
+            succeeded: false,
+            exploring: true,
+            detail: "Hopped 1/8.",
+            misconception: null,
+          }),
+          expect.objectContaining({
+            exploring: false,
+            detail: "Hopped 1/8 + 1/8 + 1/4: splashed at 4/8.",
+            misconception: biggerDescribed,
+          }),
+          expect.objectContaining({
+            succeeded: true,
+            exploring: false,
+            detail: "Landed on 5/4.",
+          }),
+        ],
+      }),
+      expect.objectContaining({ task: "t2", asked: null }),
+    ]);
   });
 
   it("has no ending until its end arrives", async () => {

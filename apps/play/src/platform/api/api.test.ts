@@ -145,6 +145,9 @@ async function storedFor(studentId: string): Promise<PlayRecord[]> {
       succeeded: row.succeeded ?? false,
       ...(row.misconception !== null && { misconception: row.misconception }),
       ...(row.assisted !== null && { assisted: row.assisted }),
+      ...(row.asked !== null && { asked: row.asked }),
+      ...(row.detail !== null && { detail: row.detail }),
+      ...(row.exploring && { exploring: true }),
     };
   });
 }

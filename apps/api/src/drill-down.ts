@@ -106,9 +106,12 @@ export async function studentPlay(
     tasks: groupBy(attempts, (a) => a.task ?? "").map((tries) => ({
       task: tries[0]?.task ?? "",
       expectation: tries[0]?.expectation ?? "",
+      asked: tries.find((a) => a.asked !== null)?.asked ?? null,
       attempts: tries.map((a) => ({
         at: a.at.toISOString(),
         succeeded: a.succeeded ?? false,
+        exploring: a.exploring,
+        detail: a.detail,
         assisted: a.assisted,
         misconception: a.misconception
           ? describedMisconception(a.game, a.gameVersion, a.misconception)

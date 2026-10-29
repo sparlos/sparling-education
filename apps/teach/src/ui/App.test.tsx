@@ -459,6 +459,91 @@ describe("the dashboard", () => {
     ).toBeInTheDocument();
   });
 
+  it("shows what each task asked and every try at it, explored ones included, with fractions drawn", async () => {
+    const asked = "Reach 5/4 on a course in eighths. Blocks: 1/8, 1/4, 1/2.";
+    const user = await openDashboard({
+      classes: [
+        {
+          draft: { name: "Room 12", grades: [4] },
+          students: [
+            student("Ben", "Ode", {
+              plays: [
+                {
+                  grade: 4,
+                  tasks: [
+                    [
+                      {
+                        succeeded: false,
+                        exploring: true,
+                        asked,
+                        detail: "Tried 1/8 + 1/8: 2/8.",
+                      },
+                      {
+                        succeeded: false,
+                        misconception: bigger,
+                        detail: "Hopped 1/8 + 1/4: splashed at 3/8.",
+                      },
+                      {
+                        succeeded: true,
+                        assisted: "hint",
+                        detail: "Landed on 1 1/4.",
+                      },
+                    ],
+                    [{ succeeded: true }],
+                  ],
+                },
+              ],
+            }),
+          ],
+        },
+      ],
+    });
+    await user.click(
+      within(await row("Ben O.")).getByRole("link", { name: /Ben O\./ }),
+    );
+    const [play] = within(
+      await screen.findByRole("region", { name: "Plays, oldest first" }),
+    ).getAllByRole("link");
+    expect(play).toHaveTextContent("3 tries, and 1 explored");
+
+    await user.click(play as HTMLElement);
+    const [first, second] = (
+      await screen.findAllByRole("heading", { level: 2, name: /^Task/ })
+    ).map((h) => h.closest("li") as HTMLElement);
+    const task1 = within(first as HTMLElement);
+
+    // What it asked, its fractions drawn and named for screen readers.
+    expect(task1.getByText(/^Reach/).closest("p")).toHaveTextContent(
+      /^Reach 54 on a course in eighths\. Blocks: 18, 14, 12\.$/,
+    );
+    expect(
+      task1
+        .getByText(/^Reach/)
+        .closest("p")
+        ?.querySelectorAll("[role=img]").length,
+    ).toBe(4);
+    expect(task1.getByRole("img", { name: "five fourths" })).toBeVisible();
+
+    // Every try in order: explored, missed, then got with help.
+    const tries = task1.getAllByRole("listitem");
+    expect(tries.map((li) => li.textContent)).toEqual([
+      "First tryExploredTried 18 + 18: 28.",
+      expect.stringMatching(
+        /^Retry 1Not yetHopped 18 \+ 14: splashed at 38\.Showed: .*bigger bottom number/,
+      ),
+      "Retry 2Got it, with a hintLanded on 114.",
+    ]);
+    expect(tries[0]).toHaveAttribute("data-exploring", "true");
+    expect(
+      within(tries[2] as HTMLElement).getByRole("img", {
+        name: "one and one fourth",
+      }),
+    ).toBeVisible();
+
+    // A task the game didn't describe reads as it always has.
+    expect(second).toHaveTextContent(/^Task 2First tryGot it$/);
+  });
+
   it("goes from a cell to the student's evidence, down to a play, and back", async () => {
     const user = await openDashboard({
       classes: [

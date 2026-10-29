@@ -16,6 +16,7 @@ import type {
   StringId,
   TierId,
 } from "@repo/game-contract";
+import { teacherTextMaxLength } from "@repo/game-contract";
 import { act, fireEvent, render } from "@testing-library/react";
 import { vi } from "vitest";
 
@@ -60,6 +61,8 @@ export function attemptProblems<M extends GameManifest>(
   manifest: M,
   tier: string,
   attempt: Attempt<M>,
+  /** What an earlier attempt at the same task asked, if one did. */
+  askedBefore?: string,
 ): string[] {
   const found: string[] = [];
   const tierDef = manifest.tiers[tier];
@@ -90,6 +93,34 @@ export function attemptProblems<M extends GameManifest>(
     !["hint", "demonstration", "guided"].includes(attempt.assisted)
   )
     found.push(`attempt on ${attempt.task}: unknown help ${attempt.assisted}`);
+  for (const field of ["asked", "detail"] as const) {
+    const text = attempt[field];
+    if (text === undefined) continue;
+    if (!text.trim())
+      found.push(`attempt on ${attempt.task}: ${field} is empty`);
+    else if (text.length > teacherTextMaxLength)
+      found.push(
+        `attempt on ${attempt.task}: ${field} is over ${teacherTextMaxLength} characters`,
+      );
+  }
+  if (attempt.exploring) {
+    if (attempt.succeeded)
+      found.push(`attempt on ${attempt.task}: an exploring try succeeded`);
+    if (attempt.misconception !== undefined)
+      found.push(
+        `attempt on ${attempt.task}: an exploring try revealed a misconception`,
+      );
+    if (attempt.assisted !== undefined)
+      found.push(`attempt on ${attempt.task}: an exploring try had help`);
+  }
+  if (
+    askedBefore !== undefined &&
+    attempt.asked !== undefined &&
+    attempt.asked !== askedBefore
+  )
+    found.push(
+      `attempt on ${attempt.task}: asked "${attempt.asked}", but earlier tries asked "${askedBefore}"`,
+    );
   return found;
 }
 
@@ -132,7 +163,10 @@ export function mountGame<M extends GameManifest>(
     },
     onAttempt: (attempt) => {
       if (finished) problems.push(`attempt on ${attempt.task} after finishing`);
-      problems.push(...attemptProblems(manifest, tier, attempt));
+      const askedBefore = attempts.find(
+        (a) => a.task === attempt.task && a.asked !== undefined,
+      )?.asked;
+      problems.push(...attemptProblems(manifest, tier, attempt, askedBefore));
       attempts.push(attempt);
     },
     onProgress: (p) => {

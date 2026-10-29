@@ -1,5 +1,6 @@
-// One play, opened: each task's attempts in order, with retries, the help
-// the game gave and any misconception each revealed, and how the play ended.
+// One play, opened: what each task asked, then every try at it in order
+// (explored ones too), with the help the game gave, what the student did and
+// any misconception each revealed, and how the play ended.
 import { Stack } from "@repo/ui/stack";
 import { Text } from "@repo/ui/text";
 import { Title } from "@repo/ui/title";
@@ -8,6 +9,7 @@ import { nameOf } from "./Dashboard.tsx";
 import classes from "./drill-down.module.css";
 import { endingLabels, noEnding, when } from "./Evidence.tsx";
 import { ButtonLink, useUp } from "./links.tsx";
+import { TeacherText } from "./TeacherText.tsx";
 
 /** The help the game gave before an attempt, in a teacher's words. */
 const helpLabels: Record<Exclude<Attempt["assisted"], null>, string> = {
@@ -57,6 +59,11 @@ export function PlayScreen({ classId, play }: { classId: string; play: Play }) {
             <Title order={2} size="h5">
               Task {i + 1}
             </Title>
+            {task.asked && (
+              <Text className={classes.asked}>
+                <TeacherText text={task.asked} />
+              </Text>
+            )}
             <ol className={classes.attempts}>
               {task.attempts.map((attempt, n) => (
                 <li
@@ -64,11 +71,17 @@ export function PlayScreen({ classId, play }: { classId: string; play: Play }) {
                   key={n}
                   className={classes.attempt}
                   data-succeeded={attempt.succeeded}
+                  data-exploring={attempt.exploring}
                 >
                   <span className={classes.try}>
                     {n === 0 ? "First try" : `Retry ${n}`}
                   </span>
-                  <span>{outcome(attempt)}</span>
+                  <span className={classes.outcome}>{outcome(attempt)}</span>
+                  {attempt.detail && (
+                    <span className={classes.detail}>
+                      <TeacherText text={attempt.detail} />
+                    </span>
+                  )}
                   {attempt.misconception && (
                     <span className={classes.showed}>
                       Showed: {attempt.misconception.description}
@@ -88,7 +101,9 @@ export function PlayScreen({ classId, play }: { classId: string; play: Play }) {
   );
 }
 
-function outcome({ succeeded, assisted }: Attempt) {
+function outcome({ succeeded, exploring, assisted }: Attempt) {
+  // Exploring is never right or wrong, and never has help.
+  if (exploring) return "Explored";
   const result = succeeded ? "Got it" : "Not yet";
   return assisted ? `${result}, ${helpLabels[assisted]}` : result;
 }

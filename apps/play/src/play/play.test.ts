@@ -125,11 +125,52 @@ describe("recording attempts", () => {
     ],
     ["no task", { task: "" }],
     ["an unknown kind of help", { assisted: "telepathy" }],
+    ["an empty ask", { asked: "" }],
+    ["a detail over 200 characters", { detail: "x".repeat(201) }],
+    ["an exploring try that succeeded", { exploring: true, succeeded: true }],
+    [
+      "an exploring try that revealed a misconception",
+      { exploring: true, misconception: "bigger-denominator-bigger" },
+    ],
+    ["an exploring try with help", { exploring: true, assisted: "hint" }],
   ])("drops an attempt with %s", (_, bad) => {
     const { play, added, onInvalid } = setUp();
     play.record(attempt(bad as Partial<Attempt<GameManifest>>));
     expect(added).toEqual([]);
     expect(onInvalid).toHaveBeenCalledOnce();
+  });
+
+  it("passes on what the task asked, what the try did, and that it explored", () => {
+    const { play, added } = setUp();
+    play.record(
+      attempt({
+        asked: "Reach 5/4.",
+        detail: "Hopped 1/8: stopped at 1/8.",
+        exploring: true,
+      }),
+    );
+    play.record(attempt({ succeeded: true, exploring: false }));
+    expect(added).toEqual([
+      expect.objectContaining({
+        asked: "Reach 5/4.",
+        detail: "Hopped 1/8: stopped at 1/8.",
+        exploring: true,
+      }),
+      expect.not.objectContaining({ exploring: expect.anything() }),
+    ]);
+    expect(added[1]).not.toHaveProperty("asked");
+  });
+
+  it("drops an attempt whose task asks something new within the play", () => {
+    const { play, added, onInvalid } = setUp();
+    play.record(attempt({ asked: "Reach 5/4." }));
+    play.record(attempt());
+    play.record(attempt({ asked: "Reach 5/4." }));
+    play.record(attempt({ asked: "Reach 3/4." }));
+    play.record(attempt({ task: "order-2", asked: "Reach 3/4." }));
+    expect(added).toHaveLength(4);
+    expect(onInvalid).toHaveBeenCalledOnce();
+    expect(onInvalid.mock.calls[0]?.[0]).toMatch(/asked "Reach 5\/4\."/);
   });
 });
 

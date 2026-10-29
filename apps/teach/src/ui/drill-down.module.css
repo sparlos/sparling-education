@@ -104,8 +104,21 @@
   gap: 0 var(--mantine-spacing-md);
 }
 
-.attempt .showed {
+.attempt .showed,
+.attempt .detail {
   grid-column: 2;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.asked {
+  overflow-wrap: anywhere;
+}
+
+/* Explored is neither right nor wrong: muted, never styled as a miss. */
+.attempt[data-exploring="true"] .outcome {
+  color: var(--k-ink-muted);
+  font-style: italic;
 }
 
 .try {

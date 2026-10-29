@@ -253,7 +253,8 @@ export function fakeTeacherBackend(
             (p) =>
               p.studentId === student.id &&
               p.classId === classId &&
-              p.game === game,
+              p.game === game &&
+              scoredTasks(p).length > 0,
           )
           .slice(-misconceptionPlays);
         // The expectation of the latest play that showed each one.
@@ -305,7 +306,7 @@ export function fakeTeacherBackend(
     const counted = new Set(
       [...new Set(theirs.map((p) => p.tierGrade))].flatMap((tierGrade) =>
         theirs
-          .filter((p) => p.tierGrade === tierGrade)
+          .filter((p) => p.tierGrade === tierGrade && scoredTasks(p).length > 0)
           .slice(-recentPlays)
           .map((p) => p.id),
       ),
@@ -327,18 +328,22 @@ export function fakeTeacherBackend(
             a.tierGrade - b.tierGrade,
         ),
       plays: theirs.map((p) => {
-        const succeeded = p.tasks.filter((tries) =>
+        const tasks = scoredTasks(p);
+        const succeeded = tasks.filter((tries) =>
           tries.some((t) => t.succeeded),
         ).length;
-        const onTheirOwn = p.tasks.filter((tries) =>
+        const onTheirOwn = tasks.filter((tries) =>
           tries.some((t) => t.succeeded && !t.assisted),
         ).length;
+        const tries = tasks.flat().length;
         return {
           ...summaryOf(p),
-          tasks: p.tasks.length,
+          tasks: tasks.length,
           onTheirOwn,
           withHelp: succeeded - onTheirOwn,
-          notYet: p.tasks.length - succeeded,
+          notYet: tasks.length - succeeded,
+          tries,
+          explored: p.tasks.flat().length - tries,
           misconceptions: misconceptionsIn(p).map((m) => described(p.game, m)),
           counts: counted.has(p.id),
         };
@@ -363,11 +368,14 @@ export function fakeTeacherBackend(
       tasks: found.tasks.map((tries, i) => ({
         task: `t${i + 1}`,
         expectation: found.game.tiers[found.tierGrade]?.expectation ?? "",
+        asked: tries.find((t) => t.asked !== undefined)?.asked ?? null,
         attempts: tries.map((t) => {
           second += 1;
           return {
             at: new Date(found.at + second * 1000).toISOString(),
             succeeded: t.succeeded,
+            exploring: t.exploring ?? false,
+            detail: t.detail ?? null,
             assisted: t.assisted ?? null,
             misconception: t.misconception
               ? described(found.game, t.misconception)
@@ -398,9 +406,9 @@ export function fakeTeacherBackend(
     const tierGrades = [...new Set(theirs.map((p) => p.tierGrade))];
     return tierGrades.map((tierGrade) => {
       const recent = theirs
-        .filter((p) => p.tierGrade === tierGrade)
+        .filter((p) => p.tierGrade === tierGrade && scoredTasks(p).length > 0)
         .slice(-recentPlays);
-      const tasks = recent.flatMap((p) => p.tasks);
+      const tasks = recent.flatMap(scoredTasks);
       const succeeded = tasks.filter((tries) =>
         tries.some((t) => t.succeeded && !t.assisted),
       ).length;
@@ -518,6 +526,13 @@ function summaryOf(p: FakePlay) {
     at: new Date(p.at + 1000).toISOString(),
     ending: "finished" as const,
   };
+}
+
+/** A play's tasks as scoring sees them: without tries that only explored. */
+function scoredTasks(p: FakePlay): Try[][] {
+  return p.tasks
+    .map((tries) => tries.filter((t) => !t.exploring))
+    .filter((tries) => tries.length > 0);
 }
 
 /** The misconceptions a play revealed, in the order first revealed. */
