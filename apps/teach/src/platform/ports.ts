@@ -49,6 +49,16 @@ export interface ClassGame {
   link: string;
 }
 
+/** A student in one of the teacher's classes. */
+export interface ClassStudent {
+  /** Stable and opaque. */
+  id: string;
+  firstName: string;
+  lastInitial: string;
+  /** Their grade in the class; null until they pick one in a split class. */
+  grade: number | null;
+}
+
 export interface TeacherPort {
   /**
    * The signed-in account, or null when signed out. Rejects only when it
@@ -77,6 +87,37 @@ export interface TeacherPort {
    * in, and with `NotFound` when the class isn't theirs.
    */
   class(classId: string): Promise<Class>;
+  /**
+   * Turns one of the class's games on or off, resolving with the class.
+   * Students see only the games that are on; a game link for one that's off
+   * tells them so. Rejects when no teacher is signed in, and with `NotFound`
+   * when the class isn't theirs or there's no such game.
+   */
+  switchGame(classId: string, slug: string, on: boolean): Promise<Class>;
+  /**
+   * The class's students, by first name then last initial. Rejects when no
+   * teacher is signed in, and with `NotFound` when the class isn't theirs.
+   */
+  students(classId: string): Promise<ClassStudent[]>;
+  /**
+   * Sets a student's grade in the class to one of its grades, whether or not
+   * they picked one. Their next plays are at its tier; results they already
+   * have keep theirs. Rejects when no teacher is signed in or the grade isn't
+   * one of the class's, and with `NotFound` when the class isn't theirs or
+   * the student isn't in it.
+   */
+  setStudentGrade(
+    classId: string,
+    studentId: string,
+    grade: ClassGrade,
+  ): Promise<ClassStudent>;
+  /**
+   * Takes the student out of the class: it leaves their locker, and they and
+   * their results leave every view of it. Rejects when no teacher is signed
+   * in, and with `NotFound` when the class isn't theirs or the student isn't
+   * in it.
+   */
+  removeStudent(classId: string, studentId: string): Promise<void>;
   /**
    * The class's dashboard: its students against the expectations its games
    * evidence. Rejects when no teacher is signed in, and with `NotFound` when

@@ -535,6 +535,179 @@ export function dashboardContract(
   });
 }
 
+export function managingContract(
+  name: string,
+  make: () => TeacherPortHarness | Promise<TeacherPortHarness>,
+) {
+  describe(`${name} managing a class`, () => {
+    async function teacherWithClass(grades: Class["grades"]) {
+      const harness = await make();
+      await harness.port.signIn(
+        await harness.credentialFor(newGoogleAccount()),
+      );
+      const made = await harness.port.createClass({ name: "Room 12", grades });
+      return { ...harness, made };
+    }
+
+    function student(firstName: string, lastName: string): GoogleAccount {
+      return { ...newGoogleAccount(), firstName, lastName };
+    }
+
+    async function idsOf(port: TeacherPort, classId: string) {
+      return (await port.dashboard(classId)).students.map((s) => s.id);
+    }
+
+    it("turns a game off and back on", async () => {
+      const { port, made } = await teacherWithClass([4]);
+      const [game] = made.games;
+      if (!game) throw new Error("No games");
+      const off = await port.switchGame(made.id, game.slug, false);
+      expect(off).toEqual({
+        ...made,
+        games: [{ ...game, on: false }, ...made.games.slice(1)],
+      });
+      expect(await port.class(made.id)).toEqual(off);
+      expect(await port.classes()).toEqual([off]);
+      expect(await port.switchGame(made.id, game.slug, true)).toEqual(made);
+      expect(await port.class(made.id)).toEqual(made);
+    });
+
+    it("stops listing what a game that's off evidences, unless a student has evidence for it", async () => {
+      const { port, made, joinClass, play } = await teacherWithClass([4]);
+      const sam = student("Sam", "Rivera");
+      await joinClass(sam, made.joinCode);
+      for (const { slug } of made.games)
+        await port.switchGame(made.id, slug, false);
+      expect((await port.dashboard(made.id)).expectations).toEqual([]);
+      const evidenced = await play(sam, made.id, 4, right(1));
+      expect(
+        (await port.dashboard(made.id)).expectations.map((e) => e.id),
+      ).toEqual([evidenced]);
+    });
+
+    it("switches only the teacher's own classes' games, and only games there are", async () => {
+      const { port, made, credentialFor } = await teacherWithClass([4]);
+      const [game] = made.games;
+      await expect(
+        port.switchGame(made.id, "no-such-game", false),
+      ).rejects.toBeInstanceOf(NotFound);
+      await port.signIn(await credentialFor(newGoogleAccount()));
+      await expect(
+        port.switchGame(made.id, game?.slug ?? "", false),
+      ).rejects.toBeInstanceOf(NotFound);
+    });
+
+    it("lists the class's students by name, with their grades", async () => {
+      const { port, made, joinClass, credentialFor } = await teacherWithClass([
+        4, 5,
+      ]);
+      expect(await port.students(made.id)).toEqual([]);
+      await joinClass(student("Zoe", "Abbot"), made.joinCode, 5);
+      await joinClass(student("Ana", "Diaz"), made.joinCode);
+      expect(await port.students(made.id)).toEqual([
+        { id: expect.any(String), firstName: "Ana", lastInitial: "D", grade: null },
+        { id: expect.any(String), firstName: "Zoe", lastInitial: "A", grade: 5 },
+      ]);
+      await port.signIn(await credentialFor(newGoogleAccount()));
+      await expect(port.students(made.id)).rejects.toBeInstanceOf(NotFound);
+    });
+
+    it("changes a student's grade: their next plays count at it, and their results keep their tier", async () => {
+      const { port, made, joinClass, play } = await teacherWithClass([4, 5]);
+      const sam = student("Sam", "Rivera");
+      await joinClass(sam, made.joinCode, 4);
+      const earlier = await play(sam, made.id, 4, right(4));
+      const [samId = ""] = await idsOf(port, made.id);
+
+      expect(await port.setStudentGrade(made.id, samId, 5)).toEqual({
+        id: samId,
+        firstName: "Sam",
+        lastInitial: "R",
+        grade: 5,
+      });
+      const [moved] = (await port.dashboard(made.id)).students;
+      expect(moved?.grade).toBe(5);
+      expect(only(moved)).toMatchObject({
+        expectation: earlier,
+        tierGrade: 4,
+        otherTier: true,
+      });
+
+      const next = await play(sam, made.id, 5, wrong(4));
+      const [after] = (await port.dashboard(made.id)).students;
+      expect(after?.results).toHaveLength(2);
+      expect(after?.results).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ expectation: earlier, otherTier: true }),
+          expect.objectContaining({
+            expectation: next,
+            tierGrade: 5,
+            otherTier: false,
+          }),
+        ]),
+      );
+    });
+
+    it("changes a grade only to one of the class's, for a student in the teacher's class", async () => {
+      const { port, made, joinClass, credentialFor } = await teacherWithClass([
+        4, 5,
+      ]);
+      await joinClass(student("Sam", "Rivera"), made.joinCode, 4);
+      const [samId = ""] = await idsOf(port, made.id);
+      await expect(port.setStudentGrade(made.id, samId, 3)).rejects.toThrow();
+      const other = await port.createClass({ name: "Room 14", grades: [4, 5] });
+      await expect(
+        port.setStudentGrade(other.id, samId, 5),
+      ).rejects.toBeInstanceOf(NotFound);
+      await port.signIn(await credentialFor(newGoogleAccount()));
+      await expect(
+        port.setStudentGrade(made.id, samId, 5),
+      ).rejects.toBeInstanceOf(NotFound);
+    });
+
+    it("removes a student, and their results, from every view of the class", async () => {
+      const { port, made, joinClass, play } = await teacherWithClass([4]);
+      const [sam, ana] = [student("Sam", "Rivera"), student("Ana", "Diaz")];
+      for (const s of [sam, ana]) await joinClass(s, made.joinCode);
+      const evidenced = await play(sam, made.id, 4, [showed(bigger)]);
+      const [anaId = "", samId = ""] = await idsOf(port, made.id);
+      const [{ play: playId } = { play: "" }] = (
+        await port.evidence(made.id, samId, evidenced)
+      ).plays;
+
+      await port.removeStudent(made.id, samId);
+      const dashboard = await port.dashboard(made.id);
+      expect(dashboard.students.map((s) => s.id)).toEqual([anaId]);
+      expect(dashboard.misconceptions).toEqual([]);
+      expect((await port.students(made.id)).map((s) => s.id)).toEqual([anaId]);
+      await expect(
+        port.evidence(made.id, samId, evidenced),
+      ).rejects.toBeInstanceOf(NotFound);
+      await expect(port.play(made.id, samId, playId)).rejects.toBeInstanceOf(
+        NotFound,
+      );
+      await expect(port.removeStudent(made.id, samId)).rejects.toBeInstanceOf(
+        NotFound,
+      );
+    });
+
+    it("removes students only from the teacher's own classes", async () => {
+      const { port, made, joinClass, credentialFor } = await teacherWithClass([
+        4,
+      ]);
+      await joinClass(student("Sam", "Rivera"), made.joinCode);
+      const [samId = ""] = await idsOf(port, made.id);
+      await port.signOut();
+      await expect(port.removeStudent(made.id, samId)).rejects.toThrow();
+      const google = newGoogleAccount();
+      await port.signIn(await credentialFor(google));
+      await expect(port.removeStudent(made.id, samId)).rejects.toBeInstanceOf(
+        NotFound,
+      );
+    });
+  });
+}
+
 const bigger = "bigger-denominator-bigger";
 const count = "numerator-not-a-count";
 /** A task got right, having shown the misconception on the way. */

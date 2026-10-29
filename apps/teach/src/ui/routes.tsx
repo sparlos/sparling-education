@@ -24,6 +24,7 @@ import { ClassesScreen } from "./Classes.tsx";
 import { DashboardScreen } from "./Dashboard.tsx";
 import { EvidenceScreen } from "./Evidence.tsx";
 import { ButtonLink } from "./links.tsx";
+import { ManageScreen } from "./Manage.tsx";
 import { PlayScreen } from "./PlayScreen.tsx";
 
 const root = createRootRouteWithContext<{ teacher: TeacherPort }>()({});
@@ -63,18 +64,23 @@ const dashboardRoute = createRoute({
       ? { misconception: search.misconception }
       : {},
   loader: async ({ context: { teacher }, params: { classId } }) => {
-    const [cls, dashboard] = await found(
-      Promise.all([teacher.class(classId), teacher.dashboard(classId)]),
+    const [cls, dashboard, all] = await found(
+      Promise.all([
+        teacher.class(classId),
+        teacher.dashboard(classId),
+        teacher.classes(),
+      ]),
     );
-    return { cls, dashboard };
+    return { cls, dashboard, all };
   },
   component: function Dashboard() {
-    const { cls, dashboard } = dashboardRoute.useLoaderData();
+    const { cls, dashboard, all } = dashboardRoute.useLoaderData();
     const { misconception } = dashboardRoute.useSearch();
     const navigate = dashboardRoute.useNavigate();
     return (
       <DashboardScreen
         cls={cls}
+        classes={all}
         dashboard={dashboard}
         misconception={misconception ?? null}
         onMisconception={(key) =>
@@ -90,6 +96,42 @@ const dashboardRoute = createRoute({
     );
   },
   ...loading("the class's results", { home: true, label: "Your classes" }),
+});
+
+const manageRoute = createRoute({
+  getParentRoute: () => classRoute,
+  path: "manage",
+  loader: async ({ context: { teacher }, params: { classId } }) => {
+    const [cls, students] = await found(
+      Promise.all([teacher.class(classId), teacher.students(classId)]),
+    );
+    return { cls, students };
+  },
+  component: function Manage() {
+    const { cls, students } = manageRoute.useLoaderData();
+    const { teacher } = manageRoute.useRouteContext();
+    const router = useRouter();
+    /** Makes the change, then shows the class as it now is. */
+    const then = async (change: Promise<unknown>) => {
+      await change;
+      await router.invalidate();
+    };
+    return (
+      <ManageScreen
+        cls={cls}
+        students={students}
+        actions={{
+          switchGame: (slug, on) =>
+            then(teacher.switchGame(cls.id, slug, on)),
+          setGrade: (studentId, grade) =>
+            then(teacher.setStudentGrade(cls.id, studentId, grade)),
+          remove: (studentId) =>
+            then(teacher.removeStudent(cls.id, studentId)),
+        }}
+      />
+    );
+  },
+  ...loading("the class", { label: "The class's results" }),
 });
 
 const evidenceRoute = createRoute({
@@ -129,7 +171,12 @@ const playRoute = createRoute({
 
 const routeTree = root.addChildren([
   classesRoute,
-  classRoute.addChildren([dashboardRoute, evidenceRoute, playRoute]),
+  classRoute.addChildren([
+    dashboardRoute,
+    manageRoute,
+    evidenceRoute,
+    playRoute,
+  ]),
 ]);
 
 export function teacherRouter({

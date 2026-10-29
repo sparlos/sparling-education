@@ -67,6 +67,29 @@ export async function createClass(
   }
 }
 
+/**
+ * Turns one of the class's games on or off. Students see only the games that
+ * are on; a game link for one that's off says so. Null when the class isn't
+ * one of this teacher's or Kindling doesn't host the game.
+ */
+export async function setGameOn(
+  db: Db,
+  teacherId: string,
+  classId: string,
+  slug: string,
+  on: boolean,
+): Promise<Class | null> {
+  if (!hostedGames.some((g) => g.slug === slug)) return null;
+  const found = await db.class.findFirst({ where: { id: classId, teacherId } });
+  if (!found) return null;
+  const others = found.gamesOff.filter((off) => off !== slug);
+  const row = await db.class.update({
+    where: { id: classId },
+    data: { gamesOff: on ? others : [...others, slug] },
+  });
+  return toClass(row);
+}
+
 function newJoinCode() {
   let code = "";
   for (let i = 0; i < joinCodeLength; i++)

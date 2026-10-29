@@ -38,11 +38,14 @@ interface Cell {
 
 export function DashboardScreen({
   cls,
+  classes: all,
   dashboard,
   misconception,
   onMisconception,
 }: {
   cls: Class;
+  /** All the teacher's classes, to switch between. */
+  classes: Class[];
   dashboard: Dashboard;
   /** The misconception opened in the strip, as `game|id`. */
   misconception: string | null;
@@ -56,9 +59,20 @@ export function DashboardScreen({
           Your classes
         </ButtonLink>
       </div>
-      <div>
-        <Title order={1}>{cls.name}</Title>
-        <Text c="muted">{gradesLabel(cls.grades)}</Text>
+      {all.length > 1 && <Switcher classes={all} current={cls.id} />}
+      <div className={classes.heading}>
+        <div>
+          <Title order={1}>{cls.name}</Title>
+          <Text c="muted">{gradesLabel(cls.grades)}</Text>
+        </div>
+        <ButtonLink
+          to="/classes/$classId/manage"
+          params={{ classId: cls.id }}
+          state={{ fromAbove: true }}
+          variant="secondary"
+        >
+          Manage class
+        </ButtonLink>
       </div>
       {dashboard.students.length === 0 ? (
         <Card variant="soft" tone="educator">
@@ -88,6 +102,25 @@ export function DashboardScreen({
         </>
       )}
     </Stack>
+  );
+}
+
+/** The teacher's other classes, one tap away: the dashboard shows one at a time. */
+function Switcher({ classes: all, current }: { classes: Class[]; current: string }) {
+  return (
+    <nav aria-label="Your classes" className={classes.switcher}>
+      {all.map((c) => (
+        <Link
+          key={c.id}
+          to="/classes/$classId"
+          params={{ classId: c.id }}
+          aria-current={c.id === current ? "page" : undefined}
+          className={classes.switch}
+        >
+          {c.name}
+        </Link>
+      ))}
+    </nav>
   );
 }
 

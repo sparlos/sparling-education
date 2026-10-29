@@ -1,10 +1,12 @@
 // Memberships: a student in a class, holding their grade in it. A student
 // joins with the class's join code. In a single-grade class their grade is
-// set on joining; in a split class they pick one of its grades, once.
+// set on joining; in a split class they pick one of its grades, once. The
+// class's teacher can change a student's grade, or remove them from the class.
 
 import type { Db } from "@repo/db";
+import { byName } from "./dashboard.ts";
 import { hostedGames } from "./games.ts";
-import type { Membership } from "./schemas.ts";
+import type { ClassStudent, Membership } from "./schemas.ts";
 
 /** The student's classes, in the order they joined. */
 export async function studentClasses(
@@ -73,6 +75,81 @@ export async function pickGrade(
   });
   if (count === 0) return { kind: "already-picked" };
   return { kind: "picked", membership: toMembership({ ...row, grade }) };
+}
+
+/** The class's students, by name, or null when it isn't one of this teacher's. */
+export async function classStudents(
+  db: Db,
+  teacherId: string,
+  classId: string,
+): Promise<ClassStudent[] | null> {
+  const found = await db.class.findFirst({
+    where: { id: classId, teacherId },
+    select: { memberships: { select: classStudentFields } },
+  });
+  return found && found.memberships.map(toClassStudent).sort(byName);
+}
+
+export type GradeChange =
+  | { kind: "changed"; student: ClassStudent }
+  | { kind: "not-found" }
+  | { kind: "not-a-class-grade" };
+
+/**
+ * The teacher sets a student's grade in their class, to one of its grades,
+ * whether or not the student picked one. Their next plays are at its tier;
+ * results they already have keep the tier they were earned at.
+ */
+export async function setStudentGrade(
+  db: Db,
+  teacherId: string,
+  classId: string,
+  studentId: string,
+  grade: number,
+): Promise<GradeChange> {
+  const row = await db.membership.findFirst({
+    where: { classId, studentId, class: { teacherId } },
+    select: { class: { select: { grades: true } } },
+  });
+  if (!row) return { kind: "not-found" };
+  if (!row.class.grades.includes(grade)) return { kind: "not-a-class-grade" };
+  const changed = await db.membership.update({
+    where: { studentId_classId: { studentId, classId } },
+    data: { grade },
+    select: classStudentFields,
+  });
+  return { kind: "changed", student: toClassStudent(changed) };
+}
+
+/**
+ * Takes the student out of the teacher's class: it leaves their locker, and
+ * they leave the class's dashboard. Their plays for the class are kept, but
+ * every teacher view reads only members' plays, so they're out of sight
+ * (and back if the student joins again). False when the class isn't this
+ * teacher's or the student isn't in it.
+ */
+export async function removeStudent(
+  db: Db,
+  teacherId: string,
+  classId: string,
+  studentId: string,
+): Promise<boolean> {
+  const { count } = await db.membership.deleteMany({
+    where: { classId, studentId, class: { teacherId } },
+  });
+  return count > 0;
+}
+
+const classStudentFields = {
+  grade: true,
+  student: { select: { id: true, firstName: true, lastInitial: true } },
+} as const;
+
+function toClassStudent(row: {
+  grade: number | null;
+  student: { id: string; firstName: string; lastInitial: string };
+}): ClassStudent {
+  return { ...row.student, grade: row.grade };
 }
 
 function toMembership(row: {

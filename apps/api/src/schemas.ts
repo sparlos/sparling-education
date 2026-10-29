@@ -97,6 +97,26 @@ export const ClassSchema = z
 
 export type Class = z.infer<typeof ClassSchema>;
 
+export const GameSwitchSchema = z
+  .object({
+    on: z.boolean().openapi({ description: "Whether students see the game" }),
+  })
+  .openapi("GameSwitch");
+
+export const ClassStudentSchema = z
+  .object({
+    id: z.string().openapi({ description: "Stable and opaque" }),
+    firstName: z.string(),
+    lastInitial: z.string(),
+    grade: z.union([z.number().int(), z.null()]).openapi({
+      description:
+        "Their grade in the class, which chooses their tier; null until picked in a split class",
+    }),
+  })
+  .openapi("ClassStudent");
+
+export type ClassStudent = z.infer<typeof ClassStudentSchema>;
+
 export const StudentSignInSchema = z
   .object({
     credential: z

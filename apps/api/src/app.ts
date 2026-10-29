@@ -12,20 +12,33 @@ import {
   sessionCookie,
   startSession,
 } from "./accounts.ts";
-import { createClass, teacherClass, teacherClasses } from "./classes.ts";
+import {
+  createClass,
+  setGameOn,
+  teacherClass,
+  teacherClasses,
+} from "./classes.ts";
 import { classDashboard } from "./dashboard.ts";
 import { studentEvidence, studentPlay } from "./drill-down.ts";
 import { type IdentityVerifier, identityFrom } from "./identity.ts";
 import { studentLocker, wearLook } from "./locker.ts";
-import { joinClass, pickGrade } from "./memberships.ts";
+import {
+  classStudents,
+  joinClass,
+  pickGrade,
+  removeStudent,
+  setStudentGrade,
+} from "./memberships.ts";
 import { ingestPlayRecords } from "./play-records.ts";
 import {
   type Account,
   AccountSchema,
   ClassSchema,
+  ClassStudentSchema,
   DashboardSchema,
   ErrorSchema,
   EvidenceSchema,
+  GameSwitchSchema,
   GradePickSchema,
   HealthSchema,
   JoinSchema,
@@ -360,6 +373,101 @@ const classRoute = createRoute({
   },
 });
 
+const gameSwitchRoute = createRoute({
+  method: "put",
+  path: "/classes/{classId}/games/{slug}",
+  operationId: "switchGame",
+  summary: "Turn one of a class's games on or off",
+  description:
+    "Students see only the games that are on, in their locker. A game link for one that's off tells them it's turned off. Turning it back on restores both.",
+  request: {
+    params: z.object({
+      classId: z.uuid(),
+      slug: z.string().min(1).max(100).openapi({ example: "fraction-hop" }),
+    }),
+    body: { content: { "application/json": { schema: GameSwitchSchema } } },
+  },
+  responses: {
+    200: {
+      description: "The class, with the game on or off",
+      content: { "application/json": { schema: ClassSchema } },
+    },
+    ...teacherOnly,
+    404: {
+      description:
+        "No class of this teacher's has that ID, or Kindling doesn't host that game",
+      content: { "application/json": { schema: ErrorSchema } },
+    },
+  },
+});
+
+const classStudentsRoute = createRoute({
+  method: "get",
+  path: "/classes/{classId}/students",
+  operationId: "getClassStudents",
+  summary: "A class's students, and their grade in it",
+  request: { params: z.object({ classId: z.uuid() }) },
+  responses: {
+    200: {
+      description: "The students, by first name then last initial",
+      content: { "application/json": { schema: z.array(ClassStudentSchema) } },
+    },
+    ...teacherOnly,
+    404: {
+      description: "No class of this teacher's has that ID",
+      content: { "application/json": { schema: ErrorSchema } },
+    },
+  },
+});
+
+const studentGradeRoute = createRoute({
+  method: "put",
+  path: "/classes/{classId}/students/{studentId}/grade",
+  operationId: "setStudentGrade",
+  summary: "Change a student's grade in the class",
+  description:
+    "To one of the class's grades, whether or not the student picked one. Their next plays are at its tier; results they already have keep theirs.",
+  request: {
+    params: z.object({ classId: z.uuid(), studentId: z.uuid() }),
+    body: { content: { "application/json": { schema: GradePickSchema } } },
+  },
+  responses: {
+    200: {
+      description: "The student, with their new grade",
+      content: { "application/json": { schema: ClassStudentSchema } },
+    },
+    400: {
+      description: "Not one of the class's grades",
+      content: { "application/json": { schema: ErrorSchema } },
+    },
+    ...teacherOnly,
+    404: {
+      description:
+        "No class of this teacher's has that ID, or the student isn't in it",
+      content: { "application/json": { schema: ErrorSchema } },
+    },
+  },
+});
+
+const removeStudentRoute = createRoute({
+  method: "delete",
+  path: "/classes/{classId}/students/{studentId}",
+  operationId: "removeStudent",
+  summary: "Remove a student from the class",
+  description:
+    "The class leaves their locker, and they leave its dashboard. Their plays for the class are kept out of every teacher view; they come back if the student joins again.",
+  request: { params: z.object({ classId: z.uuid(), studentId: z.uuid() }) },
+  responses: {
+    204: { description: "Removed" },
+    ...teacherOnly,
+    404: {
+      description:
+        "No class of this teacher's has that ID, or the student isn't in it",
+      content: { "application/json": { schema: ErrorSchema } },
+    },
+  },
+});
+
 const dashboardRoute = createRoute({
   method: "get",
   path: "/classes/{classId}/dashboard",
@@ -625,6 +733,63 @@ export function createApp({
       );
       if (!found) return c.json({ error: "no-such-class" }, 404);
       return c.json(found, 200);
+    })
+    .openapi(gameSwitchRoute, async (c) => {
+      const teacher = await teacherOf(c);
+      if (teacher === "signed-out") return c.json({ error: teacher }, 401);
+      if (teacher === "not-a-teacher") return c.json({ error: teacher }, 403);
+      const { classId, slug } = c.req.valid("param");
+      const switched = await setGameOn(
+        db,
+        teacher.id,
+        classId,
+        slug,
+        c.req.valid("json").on,
+      );
+      if (!switched) return c.json({ error: "not-found" }, 404);
+      return c.json(switched, 200);
+    })
+    .openapi(classStudentsRoute, async (c) => {
+      const teacher = await teacherOf(c);
+      if (teacher === "signed-out") return c.json({ error: teacher }, 401);
+      if (teacher === "not-a-teacher") return c.json({ error: teacher }, 403);
+      const students = await classStudents(
+        db,
+        teacher.id,
+        c.req.valid("param").classId,
+      );
+      if (!students) return c.json({ error: "no-such-class" }, 404);
+      return c.json(students, 200);
+    })
+    .openapi(studentGradeRoute, async (c) => {
+      const teacher = await teacherOf(c);
+      if (teacher === "signed-out") return c.json({ error: teacher }, 401);
+      if (teacher === "not-a-teacher") return c.json({ error: teacher }, 403);
+      const { classId, studentId } = c.req.valid("param");
+      const change = await setStudentGrade(
+        db,
+        teacher.id,
+        classId,
+        studentId,
+        c.req.valid("json").grade,
+      );
+      switch (change.kind) {
+        case "changed":
+          return c.json(change.student, 200);
+        case "not-found":
+          return c.json({ error: change.kind }, 404);
+        case "not-a-class-grade":
+          return c.json({ error: change.kind }, 400);
+      }
+    })
+    .openapi(removeStudentRoute, async (c) => {
+      const teacher = await teacherOf(c);
+      if (teacher === "signed-out") return c.json({ error: teacher }, 401);
+      if (teacher === "not-a-teacher") return c.json({ error: teacher }, 403);
+      const { classId, studentId } = c.req.valid("param");
+      if (!(await removeStudent(db, teacher.id, classId, studentId)))
+        return c.json({ error: "not-found" }, 404);
+      return c.body(null, 204);
     })
     .openapi(dashboardRoute, async (c) => {
       const teacher = await teacherOf(c);

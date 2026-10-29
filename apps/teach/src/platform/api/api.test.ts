@@ -7,6 +7,7 @@ import { afterAll, beforeEach, inject } from "vitest";
 import {
   dashboardContract,
   type GoogleAccount,
+  managingContract,
   type TeacherPortHarness,
   teacherPortContract,
 } from "../contract.ts";
@@ -141,3 +142,4 @@ async function json(
 
 teacherPortContract("API teacher port", harness);
 dashboardContract("API teacher port", harness);
+managingContract("API teacher port", harness);

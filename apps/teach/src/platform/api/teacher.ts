@@ -4,12 +4,16 @@ import {
   createClass,
   getAccount,
   getClass,
+  getClassStudents,
   getClasses,
   getDashboard,
   getEvidence,
   getPlay,
+  removeStudent,
+  setStudentGrade,
   signIn,
   signOut,
+  switchGame,
 } from "@repo/api-client";
 import {
   type Class,
@@ -68,6 +72,28 @@ export function apiTeacherPort(options: {
       const res = await getClass(classId);
       if (res.status !== 200) throw unexpected("class", res.status);
       return toClass(res.data);
+    },
+    async switchGame(classId, slug, on) {
+      const res = await switchGame(classId, slug, { on });
+      if (res.status !== 200) throw unexpected("switch game", res.status);
+      return toClass(res.data);
+    },
+    async students(classId) {
+      const res = await getClassStudents(classId);
+      if (res.status !== 200) throw unexpected("students", res.status);
+      return res.data;
+    },
+    async setStudentGrade(classId, studentId, grade) {
+      const res = await setStudentGrade(classId, studentId, { grade });
+      if (res.status === 200) return res.data;
+      // Here a 400 is a grade the class hasn't got, not a made-up ID.
+      if (res.status === 400 && res.data.error === "not-a-class-grade")
+        throw new Error(`[teach] Grade ${grade} isn't one of the class's`);
+      throw unexpected("student grade", res.status);
+    },
+    async removeStudent(classId, studentId) {
+      const res = await removeStudent(classId, studentId);
+      if (res.status !== 204) throw unexpected("remove student", res.status);
     },
     async dashboard(classId) {
       const res = await getDashboard(classId);

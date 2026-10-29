@@ -193,3 +193,47 @@
 .studentLink:hover {
   background-color: var(--k-surface-sunken);
 }
+
+/* The dashboard's heading, with the way to manage the class beside it. */
+.heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--mantine-spacing-sm) var(--mantine-spacing-md);
+}
+
+/* The teacher's classes, the one shown marked. */
+.switcher {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--mantine-spacing-xs);
+}
+
+.switch {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  padding: 0 var(--mantine-spacing-md);
+  border: 1px solid var(--k-border-subtle);
+  border-radius: var(--mantine-radius-xl);
+  color: var(--k-ink);
+  background-color: var(--k-surface-raised);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.switch:hover {
+  text-decoration: underline;
+}
+
+.switch:focus-visible {
+  outline: 2px solid var(--k-focus);
+  outline-offset: 2px;
+}
+
+.switch[aria-current="page"] {
+  border-color: var(--k-educator-fill);
+  color: var(--k-educator-on-fill);
+  background-color: var(--k-educator-fill);
+}

@@ -161,14 +161,23 @@ function ClassCard({ cls }: { cls: Class }) {
               </Title>
               <Text c="muted">{gradesLabel(cls.grades)}</Text>
             </div>
-            <ButtonLink
-              to="/classes/$classId"
-              params={{ classId: cls.id }}
-              state={{ fromAbove: true }}
-              tone="educator"
-            >
-              See results <VisuallyHidden>for {cls.name}</VisuallyHidden>
-            </ButtonLink>
+            <div className={classes.actions}>
+              <ButtonLink
+                to="/classes/$classId/manage"
+                params={{ classId: cls.id }}
+                variant="secondary"
+              >
+                Manage <VisuallyHidden>{cls.name}</VisuallyHidden>
+              </ButtonLink>
+              <ButtonLink
+                to="/classes/$classId"
+                params={{ classId: cls.id }}
+                state={{ fromAbove: true }}
+                tone="educator"
+              >
+                See results <VisuallyHidden>for {cls.name}</VisuallyHidden>
+              </ButtonLink>
+            </div>
           </div>
           <div className={classes.linkRow}>
             <div className={classes.linkText}>

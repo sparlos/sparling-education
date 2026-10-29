@@ -13,6 +13,7 @@ import {
   type Account,
   type Class,
   type ClassMisconception,
+  type ClassStudent,
   CredentialRejected,
   classNameMaxLength,
   type Dashboard,
@@ -201,13 +202,36 @@ export function fakeTeacherBackend(
     return tier.expectation;
   }
 
+  function membersOf(classId: string) {
+    return memberships
+      .filter((m) => m.classId === classId)
+      .sort(
+        (a, b) =>
+          a.student.firstName.localeCompare(b.student.firstName, "en-CA") ||
+          a.student.lastInitial.localeCompare(b.student.lastInitial, "en-CA"),
+      );
+  }
+
   function dashboardOf(cls: Class): Dashboard {
-    const ids = new Set<ExpectationId>(
-      games.flatMap((g) =>
-        cls.grades.flatMap((grade) => g.tiers[grade]?.expectation ?? []),
-      ),
-    );
-    const expectations = [...ids]
+    const students = membersOf(cls.id).map(({ student, grade }) => ({
+      id: student.id,
+      firstName: student.firstName,
+      lastInitial: student.lastInitial,
+      grade,
+      results: resultsOf(student.id, cls.id, grade),
+    }));
+    // What the class's games that are on evidence at its grades, and
+    // anything its students have evidence for besides.
+    const ids = new Set<string>([
+      ...games
+        .filter((g) => cls.games.some((on) => on.slug === g.slug && on.on))
+        .flatMap((g) =>
+          cls.grades.flatMap((grade) => g.tiers[grade]?.expectation ?? []),
+        ),
+      ...students.flatMap((s) => s.results.map((r) => r.expectation)),
+    ]);
+    const expectations = expectationIds
+      .filter((id) => ids.has(id))
       .map(expectation)
       .sort(
         (a, b) =>
@@ -220,20 +244,6 @@ export function fakeTeacherBackend(
         code,
         description,
       }));
-    const students = memberships
-      .filter((m) => m.classId === cls.id)
-      .map(({ student, grade }) => ({
-        id: student.id,
-        firstName: student.firstName,
-        lastInitial: student.lastInitial,
-        grade,
-        results: resultsOf(student.id, cls.id, grade),
-      }))
-      .sort(
-        (a, b) =>
-          a.firstName.localeCompare(b.firstName, "en-CA") ||
-          a.lastInitial.localeCompare(b.lastInitial, "en-CA"),
-      );
     return {
       expectations,
       students,
@@ -386,6 +396,22 @@ export function fakeTeacherBackend(
     };
   }
 
+  function memberOf(cls: Class, studentId: string) {
+    const member = memberships.find(
+      (m) => m.classId === cls.id && m.student.id === studentId,
+    );
+    if (!member) throw new NotFound("student");
+    return member;
+  }
+
+  function toClassStudent({
+    student,
+    grade,
+  }: (typeof memberships)[number]): ClassStudent {
+    const { id, firstName, lastInitial } = student;
+    return { id, firstName, lastInitial, grade };
+  }
+
   function teachersClass(classId: string) {
     const { id } = signedInTeacher();
     const found = classes.find(
@@ -468,6 +494,36 @@ export function fakeTeacherBackend(
       async class(classId) {
         reachable();
         return teachersClass(classId);
+      },
+      async switchGame(classId, slug, on) {
+        reachable();
+        const cls = teachersClass(classId);
+        if (!cls.games.some((g) => g.slug === slug)) throw new NotFound("game");
+        const switched: Class = {
+          ...cls,
+          games: cls.games.map((g) => (g.slug === slug ? { ...g, on } : g)),
+        };
+        const entry = classes.find((c) => c.class === cls);
+        if (entry) entry.class = switched;
+        return switched;
+      },
+      async students(classId) {
+        reachable();
+        return membersOf(teachersClass(classId).id).map(toClassStudent);
+      },
+      async setStudentGrade(classId, studentId, grade) {
+        reachable();
+        const cls = teachersClass(classId);
+        const member = memberOf(cls, studentId);
+        if (!cls.grades.includes(grade))
+          throw new Error(`Grade ${grade} isn't one of the class's (fake)`);
+        member.grade = grade;
+        return toClassStudent(member);
+      },
+      async removeStudent(classId, studentId) {
+        reachable();
+        const member = memberOf(teachersClass(classId), studentId);
+        memberships.splice(memberships.indexOf(member), 1);
       },
       async dashboard(classId) {
         reachable();
