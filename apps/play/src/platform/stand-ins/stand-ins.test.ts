@@ -1,15 +1,17 @@
 import { defaultLook } from "@repo/avatar";
+import { catalogue } from "@repo/rewards";
 import { describe, expect, it } from "vitest";
 import { memoryStorage } from "../../test/memory-storage.ts";
 import {
   lockerPortContract,
   playRecordsPortContract,
   sampleAttempt,
+  sampleEnd,
   sessionPortContract,
 } from "../contract.ts";
 import type { Student } from "../ports.ts";
 import { standInLinks } from "./links.ts";
-import { standInGrant, standInLocker } from "./locker.ts";
+import { standInEarn, standInGrant, standInLocker } from "./locker.ts";
 import {
   type StandInClass,
   standInClasses,
@@ -56,7 +58,14 @@ lockerPortContract("Stand-in locker", {
   newStudent: () => {
     const storage = memoryStorage();
     standInSignIn(storage, newStudent());
-    return { session: standInSession(storage), locker: standInLocker(storage) };
+    const records = standInRecords({
+      onStored: (fresh) => standInEarn(storage, fresh),
+    });
+    return {
+      session: standInSession(storage),
+      locker: standInLocker(storage),
+      earn: () => records.send([sampleAttempt(), sampleEnd()]),
+    };
   },
 });
 
@@ -106,6 +115,25 @@ describe("stand-in locker", () => {
     expect((await locker.current()).owned).toContain("hat-30");
     const look = { ...defaultLook, hat: "hat-30" } as const;
     expect(await locker.wear(look)).toEqual(look);
+  });
+
+  it("earns the next reward for each finished play, and nothing for others", async () => {
+    const storage = memoryStorage();
+    standInSignIn(storage, newStudent());
+    const records = standInRecords({
+      onStored: (fresh) => standInEarn(storage, fresh),
+    });
+    const ended = [
+      sampleEnd({ play: "a" }),
+      sampleEnd({ play: "b", ending: "left" }),
+      sampleEnd({ play: "c", ending: "crashed" }),
+      sampleEnd({ play: "d" }),
+    ];
+    await records.send(ended);
+    await records.send(ended);
+    expect((await standInLocker(storage).current()).unseen).toEqual(
+      catalogue.slice(0, 2),
+    );
   });
 });
 

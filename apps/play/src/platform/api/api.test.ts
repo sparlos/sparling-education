@@ -12,6 +12,7 @@ import {
   lockerPortContract,
   playRecordsPortContract,
   sampleAttempt,
+  sampleEnd,
   sessionPortContract,
 } from "../contract.ts";
 import {
@@ -114,7 +115,48 @@ lockerPortContract("API locker", {
     const student = browser();
     await student.signInAsStudent();
     setFetch(student.send);
-    return { session: apiSession(), locker: apiLocker() };
+    return {
+      session: apiSession(),
+      locker: apiLocker(),
+      earn: async () => {
+        const joinCode = await asTeacher(async (send) => {
+          const res = await send("/classes", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ name: "Room 12", grades: [4] }),
+          });
+          return ((await res.json()) as { joinCode: string }).joinCode;
+        });
+        setFetch(student.send);
+        const { classId } = await apiMemberships().join(joinCode);
+        const me = await apiSession().current();
+        const common = {
+          play: "earning",
+          student: me?.id ?? "",
+          class: classId,
+          game: fractionHop.slug,
+          gameVersion: fractionHop.version,
+          tier: "g4",
+        };
+        // Three tasks each got wrong, then right, and the play finished.
+        const refused = (status: number, error: unknown) => {
+          throw new Error(`Refused (${status}): ${JSON.stringify(error)}`);
+        };
+        await apiRecords({ onRefused: refused }).send([
+          ...["t1", "t2", "t3"].flatMap((task) =>
+            [false, true].map((succeeded) =>
+              sampleAttempt({
+                ...common,
+                task,
+                expectation: "math-2020.g4.B1.6",
+                succeeded,
+              }),
+            ),
+          ),
+          sampleEnd({ ...common }),
+        ]);
+      },
+    };
   },
 });
 

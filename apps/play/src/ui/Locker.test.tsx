@@ -1,5 +1,7 @@
 // The locker, joining a class and sign-in, rendered over the stand-ins: what
 // a student sees, hears and can do.
+
+import { catalogue } from "@repo/rewards";
 import { UIProvider } from "@repo/ui/provider";
 import {
   cleanup,
@@ -13,6 +15,7 @@ import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 import { hosted } from "../games.ts";
 import {
+  type LockerPort,
   type Membership,
   NotAStudent,
   type SessionPort,
@@ -78,10 +81,12 @@ function setUp({
     | ((props: SignInButtonProps) => ReactNode)
     | undefined,
   beforeRender = (_storage: KeyValueStore) => {},
+  // This browser's storage, kept between visits.
+  storage = memoryStorage(),
+  lockerPort = undefined as LockerPort | undefined,
   shellLines = undefined as Record<string, string> | undefined,
   titleLines = undefined as Record<string, string> | undefined,
 } = {}) {
-  const storage = memoryStorage();
   beforeRender(storage);
   if (signedIn) standInSignIn(storage, signedIn);
   const navigate = vi.fn();
@@ -95,7 +100,7 @@ function setUp({
           name: "test",
           session: session ?? standInSession(storage),
           memberships: standInMemberships(storage, standInClasses(classGames)),
-          locker: standInLocker(storage),
+          locker: lockerPort ?? standInLocker(storage),
           records: standInRecords(),
           links: standInLinks({ base: "/play/" }),
           SignInButton,
@@ -246,6 +251,99 @@ function worn(avatar: HTMLElement) {
     ]),
   );
 }
+
+describe("new rewards", () => {
+  const [sticker = "", top = ""] = catalogue;
+  const earned = (storage: KeyValueStore) =>
+    standInGrant(storage, [sticker, top], { seen: false });
+
+  it("are revealed over the locker, said before the locker's own line", async () => {
+    const { spoken } = setUp({ path: "/play/?play=p1", beforeRender: earned });
+    const reveal = await screen.findByRole("dialog", {
+      name: "You got something new!",
+    });
+    expect(
+      within(reveal).getByRole("img", { name: "A new sticker" }),
+    ).toBeInTheDocument();
+    expect(
+      within(reveal).getByRole("img", { name: "Something new to wear" }),
+    ).toBeInTheDocument();
+    await waitFor(() => expect(spoken).toEqual(["You got something new!"]));
+    expect(screen.getByRole("main")).toHaveAttribute("inert");
+  });
+
+  it("are put away with the tick, then the locker says what to do", async () => {
+    const { spoken, storage, user } = setUp({ beforeRender: earned });
+    await user.click(
+      await within(
+        await screen.findByRole("dialog", { name: "You got something new!" }),
+      ).findByRole("button", { name: "Done" }),
+    );
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    await waitFor(() =>
+      expect(spoken).toEqual([
+        "You got something new!",
+        "Pick a game to play.",
+      ]),
+    );
+    await waitFor(async () =>
+      expect((await standInLocker(storage).current()).unseen).toEqual([]),
+    );
+  });
+
+  it("stay new across a reload until they're put away", async () => {
+    const { storage } = setUp({ beforeRender: earned });
+    await screen.findByRole("dialog", { name: "You got something new!" });
+    cleanup();
+    setUp({ storage, signedIn: null });
+    expect(
+      await screen.findByRole("dialog", { name: "You got something new!" }),
+    ).toBeInTheDocument();
+  });
+
+  it("aren't revealed again once put away, and stickers stay in the locker", async () => {
+    const { storage, user } = setUp({ beforeRender: earned });
+    await user.click(await screen.findByRole("button", { name: "Done" }));
+    cleanup();
+    setUp({ storage, signedIn: null });
+    const stickers = await screen.findByRole("region", {
+      name: "Your stickers",
+    });
+    expect(
+      stickers.querySelector(`[data-sticker="${sticker}"]`),
+    ).not.toBeNull();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("show nothing when a play earned nothing, saying nothing about limits", async () => {
+    const { spoken } = setUp({
+      path: "/play/?play=p1",
+      beforeRender: (storage) => standInGrant(storage, [sticker]),
+    });
+    expect(await screen.findByText("Pick a game to play.")).toBeInTheDocument();
+    await waitFor(() => expect(spoken).toEqual(["Pick a game to play."]));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("speak the stickers' heading", async () => {
+    const { spoken, user } = setUp({
+      beforeRender: (storage) => standInGrant(storage, [sticker]),
+    });
+    await user.click(
+      await screen.findByRole("button", { name: "Hear it: Your stickers" }),
+    );
+    expect(spoken).toContain("Your stickers");
+  });
+
+  it("still opens the locker when its contents can't be read", async () => {
+    const storage = memoryStorage();
+    const locker = standInLocker(storage);
+    vi.spyOn(locker, "current").mockRejectedValue(new Error("offline"));
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    setUp({ storage, lockerPort: locker });
+    expect(await screen.findByText("Pick a game to play.")).toBeInTheDocument();
+  });
+});
 
 describe("designing the avatar, the first time", () => {
   const newcomer = () => ({ ...studentIn(membership()), look: null });

@@ -21,6 +21,7 @@
     "@repo/curriculum": "workspace:*",
     "@repo/db": "workspace:*",
     "@repo/game-contract": "workspace:*",
+    "@repo/rewards": "workspace:*",
     "@scalar/hono-api-reference": "0.12.14",
     "hono": "4.13.13",
     "jose": "6.2.13",

@@ -97,3 +97,66 @@
   color: var(--tone-on-fill);
   border: var(--k-press-border) solid var(--tone-edge);
 }
+
+/* Rewards being revealed, each on a card of its own. */
+.rewards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--mantine-spacing-md);
+}
+
+.reward {
+  display: grid;
+  place-items: center;
+  padding: var(--mantine-spacing-sm);
+  border-radius: var(--mantine-radius-lg);
+  background-color: var(--tone-soft);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .reward {
+    animation: pop 400ms ease-out both;
+  }
+
+  .reward:nth-child(2) {
+    animation-delay: 150ms;
+  }
+
+  .reward:nth-child(3) {
+    animation-delay: 300ms;
+  }
+
+  .reward:nth-child(n + 4) {
+    animation-delay: 450ms;
+  }
+}
+
+@keyframes pop {
+  from {
+    transform: scale(0.4);
+    opacity: 0;
+  }
+
+  70% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+
+  to {
+    transform: scale(1);
+  }
+}
+
+/* The student's stickers, until they can place them on the locker. */
+.stickers {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--mantine-spacing-sm);
+}

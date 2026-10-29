@@ -19,6 +19,7 @@
     "@repo/avatar": "workspace:*",
     "@repo/curriculum": "workspace:*",
     "@repo/game-contract": "workspace:*",
+    "@repo/rewards": "workspace:*",
     "@repo/tokens": "workspace:*",
     "@repo/ui": "workspace:*",
     "react": "19.2.8",

@@ -2,6 +2,7 @@
 // shell-check game: what a student can do, and what records come out.
 import { UIProvider } from "@repo/ui/provider";
 import {
+  cleanup,
   fireEvent,
   render,
   screen,
@@ -18,7 +19,7 @@ import {
   type Student,
 } from "../platform/ports.ts";
 import { standInLinks } from "../platform/stand-ins/links.ts";
-import { standInLocker } from "../platform/stand-ins/locker.ts";
+import { standInEarn, standInLocker } from "../platform/stand-ins/locker.ts";
 import {
   type StandInClasses,
   standInClasses,
@@ -78,11 +79,15 @@ function setUp({
   teacher = false,
   // The stand-in classes join codes name; every one has shell-check on.
   classes = standInClasses(standInGames(["shell-check"])) as StandInClasses,
+  // This browser's storage, kept between visits.
+  storage = memoryStorage(),
 } = {}) {
-  const storage = memoryStorage();
   if (signedIn) standInSignIn(storage, signedIn);
   let isOffline = offline;
-  const records = standInRecords({ offline: () => isOffline });
+  const records = standInRecords({
+    offline: () => isOffline,
+    onStored: (fresh) => standInEarn(storage, fresh),
+  });
   const session = failSession
     ? { current: () => Promise.reject(new Error("offline")) }
     : teacher
@@ -485,6 +490,23 @@ describe("finishing", () => {
     const locker = sentTo(navigate);
     expect(locker.pathname).toBe("/play/");
     expect(locker.searchParams.get("play")).toBe(records.stored[0]?.play);
+  });
+
+  it("reveals what the play earned once the student is back in their locker", async () => {
+    const { user, navigate, storage } = setUp();
+    await game();
+    await user.click(screen.getByRole("button", { name: "Finish" }));
+    await waitFor(() => expect(navigate).toHaveBeenCalled());
+
+    cleanup();
+    const { spoken } = setUp({ path: sentTo(navigate).href, storage });
+    const reveal = await screen.findByRole("dialog", {
+      name: "You got something new!",
+    });
+    expect(
+      within(reveal).getByRole("img", { name: "A new sticker" }),
+    ).toBeInTheDocument();
+    await waitFor(() => expect(spoken).toEqual(["You got something new!"]));
   });
 
   it("returns a student who came by a teacher's game link to their locker too", async () => {

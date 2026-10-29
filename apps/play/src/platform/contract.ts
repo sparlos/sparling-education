@@ -4,6 +4,7 @@
 // with a harness that can set up and read back what the implementation stores.
 import { type AvatarLook, defaultLook } from "@repo/avatar";
 import { baseSet, isItem, outfitSlots } from "@repo/avatar/parts";
+import { isReward, rewardKind } from "@repo/rewards";
 import { describe, expect, it } from "vitest";
 import {
   type AttemptRecord,
@@ -265,11 +266,16 @@ export function sessionPortContract(name: string, harness: SessionHarness) {
   });
 }
 
+export interface LockerStudent {
+  session: SessionPort;
+  locker: LockerPort;
+  /** Plays a play through to its end, with effort enough to earn a reward. */
+  earn(): Promise<void>;
+}
+
 export interface LockerHarness {
   /** Signs a new student in, who owns only the base set and has no look yet. */
-  newStudent():
-    | { session: SessionPort; locker: LockerPort }
-    | Promise<{ session: SessionPort; locker: LockerPort }>;
+  newStudent(): LockerStudent | Promise<LockerStudent>;
 }
 
 // Outfit pieces outside the base set: no new student owns them.
@@ -332,5 +338,32 @@ export function lockerPortContract(name: string, harness: LockerHarness) {
         expect((await session.current())?.look).toEqual(defaultLook);
       },
     );
+
+    it("gives a new student no stickers and nothing new", async () => {
+      const { locker } = await harness.newStudent();
+      const { stickers, unseen } = await locker.current();
+      expect(stickers).toEqual([]);
+      expect(unseen).toEqual([]);
+    });
+
+    it("reveals what a play earned as new, and the student owns it", async () => {
+      const { locker, earn } = await harness.newStudent();
+      await earn();
+      const { owned, stickers, unseen } = await locker.current();
+      expect(unseen.length).toBeGreaterThan(0);
+      for (const id of unseen) {
+        expect(isReward(id)).toBe(true);
+        expect(rewardKind(id) === "sticker" ? stickers : owned).toContain(id);
+      }
+    });
+
+    it("keeps rewards new until the student has seen them, then keeps them owned", async () => {
+      const { locker, earn } = await harness.newStudent();
+      await earn();
+      const before = await locker.current();
+      expect((await locker.current()).unseen).toEqual(before.unseen);
+      await locker.markSeen(before.unseen);
+      expect(await locker.current()).toEqual({ ...before, unseen: [] });
+    });
   });
 }

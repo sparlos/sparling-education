@@ -13,6 +13,8 @@ export function standInRecords(
     /** While true, every send fails as if the connection had dropped. */
     offline?: () => boolean;
     log?: (message: string, batch: readonly PlayRecord[]) => void;
+    /** Told the records each send stored for the first time. */
+    onStored?: (fresh: readonly PlayRecord[]) => void;
   } = {},
 ): StandInRecords {
   const byId = new Map<string, PlayRecord>();
@@ -23,8 +25,9 @@ export function standInRecords(
     async send(batch) {
       if (options.offline?.())
         throw new Error("Stand-in play records: offline");
-      for (const record of batch)
-        if (!byId.has(record.id)) byId.set(record.id, record);
+      const fresh = batch.filter((record) => !byId.has(record.id));
+      for (const record of fresh) byId.set(record.id, record);
+      options.onStored?.(fresh);
       options.log?.(
         `[stand-in play records] stored ${batch.length} record(s)`,
         batch,

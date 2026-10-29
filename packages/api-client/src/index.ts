@@ -13,6 +13,7 @@ export {
   getSession,
   getStudentPage,
   joinClass,
+  markRewardsSeen,
   pickGrade,
   removeStudent,
   sendPlayRecords,

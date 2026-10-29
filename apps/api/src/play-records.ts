@@ -1,12 +1,14 @@
 // Play records: each play's attempts and how it ended, as the play shell
 // sends them. Stored as sent, once each, after checking them against the
 // student's classes and the game's manifest at the version they were made
-// under. Results are computed from them later (scoring.ts).
+// under. Results are computed from them later (scoring.ts); rewards are
+// granted as plays end (locker.ts).
 // The contract is in apps/play/src/platform/README.md.
 
-import type { Db } from "@repo/db";
+import type { Db, DbTransaction } from "@repo/db";
 import { attemptProblem } from "@repo/game-contract";
 import { manifestAt } from "./games.ts";
+import { grantRewards } from "./locker.ts";
 import type { PlayRecord } from "./schemas.ts";
 
 export type Ingested =
@@ -28,6 +30,18 @@ export async function ingestPlayRecords(
     return { kind: "not-their-records" };
   if (batch.length === 0) return { kind: "stored", stored: 0 };
 
+  return db.$transaction(async (tx) => {
+    // One batch of a student's at a time, so rewards are counted once.
+    await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${studentId}))`;
+    return ingest(tx, studentId, batch);
+  });
+}
+
+async function ingest(
+  db: DbTransaction,
+  studentId: string,
+  batch: readonly PlayRecord[],
+): Promise<Ingested> {
   const known = new Set(
     (
       await db.playRecord.findMany({
@@ -51,12 +65,21 @@ export async function ingestPlayRecords(
     data: fresh.map((record) => toRow(studentId, record)),
     skipDuplicates: true,
   });
+  await grantRewards(
+    db,
+    studentId,
+    fresh.flatMap((r) =>
+      r.kind === "end"
+        ? [{ play: r.play, at: new Date(r.at), ending: r.ending }]
+        : [],
+    ),
+  );
   return { kind: "stored", stored: count };
 }
 
 /** Why the new records can never be accepted, or null when they can. */
 async function problemWith(
-  db: Db,
+  db: DbTransaction,
   studentId: string,
   fresh: readonly PlayRecord[],
 ): Promise<string | null> {

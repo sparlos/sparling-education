@@ -38,7 +38,11 @@ describe("the locker", () => {
   it("holds the base set for a new student", async () => {
     const res = await lockerOf(await signInAsStudent());
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ owned: [...baseSet] });
+    expect(await res.json()).toEqual({
+      owned: [...baseSet],
+      stickers: [],
+      unseen: [],
+    });
   });
 
   it("needs a signed-in student", async () => {

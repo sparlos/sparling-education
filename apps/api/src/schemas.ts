@@ -203,10 +203,27 @@ export const LockerSchema = z
       description:
         "The outfit pieces the student owns, as item IDs: the base set every student starts with, and their rewards. Skin tones and hair are always everyone's.",
     }),
+    stickers: z.array(z.string()).openapi({
+      description:
+        "The stickers the student has earned, as reward IDs from @repo/rewards, in the order they were granted",
+    }),
+    unseen: z.array(z.string()).openapi({
+      description:
+        "Rewards (outfit pieces or stickers) the student hasn't seen revealed yet, in the order they were granted",
+    }),
   })
   .openapi("Locker");
 
 export type Locker = z.infer<typeof LockerSchema>;
+
+export const SeenSchema = z
+  .object({
+    rewards: z
+      .array(z.string().max(100))
+      .max(500)
+      .openapi({ example: ["sticker-star", "top-02"] }),
+  })
+  .openapi("Seen");
 
 export const StudentSchema = z
   .object({

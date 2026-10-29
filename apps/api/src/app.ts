@@ -21,7 +21,7 @@ import {
 import { classDashboard } from "./dashboard.ts";
 import { studentEvidence, studentPlay } from "./drill-down.ts";
 import { type IdentityVerifier, identityFrom } from "./identity.ts";
-import { studentLocker, wearLook } from "./locker.ts";
+import { markSeen, studentLocker, wearLook } from "./locker.ts";
 import {
   classStudents,
   joinClass,
@@ -49,6 +49,7 @@ import {
   PlayRecordBatchSchema,
   PlayRecordsStoredSchema,
   PlaySchema,
+  SeenSchema,
   SignedInSchema,
   SignInSchema,
   StudentPageSchema,
@@ -277,13 +278,29 @@ const wearRoute = createRoute({
   },
 });
 
+const seenRoute = createRoute({
+  method: "post",
+  path: "/locker/seen",
+  operationId: "markRewardsSeen",
+  summary: "The signed-in student has seen these rewards revealed",
+  description:
+    "They stop being new in the locker. Rewards the student hasn't got, or has already seen, are ignored.",
+  request: {
+    body: { content: { "application/json": { schema: SeenSchema } } },
+  },
+  responses: {
+    204: { description: "Marked as seen" },
+    ...studentOnly,
+  },
+});
+
 const playRecordsRoute = createRoute({
   method: "post",
   path: "/play-records",
   operationId: "sendPlayRecords",
   summary: "Store a batch of the signed-in student's play records",
   description:
-    "Idempotent by record ID: records already stored are skipped, so a resent batch is safe. Records arrive in the order the shell made them, and can arrive days late; their `at` is trusted. Each is checked against the student's classes and the game's manifest at its version. A 4xx means the batch will never be accepted, and the shell drops it; anything else is worth retrying.",
+    "Idempotent by record ID: records already stored are skipped, so a resent batch is safe. A play's end grants the rewards its effort earned, up to the weekly cap. Records arrive in the order the shell made them, and can arrive days late; their `at` is trusted. Each is checked against the student's classes and the game's manifest at its version. A 4xx means the batch will never be accepted, and the shell drops it; anything else is worth retrying.",
   request: {
     body: {
       content: { "application/json": { schema: PlayRecordBatchSchema } },
@@ -713,6 +730,13 @@ export function createApp({
       if ((await wearLook(db, student.id, look)) === "not-owned")
         return c.json({ error: "not-owned" }, 400);
       return c.json(look, 200);
+    })
+    .openapi(seenRoute, async (c) => {
+      const student = await studentOf(c);
+      if (student === "signed-out") return c.json({ error: student }, 401);
+      if (student === "not-a-student") return c.json({ error: student }, 403);
+      await markSeen(db, student.id, c.req.valid("json").rewards);
+      return c.body(null, 204);
     })
     .openapi(playRecordsRoute, async (c) => {
       const student = await studentOf(c);

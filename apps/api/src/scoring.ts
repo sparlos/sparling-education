@@ -105,6 +105,46 @@ function improvedAfterMistake(tries: readonly EffortRecord[]) {
   );
 }
 
+/**
+ * The provisional reward rule: rewards are earned from effort only, up to a
+ * weekly cap, the same for home and class play. A play counts when it ends,
+ * in the week it ended; a crashed play counts for nothing. Reaching the cap
+ * is never shown to the student.
+ */
+export const rewardRule = {
+  /** Effort (improvements after a mistake, plus finished plays) per reward. */
+  effortPerReward: 2,
+  /** The most rewards a week's effort earns. */
+  weeklyCap: 5,
+  /** Weeks run Monday to Sunday in the schools' time zone. */
+  timeZone: "America/Toronto",
+} as const;
+
+/** How many rewards one week's effort earns, cap included. */
+export function rewardsEarned(effort: Pick<StudentEffort, EffortKind>): number {
+  const points = effort.improvedAfterMistake + effort.finishedPlays;
+  return Math.min(
+    rewardRule.weeklyCap,
+    Math.floor(points / rewardRule.effortPerReward),
+  );
+}
+
+const schoolDate = new Intl.DateTimeFormat("en-CA", {
+  timeZone: rewardRule.timeZone,
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
+
+/** The Monday of the school week `at` falls in, as a date at UTC midnight. */
+export function weekOf(at: Date): Date {
+  const [year, month, day] = schoolDate.format(at).split("-").map(Number);
+  const date = new Date(Date.UTC(year ?? 0, (month ?? 1) - 1, day ?? 1));
+  const sinceMonday = (date.getUTCDay() + 6) % 7;
+  date.setUTCDate(date.getUTCDate() - sinceMonday);
+  return date;
+}
+
 export type Understanding =
   | "not-yet-showing"
   | "developing"

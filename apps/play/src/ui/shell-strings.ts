@@ -59,6 +59,10 @@ export const shellStrings = {
     "no-hat": "No hat",
     "avatar-done": "Done",
     "saving-avatar": "Saving your avatar…",
+    "new-reward": "You got something new!",
+    "new-outfit": "Something new to wear",
+    "new-sticker": "A new sticker",
+    stickers: "Your stickers",
   },
 } satisfies { "en-CA": Record<string, string> };
 

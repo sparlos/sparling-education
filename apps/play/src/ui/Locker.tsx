@@ -1,8 +1,9 @@
 // The student's side of the shell outside games: the locker (after designing
-// their avatar, the first time), its wardrobe, joining a class by its join
+// their avatar, the first time), with any new rewards revealed, its wardrobe, joining a class by its join
 // link (and picking a grade in a split class), and sign-in. Every
 // label is also spoken, so a Grade 3 student can use it without reading.
 import { Portrait } from "@repo/avatar/portrait";
+import { StickerPicture } from "@repo/rewards/sticker";
 import { Button } from "@repo/ui/button";
 import { Icon } from "@repo/ui/icon";
 import { IconButton } from "@repo/ui/icon-button";
@@ -14,6 +15,7 @@ import { useEffect, useState } from "react";
 import type { GameRegistry } from "../games.ts";
 import {
   type DressedStudent,
+  type Locker as LockerContents,
   type Membership,
   NoSuchClass,
   NotAStudent,
@@ -31,6 +33,7 @@ import type { VoiceOptions } from "../play/voice.ts";
 import type { AppProps } from "./App.tsx";
 import classes from "./app.module.css";
 import styles from "./locker.module.css";
+import { Reveal } from "./Reveal.tsx";
 import {
   gameLine,
   Message,
@@ -168,23 +171,62 @@ export function LockerPage(props: AppProps) {
       student={dressed}
       base={props.base}
       games={props.games}
+      platform={props.platform}
       speak={props.speak}
     />
   );
+}
+
+/**
+ * What's in the student's locker, or null when it couldn't be read: the
+ * locker still opens, just without stickers or a reveal.
+ */
+function useLockerContents(platform: Platform) {
+  const [contents, setContents] = useState<LockerContents | null | "loading">(
+    "loading",
+  );
+  useEffect(() => {
+    let cancelled = false;
+    platform.locker.current().then(
+      (found) => {
+        if (!cancelled) setContents(found);
+      },
+      (error: unknown) => {
+        if (cancelled) return;
+        console.error("[play] Couldn't open the locker's contents", error);
+        setContents(null);
+      },
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [platform]);
+  return contents;
 }
 
 function Locker({
   student,
   base,
   games,
+  platform,
   speak,
 }: {
   student: DressedStudent;
   base: string;
   games: GameRegistry;
+  platform: Platform;
   speak?: VoiceOptions["speak"];
 }) {
   const voice = useShellVoice(student.locale, speak);
+  const contents = useLockerContents(platform);
+  const [revealed, setRevealed] = useState(false);
+  const unseen =
+    contents === "loading" || contents === null ? [] : contents.unseen;
+  const revealing = unseen.length > 0 && !revealed;
+  const stickers =
+    contents === "loading" || contents === null ? [] : contents.stickers;
+  // New rewards are said first; the locker's own line once they're put away.
+  const settled = contents !== "loading" && !revealing;
   // Each class the student plays in, with the games of it this shell hosts.
   const sections = student.classes
     .filter((m) => m.grade !== null)
@@ -195,8 +237,16 @@ function Locker({
     .filter((section) => section.games.length > 0);
   const line = sections.length > 0 ? "pick-game" : "no-games";
   useEffect(() => {
-    void voice.say(line);
-  }, [voice, line]);
+    if (settled) void voice.say(line);
+  }, [voice, line, settled]);
+
+  const putAway = () => {
+    setRevealed(true);
+    platform.locker.markSeen(unseen).catch((error: unknown) => {
+      // They stay new, and are revealed again next time.
+      console.error("[play] Couldn't mark rewards as seen", error);
+    });
+  };
 
   // "Hear it again" repeats the instruction, never the last name heard.
   const hear = (name: string, line: string) => (
@@ -211,75 +261,102 @@ function Locker({
   );
 
   return (
-    <main className={styles.locker}>
-      <VisuallyHidden>
-        <h1>{shellT("locker")}</h1>
-      </VisuallyHidden>
-      <div className={styles.header}>
-        <a
-          href={wardrobePath(base)}
-          className={styles.wardrobeLink}
-          aria-label={shellT("change-clothes")}
-          title={shellT("change-clothes")}
-          data-tone="student"
-        >
-          <Portrait
-            look={student.look}
-            expression="happy"
-            size={112}
-            label={shellT("avatar")}
-          />
-          <span className={styles.wardrobeBadge}>
-            <Icon name="avatar" size={24} />
-          </span>
-        </a>
-        <Text size="xl" className={styles.instruction}>
-          {shellT(line)}
-        </Text>
-        <IconButton
-          tone="neutral"
-          label={shellT("hear-again")}
-          onClick={() => void voice.say(line)}
-        >
-          <Icon name="speaker" size={32} />
-        </IconButton>
-      </div>
-      {sections.map(({ membership, games }) => {
-        const headingId = `class-${membership.classId}`;
-        return (
-          <section
-            key={membership.classId}
-            className={styles.section}
-            aria-labelledby={sections.length > 1 ? headingId : undefined}
+    <>
+      <main className={styles.locker} inert={revealing}>
+        <VisuallyHidden>
+          <h1>{shellT("locker")}</h1>
+        </VisuallyHidden>
+        <div className={styles.header}>
+          <a
+            href={wardrobePath(base)}
+            className={styles.wardrobeLink}
+            aria-label={shellT("change-clothes")}
+            title={shellT("change-clothes")}
+            data-tone="student"
           >
-            {sections.length > 1 && (
-              <div className={styles.classHeading}>
-                <Title order={2} size="h3" id={headingId}>
-                  {membership.className}
-                </Title>
-                {hear(membership.className, nameLine(membership.className))}
-              </div>
-            )}
-            <ul className={styles.games}>
-              {games.map((game) => (
-                <li key={game.slug} className={styles.game}>
-                  <Button
-                    href={lockerGamePath(base, game.slug, membership.classId)}
-                    size="lg"
-                    tone="student"
-                    className={styles.gameButton}
-                    leftSection={<Icon name="play" size={32} />}
-                  >
-                    {game.name}
-                  </Button>
-                  {hear(game.name, gameLine(game.slug, game.name))}
+            <Portrait
+              look={student.look}
+              expression="happy"
+              size={112}
+              label={shellT("avatar")}
+            />
+            <span className={styles.wardrobeBadge}>
+              <Icon name="avatar" size={24} />
+            </span>
+          </a>
+          <Text size="xl" className={styles.instruction}>
+            {shellT(line)}
+          </Text>
+          <IconButton
+            tone="neutral"
+            label={shellT("hear-again")}
+            onClick={() => void voice.say(line)}
+          >
+            <Icon name="speaker" size={32} />
+          </IconButton>
+        </div>
+        {sections.map(({ membership, games }) => {
+          const headingId = `class-${membership.classId}`;
+          return (
+            <section
+              key={membership.classId}
+              className={styles.section}
+              aria-labelledby={sections.length > 1 ? headingId : undefined}
+            >
+              {sections.length > 1 && (
+                <div className={styles.classHeading}>
+                  <Title order={2} size="h3" id={headingId}>
+                    {membership.className}
+                  </Title>
+                  {hear(membership.className, nameLine(membership.className))}
+                </div>
+              )}
+              <ul className={styles.games}>
+                {games.map((game) => (
+                  <li key={game.slug} className={styles.game}>
+                    <Button
+                      href={lockerGamePath(base, game.slug, membership.classId)}
+                      size="lg"
+                      tone="student"
+                      className={styles.gameButton}
+                      leftSection={<Icon name="play" size={32} />}
+                    >
+                      {game.name}
+                    </Button>
+                    {hear(game.name, gameLine(game.slug, game.name))}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          );
+        })}
+        {stickers.length > 0 && (
+          <section className={styles.section} aria-labelledby="stickers">
+            <div className={styles.classHeading}>
+              <Title order={2} size="h3" id="stickers">
+                {shellT("stickers")}
+              </Title>
+              {hear(shellT("stickers"), "stickers")}
+            </div>
+            <ul className={styles.stickers}>
+              {stickers.map((sticker) => (
+                <li key={sticker}>
+                  <StickerPicture sticker={sticker} size={72} />
                 </li>
               ))}
             </ul>
           </section>
-        );
-      })}
-    </main>
+        )}
+      </main>
+      {revealing && (
+        <Reveal
+          rewards={unseen}
+          look={student.look}
+          speak={speak}
+          onDone={putAway}
+        />
+      )}
+    </>
   );
 }
 

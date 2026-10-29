@@ -1,0 +1,32 @@
+{
+  "name": "@repo/rewards",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./sticker": "./src/sticker.tsx"
+  },
+  "scripts": {
+    "check-types": "tsc --noEmit",
+    "test": "node --test 'src/**/*.test.ts'"
+  },
+  "dependencies": {
+    "@repo/avatar": "workspace:*",
+    "@repo/tokens": "workspace:*"
+  },
+  "peerDependencies": {
+    "react": "19.2.8"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@repo/typescript-config": "workspace:*",
+    "@types/node": "24.19.2",
+    "@types/react": "19.2.18",
+    "typescript": "7.0.2"
+  }
+}

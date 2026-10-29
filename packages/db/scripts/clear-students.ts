@@ -1,5 +1,5 @@
 // `pnpm clear-students`: deletes every student from the local database, with
-// their sessions, class memberships and plays, so a Google account can sign up as a
+// their sessions, class memberships, plays and rewards, so a Google account can sign up as a
 // new student again (join link, grade pick and all). Teachers and classes stay.
 // Only ever touches the Docker database `pnpm dev` starts.
 import { createDb, localDatabaseUrl } from "../src/index.ts";

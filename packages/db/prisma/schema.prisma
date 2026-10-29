@@ -37,6 +37,8 @@ model Account {
   memberships   Membership[]
   // A student's plays, as the play shell sent them.
   playRecords   PlayRecord[]
+  // A student's rewards.
+  rewards       Reward[]
 }
 
 // A signed-in browser. The cookie holds a random token; only its hash is kept.
@@ -147,4 +149,24 @@ model PlayRecord {
   // the plays scoring counts depends on (`choosingFields` in the API's
   // scoring module), so it reads only the index.
   @@index([classId, studentId, play, game, gameVersion, tier, kind, expectation, exploring, ending, at, sequence], map: "PlayRecord_choosing_idx")
+}
+
+// A reward granted to a student for effort: an outfit piece or a sticker,
+// from @repo/rewards' catalogue. Granted when a play ends, up to a weekly cap
+// (the API's scoring module), and kept once granted, whatever arrives later.
+model Reward {
+  studentId String    @db.Uuid
+  student   Account   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  // A reward ID from the catalogue.
+  item      String
+  // The play whose end granted it.
+  play      String
+  // The Monday of the week it counts toward the cap in, in school time.
+  week      DateTime  @db.Date
+  grantedAt DateTime  @default(now())
+  // When the student saw it revealed in their locker; null while it's new.
+  seenAt    DateTime?
+
+  @@id([studentId, item])
+  @@index([studentId, week])
 }

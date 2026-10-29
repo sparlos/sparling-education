@@ -41,6 +41,9 @@ importers:
       '@repo/game-contract':
         specifier: workspace:*
         version: link:../../packages/game-contract
+      '@repo/rewards':
+        specifier: workspace:*
+        version: link:../../packages/rewards
       '@scalar/hono-api-reference':
         specifier: 0.12.14
         version: 0.12.14(hono@4.13.13)
@@ -90,6 +93,9 @@ importers:
       '@repo/game-contract':
         specifier: workspace:*
         version: link:../../packages/game-contract
+      '@repo/rewards':
+        specifier: workspace:*
+        version: link:../../packages/rewards
       '@repo/tokens':
         specifier: workspace:*
         version: link:../../packages/tokens
@@ -599,6 +605,31 @@ importers:
       remotion:
         specifier: 4.0.535
         version: 4.0.535(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+    devDependencies:
+      '@repo/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
+      '@types/node':
+        specifier: 24.19.2
+        version: 24.19.2
+      '@types/react':
+        specifier: 19.2.18
+        version: 19.2.18
+      typescript:
+        specifier: 7.0.2
+        version: 7.0.2
+
+  packages/rewards:
+    dependencies:
+      '@repo/avatar':
+        specifier: workspace:*
+        version: link:../avatar
+      '@repo/tokens':
+        specifier: workspace:*
+        version: link:../tokens
+      react:
+        specifier: 19.2.8
+        version: 19.2.8
     devDependencies:
       '@repo/typescript-config':
         specifier: workspace:*

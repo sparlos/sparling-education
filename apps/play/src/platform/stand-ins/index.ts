@@ -4,7 +4,7 @@
 import type { KeyValueStore } from "../../play/storage.ts";
 import type { LockerGame, Platform } from "../ports.ts";
 import { standInLinks } from "./links.ts";
-import { standInLocker } from "./locker.ts";
+import { standInEarn, standInLocker } from "./locker.ts";
 import { standInClasses, standInMemberships } from "./memberships.ts";
 import { standInRecords } from "./records.ts";
 import { standInSession } from "./session.ts";
@@ -31,6 +31,7 @@ export function createStandInPlatform(options: {
     records: standInRecords({
       offline: options.offline,
       log: (message, batch) => console.info(message, batch),
+      onStored: (fresh) => standInEarn(options.storage, fresh),
     }),
     links: standInLinks(options),
   };

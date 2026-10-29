@@ -84,6 +84,14 @@ export interface Locker {
    * hair aren't owned; they're everyone's.
    */
   owned: string[];
+  /** The stickers they've earned, as reward IDs from `@repo/rewards`. */
+  stickers: string[];
+  /**
+   * Rewards (outfit pieces or stickers) they haven't seen yet, in the order
+   * they were granted: revealed the next time they open their locker, until
+   * they've seen them.
+   */
+  unseen: string[];
 }
 
 export interface LockerPort {
@@ -95,6 +103,8 @@ export interface LockerPort {
    * Rejects with `NotOwned` when an outfit piece in it isn't theirs.
    */
   wear(look: AvatarLook): Promise<AvatarLook>;
+  /** The student has seen these rewards revealed, so they're no longer new. */
+  markSeen(rewards: readonly string[]): Promise<void>;
 }
 
 /** A teacher is signed in; the play shell is for students. */
