@@ -21,13 +21,13 @@ Pagination isn't the fix. The dashboard is a grid of about 30 students, so its r
 
 ## Acceptance
 
-- [ ] The dashboard loads only the records of the plays its results and misconception strip can use, plus any margin the design needs, not the class's whole history
-- [ ] A cell's evidence (`GET …/students/{student}/expectations/{id}`) does the same for its results. It still lists every play with evidence, including the ones its result doesn't count (marked as today)
-- [ ] A cell's evidence lists plays **newest first**, in the API (`schemas.ts`, `drill-down.ts`, `openapi.json`) and in the teacher app (`Evidence.tsx`'s "Plays, oldest first" region, the port's doc comment, the fake and the contract suite). Classes stay oldest first
-- [ ] Every existing scoring test in `dashboard.test.ts` and `drill-down.test.ts` passes unchanged, apart from the order of plays
-- [ ] New integration tests with a long history: a student with many more plays than the window, including crashed plays and exploring-only plays among the recent ones, gets the same results as with the whole history. A student whose recent plays are at another tier still gets each tier's result
-- [ ] A migration adds the index the query uses
-- [ ] Measure it: seed a class of 30 with a school year of Fraction Hop plays (about 100 plays each, ~30 records per play) and time the dashboard and an evidence load before and after. Put the numbers in a comment on this ticket
+- [x] The dashboard loads only the records of the plays its results and misconception strip can use, plus any margin the design needs, not the class's whole history
+- [x] A cell's evidence (`GET …/students/{student}/expectations/{id}`) does the same for its results. It still lists every play with evidence, including the ones its result doesn't count (marked as today)
+- [x] A cell's evidence lists plays **newest first**, in the API (`schemas.ts`, `drill-down.ts`, `openapi.json`) and in the teacher app (`Evidence.tsx`'s "Plays, oldest first" region, the port's doc comment, the fake and the contract suite). Classes stay oldest first
+- [x] Every existing scoring test in `dashboard.test.ts` and `drill-down.test.ts` passes unchanged, apart from the order of plays
+- [x] New integration tests with a long history: a student with many more plays than the window, including crashed plays and exploring-only plays among the recent ones, gets the same results as with the whole history. A student whose recent plays are at another tier still gets each tier's result
+- [x] A migration adds the index the query uses
+- [x] Measure it: seed a class of 30 with a school year of Fraction Hop plays (about 100 plays each, ~30 records per play) and time the dashboard and an evidence load before and after. Put the numbers in a comment on this ticket
 
 ## Comments
 
