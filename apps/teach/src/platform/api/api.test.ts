@@ -8,6 +8,7 @@ import {
   dashboardContract,
   type GoogleAccount,
   managingContract,
+  recognitionContract,
   type TeacherPortHarness,
   teacherPortContract,
 } from "../contract.ts";
@@ -19,7 +20,8 @@ afterAll(() => database.drop());
 
 const { db } = database;
 const google = fakeGoogle();
-const app = createApp({ db, identity: google.verifier });
+let now = new Date();
+const app = createApp({ db, identity: google.verifier, clock: () => now });
 
 /** A browser of its own: requests go to the in-process API, with its cookies. */
 function browser(): typeof fetch {
@@ -121,6 +123,9 @@ function harness(): TeacherPortHarness {
       ]);
       return tier.expectation;
     },
+    setNow(at) {
+      now = at;
+    },
   };
 }
 
@@ -143,3 +148,4 @@ async function json(
 teacherPortContract("API teacher port", harness);
 dashboardContract("API teacher port", harness);
 managingContract("API teacher port", harness);
+recognitionContract("API teacher port", harness);

@@ -1,9 +1,9 @@
 // The student's side of the shell outside games: the locker (after designing
-// their avatar, the first time), with any new rewards revealed, its wardrobe, joining a class by its join
+// their avatar, the first time), with any new rewards revealed and their
+// stickers to stick on it, its wardrobe, joining a class by its join
 // link (and picking a grade in a split class), and sign-in. Every
 // label is also spoken, so a Grade 3 student can use it without reading.
 import { Portrait } from "@repo/avatar/portrait";
-import { StickerPicture } from "@repo/rewards/sticker";
 import { Button } from "@repo/ui/button";
 import { Icon } from "@repo/ui/icon";
 import { IconButton } from "@repo/ui/icon-button";
@@ -34,6 +34,7 @@ import type { AppProps } from "./App.tsx";
 import classes from "./app.module.css";
 import styles from "./locker.module.css";
 import { Reveal } from "./Reveal.tsx";
+import { Stickers } from "./Stickers.tsx";
 import {
   gameLine,
   Message,
@@ -330,22 +331,14 @@ function Locker({
             </section>
           );
         })}
-        {stickers.length > 0 && (
-          <section className={styles.section} aria-labelledby="stickers">
-            <div className={styles.classHeading}>
-              <Title order={2} size="h3" id="stickers">
-                {shellT("stickers")}
-              </Title>
-              {hear(shellT("stickers"), "stickers")}
-            </div>
-            <ul className={styles.stickers}>
-              {stickers.map((sticker) => (
-                <li key={sticker}>
-                  <StickerPicture sticker={sticker} size={72} />
-                </li>
-              ))}
-            </ul>
-          </section>
+        {stickers.length > 0 && contents !== "loading" && contents !== null && (
+          <Stickers
+            stickers={stickers}
+            placements={contents.placements}
+            platform={platform}
+            voice={voice}
+            hear={hear}
+          />
         )}
       </main>
       {revealing && (

@@ -78,6 +78,7 @@ describe("the dashboard", () => {
       ],
       students: [],
       misconceptions: [],
+      recognition: expect.objectContaining({ term: expect.any(Object) }),
     });
   });
 
@@ -90,6 +91,7 @@ describe("the dashboard", () => {
         lastInitial: "R",
         grade: 4,
         results: [],
+        recognised: [],
       },
     ]);
   });

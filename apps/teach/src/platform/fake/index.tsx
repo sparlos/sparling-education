@@ -20,6 +20,8 @@ export interface FakePlatformOptions {
   classes?: { draft: NewClass; students: FakeStudentSeed[] }[];
   /** Classes another teacher has, made before the teacher's own. */
   otherTeachersClasses?: NewClass[];
+  /** The time it is now, for which term it is. The real time by default. */
+  now?: Date;
 }
 
 const newTeacher: GoogleAccount = {
@@ -41,6 +43,7 @@ export function createFakePlatform(
   const backend = fakeTeacherBackend({
     offline: options.offline,
     origin: options.origin,
+    now: options.now ? () => options.now ?? new Date() : undefined,
   });
   if (options.student) backend.addStudent(google);
   for (const draft of options.otherTeachersClasses ?? [])

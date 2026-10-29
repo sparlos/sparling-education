@@ -15,6 +15,8 @@ export {
   joinClass,
   markRewardsSeen,
   pickGrade,
+  placeStickers,
+  recogniseStudent,
   removeStudent,
   sendPlayRecords,
   setStudentGrade,

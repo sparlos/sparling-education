@@ -2,6 +2,7 @@ import { z } from "@hono/zod-openapi";
 import { itemsIn, type PartSlot } from "@repo/avatar/parts";
 import { type LearningSkill, learningSkills } from "@repo/curriculum";
 import { teacherTextMaxLength } from "@repo/game-contract";
+import { recognitionTraits } from "@repo/rewards";
 
 export const HealthSchema = z
   .object({ status: z.literal("ok") })
@@ -197,6 +198,23 @@ export const LookSchema = z
       "An item ID for each slot of the avatar, from @repo/avatar. Outfit pieces (top, bottom, shoes, hat) must be ones the student owns.",
   });
 
+export const PlacementSchema = z
+  .object({
+    sticker: z.string().max(100).openapi({
+      description: "A sticker the student owns, from @repo/rewards",
+      example: "sticker-star",
+    }),
+    x: z.number().min(0).max(1).openapi({
+      description:
+        "Where the sticker's centre is, across the locker: 0 is its left edge, 1 its right",
+    }),
+    y: z.number().min(0).max(1).openapi({
+      description:
+        "Where the sticker's centre is, down the locker: 0 is its top edge, 1 its bottom",
+    }),
+  })
+  .openapi("Placement");
+
 export const LockerSchema = z
   .object({
     owned: z.array(z.string()).openapi({
@@ -205,16 +223,37 @@ export const LockerSchema = z
     }),
     stickers: z.array(z.string()).openapi({
       description:
-        "The stickers the student has earned, as reward IDs from @repo/rewards, in the order they were granted",
+        "The stickers the student owns, as sticker IDs from @repo/rewards: those they earned, in the order they were granted, then a recognition sticker for each trait a teacher recognised them for, in the order first given",
     }),
     unseen: z.array(z.string()).openapi({
       description:
-        "Rewards (outfit pieces or stickers) the student hasn't seen revealed yet, in the order they were granted",
+        "Rewards (outfit pieces or stickers) the student hasn't seen revealed yet, in the order they were granted, then the recognition stickers for recognition they haven't seen",
+    }),
+    placements: z.array(PlacementSchema).openapi({
+      description:
+        "The stickers the student put on their locker, and where, the one underneath first",
     }),
   })
   .openapi("Locker");
 
 export type Locker = z.infer<typeof LockerSchema>;
+
+export const PlacementsSchema = z
+  .object({
+    placements: z
+      .array(PlacementSchema)
+      .max(500)
+      .refine(
+        (placements) =>
+          new Set(placements.map((p) => p.sticker)).size === placements.length,
+        { message: "Each sticker can be placed once" },
+      )
+      .openapi({
+        description:
+          "Every sticker on the locker, and where, the one underneath first. Stickers left out are taken off.",
+      }),
+  })
+  .openapi("Placements");
 
 export const SeenSchema = z
   .object({
@@ -378,6 +417,49 @@ export const DashboardExpectationSchema = z
   })
   .openapi("DashboardExpectation");
 
+export const RecognitionTraitSchema = z
+  .enum(recognitionTraits)
+  .openapi("RecognitionTrait", {
+    description:
+      "A character trait a teacher recognises a student for (provisional configuration, in @repo/rewards)",
+  });
+
+export const RecogniseSchema = z
+  .object({ trait: RecognitionTraitSchema })
+  .openapi("Recognise");
+
+export const RecognitionSchema = z
+  .object({
+    trait: RecognitionTraitSchema,
+    awardedAt: z.string().openapi({
+      description: "When the teacher gave it, as an ISO date-time",
+    }),
+  })
+  .openapi("Recognition");
+
+export type Recognition = z.infer<typeof RecognitionSchema>;
+
+export const RecognitionSettingsSchema = z
+  .object({
+    term: z
+      .object({
+        start: z.string().openapi({ example: "2026-09-01" }),
+        end: z.string().openapi({ example: "2027-01-31" }),
+      })
+      .openapi({
+        description:
+          "This term's first and last days, as ISO dates. Between terms, the term that ended last.",
+      }),
+    traits: z
+      .array(z.object({ trait: RecognitionTraitSchema, name: z.string() }))
+      .openapi({
+        description: "The traits a teacher can recognise, as teachers see them",
+      }),
+  })
+  .openapi("RecognitionSettings");
+
+export type RecognitionSettings = z.infer<typeof RecognitionSettingsSchema>;
+
 export const DashboardStudentSchema = z
   .object({
     id: z.string(),
@@ -389,6 +471,10 @@ export const DashboardStudentSchema = z
     results: z.array(ResultSchema).openapi({
       description:
         "One per expectation they have evidence for. An expectation with none has no evidence yet.",
+    }),
+    recognised: z.array(RecognitionTraitSchema).openapi({
+      description:
+        "The traits they were recognised for in this class this term; none when they haven't been yet",
     }),
   })
   .openapi("DashboardStudent");
@@ -439,6 +525,7 @@ export const DashboardSchema = z
       description:
         "The misconceptions revealed in the students' recent plays, the one most students showed first",
     }),
+    recognition: RecognitionSettingsSchema,
   })
   .openapi("Dashboard");
 
@@ -596,6 +683,11 @@ export const StudentPageSchema = z
         description:
           "Their dashboard row's results: one per expectation they have evidence for, by grade then code",
       }),
+    recognised: z.array(RecognitionSchema).openapi({
+      description:
+        "Every recognition they were given in this class, newest first",
+    }),
+    recognition: RecognitionSettingsSchema,
   })
   .openapi("StudentPage");
 

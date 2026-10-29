@@ -70,7 +70,8 @@
   outline-offset: 2px;
 }
 
-.studentGrade {
+.studentGrade,
+.recognised {
   display: block;
   font-weight: normal;
   color: var(--k-ink-muted);

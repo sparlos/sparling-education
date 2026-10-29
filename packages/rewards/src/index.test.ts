@@ -5,9 +5,13 @@ import {
   catalogue,
   inGrantOrder,
   isReward,
+  isSticker,
   nextRewards,
+  recognitionSticker,
+  recognitionTraits,
   rewardKind,
   stickers,
+  traitOf,
 } from "./index.ts";
 
 test("holds every sticker and every outfit piece outside the base set, once each", () => {
@@ -54,4 +58,18 @@ test("grants the next rewards the student hasn't got, in order", () => {
 test("sorts rewards into the order they're granted", () => {
   const [a = "", b = "", c = ""] = catalogue;
   assert.deepEqual(inGrantOrder([c, a, b]), [a, b, c]);
+});
+
+test("gives each recognition trait an exclusive sticker that effort never grants", () => {
+  for (const trait of recognitionTraits) {
+    const id = recognitionSticker(trait);
+    assert.equal(traitOf(id), trait);
+    assert.ok(isSticker(id), id);
+    assert.ok(!isReward(id), id);
+    assert.ok(!catalogue.includes(id), id);
+  }
+  assert.equal(traitOf("sticker-star"), undefined);
+  assert.equal(traitOf("recognition-bravery"), undefined);
+  assert.ok(isSticker("sticker-star"));
+  assert.ok(!isSticker("top-02"));
 });

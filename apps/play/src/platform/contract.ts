@@ -4,7 +4,7 @@
 // with a harness that can set up and read back what the implementation stores.
 import { type AvatarLook, defaultLook } from "@repo/avatar";
 import { baseSet, isItem, outfitSlots } from "@repo/avatar/parts";
-import { isReward, rewardKind } from "@repo/rewards";
+import { isReward, isSticker, rewardKind } from "@repo/rewards";
 import { describe, expect, it } from "vitest";
 import {
   type AttemptRecord,
@@ -271,6 +271,8 @@ export interface LockerStudent {
   locker: LockerPort;
   /** Plays a play through to its end, with effort enough to earn a reward. */
   earn(): Promise<void>;
+  /** Their teacher recognises them for kindness. */
+  recognise(): Promise<void>;
 }
 
 export interface LockerHarness {
@@ -339,11 +341,12 @@ export function lockerPortContract(name: string, harness: LockerHarness) {
       },
     );
 
-    it("gives a new student no stickers and nothing new", async () => {
+    it("gives a new student no stickers, nothing new and nothing on their locker", async () => {
       const { locker } = await harness.newStudent();
-      const { stickers, unseen } = await locker.current();
+      const { stickers, unseen, placements } = await locker.current();
       expect(stickers).toEqual([]);
       expect(unseen).toEqual([]);
+      expect(placements).toEqual([]);
     });
 
     it("reveals what a play earned as new, and the student owns it", async () => {
@@ -364,6 +367,48 @@ export function lockerPortContract(name: string, harness: LockerHarness) {
       expect((await locker.current()).unseen).toEqual(before.unseen);
       await locker.markSeen(before.unseen);
       expect(await locker.current()).toEqual({ ...before, unseen: [] });
+    });
+
+    it("gives the student a recognition sticker, new until they've seen it", async () => {
+      const { locker, recognise } = await harness.newStudent();
+      await recognise();
+      const before = await locker.current();
+      expect(before.stickers).toEqual(["recognition-kindness"]);
+      expect(before.unseen).toEqual(["recognition-kindness"]);
+      await locker.markSeen(before.unseen);
+      expect(await locker.current()).toEqual({ ...before, unseen: [] });
+    });
+
+    it("puts stickers where the student placed them, then moves and takes them off", async () => {
+      const { locker, earn, recognise } = await harness.newStudent();
+      await earn();
+      await recognise();
+      const { stickers } = await locker.current();
+      const [earned = ""] = stickers.filter((id) => isReward(id));
+      expect(isSticker(earned)).toBe(true);
+      const placed = [
+        { sticker: earned, x: 0.25, y: 0.75 },
+        { sticker: "recognition-kindness", x: 0.5, y: 0.5 },
+      ];
+      expect(await locker.place(placed)).toEqual(placed);
+      expect((await locker.current()).placements).toEqual(placed);
+      const moved = [{ sticker: "recognition-kindness", x: 1, y: 0 }];
+      await locker.place(moved);
+      expect((await locker.current()).placements).toEqual(moved);
+      await locker.place([]);
+      expect((await locker.current()).placements).toEqual([]);
+    });
+
+    it("refuses a sticker the student doesn't own, keeping their locker", async () => {
+      const { locker, recognise } = await harness.newStudent();
+      await recognise();
+      const placed = [{ sticker: "recognition-kindness", x: 0.5, y: 0.5 }];
+      await locker.place(placed);
+      for (const sticker of ["sticker-rainbow", "recognition-leadership"])
+        await expect(
+          locker.place([...placed, { sticker, x: 0.1, y: 0.1 }]),
+        ).rejects.toBeInstanceOf(NotOwned);
+      expect((await locker.current()).placements).toEqual(placed);
     });
   });
 }

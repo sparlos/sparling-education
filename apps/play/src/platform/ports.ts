@@ -84,14 +84,30 @@ export interface Locker {
    * hair aren't owned; they're everyone's.
    */
   owned: string[];
-  /** The stickers they've earned, as reward IDs from `@repo/rewards`. */
+  /**
+   * The stickers they own, as sticker IDs from `@repo/rewards`: the ones
+   * they earned, in the order granted, then a recognition sticker for each
+   * trait a teacher recognised them for.
+   */
   stickers: string[];
   /**
-   * Rewards (outfit pieces or stickers) they haven't seen yet, in the order
-   * they were granted: revealed the next time they open their locker, until
-   * they've seen them.
+   * Rewards (outfit pieces or stickers) and recognition stickers they
+   * haven't seen yet, in the order they were given: revealed the next time
+   * they open their locker, until they've seen them.
    */
   unseen: string[];
+  /** The stickers they put on their locker, and where, the one underneath first. */
+  placements: Placement[];
+}
+
+/** A sticker on the locker. */
+export interface Placement {
+  /** A sticker ID from `@repo/rewards` that the student owns. */
+  sticker: string;
+  /** Where its centre is, across the locker: 0 is the left edge, 1 the right. */
+  x: number;
+  /** Where its centre is, down the locker: 0 is the top edge, 1 the bottom. */
+  y: number;
 }
 
 export interface LockerPort {
@@ -103,8 +119,18 @@ export interface LockerPort {
    * Rejects with `NotOwned` when an outfit piece in it isn't theirs.
    */
   wear(look: AvatarLook): Promise<AvatarLook>;
-  /** The student has seen these rewards revealed, so they're no longer new. */
+  /**
+   * The student has seen these rewards (or recognition stickers) revealed,
+   * so they're no longer new.
+   */
   markSeen(rewards: readonly string[]): Promise<void>;
+  /**
+   * Puts the student's stickers on their locker where `placements` says,
+   * the one underneath first, taking off any left out. Only the signed-in
+   * student's own locker changes. Rejects with `NotOwned` when a sticker
+   * isn't theirs.
+   */
+  place(placements: readonly Placement[]): Promise<Placement[]>;
 }
 
 /** A teacher is signed in; the play shell is for students. */
@@ -123,10 +149,10 @@ export class NoSuchClass extends Error {
   }
 }
 
-/** The look has an outfit piece the student doesn't own. */
+/** The look has an outfit piece, or the placements a sticker, the student doesn't own. */
 export class NotOwned extends Error {
   constructor() {
-    super("The look has an outfit piece the student doesn't own");
+    super("That has something the student doesn't own");
     this.name = "NotOwned";
   }
 }

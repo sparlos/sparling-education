@@ -1,9 +1,17 @@
-/* The locker: the student's home screen, usable without reading. */
+/* The locker: the student's home screen, usable without reading. The shell
+   never scrolls the page (global.css), so the locker scrolls itself: full
+   width, so its scrollbar is at the screen's edge, with its content in a
+   720 px column. */
 .locker {
-  min-height: 100dvh;
-  max-width: 720px;
-  margin: 0 auto;
-  padding: var(--mantine-spacing-lg);
+  box-sizing: border-box;
+  height: 100dvh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--mantine-spacing-lg)
+    max(
+      var(--mantine-spacing-lg),
+      calc((100% - 720px) / 2 + var(--mantine-spacing-lg))
+    );
   display: flex;
   flex-direction: column;
   gap: var(--mantine-spacing-xl);
@@ -117,6 +125,12 @@
   background-color: var(--tone-soft);
 }
 
+/* A teacher's recognition stands out from what effort earned. */
+.reward[data-recognition] {
+  background-color: var(--k-surface-raised);
+  box-shadow: 0 0 0 0.25rem var(--tone-fill);
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .reward {
     animation: pop 400ms ease-out both;
@@ -151,12 +165,121 @@
   }
 }
 
-/* The student's stickers, until they can place them on the locker. */
+/* The student's stickers: the locker they stick them on, and the tray of
+   ones not stuck on yet. */
+.board {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  min-height: 12rem;
+  overflow: hidden;
+  border: var(--k-press-border) solid var(--k-border);
+  border-radius: var(--mantine-radius-lg);
+  background-color: var(--k-surface-sunken);
+}
+
+.board[data-holding] {
+  border-color: var(--tone-edge, var(--k-focus));
+  border-style: dashed;
+}
+
+/* A swipe that starts on a sticker drags it; anywhere else it scrolls. */
+.placed,
+.loose {
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: grab;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Centred on its spot. */
+.placed {
+  position: absolute;
+  transform: translate(-50%, -50%);
+}
+
+.loose {
+  min-width: 4.5rem;
+  min-height: 4.5rem;
+  border-radius: var(--mantine-radius-lg);
+  background-color: var(--k-surface-sunken);
+}
+
+.placed:focus-visible,
+.loose:focus-visible,
+.target:focus-visible {
+  outline: 0.25rem solid var(--k-focus);
+  outline-offset: 0.125rem;
+}
+
+/* The sticker in hand: lifted, with a ring round it. */
+.placed[data-held],
+.loose[data-held] {
+  border-radius: 50%;
+  outline: 0.25rem solid var(--k-focus);
+  outline-offset: 0.125rem;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .placed[data-held],
+  .loose[data-held] {
+    animation: lift var(--k-duration-fast) var(--k-ease-standard) both;
+  }
+
+  .placed[data-held] {
+    animation-name: lift-placed;
+  }
+}
+
+@keyframes lift {
+  to {
+    transform: scale(1.1);
+  }
+}
+
+@keyframes lift-placed {
+  to {
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+}
+
+/* Covers the locker while a sticker is in hand: tap where it goes. */
+.target {
+  position: absolute;
+  inset: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: copy;
+}
+
+.tray {
+  display: flex;
+  align-items: center;
+  gap: var(--mantine-spacing-md);
+}
+
 .stickers {
+  flex: 1;
   list-style: none;
   margin: 0;
   padding: 0;
   display: flex;
   flex-wrap: wrap;
   gap: var(--mantine-spacing-sm);
+}
+
+.back {
+  margin-left: auto;
+}
+
+/* A sticker being dragged, under the finger. */
+.dragging {
+  position: fixed;
+  z-index: 10;
+  transform: translate(-50%, -50%) scale(1.1);
+  pointer-events: none;
 }

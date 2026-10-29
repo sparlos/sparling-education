@@ -3,12 +3,14 @@
 // sign-in does. Only reachable while the shell runs on the stand-in platform.
 
 import { lookFromSeed } from "@repo/avatar";
+import { stickers } from "@repo/rewards";
 import { Button } from "@repo/ui/button";
 import { Stack } from "@repo/ui/stack";
 import { Text } from "@repo/ui/text";
 import { Title } from "@repo/ui/title";
 import { useState } from "react";
 import type { KeyValueStore } from "../../play/storage.ts";
+import { standInGrant, standInRecognise } from "./locker.ts";
 import type { StandInClasses } from "./memberships.ts";
 import { standInSignIn } from "./session.ts";
 
@@ -30,6 +32,7 @@ export function StandInSignInScreen({
 }) {
   const [inClass, setInClass] = useState(true);
   const [designed, setDesigned] = useState(false);
+  const [withStickers, setWithStickers] = useState(false);
   const next = url.searchParams.get("next");
   // Only ever return to a path on this site.
   const returnTo = next?.startsWith("/") && !next.startsWith("//") ? next : "/";
@@ -43,6 +46,13 @@ export function StandInSignInScreen({
       look: designed ? lookFromSeed(id) : null,
       classes: inClass && found ? [{ ...found, grade }] : [],
     });
+    if (withStickers) {
+      standInGrant(
+        storage,
+        stickers.slice(0, 4).map((s) => s.id),
+      );
+      standInRecognise(storage, "kindness");
+    }
     navigate(returnTo);
   };
 
@@ -73,6 +83,14 @@ export function StandInSignInScreen({
             onChange={(event) => setDesigned(event.target.checked)}
           />
           Already has an avatar (otherwise they design one first)
+        </label>
+        <label style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          <input
+            type="checkbox"
+            checked={withStickers}
+            onChange={(event) => setWithStickers(event.target.checked)}
+          />
+          Has four stickers, and new recognition for kindness from their teacher
         </label>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
           {grades.map((grade) => (

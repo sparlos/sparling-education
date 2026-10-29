@@ -132,6 +132,19 @@ export interface TeacherPort {
    */
   studentPage(classId: string, studentId: string): Promise<StudentPage>;
   /**
+   * Recognises the student for a character trait, giving them its exclusive
+   * sticker, revealed as new in their locker. Once per trait per term in a
+   * class: again this term resolves with the recognition already given.
+   * Rejects when no teacher is signed in or the trait isn't one of
+   * `RecognitionSettings.traits`, and with `NotFound` when the class isn't
+   * theirs or the student isn't in it.
+   */
+  recognise(
+    classId: string,
+    studentId: string,
+    trait: string,
+  ): Promise<Recognition>;
+  /**
    * A dashboard cell, opened: the student's evidence for the expectation.
    * Rejects when no teacher is signed in, and with `NotFound` when the class
    * isn't theirs, the student isn't in it, or there's no such expectation.
@@ -169,6 +182,26 @@ export interface Dashboard {
    * students showed first.
    */
   misconceptions: ClassMisconception[];
+  recognition: RecognitionSettings;
+}
+
+/** What a teacher recognises students for, and when. */
+export interface RecognitionSettings {
+  /**
+   * This term's first and last days, as ISO dates ("2026-09-01"). Between
+   * terms, the term that ended last.
+   */
+  term: { start: string; end: string };
+  /** The character traits a teacher can recognise, in the order to offer them. */
+  traits: { trait: string; name: string }[];
+}
+
+/** A teacher recognising a student for a trait. */
+export interface Recognition {
+  /** One of `RecognitionSettings.traits`. */
+  trait: string;
+  /** When it was given, as an ISO date-time. */
+  awardedAt: string;
 }
 
 /** A wrong idea a game's attempts can reveal. */
@@ -209,6 +242,9 @@ export interface StudentPage {
   effort: EffortSkill[];
   /** Their dashboard row's results, by grade then code; none for no evidence yet. */
   results: { expectation: DashboardExpectation; result: Result }[];
+  /** Every recognition they were given in the class, newest first. */
+  recognised: Recognition[];
+  recognition: RecognitionSettings;
 }
 
 export interface EffortSkill {
@@ -325,6 +361,8 @@ export interface DashboardStudent {
   grade: number | null;
   /** One per expectation they have evidence for. */
   results: Result[];
+  /** The traits they were recognised for in the class this term, in the order offered. */
+  recognised: string[];
 }
 
 /** A student's understanding of one expectation. */

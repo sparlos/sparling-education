@@ -1,5 +1,10 @@
 // The locker port over Kindling's API, through the generated client.
-import { getLocker, markRewardsSeen, wearLook } from "@repo/api-client";
+import {
+  getLocker,
+  markRewardsSeen,
+  placeStickers,
+  wearLook,
+} from "@repo/api-client";
 import { parseLook } from "@repo/avatar";
 import { type LockerPort, NotOwned } from "../ports.ts";
 import { unexpected } from "./unexpected.ts";
@@ -22,6 +27,12 @@ export function apiLocker(): LockerPort {
     async markSeen(rewards) {
       const res = await markRewardsSeen({ rewards: [...rewards] });
       if (res.status !== 204) throw unexpected("seen", res.status);
+    },
+    async place(placements) {
+      const res = await placeStickers({ placements: [...placements] });
+      if (res.status === 400) throw new NotOwned();
+      if (res.status !== 200) throw unexpected("place stickers", res.status);
+      return res.data.placements;
     },
   };
 }

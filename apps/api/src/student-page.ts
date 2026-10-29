@@ -1,7 +1,7 @@
 // A student's page, opened from their row of the dashboard: their effort
 // evidence by Learning Skill, and their results, each opening on its
-// evidence. Only the class's teacher sees it, and only from the student's
-// plays for that class.
+// evidence, and the recognition they were given in the class. Only the
+// class's teacher sees it, and only from the student's plays for that class.
 
 import {
   type ExpectationId,
@@ -12,6 +12,7 @@ import {
 import type { Db } from "@repo/db";
 import { cells, countedRecords, describedExpectation } from "./dashboard.ts";
 import { manifestAt } from "./games.ts";
+import { recognitionOf, recognitionSettings } from "./recognition.ts";
 import type { StudentPage } from "./schemas.ts";
 import {
   type EffortKind,
@@ -29,6 +30,7 @@ export async function studentPage(
   teacherId: string,
   classId: string,
   studentId: string,
+  now: Date,
 ): Promise<StudentPage | null> {
   const membership = await db.membership.findFirst({
     where: { classId, studentId, class: { teacherId } },
@@ -39,7 +41,7 @@ export async function studentPage(
   if (!membership) return null;
   const { grade, student } = membership;
 
-  const [effortRecords, counted] = await Promise.all([
+  const [effortRecords, counted, recognised] = await Promise.all([
     db.playRecord.findMany({
       where: { classId, studentId },
       select: {
@@ -55,6 +57,7 @@ export async function studentPage(
       orderBy: { sequence: "asc" },
     }),
     countedRecords(db, classId, [studentId]),
+    recognitionOf(db, classId, studentId),
   ]);
 
   const [effort] = effortOf(effortRecords);
@@ -93,5 +96,7 @@ export async function studentPage(
     student: { ...student, grade },
     effort: skills,
     results,
+    recognised,
+    recognition: recognitionSettings(now),
   };
 }

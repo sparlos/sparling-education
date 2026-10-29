@@ -78,6 +78,8 @@ const dashboardRoute = createRoute({
     const { cls, dashboard, all } = dashboardRoute.useLoaderData();
     const { misconception } = dashboardRoute.useSearch();
     const navigate = dashboardRoute.useNavigate();
+    const { teacher } = dashboardRoute.useRouteContext();
+    const router = useRouter();
     return (
       <DashboardScreen
         cls={cls}
@@ -93,6 +95,10 @@ const dashboardRoute = createRoute({
             state: (before) => before,
           })
         }
+        onRecognise={async (studentId, trait) => {
+          await teacher.recognise(cls.id, studentId, trait);
+          await router.invalidate();
+        }}
       />
     );
   },
@@ -147,7 +153,18 @@ const studentRoute = createRoute({
   },
   component: function Student() {
     const { cls, page } = studentRoute.useLoaderData();
-    return <StudentScreen cls={cls} page={page} />;
+    const { teacher } = studentRoute.useRouteContext();
+    const router = useRouter();
+    return (
+      <StudentScreen
+        cls={cls}
+        page={page}
+        onRecognise={async (studentId, trait) => {
+          await teacher.recognise(cls.id, studentId, trait);
+          await router.invalidate();
+        }}
+      />
+    );
   },
   ...loading("the student's page", { label: "The class's results" }),
 });

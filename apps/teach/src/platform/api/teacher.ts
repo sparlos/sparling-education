@@ -10,6 +10,8 @@ import {
   getEvidence,
   getPlay,
   getStudentPage,
+  type RecognitionTrait,
+  recogniseStudent,
   removeStudent,
   setStudentGrade,
   signIn,
@@ -104,6 +106,13 @@ export function apiTeacherPort(options: {
     async studentPage(classId, studentId) {
       const res = await getStudentPage(classId, studentId);
       if (res.status !== 200) throw unexpected("student page", res.status);
+      return res.data;
+    },
+    async recognise(classId, studentId, trait) {
+      const res = await recogniseStudent(classId, studentId, {
+        trait: trait as RecognitionTrait,
+      });
+      if (res.status !== 200) throw unexpected("recognise", res.status);
       return res.data;
     },
     async evidence(classId, studentId, expectationId) {

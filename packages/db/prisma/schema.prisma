@@ -39,6 +39,10 @@ model Account {
   playRecords   PlayRecord[]
   // A student's rewards.
   rewards       Reward[]
+  // A student's recognition from their teachers.
+  recognitions  Recognition[]
+  // Where a student put their stickers on their locker.
+  placements    StickerPlacement[]
 }
 
 // A signed-in browser. The cookie holds a random token; only its hash is kept.
@@ -66,8 +70,9 @@ model Class {
   // is on, so a game Kindling starts hosting is on in every class.
   gamesOff    String[]     @default([])
   createdAt   DateTime     @default(now())
-  memberships Membership[]
-  playRecords PlayRecord[]
+  memberships  Membership[]
+  playRecords  PlayRecord[]
+  recognitions Recognition[]
 
   @@index([teacherId])
 }
@@ -169,4 +174,41 @@ model Reward {
 
   @@id([studentId, item])
   @@index([studentId, week])
+}
+
+// A teacher recognising a student in their class for a character trait,
+// which gives the student the trait's exclusive sticker. Once per trait per
+// term in a class: recognising them for it again that term changes nothing.
+// Never granted by effort, and never counted toward the weekly cap.
+model Recognition {
+  studentId String    @db.Uuid
+  student   Account   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  classId   String    @db.Uuid
+  class     Class     @relation(fields: [classId], references: [id], onDelete: Cascade)
+  // A trait from @repo/rewards' `recognitionTraits`.
+  trait     String
+  // The first day of the term it was given in, in school time.
+  term      DateTime  @db.Date
+  awardedAt DateTime
+  // When the student saw it revealed in their locker; null while it's new.
+  seenAt    DateTime?
+
+  @@id([studentId, classId, trait, term])
+  @@index([classId, term])
+}
+
+// A sticker a student put on their locker, and where. Only the student
+// places, moves or removes their stickers.
+model StickerPlacement {
+  studentId String  @db.Uuid
+  student   Account @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  // A sticker the student owns: earned, or for a trait they were recognised for.
+  sticker   String
+  // The sticker's centre, as fractions (0 to 1) of the locker's width and height.
+  x         Float
+  y         Float
+  // Stacking order, lowest first: a sticker put on later sits on top.
+  layer     Int
+
+  @@id([studentId, sticker])
 }

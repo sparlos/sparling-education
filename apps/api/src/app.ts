@@ -21,7 +21,7 @@ import {
 import { classDashboard } from "./dashboard.ts";
 import { studentEvidence, studentPlay } from "./drill-down.ts";
 import { type IdentityVerifier, identityFrom } from "./identity.ts";
-import { markSeen, studentLocker, wearLook } from "./locker.ts";
+import { markSeen, placeStickers, studentLocker, wearLook } from "./locker.ts";
 import {
   classStudents,
   joinClass,
@@ -30,6 +30,7 @@ import {
   setStudentGrade,
 } from "./memberships.ts";
 import { ingestPlayRecords } from "./play-records.ts";
+import { recognise } from "./recognition.ts";
 import {
   type Account,
   AccountSchema,
@@ -46,9 +47,12 @@ import {
   LookSchema,
   MembershipSchema,
   NewClassSchema,
+  PlacementsSchema,
   PlayRecordBatchSchema,
   PlayRecordsStoredSchema,
   PlaySchema,
+  RecogniseSchema,
+  RecognitionSchema,
   SeenSchema,
   SignedInSchema,
   SignInSchema,
@@ -294,6 +298,29 @@ const seenRoute = createRoute({
   },
 });
 
+const placementsRoute = createRoute({
+  method: "put",
+  path: "/locker/stickers",
+  operationId: "placeStickers",
+  summary: "Put the signed-in student's stickers on their locker",
+  description:
+    "Every sticker on their locker, and where, replacing what was there: stickers left out are taken off. Each must be one they own. Only the student changes their own locker.",
+  request: {
+    body: { content: { "application/json": { schema: PlacementsSchema } } },
+  },
+  responses: {
+    200: {
+      description: "The stickers now on their locker",
+      content: { "application/json": { schema: PlacementsSchema } },
+    },
+    400: {
+      description: "A sticker isn't theirs, or is placed twice",
+      content: { "application/json": { schema: ErrorSchema } },
+    },
+    ...studentOnly,
+  },
+});
+
 const playRecordsRoute = createRoute({
   method: "post",
   path: "/play-records",
@@ -531,6 +558,31 @@ const studentPageRoute = createRoute({
   },
 });
 
+const recogniseRoute = createRoute({
+  method: "post",
+  path: "/classes/{classId}/students/{studentId}/recognition",
+  operationId: "recogniseStudent",
+  summary: "Recognise a student for a character trait",
+  description:
+    "Gives the student the trait's exclusive recognition sticker, revealed as new in their locker. Once per trait per term in a class: recognising them for it again this term changes nothing. It never counts toward the weekly reward cap.",
+  request: {
+    params: z.object({ classId: z.uuid(), studentId: z.uuid() }),
+    body: { content: { "application/json": { schema: RecogniseSchema } } },
+  },
+  responses: {
+    200: {
+      description: "The recognition, given now or earlier this term",
+      content: { "application/json": { schema: RecognitionSchema } },
+    },
+    ...teacherOnly,
+    404: {
+      description:
+        "No class of this teacher's has that ID, or the student isn't in it",
+      content: { "application/json": { schema: ErrorSchema } },
+    },
+  },
+});
+
 const evidenceRoute = createRoute({
   method: "get",
   path: "/classes/{classId}/students/{studentId}/expectations/{expectationId}",
@@ -596,6 +648,8 @@ export interface AppDeps {
   secureCookies?: boolean;
   /** Serve the Scalar API reference at /reference. Development only. */
   apiReference?: boolean;
+  /** The time now, for which term it is. Tests pass their own. */
+  clock?: () => Date;
 }
 
 // Routes are chained so the app's type carries them, for `testClient`.
@@ -604,6 +658,7 @@ export function createApp({
   identity,
   secureCookies = true,
   apiReference = false,
+  clock = () => new Date(),
 }: AppDeps) {
   const base = new OpenAPIHono();
   base.use("*", cors());
@@ -738,6 +793,15 @@ export function createApp({
       await markSeen(db, student.id, c.req.valid("json").rewards);
       return c.body(null, 204);
     })
+    .openapi(placementsRoute, async (c) => {
+      const student = await studentOf(c);
+      if (student === "signed-out") return c.json({ error: student }, 401);
+      if (student === "not-a-student") return c.json({ error: student }, 403);
+      const { placements } = c.req.valid("json");
+      if ((await placeStickers(db, student.id, placements)) === "not-owned")
+        return c.json({ error: "not-owned" }, 400);
+      return c.json({ placements }, 200);
+    })
     .openapi(playRecordsRoute, async (c) => {
       const student = await studentOf(c);
       if (student === "signed-out") return c.json({ error: student }, 401);
@@ -848,6 +912,7 @@ export function createApp({
         db,
         teacher.id,
         c.req.valid("param").classId,
+        clock(),
       );
       if (!dashboard) return c.json({ error: "no-such-class" }, 404);
       return c.json(dashboard, 200);
@@ -857,9 +922,31 @@ export function createApp({
       if (teacher === "signed-out") return c.json({ error: teacher }, 401);
       if (teacher === "not-a-teacher") return c.json({ error: teacher }, 403);
       const { classId, studentId } = c.req.valid("param");
-      const page = await studentPage(db, teacher.id, classId, studentId);
+      const page = await studentPage(
+        db,
+        teacher.id,
+        classId,
+        studentId,
+        clock(),
+      );
       if (!page) return c.json({ error: "not-found" }, 404);
       return c.json(page, 200);
+    })
+    .openapi(recogniseRoute, async (c) => {
+      const teacher = await teacherOf(c);
+      if (teacher === "signed-out") return c.json({ error: teacher }, 401);
+      if (teacher === "not-a-teacher") return c.json({ error: teacher }, 403);
+      const { classId, studentId } = c.req.valid("param");
+      const given = await recognise(
+        db,
+        teacher.id,
+        classId,
+        studentId,
+        c.req.valid("json").trait,
+        clock(),
+      );
+      if (!given) return c.json({ error: "not-found" }, 404);
+      return c.json(given, 200);
     })
     .openapi(evidenceRoute, async (c) => {
       const teacher = await teacherOf(c);

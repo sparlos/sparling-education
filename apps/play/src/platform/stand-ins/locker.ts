@@ -2,16 +2,32 @@
 // student owns the base set, plus rewards kept in this browser's storage: the
 // stand-in sign-in screen and tests can grant some, and every finished play
 // earns the next one in the catalogue (no effort rule, no weekly cap; the
-// API's scoring module has those). Their look is kept on the stand-in
-// student. The real adapter is ../api/locker.ts; see ../README.md.
+// API's scoring module has those). Recognition from a teacher is granted
+// the same way (`standInRecognise`; no terms or classes). Their look is kept
+// on the stand-in student, and their sticker placements in storage. The real
+// adapter is ../api/locker.ts; see ../README.md.
 import { canWear, parseLook } from "@repo/avatar";
 import { baseSet } from "@repo/avatar/parts";
-import { nextRewards, rewardKind } from "@repo/rewards";
+import {
+  isRecognitionTrait,
+  nextRewards,
+  type RecognitionTrait,
+  recognitionSticker,
+  rewardKind,
+  traitOf,
+} from "@repo/rewards";
 import { type KeyValueStore, readJson, writeJson } from "../../play/storage.ts";
-import { type LockerPort, NotOwned, type PlayRecord } from "../ports.ts";
+import {
+  type LockerPort,
+  NotOwned,
+  type Placement,
+  type PlayRecord,
+} from "../ports.ts";
 import { standInSignIn, standInStudent } from "./session.ts";
 
 const rewardsKey = "kindling.stand-in.rewards";
+const recognitionKey = "kindling.stand-in.recognition";
+const placementsKey = "kindling.stand-in.placements";
 
 interface StandInReward {
   item: string;
@@ -27,15 +43,28 @@ export function standInLocker(storage: KeyValueStore | null): LockerPort {
         .filter((id) => rewardKind(id) !== "sticker"),
     ]),
   ];
+  const stickers = () => [
+    ...standInRewards(storage)
+      .map((r) => r.item)
+      .filter((id) => rewardKind(id) === "sticker"),
+    ...standInRecognition(storage).map((r) => recognitionSticker(r.trait)),
+  ];
   return {
     async current() {
       const rewards = standInRewards(storage);
+      const mine = new Set(stickers());
       return {
         owned: owned(),
-        stickers: rewards
-          .map((r) => r.item)
-          .filter((id) => rewardKind(id) === "sticker"),
-        unseen: rewards.filter((r) => !r.seen).map((r) => r.item),
+        stickers: stickers(),
+        unseen: [
+          ...rewards.filter((r) => !r.seen).map((r) => r.item),
+          ...standInRecognition(storage)
+            .filter((r) => !r.seen)
+            .map((r) => recognitionSticker(r.trait)),
+        ],
+        placements: standInPlacements(storage).filter((p) =>
+          mine.has(p.sticker),
+        ),
       };
     },
     async wear(value) {
@@ -55,8 +84,66 @@ export function standInLocker(storage: KeyValueStore | null): LockerPort {
           mine.has(r.item) ? { ...r, seen: true } : r,
         ),
       );
+      const traits = new Set(seen.map(traitOf));
+      writeJson(
+        storage,
+        recognitionKey,
+        standInRecognition(storage).map((r) =>
+          traits.has(r.trait) ? { ...r, seen: true } : r,
+        ),
+      );
+    },
+    async place(placements) {
+      const mine = new Set(stickers());
+      const placed = placements.map(({ sticker, x, y }) => ({ sticker, x, y }));
+      if (!placed.every((p) => mine.has(p.sticker))) throw new NotOwned();
+      if (new Set(placed.map((p) => p.sticker)).size !== placed.length)
+        throw new Error("Stand-in locker: a sticker placed twice");
+      if (!placed.every((p) => inside(p.x) && inside(p.y)))
+        throw new Error("Stand-in locker: a sticker off the locker");
+      writeJson(storage, placementsKey, placed);
+      return placed;
     },
   };
+}
+
+const inside = (n: number) => Number.isFinite(n) && n >= 0 && n <= 1;
+
+/**
+ * A teacher recognising the stand-in student for `trait`, giving them its
+ * sticker: new, unless `seen` is true.
+ */
+export function standInRecognise(
+  storage: KeyValueStore | null,
+  trait: RecognitionTrait,
+  { seen = false }: { seen?: boolean } = {},
+): void {
+  writeJson(storage, recognitionKey, [
+    ...standInRecognition(storage).filter((r) => r.trait !== trait),
+    { trait, seen },
+  ]);
+}
+
+function standInRecognition(
+  storage: KeyValueStore | null,
+): { trait: RecognitionTrait; seen: boolean }[] {
+  const given = readJson(storage, recognitionKey);
+  return Array.isArray(given)
+    ? given.filter(
+        (r): r is { trait: RecognitionTrait; seen: boolean } =>
+          isRecognitionTrait(r?.trait) && typeof r?.seen === "boolean",
+      )
+    : [];
+}
+
+function standInPlacements(storage: KeyValueStore | null): Placement[] {
+  const placed = readJson(storage, placementsKey);
+  return Array.isArray(placed)
+    ? placed.filter(
+        (p): p is Placement =>
+          typeof p?.sticker === "string" && inside(p?.x) && inside(p?.y),
+      )
+    : [];
 }
 
 /**

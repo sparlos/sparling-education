@@ -145,6 +145,50 @@ export function weekOf(at: Date): Date {
   return date;
 }
 
+/**
+ * The provisional recognition rule: the school year's terms, for "not yet
+ * recognised this term". Each term is the month and day it starts and ends,
+ * in school time. A day between terms (the summer) belongs to the term that
+ * ended last, so recognition given then counts toward it.
+ */
+export const recognitionRule = {
+  terms: [
+    { from: { month: 9, day: 1 }, to: { month: 1, day: 31 } },
+    { from: { month: 2, day: 1 }, to: { month: 6, day: 30 } },
+  ],
+} as const;
+
+/** A term: its first and last days, as dates at UTC midnight. */
+export interface Term {
+  start: Date;
+  end: Date;
+}
+
+/** The term `at` falls in, or the one that ended last if it's between terms. */
+export function termOf(at: Date): Term {
+  const [year = 0, month = 1, day = 1] = schoolDate
+    .format(at)
+    .split("-")
+    .map(Number);
+  const today = Date.UTC(year, month - 1, day);
+  const dated = (y: number, m: number, d: number) =>
+    new Date(Date.UTC(y, m - 1, d));
+  // Every term starting this year or last, latest first.
+  const terms = [year, year - 1]
+    .flatMap((y) =>
+      recognitionRule.terms.map(({ from, to }) => {
+        const start = dated(y, from.month, from.day);
+        // A term that ends in an earlier month than it starts ends next year.
+        const endYear = to.month < from.month ? y + 1 : y;
+        return { start, end: dated(endYear, to.month, to.day) };
+      }),
+    )
+    .sort((a, b) => +b.start - +a.start);
+  const term = terms.find((t) => +t.start <= today);
+  if (!term) throw new Error("recognitionRule has no terms");
+  return term;
+}
+
 export type Understanding =
   | "not-yet-showing"
   | "developing"

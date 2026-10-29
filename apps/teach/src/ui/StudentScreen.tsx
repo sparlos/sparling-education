@@ -1,6 +1,7 @@
 // A student's page, opened from their row of the dashboard: their effort
 // evidence by Learning Skill, then their results, each opening on its
-// evidence. Recognition and quick assess join it here later.
+// evidence, then the recognition they were given. Quick assess joins it
+// here later.
 import { Stack } from "@repo/ui/stack";
 import { Text } from "@repo/ui/text";
 import { Title } from "@repo/ui/title";
@@ -13,6 +14,7 @@ import type {
 } from "../platform/ports.ts";
 import { Band, expectationLabel, nameOf } from "./Dashboard.tsx";
 import { ButtonLink, useUp } from "./links.tsx";
+import { type OnRecognise, StudentRecognition } from "./Recognition.tsx";
 import classes from "./student.module.css";
 
 /** Each kind of effort evidence, counted, in a teacher's words. */
@@ -24,10 +26,12 @@ const effortLabels: Record<EffortKind, (n: number) => string> = {
 
 export function StudentScreen({
   cls,
-  page: { student, effort, results },
+  page: { student, effort, results, recognised, recognition },
+  onRecognise,
 }: {
   cls: Class;
   page: StudentPage;
+  onRecognise: OnRecognise;
 }) {
   const up = useUp();
   return (
@@ -105,6 +109,12 @@ export function StudentScreen({
           </ul>
         )}
       </section>
+      <StudentRecognition
+        student={student}
+        recognised={recognised}
+        settings={recognition}
+        onRecognise={onRecognise}
+      />
     </Stack>
   );
 }

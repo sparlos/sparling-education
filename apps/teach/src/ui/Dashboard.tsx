@@ -2,7 +2,9 @@
 // students against the expectations its games evidence, each cell saying how
 // well that student's plays show understanding of that expectation, or that
 // there's no evidence yet. A cell, or a student under a misconception, opens
-// that student's evidence; a student's name opens their page.
+// that student's evidence; a student's name opens their page. Below, the
+// students not recognised yet this term; any student can be recognised from
+// their row.
 import { Card } from "@repo/ui/card";
 import { Stack } from "@repo/ui/stack";
 import { Table } from "@repo/ui/table";
@@ -22,6 +24,12 @@ import type {
 import { gradesLabel } from "./Classes.tsx";
 import classes from "./dashboard.module.css";
 import { ButtonLink, useUp } from "./links.tsx";
+import {
+  NotYetRecognised,
+  type OnRecognise,
+  Recognise,
+  traitName,
+} from "./Recognition.tsx";
 
 /** What each understanding band says. Descriptions, never marks or levels. */
 export const understandingLabels: Record<Understanding, string> = {
@@ -42,6 +50,7 @@ export function DashboardScreen({
   dashboard,
   misconception,
   onMisconception,
+  onRecognise,
 }: {
   cls: Class;
   /** All the teacher's classes, to switch between. */
@@ -50,6 +59,7 @@ export function DashboardScreen({
   /** The misconception opened in the strip, as `game|id`. */
   misconception: string | null;
   onMisconception(key: string | null): void;
+  onRecognise: OnRecognise;
 }) {
   const up = useUp();
   return (
@@ -98,6 +108,12 @@ export function DashboardScreen({
             classId={cls.id}
             dashboard={dashboard}
             split={cls.grades.length > 1}
+            onRecognise={onRecognise}
+          />
+          <NotYetRecognised
+            students={dashboard.students}
+            settings={dashboard.recognition}
+            onRecognise={onRecognise}
           />
         </>
       )}
@@ -243,10 +259,12 @@ function Grid({
   classId,
   dashboard,
   split,
+  onRecognise,
 }: {
   classId: string;
   dashboard: Dashboard;
   split: boolean;
+  onRecognise: OnRecognise;
 }) {
   const { expectations, students } = dashboard;
   return (
@@ -280,6 +298,21 @@ function Grid({
                   Grade {student.grade}
                 </span>
               )}
+              {student.recognised.length > 0 && (
+                <span className={classes.recognised}>
+                  {`Recognised: ${student.recognised
+                    .map((t) => traitName(dashboard.recognition, t))
+                    .join(", ")}`}
+                </span>
+              )}
+              <Recognise
+                student={student}
+                settings={dashboard.recognition}
+                recognised={student.recognised}
+                onRecognise={onRecognise}
+                variant="subtle"
+                quiet
+              />
             </span>,
             ...expectations.map((e) => (
               <ResultCell

@@ -115,20 +115,30 @@ lockerPortContract("API locker", {
     const student = browser();
     await student.signInAsStudent();
     setFetch(student.send);
+    // Their teacher's class, made and joined the first time it's needed.
+    let joined: Promise<{ classId: string; teacher: typeof fetch }> | null =
+      null;
+    const inClass = () => {
+      joined ??= (async () => {
+        const teacher = browser();
+        await teacher.signInAsTeacher();
+        const res = await teacher.send("/classes", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ name: "Room 12", grades: [4] }),
+        });
+        const { joinCode } = (await res.json()) as { joinCode: string };
+        setFetch(student.send);
+        const { classId } = await apiMemberships().join(joinCode);
+        return { classId, teacher: teacher.send };
+      })();
+      return joined;
+    };
     return {
       session: apiSession(),
       locker: apiLocker(),
       earn: async () => {
-        const joinCode = await asTeacher(async (send) => {
-          const res = await send("/classes", {
-            method: "POST",
-            headers: { "content-type": "application/json" },
-            body: JSON.stringify({ name: "Room 12", grades: [4] }),
-          });
-          return ((await res.json()) as { joinCode: string }).joinCode;
-        });
-        setFetch(student.send);
-        const { classId } = await apiMemberships().join(joinCode);
+        const { classId } = await inClass();
         const me = await apiSession().current();
         const common = {
           play: "earning",
@@ -155,6 +165,19 @@ lockerPortContract("API locker", {
           ),
           sampleEnd({ ...common }),
         ]);
+      },
+      recognise: async () => {
+        const { classId, teacher } = await inClass();
+        const me = await apiSession().current();
+        const res = await teacher(
+          `/classes/${classId}/students/${me?.id}/recognition`,
+          {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ trait: "kindness" }),
+          },
+        );
+        if (res.status !== 200) throw new Error(`Recognise: ${res.status}`);
       },
     };
   },

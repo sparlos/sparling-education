@@ -25,6 +25,7 @@ import {
   type NewClass,
   NotFound,
   type Play,
+  type RecognitionSettings,
   type Result,
   type StudentPage,
   type TeacherPort,
@@ -102,11 +103,47 @@ const consistentlyFrom = 0.8;
 const consistentlyNeedsTasks = 4;
 // …the misconceptions a student is showing, from their recent plays of a game…
 const misconceptionPlays = 5;
-// …and the Learning Skill each kind of effort is evidence of.
+// …the Learning Skill each kind of effort is evidence of…
 const effortSkills = {
   improvedAfterMistake: "self-regulation",
   finishedPlays: "responsibility",
 } as const satisfies Record<EffortKind, LearningSkill>;
+// …and recognition's traits (@repo/rewards) and terms, by month and day in
+// the schools' time zone.
+const fakeTraits = [
+  { trait: "kindness", name: "Kindness" },
+  { trait: "perseverance", name: "Perseverance" },
+  { trait: "leadership", name: "Leadership" },
+] as const;
+const terms = [
+  { from: [9, 1], to: [1, 31] },
+  { from: [2, 1], to: [6, 30] },
+] as const;
+const schoolDate = new Intl.DateTimeFormat("en-CA", {
+  timeZone: "America/Toronto",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
+
+/** The term `at` is in, or the one that ended last, as ISO dates. */
+function termOf(at: Date): { start: string; end: string } {
+  const today = schoolDate.format(at);
+  const year = Number(today.slice(0, 4));
+  const iso = (y: number, [m, d]: readonly [number, number]) =>
+    `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+  const found = [year, year - 1]
+    .flatMap((y) =>
+      terms.map(({ from, to }) => ({
+        start: iso(y, from),
+        end: iso(to[0] < from[0] ? y + 1 : y, to),
+      })),
+    )
+    .sort((a, b) => b.start.localeCompare(a.start))
+    .find((t) => t.start <= today);
+  if (!found) throw new Error("No term (fake)");
+  return found;
+}
 
 export function fakeTeacherBackend(
   options: {
@@ -115,6 +152,8 @@ export function fakeTeacherBackend(
     /** The site links point at. */
     origin?: string;
     games?: readonly FakeGame[];
+    /** The time now, for which term it is. */
+    now?: () => Date;
   } = {},
 ): FakeTeacherBackend {
   const { origin = "https://kindling.test", games = fakeGames } = options;
@@ -127,6 +166,15 @@ export function fakeTeacherBackend(
     grade: number | null;
   }[] = [];
   const plays: FakePlay[] = [];
+  const recognitions: {
+    classId: string;
+    studentId: string;
+    trait: string;
+    /** The term's first day, as an ISO date. */
+    term: string;
+    awardedAt: string;
+  }[] = [];
+  const now = options.now ?? (() => new Date());
   // The device clock plays are made by: a minute apart.
   let clock = Date.UTC(2026, 9, 1, 14);
   let signedIn: Account | null = null;
@@ -231,6 +279,7 @@ export function fakeTeacherBackend(
       lastInitial: student.lastInitial,
       grade,
       results: resultsOf(student.id, cls.id, grade),
+      recognised: recognisedThisTerm(cls.id, student.id),
     }));
     // What the class's games that are on evidence at its grades, and
     // anything its students have evidence for besides.
@@ -260,6 +309,7 @@ export function fakeTeacherBackend(
       expectations,
       students,
       misconceptions: misconceptionsOf(cls.id, students),
+      recognition: recognitionSettings(),
     };
   }
 
@@ -420,7 +470,32 @@ export function fakeTeacherBackend(
               numeric: true,
             }),
         ),
+      recognised: recognitions
+        .filter((r) => r.classId === cls.id && r.studentId === studentId)
+        .sort((a, b) => b.awardedAt.localeCompare(a.awardedAt))
+        .map(({ trait, awardedAt }) => ({ trait, awardedAt })),
+      recognition: recognitionSettings(),
     };
+  }
+
+  function recognitionSettings(): RecognitionSettings {
+    return { term: termOf(now()), traits: [...fakeTraits] };
+  }
+
+  /** The traits each student in the class was recognised for this term, in trait order. */
+  function recognisedThisTerm(classId: string, studentId: string): string[] {
+    const { start } = termOf(now());
+    return fakeTraits
+      .map((t) => t.trait)
+      .filter((trait) =>
+        recognitions.some(
+          (r) =>
+            r.classId === classId &&
+            r.studentId === studentId &&
+            r.trait === trait &&
+            r.term === start,
+        ),
+      );
   }
 
   function playOf(cls: Class, studentId: string, playId: string): Play {
@@ -594,6 +669,34 @@ export function fakeTeacherBackend(
       async studentPage(classId, studentId) {
         reachable();
         return studentPageOf(teachersClass(classId), studentId);
+      },
+      async recognise(classId, studentId, trait) {
+        reachable();
+        memberOf(teachersClass(classId), studentId);
+        if (!fakeTraits.some((t) => t.trait === trait))
+          throw new Error(`"${trait}" isn't a trait to recognise (fake)`);
+        const at = now();
+        const term = termOf(at).start;
+        const given =
+          recognitions.find(
+            (r) =>
+              r.classId === classId &&
+              r.studentId === studentId &&
+              r.trait === trait &&
+              r.term === term,
+          ) ??
+          (() => {
+            const made = {
+              classId,
+              studentId,
+              trait,
+              term,
+              awardedAt: at.toISOString(),
+            };
+            recognitions.push(made);
+            return made;
+          })();
+        return { trait: given.trait, awardedAt: given.awardedAt };
       },
       async evidence(classId, studentId, expectationId) {
         reachable();

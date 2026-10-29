@@ -10,6 +10,7 @@ import {
 } from "@repo/curriculum";
 import type { Db } from "@repo/db";
 import { describedMisconception, hostedGames, manifestAt } from "./games.ts";
+import { recognisedIn, recognitionSettings } from "./recognition.ts";
 import type { Dashboard, Result } from "./schemas.ts";
 import {
   choosingFields,
@@ -18,6 +19,7 @@ import {
   playsCounted,
   type ScoredRecord,
   type StudentResult,
+  termOf,
   understandingOf,
 } from "./scoring.ts";
 
@@ -26,6 +28,7 @@ export async function classDashboard(
   db: Db,
   teacherId: string,
   classId: string,
+  now: Date,
 ): Promise<Dashboard | null> {
   const found = await db.class.findFirst({
     where: { id: classId, teacherId },
@@ -47,6 +50,7 @@ export async function classDashboard(
     found.memberships.map((m) => m.studentId),
   );
   const results = understandingOf(records, manifestAt);
+  const recognised = await recognisedIn(db, classId, termOf(now));
 
   // What the class's games evidence at its grades, and anything its students
   // have evidence for besides (a game since turned off, say).
@@ -79,6 +83,7 @@ export async function classDashboard(
         ),
         grade,
       ),
+      recognised: recognised.get(student.id) ?? [],
     }))
     .sort(byName);
 
@@ -117,7 +122,12 @@ export async function classDashboard(
         a.id.localeCompare(b.id),
     );
 
-  return { expectations, students, misconceptions };
+  return {
+    expectations,
+    students,
+    misconceptions,
+    recognition: recognitionSettings(now),
+  };
 }
 
 /**

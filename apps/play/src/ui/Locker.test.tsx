@@ -1,10 +1,11 @@
 // The locker, joining a class and sign-in, rendered over the stand-ins: what
 // a student sees, hears and can do.
 
-import { catalogue } from "@repo/rewards";
+import { catalogue, stickers } from "@repo/rewards";
 import { UIProvider } from "@repo/ui/provider";
 import {
   cleanup,
+  fireEvent,
   render,
   screen,
   waitFor,
@@ -23,7 +24,11 @@ import {
   type Student,
 } from "../platform/ports.ts";
 import { standInLinks } from "../platform/stand-ins/links.ts";
-import { standInGrant, standInLocker } from "../platform/stand-ins/locker.ts";
+import {
+  standInGrant,
+  standInLocker,
+  standInRecognise,
+} from "../platform/stand-ins/locker.ts";
 import {
   standInClasses,
   standInGames,
@@ -325,14 +330,16 @@ describe("new rewards", () => {
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
-  it("speak the stickers' heading", async () => {
+  it("say how to stick stickers on, from the stickers' heading", async () => {
     const { spoken, user } = setUp({
       beforeRender: (storage) => standInGrant(storage, [sticker]),
     });
     await user.click(
       await screen.findByRole("button", { name: "Hear it: Your stickers" }),
     );
-    expect(spoken).toContain("Your stickers");
+    expect(spoken).toContain(
+      "Tap a sticker, then tap your locker to stick it on.",
+    );
   });
 
   it("still opens the locker when its contents can't be read", async () => {
@@ -762,5 +769,284 @@ describe("sign-in", () => {
         "Signing in isn't working right now. Ask your teacher for help.",
       ),
     ).toBeInTheDocument();
+  });
+});
+
+/** The locker the student sticks stickers on, measured as 400 × 200 px. */
+async function lockerBoard() {
+  const board = await screen.findByRole("group", { name: "Your locker" });
+  vi.spyOn(board, "getBoundingClientRect").mockReturnValue({
+    left: 0,
+    top: 0,
+    right: 400,
+    bottom: 200,
+    width: 400,
+    height: 200,
+    x: 0,
+    y: 0,
+    toJSON: () => ({}),
+  });
+  return board;
+}
+
+const tray = () => screen.getByRole("list", { name: "Your stickers" });
+
+describe("stickers on the locker", () => {
+  const [first = "", second = ""] = stickers.map((s) => s.id);
+  const owning = (storage: KeyValueStore) =>
+    standInGrant(storage, [first, second]);
+
+  async function placed(storage: KeyValueStore) {
+    return (await standInLocker(storage).current()).placements;
+  }
+
+  it("sticks a sticker where the student taps, saying what to do", async () => {
+    const { spoken, storage, user } = setUp({ beforeRender: owning });
+    const board = await lockerBoard();
+    await user.click(
+      within(tray()).getAllByRole("button", {
+        name: "A sticker",
+      })[0] as HTMLElement,
+    );
+    expect(spoken).toContain("Tap your locker to stick it there.");
+    await user.pointer({
+      keys: "[MouseLeft]",
+      target: within(board).getByRole("button", { name: "Stick it here" }),
+      coords: { clientX: 100, clientY: 150 },
+    });
+    await waitFor(async () =>
+      expect(await placed(storage)).toEqual([
+        { sticker: first, x: 0.25, y: 0.75 },
+      ]),
+    );
+    const stuck = within(board).getByRole("button", { name: "A sticker" });
+    expect(stuck.querySelector(`[data-sticker="${first}"]`)).not.toBeNull();
+    expect(stuck).toHaveStyle({ left: "25%", top: "75%" });
+    expect(tray().querySelector(`[data-sticker="${first}"]`)).toBeNull();
+  });
+
+  it("keeps stickers on the locker after a reload", async () => {
+    const { storage } = setUp({
+      beforeRender: (storage) => {
+        owning(storage);
+        void standInLocker(storage).place([
+          { sticker: second, x: 0.5, y: 0.4 },
+        ]);
+      },
+    });
+    const board = await lockerBoard();
+    cleanup();
+    setUp({ storage, signedIn: null });
+    const again = await screen.findByRole("group", { name: "Your locker" });
+    expect(board).not.toBe(again);
+    const stuck = within(again).getByRole("button", { name: "A sticker" });
+    expect(stuck.querySelector(`[data-sticker="${second}"]`)).not.toBeNull();
+    expect(stuck).toHaveStyle({ left: "50%", top: "40%" });
+  });
+
+  it("moves a sticker on the locker, putting it on top", async () => {
+    const { spoken, storage, user } = setUp({
+      beforeRender: (storage) => {
+        owning(storage);
+        void standInLocker(storage).place([
+          { sticker: first, x: 0.5, y: 0.5 },
+          { sticker: second, x: 0.6, y: 0.5 },
+        ]);
+      },
+    });
+    const board = await lockerBoard();
+    const [one] = within(board).getAllByRole("button", { name: "A sticker" });
+    await user.click(one as HTMLElement);
+    expect(spoken).toContain("Tap where to move it, or put it back.");
+    await user.pointer({
+      keys: "[MouseLeft]",
+      target: within(board).getByRole("button", { name: "Stick it here" }),
+      coords: { clientX: 300, clientY: 100 },
+    });
+    await waitFor(async () =>
+      expect(await placed(storage)).toEqual([
+        { sticker: second, x: 0.6, y: 0.5 },
+        { sticker: first, x: 0.75, y: 0.5 },
+      ]),
+    );
+  });
+
+  it("keeps a sticker wholly on the locker, near its edge", async () => {
+    const { storage, user } = setUp({ beforeRender: owning });
+    const board = await lockerBoard();
+    await user.click(
+      within(tray()).getAllByRole("button", {
+        name: "A sticker",
+      })[0] as HTMLElement,
+    );
+    await user.pointer({
+      keys: "[MouseLeft]",
+      target: within(board).getByRole("button", { name: "Stick it here" }),
+      coords: { clientX: 2, clientY: 199 },
+    });
+    // A 64 px sticker's centre is at least 32 px in.
+    await waitFor(async () =>
+      expect(await placed(storage)).toEqual([
+        { sticker: first, x: 32 / 400, y: 1 - 32 / 200 },
+      ]),
+    );
+  });
+
+  it("takes a sticker off the locker, back to the others", async () => {
+    const { storage, user } = setUp({
+      beforeRender: (storage) => {
+        owning(storage);
+        void standInLocker(storage).place([{ sticker: first, x: 0.5, y: 0.5 }]);
+      },
+    });
+    const board = await lockerBoard();
+    await user.click(within(board).getByRole("button", { name: "A sticker" }));
+    await user.click(screen.getByRole("button", { name: "Put it back" }));
+    await waitFor(async () => expect(await placed(storage)).toEqual([]));
+    expect(tray().querySelector(`[data-sticker="${first}"]`)).not.toBeNull();
+    expect(
+      within(board).queryByRole("button", { name: "A sticker" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("puts a sticker down again when it's tapped twice, or with Escape", async () => {
+    const { storage, user } = setUp({ beforeRender: owning });
+    const board = await lockerBoard();
+    const [loose] = within(tray()).getAllByRole("button", {
+      name: "A sticker",
+    });
+    await user.click(loose as HTMLElement);
+    expect(loose).toHaveAttribute("aria-pressed", "true");
+    await user.click(loose as HTMLElement);
+    expect(loose).toHaveAttribute("aria-pressed", "false");
+    await user.click(loose as HTMLElement);
+    await user.keyboard("{Escape}");
+    expect(
+      within(board).queryByRole("button", { name: "Stick it here" }),
+    ).not.toBeInTheDocument();
+    expect(await placed(storage)).toEqual([]);
+  });
+
+  it("sticks one on from the keyboard, in the middle", async () => {
+    const { storage, user } = setUp({ beforeRender: owning });
+    await lockerBoard();
+    (
+      within(tray()).getAllByRole("button", {
+        name: "A sticker",
+      })[0] as HTMLElement
+    ).focus();
+    await user.keyboard("{Enter}");
+    expect(screen.getByRole("button", { name: "Stick it here" })).toHaveFocus();
+    await user.keyboard("{Enter}");
+    await waitFor(async () =>
+      expect(await placed(storage)).toEqual([
+        { sticker: first, x: 0.5, y: 0.5 },
+      ]),
+    );
+  });
+
+  it("drags a sticker onto the locker, and off it again", async () => {
+    const { storage } = setUp({ beforeRender: owning });
+    const board = await lockerBoard();
+    const [loose] = within(tray()).getAllByRole("button", {
+      name: "A sticker",
+    });
+    const at = (clientX: number, clientY: number) => ({
+      button: 0,
+      pointerId: 1,
+      clientX,
+      clientY,
+    });
+    fireEvent.pointerDown(loose as HTMLElement, at(10, 300));
+    fireEvent.pointerMove(loose as HTMLElement, at(100, 250));
+    fireEvent.pointerUp(loose as HTMLElement, at(200, 100));
+    await waitFor(async () =>
+      expect(await placed(storage)).toEqual([
+        { sticker: first, x: 0.5, y: 0.5 },
+      ]),
+    );
+    const stuck = within(board).getByRole("button", { name: "A sticker" });
+    fireEvent.pointerDown(stuck, at(200, 100));
+    fireEvent.pointerMove(stuck, at(200, 180));
+    fireEvent.pointerUp(stuck, at(200, 400));
+    await waitFor(async () => expect(await placed(storage)).toEqual([]));
+  });
+
+  it("goes back to what's saved when a change can't be saved", async () => {
+    const storage = memoryStorage();
+    owning(storage);
+    const locker = standInLocker(storage);
+    vi.spyOn(locker, "place").mockRejectedValue(new Error("offline"));
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const { user } = setUp({ storage, lockerPort: locker });
+    const board = await lockerBoard();
+    await user.click(
+      within(tray()).getAllByRole("button", {
+        name: "A sticker",
+      })[0] as HTMLElement,
+    );
+    await user.click(
+      within(board).getByRole("button", { name: "Stick it here" }),
+    );
+    await waitFor(() =>
+      expect(
+        within(board).queryByRole("button", { name: "A sticker" }),
+      ).not.toBeInTheDocument(),
+    );
+    expect(tray().querySelector(`[data-sticker="${first}"]`)).not.toBeNull();
+  });
+});
+
+describe("recognition from a teacher", () => {
+  const recognised = (storage: KeyValueStore) =>
+    standInRecognise(storage, "kindness");
+
+  it("is revealed as new, said by name, and stands out from earned stickers", async () => {
+    const { spoken } = setUp({
+      beforeRender: (storage) => {
+        standInGrant(storage, [stickers[0]?.id ?? ""], { seen: false });
+        recognised(storage);
+      },
+    });
+    const reveal = await screen.findByRole("dialog", {
+      name: "You got something new!",
+    });
+    const recognition = within(reveal).getByRole("img", {
+      name: "Your teacher gave you a sticker for kindness!",
+    });
+    expect(recognition).toHaveAttribute("data-recognition", "kindness");
+    expect(recognition.closest("li")).toHaveAttribute("data-recognition");
+    const earned = within(reveal).getByRole("img", { name: "A new sticker" });
+    expect(earned).not.toHaveAttribute("data-recognition");
+    expect(earned.closest("li")).not.toHaveAttribute("data-recognition");
+    await waitFor(() =>
+      expect(spoken).toEqual([
+        "You got something new! Your teacher gave you a sticker for kindness!",
+      ]),
+    );
+  });
+
+  it("goes in with the student's stickers, to stick on the locker", async () => {
+    const { storage, user } = setUp({ beforeRender: recognised });
+    await user.click(await screen.findByRole("button", { name: "Done" }));
+    await waitFor(async () =>
+      expect((await standInLocker(storage).current()).unseen).toEqual([]),
+    );
+    const board = await lockerBoard();
+    await user.click(
+      within(tray()).getByRole("button", {
+        name: "Your teacher gave you a sticker for kindness!",
+      }),
+    );
+    await user.pointer({
+      keys: "[MouseLeft]",
+      target: within(board).getByRole("button", { name: "Stick it here" }),
+      coords: { clientX: 200, clientY: 100 },
+    });
+    await waitFor(async () =>
+      expect((await standInLocker(storage).current()).placements).toEqual([
+        { sticker: "recognition-kindness", x: 0.5, y: 0.5 },
+      ]),
+    );
   });
 });

@@ -126,3 +126,52 @@ export function inGrantOrder(ids: Iterable<string>): string[] {
       (position.get(b) ?? Number.MAX_SAFE_INTEGER),
   );
 }
+
+/**
+ * The character traits a teacher recognises a student for. PROVISIONAL
+ * configuration (the spec's open questions): a trait added here needs its
+ * sticker art in `@repo/rewards/sticker` and its spoken line in the play
+ * shell's strings. Each trait has one exclusive sticker, which only a
+ * teacher gives: it's never in the catalogue, so effort never grants it.
+ */
+export const recognitionTraits = [
+  "kindness",
+  "perseverance",
+  "leadership",
+] as const;
+
+export type RecognitionTrait = (typeof recognitionTraits)[number];
+
+/** Each trait's name, as teachers see it. */
+export const recognitionTraitNames: Record<RecognitionTrait, string> = {
+  kindness: "Kindness",
+  perseverance: "Perseverance",
+  leadership: "Leadership",
+};
+
+export type RecognitionSticker = `recognition-${RecognitionTrait}`;
+
+/** The exclusive sticker a student gets when they're recognised for `trait`. */
+export function recognitionSticker(
+  trait: RecognitionTrait,
+): RecognitionSticker {
+  return `recognition-${trait}`;
+}
+
+/** Whether the value is one of the recognition traits. */
+export function isRecognitionTrait(value: unknown): value is RecognitionTrait {
+  return (recognitionTraits as readonly unknown[]).includes(value);
+}
+
+/** The trait a recognition sticker is for, or undefined if it isn't one. */
+export function traitOf(id: string): RecognitionTrait | undefined {
+  const trait = id.startsWith("recognition-")
+    ? id.slice("recognition-".length)
+    : undefined;
+  return isRecognitionTrait(trait) ? trait : undefined;
+}
+
+/** Whether the ID is a sticker: one earned from effort, or a recognition sticker. */
+export function isSticker(id: string): boolean {
+  return stickersById.has(id) || traitOf(id) !== undefined;
+}

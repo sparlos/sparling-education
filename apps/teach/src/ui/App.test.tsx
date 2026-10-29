@@ -1192,3 +1192,184 @@ describe("managing a class", () => {
 async function waitForGone(query: () => HTMLElement | null) {
   await vi.waitFor(() => expect(query()).toBeNull());
 }
+
+describe("recognition", () => {
+  let subject = 0;
+  function student(firstName: string, lastName: string): FakeStudentSeed {
+    subject += 1;
+    return {
+      google: { subject: `recognised-${subject}`, firstName, lastName },
+    };
+  }
+  const now = new Date("2026-10-29T15:00:00Z");
+
+  async function openDashboard(options: Partial<FakePlatformOptions> = {}) {
+    const { user } = openAt("/teach/", {
+      now,
+      ...options,
+      classes: [
+        {
+          draft: { name: "Room 12", grades: [4] },
+          students: [student("Ana", "Diaz"), student("Ben", "Ode")],
+        },
+      ],
+    });
+    await user.click(await signInButton());
+    await user.click(
+      await screen.findByRole("link", { name: "See results for Room 12" }),
+    );
+    await screen.findByRole("heading", { name: "Room 12" });
+    return user;
+  }
+
+  const notYet = () =>
+    screen.getByRole("region", { name: "Not recognised yet this term" });
+
+  /** Opens "Recognise" for the student, within `where`, and picks the trait: two taps. */
+  async function recognise(
+    user: ReturnType<typeof userEvent.setup>,
+    where: HTMLElement,
+    name: string,
+    trait: string,
+  ) {
+    await user.click(
+      within(where).getByRole("button", { name: `Recognise ${name}` }),
+    );
+    await user.click(await screen.findByRole("menuitem", { name: trait }));
+  }
+
+  it("lists the students not recognised yet this term, with the term's dates", async () => {
+    await openDashboard();
+    const list = notYet();
+    expect(list).toHaveTextContent(
+      "This term: September 1, 2026 to January 31, 2027.",
+    );
+    expect(
+      within(list)
+        .getAllByRole("listitem")
+        .map((li) => li.firstChild?.textContent),
+    ).toEqual(["Ana D.", "Ben O."]);
+  });
+
+  it("recognises a student from their row in two taps, offering every trait", async () => {
+    const user = await openDashboard();
+    const row = await screen.findByRole("row", { name: /^Ben O\./ });
+    await user.click(
+      within(row).getByRole("button", { name: "Recognise Ben O." }),
+    );
+    const kindness = await screen.findByRole("menuitem", { name: "Kindness" });
+    expect(screen.getAllByRole("menuitem").map((i) => i.textContent)).toEqual([
+      "Kindness",
+      "Perseverance",
+      "Leadership",
+    ]);
+    await user.click(kindness);
+    expect(
+      await within(
+        await screen.findByRole("row", { name: /^Ben O\./ }),
+      ).findByText("Recognised: Kindness"),
+    ).toBeInTheDocument();
+    expect(
+      await screen.findByText(
+        "Ben O. recognised for Kindness. They'll see a sticker in their locker.",
+      ),
+    ).toBeInTheDocument();
+    expect(
+      within(notYet())
+        .getAllByRole("listitem")
+        .map((li) => li.firstChild?.textContent),
+    ).toEqual(["Ana D."]);
+  });
+
+  it("ticks the traits a student was already recognised for this term", async () => {
+    const user = await openDashboard();
+    const row = () => screen.findByRole("row", { name: /^Ben O\./ });
+    await recognise(user, await row(), "Ben O.", "Kindness");
+    await within(await row()).findByText("Recognised: Kindness");
+    await user.click(
+      within(await row()).getByRole("button", { name: "Recognise Ben O." }),
+    );
+    const ticked = await screen.findByRole("menuitem", {
+      name: "Kindness, recognised this term",
+    });
+    expect(ticked).toHaveAttribute("data-checked");
+    const others = screen
+      .getAllByRole("menuitem")
+      .filter((item) => item !== ticked);
+    expect(others.map((item) => item.textContent)).toEqual([
+      "Perseverance",
+      "Leadership",
+    ]);
+    for (const item of others) expect(item).not.toHaveAttribute("data-checked");
+  });
+
+  it("ticks them on the student's page too", async () => {
+    const user = await openDashboard();
+    const row = await screen.findByRole("row", { name: /^Ana D\./ });
+    await user.click(within(row).getByRole("link", { name: "Ana D." }));
+    const section = await screen.findByRole("region", { name: "Recognition" });
+    await recognise(user, section, "Ana D.", "Leadership");
+    const after = await screen.findByRole("region", { name: "Recognition" });
+    await within(after).findByText("Leadership");
+    await user.click(
+      within(after).getByRole("button", { name: "Recognise Ana D." }),
+    );
+    expect(
+      await screen.findByRole("menuitem", {
+        name: "Leadership, recognised this term",
+      }),
+    ).toHaveAttribute("data-checked");
+  });
+
+  it("recognises from the not-yet list until everyone has been", async () => {
+    const user = await openDashboard();
+    await recognise(user, notYet(), "Ana D.", "Leadership");
+    expect(
+      await within(notYet()).findByText(
+        "Ana D. recognised for Leadership. They'll see a sticker in their locker.",
+      ),
+    ).toBeInTheDocument();
+    await recognise(user, notYet(), "Ben O.", "Perseverance");
+    expect(
+      await within(notYet()).findByText(
+        "Every student has been recognised this term.",
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("starts a new term with everyone not recognised yet", async () => {
+    await openDashboard({ now: new Date("2027-02-01T05:00:00Z") });
+    expect(notYet()).toHaveTextContent(
+      "This term: February 1, 2027 to June 30, 2027.",
+    );
+  });
+
+  it("recognises a student from their page, listing what they were given", async () => {
+    const user = await openDashboard();
+    const row = await screen.findByRole("row", { name: /^Ana D\./ });
+    await user.click(within(row).getByRole("link", { name: "Ana D." }));
+    const section = await screen.findByRole("region", { name: "Recognition" });
+    expect(section).toHaveTextContent("Not recognised yet this term.");
+    await recognise(user, section, "Ana D.", "Perseverance");
+    const after = await screen.findByRole("region", { name: "Recognition" });
+    expect(
+      await within(after).findByText("October 29, 2026"),
+    ).toBeInTheDocument();
+    expect(within(after).getByText("Perseverance")).toBeInTheDocument();
+    expect(after).not.toHaveTextContent("Not recognised yet this term.");
+  });
+
+  it("says when recognition didn't save", async () => {
+    let offline = false;
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const user = await openDashboard({ offline: () => offline });
+    offline = true;
+    const row = await screen.findByRole("row", { name: /^Ben O\./ });
+    await recognise(user, row, "Ben O.", "Kindness");
+    expect(
+      await within(row).findByText(
+        "That didn't save. Check your connection and try again.",
+      ),
+    ).toBeInTheDocument();
+  });
+});

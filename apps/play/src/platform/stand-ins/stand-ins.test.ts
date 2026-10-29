@@ -11,7 +11,12 @@ import {
 } from "../contract.ts";
 import type { Student } from "../ports.ts";
 import { standInLinks } from "./links.ts";
-import { standInEarn, standInGrant, standInLocker } from "./locker.ts";
+import {
+  standInEarn,
+  standInGrant,
+  standInLocker,
+  standInRecognise,
+} from "./locker.ts";
 import {
   type StandInClass,
   standInClasses,
@@ -65,6 +70,7 @@ lockerPortContract("Stand-in locker", {
       session: standInSession(storage),
       locker: standInLocker(storage),
       earn: () => records.send([sampleAttempt(), sampleEnd()]),
+      recognise: async () => standInRecognise(storage, "kindness"),
     };
   },
 });

@@ -1,0 +1,68 @@
+/* Recognising students, and the recognition they were given. */
+.section {
+  display: grid;
+  gap: var(--mantine-spacing-sm);
+}
+
+.recognise {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
+}
+
+.status {
+  font-size: var(--mantine-font-size-sm);
+  white-space: normal;
+}
+
+/* Announced, not shown. */
+.hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--mantine-spacing-sm);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.student {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--mantine-spacing-sm);
+  padding: var(--mantine-spacing-xs) var(--mantine-spacing-xs)
+    var(--mantine-spacing-xs) var(--mantine-spacing-md);
+  border: 1px solid var(--k-border-subtle);
+  border-radius: var(--mantine-radius-xl);
+  background-color: var(--k-surface-raised);
+}
+
+.name {
+  font-weight: 700;
+  color: var(--k-ink);
+}
+
+.given {
+  display: grid;
+  gap: var(--mantine-spacing-xs);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.trait {
+  font-weight: 700;
+}
+
+.muted {
+  color: var(--k-ink-muted);
+}

@@ -45,6 +45,8 @@ export interface TeacherPortHarness {
     tasks: Try[][],
     ending?: "finished" | "left",
   ): string | Promise<string>;
+  /** Sets the time it is now, for which term it is. */
+  setNow(at: Date): void;
 }
 
 /** One try at a task. */
@@ -272,6 +274,7 @@ export function dashboardContract(
           lastInitial: "R",
           grade: 4,
           results: [],
+          recognised: [],
         },
       ]);
     });
@@ -829,4 +832,114 @@ function expectLinks({ joinCode, joinLink, games }: Class) {
     expect(game.pathname).toBe(`/play/${slug}`);
     expect(game.searchParams.get("join")).toBe(joinCode);
   }
+}
+
+export function recognitionContract(
+  name: string,
+  make: () => TeacherPortHarness | Promise<TeacherPortHarness>,
+) {
+  describe(`${name} recognising students`, () => {
+    async function classWithStudents(...names: string[]) {
+      const harness = await make();
+      harness.setNow(new Date("2026-10-29T15:00:00Z"));
+      await harness.port.signIn(
+        await harness.credentialFor(newGoogleAccount()),
+      );
+      const made = await harness.port.createClass({
+        name: "Room 12",
+        grades: [4],
+      });
+      for (const firstName of names)
+        await harness.joinClass(
+          { ...newGoogleAccount(), firstName, lastName: "Rivera" },
+          made.joinCode,
+        );
+      const students = (await harness.port.dashboard(made.id)).students;
+      const idOf = (firstName: string) =>
+        students.find((s) => s.firstName === firstName)?.id ?? "";
+      return { ...harness, made, idOf };
+    }
+
+    async function recognisedOn(port: TeacherPort, classId: string) {
+      const { students } = await port.dashboard(classId);
+      return Object.fromEntries(
+        students.map((s) => [s.firstName, s.recognised]),
+      );
+    }
+
+    it("offers the traits, and says which term it is", async () => {
+      const { port, made, idOf } = await classWithStudents("Sam");
+      const settings = {
+        term: { start: "2026-09-01", end: "2027-01-31" },
+        traits: [
+          { trait: "kindness", name: "Kindness" },
+          { trait: "perseverance", name: "Perseverance" },
+          { trait: "leadership", name: "Leadership" },
+        ],
+      };
+      expect((await port.dashboard(made.id)).recognition).toEqual(settings);
+      expect(
+        (await port.studentPage(made.id, idOf("Sam"))).recognition,
+      ).toEqual(settings);
+    });
+
+    it("recognises a student, showing it on the dashboard and their page", async () => {
+      const { port, made, idOf } = await classWithStudents("Sam", "Ana");
+      const given = await port.recognise(made.id, idOf("Sam"), "kindness");
+      expect(given).toEqual({
+        trait: "kindness",
+        awardedAt: "2026-10-29T15:00:00.000Z",
+      });
+      expect(await recognisedOn(port, made.id)).toEqual({
+        Ana: [],
+        Sam: ["kindness"],
+      });
+      expect((await port.studentPage(made.id, idOf("Sam"))).recognised).toEqual(
+        [given],
+      );
+      expect((await port.studentPage(made.id, idOf("Ana"))).recognised).toEqual(
+        [],
+      );
+    });
+
+    it("recognises once per trait per term, and again the next term", async () => {
+      const { port, made, idOf, setNow } = await classWithStudents("Sam");
+      const first = await port.recognise(made.id, idOf("Sam"), "perseverance");
+      setNow(new Date("2026-11-30T15:00:00Z"));
+      expect(
+        await port.recognise(made.id, idOf("Sam"), "perseverance"),
+      ).toEqual(first);
+      // February 1 in Toronto starts the next term.
+      setNow(new Date("2027-02-01T05:00:00Z"));
+      expect(await recognisedOn(port, made.id)).toEqual({ Sam: [] });
+      expect((await port.dashboard(made.id)).recognition.term).toEqual({
+        start: "2027-02-01",
+        end: "2027-06-30",
+      });
+      await port.recognise(made.id, idOf("Sam"), "perseverance");
+      await port.recognise(made.id, idOf("Sam"), "kindness");
+      expect(await recognisedOn(port, made.id)).toEqual({
+        Sam: ["kindness", "perseverance"],
+      });
+      expect(
+        (await port.studentPage(made.id, idOf("Sam"))).recognised,
+      ).toHaveLength(3);
+    });
+
+    it("recognises only the teacher's own class's students", async () => {
+      const { port, made, idOf, credentialFor } =
+        await classWithStudents("Sam");
+      await expect(
+        port.recognise(
+          made.id,
+          "00000000-0000-4000-8000-000000000000",
+          "kindness",
+        ),
+      ).rejects.toBeInstanceOf(NotFound);
+      await port.signIn(await credentialFor(newGoogleAccount()));
+      await expect(
+        port.recognise(made.id, idOf("Sam"), "kindness"),
+      ).rejects.toBeInstanceOf(NotFound);
+    });
+  });
 }

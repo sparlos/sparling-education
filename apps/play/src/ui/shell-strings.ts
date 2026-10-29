@@ -63,6 +63,18 @@ export const shellStrings = {
     "new-outfit": "Something new to wear",
     "new-sticker": "A new sticker",
     stickers: "Your stickers",
+    "stickers-how": "Tap a sticker, then tap your locker to stick it on.",
+    sticker: "A sticker",
+    "place-sticker": "Tap your locker to stick it there.",
+    "move-sticker": "Tap where to move it, or put it back.",
+    "put-sticker-here": "Stick it here",
+    "sticker-back": "Put it back",
+    // One for each recognition trait in @repo/rewards: a teacher's
+    // recognition, revealed and named.
+    "recognition-kindness": "Your teacher gave you a sticker for kindness!",
+    "recognition-perseverance":
+      "Your teacher gave you a sticker for never giving up!",
+    "recognition-leadership": "Your teacher gave you a sticker for leadership!",
   },
 } satisfies { "en-CA": Record<string, string> };
 

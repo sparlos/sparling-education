@@ -109,6 +109,8 @@ describe("a student's page", () => {
           }),
         },
       ],
+      recognised: [],
+      recognition: expect.objectContaining({ term: expect.any(Object) }),
     });
   });
 

@@ -42,6 +42,7 @@ describe("the locker", () => {
       owned: [...baseSet],
       stickers: [],
       unseen: [],
+      placements: [],
     });
   });
 
