@@ -35,14 +35,15 @@ export interface TeacherPortHarness {
   ): void | Promise<void>;
   /**
    * The student plays one play of a game for the class, at the tier for
-   * `grade`, and finishes it: each task's tries in order. Resolves with the
-   * expectation the play evidenced.
+   * `grade`: each task's tries in order, then it ends, finished unless they
+   * left partway. Resolves with the expectation the play evidenced.
    */
   play(
     account: GoogleAccount,
     classId: string,
     grade: number,
     tasks: Try[][],
+    ending?: "finished" | "left",
   ): string | Promise<string>;
 }
 
@@ -529,6 +530,91 @@ export function dashboardContract(
         port.evidence(made.id, samId, evidenced),
       ).rejects.toBeInstanceOf(NotFound);
       await expect(port.play(made.id, samId, playId)).rejects.toBeInstanceOf(
+        NotFound,
+      );
+    });
+
+    it("opens a student's page on their effort by Learning Skill and their results", async () => {
+      const { port, made, joinClass, play } = await teacherWithClass([4]);
+      const sam = student("Sam", "Rivera");
+      await joinClass(sam, made.joinCode);
+      const evidenced = await play(sam, made.id, 4, [
+        [{ succeeded: false }, { succeeded: true }],
+        [{ succeeded: false }, { succeeded: false }, { succeeded: true }],
+        [{ succeeded: false }, { succeeded: true, assisted: "hint" }],
+        [{ succeeded: true }, { succeeded: false }],
+        ...right(2),
+      ]);
+      // Spamming wrong tries, then leaving partway.
+      await play(
+        sam,
+        made.id,
+        4,
+        [Array.from({ length: 10 }, () => ({ succeeded: false }))],
+        "left",
+      );
+      // Only explored before getting it: no mistake to improve on.
+      await play(sam, made.id, 4, [
+        [{ succeeded: false, exploring: true }, { succeeded: true }],
+      ]);
+      const [{ id: samId } = { id: "" }] = (await port.dashboard(made.id))
+        .students;
+
+      const page = await port.studentPage(made.id, samId);
+      expect(page.student).toEqual({
+        id: samId,
+        firstName: "Sam",
+        lastInitial: "R",
+        grade: 4,
+      });
+      expect(page.effort).toEqual([
+        {
+          skill: "responsibility",
+          name: "Responsibility",
+          evidence: [{ kind: "finishedPlays", count: 2 }],
+        },
+        {
+          skill: "self-regulation",
+          name: "Self-Regulation",
+          evidence: [{ kind: "improvedAfterMistake", count: 3 }],
+        },
+      ]);
+      expect(page.results).toEqual([
+        {
+          expectation: expect.objectContaining({ id: evidenced, grade: 4 }),
+          result: expect.objectContaining({
+            expectation: evidenced,
+            tierGrade: 4,
+            otherTier: false,
+          }),
+        },
+      ]);
+    });
+
+    it("shows a student's page with no effort and no results before they play", async () => {
+      const { port, made, joinClass } = await teacherWithClass([4]);
+      await joinClass(student("Sam", "Rivera"), made.joinCode);
+      const [{ id: samId } = { id: "" }] = (await port.dashboard(made.id))
+        .students;
+      const page = await port.studentPage(made.id, samId);
+      expect(page.results).toEqual([]);
+      expect(
+        page.effort.flatMap((s) => s.evidence.map((e) => e.count)),
+      ).toEqual([0, 0]);
+    });
+
+    it("shows a teacher only their own students' pages", async () => {
+      const { port, made, joinClass, credentialFor } = await teacherWithClass([
+        4,
+      ]);
+      await joinClass(student("Sam", "Rivera"), made.joinCode);
+      const [{ id: samId } = { id: "" }] = (await port.dashboard(made.id))
+        .students;
+      await expect(
+        port.studentPage(made.id, "no-such-student"),
+      ).rejects.toBeInstanceOf(NotFound);
+      await port.signIn(await credentialFor(newGoogleAccount()));
+      await expect(port.studentPage(made.id, samId)).rejects.toBeInstanceOf(
         NotFound,
       );
     });

@@ -1,12 +1,14 @@
 // FAKE teacher port: Kindling's accounts, sessions, classes and plays kept in
 // memory. Used by the app's own tests, and by `VITE_TEACH_PLATFORM=fake` to
 // run the app without the API. Must keep passing ../contract.ts, like the API
-// adapter, which is what keeps its copy of the understanding rule in step
-// with the API's scoring module.
+// adapter, which is what keeps its copies of the understanding and effort
+// rules in step with the API's scoring module.
 import {
   type ExpectationId,
   expectation,
   expectationIds,
+  type LearningSkill,
+  learningSkills,
 } from "@repo/curriculum";
 import type { GoogleAccount, Try } from "../contract.ts";
 import {
@@ -17,12 +19,14 @@ import {
   CredentialRejected,
   classNameMaxLength,
   type Dashboard,
+  type EffortKind,
   type Evidence,
   type Misconception,
   type NewClass,
   NotFound,
   type Play,
   type Result,
+  type StudentPage,
   type TeacherPort,
   type Understanding,
 } from "../ports.ts";
@@ -65,8 +69,8 @@ export interface FakeStudentSeed {
   google: GoogleAccount;
   /** Needed in a split class. */
   grade?: number;
-  /** Each play: the grade of its tier, and each task's tries. */
-  plays?: { grade: number; tasks: Try[][] }[];
+  /** Each play: the grade of its tier, each task's tries, and how it ended. */
+  plays?: { grade: number; tasks: Try[][]; ending?: FakeEnding }[];
 }
 
 export interface FakeTeacherBackend {
@@ -75,12 +79,13 @@ export interface FakeTeacherBackend {
   addStudent(google: GoogleAccount): void;
   /** Signs nobody in: joins the student to the class with this join code. */
   joinClass(google: GoogleAccount, joinCode: string, grade?: number): void;
-  /** The student plays one finished play; returns the expectation it evidenced. */
+  /** The student plays one play, finished by default; returns the expectation it evidenced. */
   play(
     google: GoogleAccount,
     classId: string,
     grade: number,
     tasks: Try[][],
+    ending?: FakeEnding,
   ): string;
   /** Gives the teacher a class with students who've played, without signing in. */
   seedClass(
@@ -95,8 +100,13 @@ const recentPlays = 5;
 const developingFrom = 0.5;
 const consistentlyFrom = 0.8;
 const consistentlyNeedsTasks = 4;
-// …and the misconceptions a student is showing, from their recent plays of a game.
+// …the misconceptions a student is showing, from their recent plays of a game…
 const misconceptionPlays = 5;
+// …and the Learning Skill each kind of effort is evidence of.
+const effortSkills = {
+  improvedAfterMistake: "self-regulation",
+  finishedPlays: "responsibility",
+} as const satisfies Record<EffortKind, LearningSkill>;
 
 export function fakeTeacherBackend(
   options: {
@@ -183,6 +193,7 @@ export function fakeTeacherBackend(
     classId: string,
     grade: number,
     tasks: Try[][],
+    ending: FakeEnding = "finished",
   ) {
     const student = accounts.get(google.subject);
     const game = games.find((g) => g.tiers[grade]);
@@ -197,6 +208,7 @@ export function fakeTeacherBackend(
       tierGrade: grade,
       game,
       tasks,
+      ending,
       at: clock,
     });
     return tier.expectation;
@@ -358,6 +370,56 @@ export function fakeTeacherBackend(
           counts: counted.has(p.id),
         };
       }),
+    };
+  }
+
+  function studentPageOf(cls: Class, studentId: string): StudentPage {
+    const { student, grade } = memberOf(cls, studentId);
+    const theirs = plays.filter(
+      (p) => p.studentId === studentId && p.classId === cls.id,
+    );
+    const count: Record<EffortKind, number> = {
+      improvedAfterMistake: theirs.flatMap(scoredTasks).filter((tries) => {
+        const failed = tries.findIndex((t) => !t.succeeded);
+        return failed >= 0 && tries.slice(failed).some((t) => t.succeeded);
+      }).length,
+      finishedPlays: theirs.filter((p) => p.ending === "finished").length,
+    };
+    const kinds = Object.keys(effortSkills) as EffortKind[];
+    return {
+      student: {
+        id: student.id,
+        firstName: student.firstName,
+        lastInitial: student.lastInitial,
+        grade,
+      },
+      effort: (Object.keys(learningSkills) as LearningSkill[]).flatMap(
+        (skill) => {
+          const evidence = kinds
+            .filter((kind) => effortSkills[kind] === skill)
+            .map((kind) => ({ kind, count: count[kind] }));
+          return evidence.length > 0
+            ? [{ skill, name: learningSkills[skill], evidence }]
+            : [];
+        },
+      ),
+      results: resultsOf(studentId, cls.id, grade)
+        .map((result) => {
+          const {
+            id,
+            grade: g,
+            code,
+            description,
+          } = expectation(result.expectation as ExpectationId);
+          return { expectation: { id, grade: g, code, description }, result };
+        })
+        .sort(
+          (a, b) =>
+            a.expectation.grade - b.expectation.grade ||
+            a.expectation.code.localeCompare(b.expectation.code, "en", {
+              numeric: true,
+            }),
+        ),
     };
   }
 
@@ -529,6 +591,10 @@ export function fakeTeacherBackend(
         reachable();
         return dashboardOf(teachersClass(classId));
       },
+      async studentPage(classId, studentId) {
+        reachable();
+        return studentPageOf(teachersClass(classId), studentId);
+      },
       async evidence(classId, studentId, expectationId) {
         reachable();
         return evidenceOf(teachersClass(classId), studentId, expectationId);
@@ -552,13 +618,16 @@ export function fakeTeacherBackend(
       const made = createClass(accountFor(teacher, "teacher").id, draft);
       for (const seed of students) {
         joinClass(seed.google, made.joinCode, seed.grade);
-        for (const { grade, tasks } of seed.plays ?? [])
-          play(seed.google, made.id, grade, tasks);
+        for (const { grade, tasks, ending } of seed.plays ?? [])
+          play(seed.google, made.id, grade, tasks, ending);
       }
       return made;
     },
   };
 }
+
+/** How a fake play ends: it never crashes. */
+type FakeEnding = "finished" | "left";
 
 interface FakePlay {
   id: string;
@@ -567,6 +636,7 @@ interface FakePlay {
   tierGrade: number;
   game: FakeGame;
   tasks: Try[][];
+  ending: FakeEnding;
   /** When it started, by the device's clock, in ms. */
   at: number;
 }
@@ -580,7 +650,7 @@ function summaryOf(p: FakePlay) {
     tierGrade: p.tierGrade,
     version: p.game.version,
     at: new Date(p.at + 1000).toISOString(),
-    ending: "finished" as const,
+    ending: p.ending,
   };
 }
 

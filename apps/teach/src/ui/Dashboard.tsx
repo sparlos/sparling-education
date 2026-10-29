@@ -2,7 +2,7 @@
 // students against the expectations its games evidence, each cell saying how
 // well that student's plays show understanding of that expectation, or that
 // there's no evidence yet. A cell, or a student under a misconception, opens
-// that student's evidence.
+// that student's evidence; a student's name opens their page.
 import { Card } from "@repo/ui/card";
 import { Stack } from "@repo/ui/stack";
 import { Table } from "@repo/ui/table";
@@ -267,7 +267,14 @@ function Grid({
           key: student.id,
           cells: [
             <span key="name" className={classes.student}>
-              {nameOf(student)}
+              <Link
+                to="/classes/$classId/students/$studentId"
+                params={{ classId, studentId: student.id }}
+                state={{ fromAbove: true }}
+                className={classes.studentName}
+              >
+                {nameOf(student)}
+              </Link>
               {split && student.grade !== null && (
                 <span className={classes.studentGrade}>
                   Grade {student.grade}

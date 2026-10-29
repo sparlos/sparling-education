@@ -51,6 +51,25 @@
   white-space: nowrap;
 }
 
+.studentName {
+  display: inline-flex;
+  align-items: center;
+  min-height: 3rem;
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--k-border-strong);
+  text-underline-offset: 0.2em;
+}
+
+.studentName:hover {
+  text-decoration-color: currentColor;
+}
+
+.studentName:focus-visible {
+  outline: 2px solid var(--k-focus);
+  outline-offset: 2px;
+}
+
 .studentGrade {
   display: block;
   font-weight: normal;

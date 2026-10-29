@@ -16,6 +16,7 @@ import {
   groupBy,
   misconceptionsOf,
   playsCounted,
+  type ScoredRecord,
   type StudentResult,
   understandingOf,
 } from "./scoring.ts";
@@ -124,7 +125,11 @@ export async function classDashboard(
  * made: every record of the plays it counts, found from the records grouped
  * by what choosing them depends on, rather than every record they've made.
  */
-async function countedRecords(db: Db, classId: string, studentIds: string[]) {
+export async function countedRecords(
+  db: Db,
+  classId: string,
+  studentIds: string[],
+): Promise<ScoredRecord[]> {
   const groups = await db.playRecord.groupBy({
     by: [...choosingFields],
     where: { classId, studentId: { in: studentIds } },
@@ -174,7 +179,10 @@ export function byName(
  * One result per expectation: the one at the student's grade when there is
  * one, otherwise the latest from another tier, marked as such.
  */
-function cells(results: StudentResult[], grade: number | null): Result[] {
+export function cells(
+  results: StudentResult[],
+  grade: number | null,
+): Result[] {
   return groupBy(results, (r) => r.expectation).map((candidates) => {
     const chosen =
       candidates.find((r) => r.tierGrade === grade) ??

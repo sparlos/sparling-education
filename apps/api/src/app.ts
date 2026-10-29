@@ -51,11 +51,13 @@ import {
   PlaySchema,
   SignedInSchema,
   SignInSchema,
+  StudentPageSchema,
   StudentSchema,
   StudentSignInSchema,
   UnhealthySchema,
 } from "./schemas.ts";
 import { studentSession } from "./session.ts";
+import { studentPage } from "./student-page.ts";
 
 export const openApiConfig = {
   openapi: "3.1.0",
@@ -489,6 +491,29 @@ const dashboardRoute = createRoute({
   },
 });
 
+const studentPageRoute = createRoute({
+  method: "get",
+  path: "/classes/{classId}/students/{studentId}",
+  operationId: "getStudentPage",
+  summary:
+    "A student's page: their effort by Learning Skill, and their results",
+  description:
+    "Effort counts tasks failed and later succeeded at in the same play, and finished plays, never raw attempts or time spent. A crashed play counts neither for nor against.",
+  request: { params: z.object({ classId: z.uuid(), studentId: z.uuid() }) },
+  responses: {
+    200: {
+      description: "The student's page",
+      content: { "application/json": { schema: StudentPageSchema } },
+    },
+    ...teacherOnly,
+    404: {
+      description:
+        "No class of this teacher's has that ID, or the student isn't in it",
+      content: { "application/json": { schema: ErrorSchema } },
+    },
+  },
+});
+
 const evidenceRoute = createRoute({
   method: "get",
   path: "/classes/{classId}/students/{studentId}/expectations/{expectationId}",
@@ -802,6 +827,15 @@ export function createApp({
       );
       if (!dashboard) return c.json({ error: "no-such-class" }, 404);
       return c.json(dashboard, 200);
+    })
+    .openapi(studentPageRoute, async (c) => {
+      const teacher = await teacherOf(c);
+      if (teacher === "signed-out") return c.json({ error: teacher }, 401);
+      if (teacher === "not-a-teacher") return c.json({ error: teacher }, 403);
+      const { classId, studentId } = c.req.valid("param");
+      const page = await studentPage(db, teacher.id, classId, studentId);
+      if (!page) return c.json({ error: "not-found" }, 404);
+      return c.json(page, 200);
     })
     .openapi(evidenceRoute, async (c) => {
       const teacher = await teacherOf(c);

@@ -92,7 +92,7 @@ function harness(): TeacherPortHarness {
       const { id } = await json(send, "GET", "/session");
       students.set(account.subject, { send, id });
     },
-    async play(account, classId, grade, tasks) {
+    async play(account, classId, grade, tasks, ending = "finished") {
       const student = students.get(account.subject);
       const tier = tiers[grade];
       if (!student || !tier) throw new Error("Nobody to play that");
@@ -117,7 +117,7 @@ function harness(): TeacherPortHarness {
             ...t,
           })),
         ),
-        { ...common(), kind: "end", ending: "finished" },
+        { ...common(), kind: "end", ending },
       ]);
       return tier.expectation;
     },

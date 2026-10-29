@@ -1,0 +1,84 @@
+/* A student's page. */
+.section {
+  display: grid;
+  gap: var(--mantine-spacing-sm);
+}
+
+.code {
+  font-weight: 700;
+}
+
+.muted {
+  color: var(--k-ink-muted);
+}
+
+.skills,
+.results {
+  display: grid;
+  gap: var(--mantine-spacing-sm);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.skills {
+  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+}
+
+.skill {
+  display: grid;
+  gap: var(--mantine-spacing-xs);
+  height: 100%;
+  padding: var(--mantine-spacing-md);
+  border: 1px solid var(--k-border-subtle);
+  border-radius: var(--mantine-radius-md);
+  box-sizing: border-box;
+  background-color: var(--k-surface-raised);
+}
+
+.result {
+  display: grid;
+  gap: var(--mantine-spacing-xs);
+  justify-items: start;
+  min-height: 3rem;
+  padding: var(--mantine-spacing-md);
+  border: 1px solid var(--k-border-subtle);
+  border-radius: var(--mantine-radius-md);
+  box-sizing: border-box;
+  text-decoration: none;
+  color: var(--k-ink);
+  background-color: var(--k-surface-raised);
+}
+
+.result:hover {
+  border-color: var(--k-border-strong);
+}
+
+.result:focus-visible {
+  outline: 2px solid var(--k-focus);
+  outline-offset: 2px;
+}
+
+/* The same tints as the grid's bands; the words carry the meaning. */
+.band {
+  padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
+  border-radius: var(--mantine-radius-sm);
+  line-height: 1.4;
+  color: var(--k-ink);
+  background-color: var(--k-surface-sunken);
+}
+
+.band[data-understanding="developing"] {
+  color: var(--k-educator-text);
+  background-color: var(--k-educator-soft);
+}
+
+.band[data-understanding="showing-consistently"] {
+  color: var(--k-educator-on-fill);
+  background-color: var(--k-educator-fill);
+}
+
+.band span {
+  display: block;
+  font-size: var(--mantine-font-size-xs);
+}

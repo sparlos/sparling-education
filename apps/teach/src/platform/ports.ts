@@ -2,6 +2,7 @@
 // Kindling. The app only ever talks to these interfaces. They're implemented
 // by the in-memory fake in ./fake/ and the API adapter in ./api/, and both
 // must pass the suite in ./contract.ts.
+import type { LearningSkill } from "@repo/curriculum";
 import type { ComponentType } from "react";
 
 /** Whoever is signed in on this browser, as the teacher app needs them. */
@@ -125,6 +126,12 @@ export interface TeacherPort {
    */
   dashboard(classId: string): Promise<Dashboard>;
   /**
+   * A student's page, opened from their dashboard row: their effort by
+   * Learning Skill and their results. Rejects when no teacher is signed in,
+   * and with `NotFound` when the class isn't theirs or the student isn't in it.
+   */
+  studentPage(classId: string, studentId: string): Promise<StudentPage>;
+  /**
    * A dashboard cell, opened: the student's evidence for the expectation.
    * Rejects when no teacher is signed in, and with `NotFound` when the class
    * isn't theirs, the student isn't in it, or there's no such expectation.
@@ -185,6 +192,37 @@ export interface ClassMisconception extends Misconception {
     expectation: string;
   }[];
 }
+
+/** A student's page, opened from their dashboard row. */
+export interface StudentPage {
+  student: {
+    id: string;
+    firstName: string;
+    lastInitial: string;
+    grade: number | null;
+  };
+  /**
+   * Their effort evidence for each Learning Skill it's evidence of, in the
+   * curriculum's order, from every play of theirs for the class but crashed
+   * ones. Raw attempts and time spent never count.
+   */
+  effort: EffortSkill[];
+  /** Their dashboard row's results, by grade then code; none for no evidence yet. */
+  results: { expectation: DashboardExpectation; result: Result }[];
+}
+
+export interface EffortSkill {
+  skill: LearningSkill;
+  /** The Learning Skill's name, e.g. "Self-Regulation". */
+  name: string;
+  evidence: { kind: EffortKind; count: number }[];
+}
+
+/**
+ * What counts as effort: a task failed and later succeeded at in the same
+ * play (with help or without), and a finished play.
+ */
+export type EffortKind = "improvedAfterMistake" | "finishedPlays";
 
 /** A student's evidence for one expectation: a dashboard cell, opened. */
 export interface Evidence {

@@ -499,7 +499,7 @@ describe("the dashboard", () => {
       ],
     });
     await user.click(
-      within(await row("Ben O.")).getByRole("link", { name: /Ben O\./ }),
+      within(await row("Ben O.")).getByRole("link", { name: /Ben O\., Grade/ }),
     );
     const [play] = within(
       await screen.findByRole("region", { name: "Plays, newest first" }),
@@ -559,7 +559,9 @@ describe("the dashboard", () => {
       ],
     });
     // A cell with no evidence has nothing to open.
-    expect(within(await row("Dee L.")).queryByRole("link")).toBeNull();
+    expect(
+      within(await row("Dee L.")).queryByRole("link", { name: /evidence/ }),
+    ).toBeNull();
 
     await user.click(
       within(await row("Ben O.")).getByRole("link", {
@@ -615,6 +617,161 @@ describe("the dashboard", () => {
   });
 });
 
+describe("a student's page", () => {
+  let subject = 0;
+  function student(
+    firstName: string,
+    lastName: string,
+    seed: Omit<FakeStudentSeed, "google"> = {},
+  ): FakeStudentSeed {
+    subject += 1;
+    return {
+      google: { subject: `page-${subject}`, firstName, lastName },
+      ...seed,
+    };
+  }
+  const ben = () =>
+    student("Ben", "Ode", {
+      plays: [
+        {
+          grade: 4,
+          tasks: [
+            [{ succeeded: false }, { succeeded: true }],
+            [{ succeeded: false }, { succeeded: false }, { succeeded: true }],
+            [{ succeeded: true }],
+            [{ succeeded: false }],
+          ],
+        },
+        // Spamming wrong tries, then leaving partway.
+        {
+          grade: 4,
+          tasks: [Array.from({ length: 8 }, () => ({ succeeded: false }))],
+          ending: "left",
+        },
+      ],
+    });
+
+  async function openStudentPage(
+    students: FakeStudentSeed[],
+    name: string,
+    options: Partial<FakePlatformOptions> = {},
+  ) {
+    const { user, history } = openAt("/teach/", {
+      ...options,
+      classes: [{ draft: { name: "Room 12", grades: [4] }, students }],
+    });
+    await user.click(await signInButton());
+    await user.click(
+      await screen.findByRole("link", { name: "See results for Room 12" }),
+    );
+    const row = await screen.findByRole("row", {
+      name: new RegExp(`^${name}`),
+    });
+    await user.click(within(row).getByRole("link", { name }));
+    return { user, history };
+  }
+
+  const skill = (name: string) => screen.getByRole("region", { name });
+
+  it("opens from a student's row on their effort by Learning Skill", async () => {
+    await openStudentPage([ben()], "Ben O.");
+    expect(
+      await screen.findByRole("heading", { level: 1, name: "Ben O." }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Grade 4")).toBeInTheDocument();
+    const effort = screen.getByRole("region", {
+      name: "Effort, by Learning Skill",
+    });
+    expect(
+      within(effort)
+        .getAllByRole("heading", { level: 3 })
+        .map((h) => h.textContent),
+    ).toEqual(["Responsibility", "Self-Regulation"]);
+    // The left play isn't finished; the spammed task was never got right.
+    expect(skill("Responsibility")).toHaveTextContent("1 play finished");
+    expect(skill("Self-Regulation")).toHaveTextContent(
+      "2 tasks got right after a mistake",
+    );
+    // Never a raw count of tries, a mark or a rating.
+    expect(effort).not.toHaveTextContent(/\d+ (tries|minutes|seconds)/);
+    expect(screen.queryByText(/%/)).not.toBeInTheDocument();
+  });
+
+  it("links each result to its evidence, and goes back up to the dashboard", async () => {
+    const { user, history } = await openStudentPage([ben()], "Ben O.");
+    const page = history.location.pathname;
+    const results = await screen.findByRole("region", { name: "Results" });
+    const { description } = expectation("math-2020.g4.B1.6");
+    const link = within(results).getByRole("link", {
+      name: /Grade 4 · B1\.6/,
+    });
+    expect(link).toHaveTextContent(description);
+    // 3 of 4 tasks on their own in the first play, none in the spammed one.
+    expect(link).toHaveTextContent("Developing");
+
+    await user.click(link);
+    expect(
+      await screen.findByRole("region", { name: "Plays, newest first" }),
+    ).toBeInTheDocument();
+    // The evidence's way up is the dashboard, even come to from here.
+    await user.click(screen.getByRole("link", { name: "Room 12 results" }));
+    expect(
+      await screen.findByRole("heading", { level: 1, name: "Room 12" }),
+    ).toBeInTheDocument();
+
+    act(() => history.back());
+    act(() => history.back());
+    expect(
+      await screen.findByRole("heading", { level: 1, name: "Ben O." }),
+    ).toBeInTheDocument();
+    expect(history.location.pathname).toBe(page);
+    await user.click(screen.getByRole("link", { name: "Room 12 results" }));
+    expect(
+      await screen.findByRole("heading", { level: 1, name: "Room 12" }),
+    ).toBeInTheDocument();
+  });
+
+  it("says when a student has no effort or results yet", async () => {
+    await openStudentPage([student("Dee", "Lam")], "Dee L.");
+    expect(
+      await screen.findByRole("heading", { level: 1, name: "Dee L." }),
+    ).toBeInTheDocument();
+    expect(skill("Responsibility")).toHaveTextContent("0 plays finished");
+    expect(skill("Self-Regulation")).toHaveTextContent(
+      "0 tasks got right after a mistake",
+    );
+    expect(
+      within(screen.getByRole("region", { name: "Results" })).getByText(
+        "No evidence yet.",
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("offers to try again when the student's page can't be loaded", async () => {
+    let offline = false;
+    const user = renderApp({
+      offline: () => offline,
+      classes: [{ draft: { name: "Room 12", grades: [4] }, students: [ben()] }],
+    });
+    await user.click(await signInButton());
+    await user.click(
+      await screen.findByRole("link", { name: "See results for Room 12" }),
+    );
+    const row = await screen.findByRole("row", { name: /^Ben O\./ });
+    offline = true;
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    await user.click(within(row).getByRole("link", { name: "Ben O." }));
+    expect(
+      await screen.findByText("The student's page couldn't be loaded."),
+    ).toBeInTheDocument();
+    offline = false;
+    await user.click(screen.getByRole("button", { name: "Try again" }));
+    expect(
+      await screen.findByRole("heading", { level: 1, name: "Ben O." }),
+    ).toBeInTheDocument();
+  });
+});
+
 describe("the teacher app's URLs", () => {
   const bigger = "bigger-denominator-bigger";
   const room12: FakePlatformOptions = {
@@ -655,7 +812,8 @@ describe("the teacher app's URLs", () => {
     const play = await hrefOf(/Fraction Hop/);
     await user.click(await screen.findByRole("link", { name: /Fraction Hop/ }));
     await screen.findByText(/^How it ended/);
-    return { user, history, urls: { dashboard, evidence, play } };
+    const student = evidence.replace(/\/expectations\/.+$/, "");
+    return { user, history, urls: { dashboard, evidence, play, student } };
   }
 
   it("gives every screen a readable URL under /teach/", async () => {
@@ -667,6 +825,12 @@ describe("the teacher app's URLs", () => {
     expect(urls.play).toMatch(
       /^\/teach\/classes\/[^/]+\/students\/[^/]+\/plays\/[^/]+$/,
     );
+    cleanup();
+    const { user } = openAt("/teach/", room12);
+    await user.click(await signInButton());
+    await user.click(await screen.findByRole("link", { name: /See results/ }));
+    expect(await hrefOf("Ana D.")).toBe(urls.student);
+    expect(urls.student).toMatch(/^\/teach\/classes\/[^/]+\/students\/[^/]+$/);
   });
 
   it("opens each screen straight from its URL, after signing in", async () => {
@@ -676,6 +840,7 @@ describe("the teacher app's URLs", () => {
       [urls.dashboard, () => heading("Room 12")],
       [urls.evidence, () => heading("Ana D.")],
       [urls.play, () => heading(/Fraction Hop/)],
+      [urls.student, () => heading("Ana D.")],
     ];
     for (const [url, shows] of screens) {
       cleanup();
@@ -768,6 +933,7 @@ describe("the teacher app's URLs", () => {
         "expectations/math-2020.g4.Z9.9",
       ),
       urls.play.replace(/plays\/.+$/, "plays/no-such-play"),
+      urls.student.replace(/students\/[^/]+$/, "students/nobody"),
       "/teach/classes/no-such-class",
       "/teach/no/such/page",
     ];

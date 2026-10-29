@@ -26,6 +26,7 @@ import { EvidenceScreen } from "./Evidence.tsx";
 import { ButtonLink } from "./links.tsx";
 import { ManageScreen } from "./Manage.tsx";
 import { PlayScreen } from "./PlayScreen.tsx";
+import { StudentScreen } from "./StudentScreen.tsx";
 
 const root = createRootRouteWithContext<{ teacher: TeacherPort }>()({});
 
@@ -132,6 +133,25 @@ const manageRoute = createRoute({
   ...loading("the class", { label: "The class's results" }),
 });
 
+const studentRoute = createRoute({
+  getParentRoute: () => classRoute,
+  path: "students/$studentId",
+  loader: async ({ context: { teacher }, params: { classId, studentId } }) => {
+    const [cls, page] = await found(
+      Promise.all([
+        teacher.class(classId),
+        teacher.studentPage(classId, studentId),
+      ]),
+    );
+    return { cls, page };
+  },
+  component: function Student() {
+    const { cls, page } = studentRoute.useLoaderData();
+    return <StudentScreen cls={cls} page={page} />;
+  },
+  ...loading("the student's page", { label: "The class's results" }),
+});
+
 const evidenceRoute = createRoute({
   getParentRoute: () => classRoute,
   path: "students/$studentId/expectations/$expectationId",
@@ -172,6 +192,7 @@ const routeTree = root.addChildren([
   classRoute.addChildren([
     dashboardRoute,
     manageRoute,
+    studentRoute,
     evidenceRoute,
     playRoute,
   ]),

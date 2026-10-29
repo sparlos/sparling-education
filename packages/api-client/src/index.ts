@@ -11,6 +11,7 @@ export {
   getLocker,
   getPlay,
   getSession,
+  getStudentPage,
   joinClass,
   pickGrade,
   removeStudent,

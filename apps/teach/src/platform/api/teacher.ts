@@ -9,6 +9,7 @@ import {
   getDashboard,
   getEvidence,
   getPlay,
+  getStudentPage,
   removeStudent,
   setStudentGrade,
   signIn,
@@ -98,6 +99,11 @@ export function apiTeacherPort(options: {
     async dashboard(classId) {
       const res = await getDashboard(classId);
       if (res.status !== 200) throw unexpected("dashboard", res.status);
+      return res.data;
+    },
+    async studentPage(classId, studentId) {
+      const res = await getStudentPage(classId, studentId);
+      if (res.status !== 200) throw unexpected("student page", res.status);
       return res.data;
     },
     async evidence(classId, studentId, expectationId) {

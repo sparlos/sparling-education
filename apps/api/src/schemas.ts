@@ -1,5 +1,6 @@
 import { z } from "@hono/zod-openapi";
 import { itemsIn, type PartSlot } from "@repo/avatar/parts";
+import { type LearningSkill, learningSkills } from "@repo/curriculum";
 import { teacherTextMaxLength } from "@repo/game-contract";
 
 export const HealthSchema = z
@@ -537,3 +538,48 @@ export const PlaySchema = z
   .openapi("Play");
 
 export type Play = z.infer<typeof PlaySchema>;
+
+export const EffortSkillSchema = z
+  .object({
+    skill: z.enum(
+      Object.keys(learningSkills) as [LearningSkill, ...LearningSkill[]],
+    ),
+    name: z.string().openapi({ example: "Self-Regulation" }),
+    evidence: z
+      .array(
+        z.object({
+          kind: z.enum(["improvedAfterMistake", "finishedPlays"]).openapi({
+            description:
+              "improvedAfterMistake: tasks failed and later succeeded at in the same play. finishedPlays: plays finished.",
+          }),
+          count: z.number().int(),
+        }),
+      )
+      .openapi({ description: "Each kind of effort evidence for the skill" }),
+  })
+  .openapi("EffortSkill");
+
+export const StudentPageSchema = z
+  .object({
+    student: StudentNameSchema.extend({
+      grade: z.union([z.number().int(), z.null()]),
+    }),
+    effort: z.array(EffortSkillSchema).openapi({
+      description:
+        "Their effort evidence for each Learning Skill it's evidence of, in the curriculum's order, from every play of theirs for the class but crashed ones. Raw attempts and time spent never count.",
+    }),
+    results: z
+      .array(
+        z.object({
+          expectation: DashboardExpectationSchema,
+          result: ResultSchema,
+        }),
+      )
+      .openapi({
+        description:
+          "Their dashboard row's results: one per expectation they have evidence for, by grade then code",
+      }),
+  })
+  .openapi("StudentPage");
+
+export type StudentPage = z.infer<typeof StudentPageSchema>;

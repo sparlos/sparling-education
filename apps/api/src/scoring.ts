@@ -3,6 +3,7 @@
 // records they've already sent (ADR 0002). The rules are provisional until
 // the pilot's data settles them (docs/DESIGN.md, open questions).
 
+import type { LearningSkill } from "@repo/curriculum";
 import type { GameManifest } from "@repo/game-contract";
 
 /** The provisional understanding rule's settings. */
@@ -22,6 +23,87 @@ export const misconceptionRule = {
   /** Only a student's most recent plays of each game count, by device time. */
   recentPlays: 5,
 } as const;
+
+/**
+ * The provisional effort rule: what counts as effort, and the Learning Skill
+ * each kind is evidence of (Growing Success). Nothing else counts: not raw
+ * attempts, retries alone or time spent.
+ */
+export const effortRule = {
+  /**
+   * A task with a failed try that's later succeeded at in the same play,
+   * with help or without: Self-Regulation ("perseveres and makes an effort
+   * when responding to challenges"). It counts once however many tries it
+   * took, so spamming attempts adds nothing.
+   */
+  improvedAfterMistake: "self-regulation",
+  /**
+   * A play the student finished: Responsibility ("completes and submits
+   * class work").
+   */
+  finishedPlays: "responsibility",
+} as const satisfies Record<string, LearningSkill>;
+
+export type EffortKind = keyof typeof effortRule;
+
+/** What effort reads of a record. */
+export type EffortRecord = Pick<
+  ScoredRecord,
+  | "studentId"
+  | "play"
+  | "kind"
+  | "task"
+  | "succeeded"
+  | "exploring"
+  | "ending"
+  | "sequence"
+>;
+
+/** One student's effort, by kind. */
+export interface StudentEffort extends Record<EffortKind, number> {
+  studentId: string;
+}
+
+/**
+ * Effort, per student, from their records. A crashed play counts neither for
+ * nor against them; a play they left partway counts its improvements but
+ * not as finished. Tries that only explored are neither failed nor
+ * succeeded.
+ */
+export function effortOf(all: readonly EffortRecord[]): StudentEffort[] {
+  const records = scored(all);
+  const crashed = crashedPlays(records);
+  return groupBy(records, (r) => r.studentId).map((theirs) => {
+    const plays = groupBy(
+      theirs.filter((r) => !crashed.has(playKey(r))),
+      (r) => r.play,
+    );
+    return {
+      studentId: theirs[0]?.studentId ?? "",
+      improvedAfterMistake: sum(
+        plays.map(
+          (play) =>
+            groupBy(
+              play.filter((r) => r.kind === "attempt"),
+              (a) => a.task ?? "",
+            ).filter(improvedAfterMistake).length,
+        ),
+      ),
+      finishedPlays: plays.filter((play) =>
+        play.some((r) => r.kind === "end" && r.ending === "finished"),
+      ).length,
+    };
+  });
+}
+
+/** A task's tries include a failed one with a success after it. */
+function improvedAfterMistake(tries: readonly EffortRecord[]) {
+  const inOrder = [...tries].sort((a, b) => a.sequence - b.sequence);
+  const firstFailed = inOrder.findIndex((a) => !a.succeeded);
+  return (
+    firstFailed >= 0 && inOrder.slice(firstFailed).some((a) => a.succeeded)
+  );
+}
 
 export type Understanding =
   | "not-yet-showing"
@@ -307,7 +389,12 @@ function scored<R extends Pick<ScoredRecord, "exploring">>(
   return records.filter((r) => !r.exploring);
 }
 
-function crashedPlays(records: readonly Choosing[]) {
+function crashedPlays(
+  records: readonly Pick<
+    ScoredRecord,
+    "studentId" | "play" | "kind" | "ending"
+  >[],
+) {
   return new Set(
     records
       .filter((r) => r.kind === "end" && r.ending === "crashed")
