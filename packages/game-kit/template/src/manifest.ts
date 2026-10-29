@@ -16,6 +16,7 @@ export const manifest = {
   },
   misconceptions: {
     "bigger-denominator-bigger": {
+      description: "Thinks a fraction with a bigger bottom number is bigger.",
       expectations: ["math-2020.g3.B2.8", "math-2020.g4.B1.4"],
     },
   },

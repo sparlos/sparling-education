@@ -2,7 +2,7 @@
 
 **What to build:** A game's tutorial plays only the first time a student plays that game. After that it's never shown again (founder's call, every game). The play shell tells each game whether this is the student's first play of it, and the game skips its tutorial when it isn't. The answer comes from the play records the API already stores, so nothing new is stored and nothing lives in the browser.
 
-**Blocked by:** none
+**Blocked by:** 21
 
 **Status:** ready-for-agent
 

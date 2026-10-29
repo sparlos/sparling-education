@@ -1,6 +1,8 @@
 /* The grid scrolls sideways inside its card when a class has many
-   expectations; the page itself never does. */
+   expectations; the page itself never does. Positioned, so the cells'
+   visually hidden labels scroll with it rather than widen the page. */
 .scroller {
+  position: relative;
   overflow-x: auto;
   border: 1px solid var(--k-border-subtle);
   border-radius: var(--mantine-radius-md);
@@ -58,6 +60,7 @@
 .band,
 .noEvidence {
   display: inline-block;
+  box-sizing: border-box;
   min-width: 9rem;
   padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
   border-radius: var(--mantine-radius-sm);
@@ -65,10 +68,26 @@
 }
 
 /* Tints that tell the bands apart at a glance. The words carry the meaning,
-   so the grid still reads in greyscale. */
+   so the grid still reads in greyscale. A band opens its evidence. */
 .band {
+  min-height: 3rem;
+  border: 0;
+  font: inherit;
+  text-align: start;
   color: var(--k-ink);
   background-color: var(--k-surface-sunken);
+  cursor: pointer;
+}
+
+.band:hover {
+  text-decoration: underline;
+}
+
+.band:focus-visible,
+.misconceptionToggle:focus-visible,
+.studentLink:focus-visible {
+  outline: 2px solid var(--k-focus);
+  outline-offset: 2px;
 }
 
 .band[data-understanding="developing"] {
@@ -90,4 +109,82 @@
 .noEvidence {
   color: var(--k-ink-muted);
   border: 1px dashed var(--k-border);
+}
+
+/* The misconception strip, above the grid. */
+.strip {
+  display: grid;
+  gap: var(--mantine-spacing-sm);
+}
+
+.misconceptions {
+  display: grid;
+  gap: var(--mantine-spacing-sm);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.misconception {
+  border: 1px solid var(--k-border-subtle);
+  border-radius: var(--mantine-radius-md);
+  background-color: var(--k-surface-raised);
+}
+
+.misconceptionToggle {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--mantine-spacing-xs) var(--mantine-spacing-md);
+  align-items: baseline;
+  width: 100%;
+  min-height: 3rem;
+  padding: var(--mantine-spacing-sm) var(--mantine-spacing-md);
+  border: 0;
+  border-radius: inherit;
+  font: inherit;
+  text-align: start;
+  color: var(--k-ink);
+  background: none;
+  cursor: pointer;
+}
+
+.misconceptionCount {
+  grid-row: span 2;
+  font-weight: 700;
+  white-space: nowrap;
+  color: var(--k-educator-text);
+}
+
+.misconceptionDescription {
+  line-height: 1.4;
+}
+
+.misconceptionGame {
+  font-size: var(--mantine-font-size-sm);
+  color: var(--k-ink-muted);
+}
+
+.misconceptionStudents {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--mantine-spacing-xs);
+  margin: 0;
+  padding: 0 var(--mantine-spacing-md) var(--mantine-spacing-md);
+  list-style: none;
+}
+
+.studentLink {
+  min-height: 3rem;
+  padding: 0 var(--mantine-spacing-md);
+  border: 1px solid var(--k-border);
+  border-radius: var(--mantine-radius-xl);
+  font: inherit;
+  font-weight: 700;
+  color: var(--k-ink);
+  background-color: var(--k-surface-page);
+  cursor: pointer;
+}
+
+.studentLink:hover {
+  background-color: var(--k-surface-sunken);
 }

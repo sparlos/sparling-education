@@ -3,15 +3,23 @@
 // run the app without the API. Must keep passing ../contract.ts, like the API
 // adapter, which is what keeps its copy of the understanding rule in step
 // with the API's scoring module.
-import { type ExpectationId, expectation } from "@repo/curriculum";
+import {
+  type ExpectationId,
+  expectation,
+  expectationIds,
+} from "@repo/curriculum";
 import type { GoogleAccount, Try } from "../contract.ts";
 import {
   type Account,
   type Class,
+  type ClassMisconception,
   CredentialRejected,
   classNameMaxLength,
   type Dashboard,
+  type Evidence,
+  type Misconception,
   type NewClass,
+  type Play,
   type Result,
   type TeacherPort,
   type Understanding,
@@ -24,6 +32,8 @@ export interface FakeGame {
   version: number;
   /** Its tiers by grade: the tier's name and the expectation it evidences. */
   tiers: Record<number, { tier: string; expectation: ExpectationId }>;
+  /** Its misconceptions' descriptions, by ID. */
+  misconceptions: Record<string, string>;
 }
 
 const fakeGames: readonly FakeGame[] = [
@@ -35,6 +45,15 @@ const fakeGames: readonly FakeGame[] = [
       3: { tier: "g3", expectation: "math-2020.g3.B2.8" },
       4: { tier: "g4", expectation: "math-2020.g4.B1.6" },
       5: { tier: "g5", expectation: "math-2020.g5.B1.3" },
+    },
+    // Fraction Hop's manifest's words.
+    misconceptions: {
+      "bigger-denominator-bigger":
+        "Thinks a fraction with a bigger bottom number is a bigger piece (e.g. ⅛ > ¼).",
+      "numerator-not-a-count":
+        "Counts the right number of pieces, but pieces of the wrong size (e.g. three fourths for three eighths).",
+      "no-equivalence":
+        "Builds amounts only from the smallest piece, without seeing that two fourths make one half.",
     },
   },
 ];
@@ -69,11 +88,13 @@ export interface FakeTeacherBackend {
   ): Class;
 }
 
-// The API's provisional understanding rule (apps/api/src/scoring.ts).
+// The API's provisional rules (apps/api/src/scoring.ts): understanding…
 const recentPlays = 5;
 const developingFrom = 0.5;
 const consistentlyFrom = 0.8;
 const consistentlyNeedsTasks = 4;
+// …and the misconceptions a student is showing, from their recent plays of a game.
+const misconceptionPlays = 5;
 
 export function fakeTeacherBackend(
   options: {
@@ -93,13 +114,9 @@ export function fakeTeacherBackend(
     student: Account;
     grade: number | null;
   }[] = [];
-  const plays: {
-    studentId: string;
-    classId: string;
-    tierGrade: number;
-    game: FakeGame;
-    tasks: Try[][];
-  }[] = [];
+  const plays: FakePlay[] = [];
+  // The device clock plays are made by: a minute apart.
+  let clock = Date.UTC(2026, 9, 1, 14);
   let signedIn: Account | null = null;
 
   function reachable() {
@@ -170,12 +187,15 @@ export function fakeTeacherBackend(
     const tier = game?.tiers[grade];
     if (!student || !game || !tier)
       throw new Error("Nobody to play that (fake)");
+    clock += 60_000;
     plays.push({
+      id: `play-${plays.length + 1}`,
       studentId: student.id,
       classId,
       tierGrade: grade,
       game,
       tasks,
+      at: clock,
     });
     return tier.expectation;
   }
@@ -213,7 +233,157 @@ export function fakeTeacherBackend(
           a.firstName.localeCompare(b.firstName, "en-CA") ||
           a.lastInitial.localeCompare(b.lastInitial, "en-CA"),
       );
-    return { expectations, students };
+    return {
+      expectations,
+      students,
+      misconceptions: misconceptionsOf(cls.id, students),
+    };
+  }
+
+  function misconceptionsOf(
+    classId: string,
+    students: { id: string; firstName: string; lastInitial: string }[],
+  ): ClassMisconception[] {
+    const shown = new Map<string, ClassMisconception>();
+    for (const student of students) {
+      for (const game of games) {
+        const recent = plays
+          .filter(
+            (p) =>
+              p.studentId === student.id &&
+              p.classId === classId &&
+              p.game === game,
+          )
+          .slice(-misconceptionPlays);
+        // The expectation of the latest play that showed each one.
+        const theirs = new Map<string, string>();
+        for (const p of recent)
+          for (const id of misconceptionsIn(p))
+            theirs.set(id, p.game.tiers[p.tierGrade]?.expectation ?? "");
+        for (const [id, expectation] of theirs) {
+          const key = `${game.slug}|${id}`;
+          const entry = shown.get(key) ?? {
+            ...described(game, id),
+            students: [],
+          };
+          entry.students.push({
+            id: student.id,
+            firstName: student.firstName,
+            lastInitial: student.lastInitial,
+            expectation,
+          });
+          shown.set(key, entry);
+        }
+      }
+    }
+    return [...shown.values()].sort(
+      (a, b) =>
+        b.students.length - a.students.length ||
+        a.gameName.localeCompare(b.gameName, "en-CA") ||
+        a.id.localeCompare(b.id),
+    );
+  }
+
+  function evidenceOf(
+    cls: Class,
+    studentId: string,
+    expectationId: string,
+  ): Evidence {
+    const member = memberships.find(
+      (m) => m.classId === cls.id && m.student.id === studentId,
+    );
+    const known = expectationIds.find((id) => id === expectationId);
+    if (!member || !known) throw new Error("No such evidence (fake)");
+    const { student, grade } = member;
+    const theirs = plays.filter(
+      (p) =>
+        p.studentId === studentId &&
+        p.classId === cls.id &&
+        p.game.tiers[p.tierGrade]?.expectation === expectationId,
+    );
+    const counted = new Set(
+      [...new Set(theirs.map((p) => p.tierGrade))].flatMap((tierGrade) =>
+        theirs
+          .filter((p) => p.tierGrade === tierGrade)
+          .slice(-recentPlays)
+          .map((p) => p.id),
+      ),
+    );
+    const { id, grade: g, code, description } = expectation(known);
+    return {
+      student: {
+        id: student.id,
+        firstName: student.firstName,
+        lastInitial: student.lastInitial,
+        grade,
+      },
+      expectation: { id, grade: g, code, description },
+      results: resultsOf(studentId, cls.id, grade)
+        .filter((r) => r.expectation === expectationId)
+        .sort(
+          (a, b) =>
+            Number(b.tierGrade === grade) - Number(a.tierGrade === grade) ||
+            a.tierGrade - b.tierGrade,
+        ),
+      plays: theirs.map((p) => {
+        const succeeded = p.tasks.filter((tries) =>
+          tries.some((t) => t.succeeded),
+        ).length;
+        const onTheirOwn = p.tasks.filter((tries) =>
+          tries.some((t) => t.succeeded && !t.assisted),
+        ).length;
+        return {
+          ...summaryOf(p),
+          tasks: p.tasks.length,
+          onTheirOwn,
+          withHelp: succeeded - onTheirOwn,
+          notYet: p.tasks.length - succeeded,
+          misconceptions: misconceptionsIn(p).map((m) => described(p.game, m)),
+          counts: counted.has(p.id),
+        };
+      }),
+    };
+  }
+
+  function playOf(cls: Class, studentId: string, playId: string): Play {
+    const member = memberships.find(
+      (m) => m.classId === cls.id && m.student.id === studentId,
+    );
+    const found = plays.find(
+      (p) =>
+        p.id === playId && p.studentId === studentId && p.classId === cls.id,
+    );
+    if (!member || !found) throw new Error("No such play (fake)");
+    const { id, firstName, lastInitial } = member.student;
+    let second = 0;
+    return {
+      ...summaryOf(found),
+      student: { id, firstName, lastInitial },
+      tasks: found.tasks.map((tries, i) => ({
+        task: `t${i + 1}`,
+        expectation: found.game.tiers[found.tierGrade]?.expectation ?? "",
+        attempts: tries.map((t) => {
+          second += 1;
+          return {
+            at: new Date(found.at + second * 1000).toISOString(),
+            succeeded: t.succeeded,
+            assisted: t.assisted ?? null,
+            misconception: t.misconception
+              ? described(found.game, t.misconception)
+              : null,
+          };
+        }),
+      })),
+    };
+  }
+
+  function teachersClass(classId: string) {
+    const { id } = signedInTeacher();
+    const found = classes.find(
+      (c) => c.teacherId === id && c.class.id === classId,
+    );
+    if (!found) throw new Error("No such class (fake)");
+    return found.class;
   }
 
   function resultsOf(
@@ -288,12 +458,15 @@ export function fakeTeacherBackend(
       },
       async dashboard(classId) {
         reachable();
-        const { id } = signedInTeacher();
-        const found = classes.find(
-          (c) => c.teacherId === id && c.class.id === classId,
-        );
-        if (!found) throw new Error("No such class (fake)");
-        return dashboardOf(found.class);
+        return dashboardOf(teachersClass(classId));
+      },
+      async evidence(classId, studentId, expectationId) {
+        reachable();
+        return evidenceOf(teachersClass(classId), studentId, expectationId);
+      },
+      async play(classId, studentId, playId) {
+        reachable();
+        return playOf(teachersClass(classId), studentId, playId);
       },
     },
     credentialFor(google) {
@@ -315,6 +488,44 @@ export function fakeTeacherBackend(
       }
       return made;
     },
+  };
+}
+
+interface FakePlay {
+  id: string;
+  studentId: string;
+  classId: string;
+  tierGrade: number;
+  game: FakeGame;
+  tasks: Try[][];
+  /** When it started, by the device's clock, in ms. */
+  at: number;
+}
+
+function summaryOf(p: FakePlay) {
+  return {
+    play: p.id,
+    game: p.game.slug,
+    gameName: p.game.name,
+    tier: p.game.tiers[p.tierGrade]?.tier ?? "",
+    tierGrade: p.tierGrade,
+    version: p.game.version,
+    at: new Date(p.at + 1000).toISOString(),
+    ending: "finished" as const,
+  };
+}
+
+/** The misconceptions a play revealed, in the order first revealed. */
+function misconceptionsIn(p: FakePlay): string[] {
+  return [...new Set(p.tasks.flat().flatMap((t) => t.misconception ?? []))];
+}
+
+function described(game: FakeGame, id: string): Misconception {
+  return {
+    game: game.slug,
+    gameName: game.name,
+    id,
+    description: game.misconceptions[id] ?? id,
   };
 }
 

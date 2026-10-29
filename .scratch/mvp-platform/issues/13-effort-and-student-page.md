@@ -2,7 +2,7 @@
 
 **What to build:** Kindling computes effort from how a student worked, and the teacher opens a student's page (from their grid row) to see their effort evidence by Learning Skill.
 
-**Blocked by:** 10
+**Blocked by:** 10, 21
 
 **Status:** ready-for-agent
 

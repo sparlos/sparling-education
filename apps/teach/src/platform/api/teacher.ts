@@ -5,6 +5,8 @@ import {
   getAccount,
   getClasses,
   getDashboard,
+  getEvidence,
+  getPlay,
   signIn,
   signOut,
 } from "@repo/api-client";
@@ -63,6 +65,16 @@ export function apiTeacherPort(options: {
     async dashboard(classId) {
       const res = await getDashboard(classId);
       if (res.status !== 200) throw unexpected("dashboard", res.status);
+      return res.data;
+    },
+    async evidence(classId, studentId, expectationId) {
+      const res = await getEvidence(classId, studentId, expectationId);
+      if (res.status !== 200) throw unexpected("evidence", res.status);
+      return res.data;
+    },
+    async play(classId, studentId, playId) {
+      const res = await getPlay(classId, studentId, playId);
+      if (res.status !== 200) throw unexpected("play", res.status);
       return res.data;
     },
   };

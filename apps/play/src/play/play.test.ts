@@ -15,8 +15,14 @@ const manifest = {
     g4: { grade: 4, expectations: ["math-2020.g4.B1.4"] },
   },
   misconceptions: {
-    "bigger-denominator-bigger": { expectations: ["math-2020.g4.B1.4"] },
-    "counts-marks": { expectations: ["math-2020.g3.B2.8"] },
+    "bigger-denominator-bigger": {
+      description: "Thinks a bigger bottom number is a bigger piece.",
+      expectations: ["math-2020.g4.B1.4"],
+    },
+    "counts-marks": {
+      description: "Counts the marks, not the spaces.",
+      expectations: ["math-2020.g3.B2.8"],
+    },
   },
   strings: { "en-CA": { title: "Test Game" } },
 } satisfies GameManifest;

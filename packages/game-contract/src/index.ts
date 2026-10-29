@@ -24,6 +24,12 @@ export interface Tier {
 }
 
 export interface Misconception {
+  /**
+   * The wrong idea in a sentence, as teachers read it on the dashboard
+   * (e.g. "Thinks a fraction with a bigger bottom number is a bigger piece
+   * (e.g. ⅛ > ¼)."). From the game spec's teacher card; never shown to students.
+   */
+  description: string;
   /** The expectations whose attempts can reveal it. */
   expectations: readonly ExpectationId[];
 }

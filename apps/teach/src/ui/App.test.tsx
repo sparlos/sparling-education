@@ -292,4 +292,233 @@ describe("the dashboard", () => {
     await user.click(screen.getByRole("button", { name: "Try again" }));
     expect(await row("Ana D.")).toHaveTextContent("No evidence yet");
   });
+
+  const bigger = "bigger-denominator-bigger";
+  const count = "numerator-not-a-count";
+  const showed = (misconception: string): Try[] => [
+    { succeeded: true, misconception },
+  ];
+  const biggerWords = /bigger bottom number is a bigger piece/;
+
+  it("lists the misconceptions showing up, the one most students showed first, and who showed each", async () => {
+    const user = await openDashboard({
+      classes: [
+        {
+          draft: { name: "Room 12", grades: [4] },
+          students: [
+            student("Ana", "Diaz", {
+              plays: [{ grade: 4, tasks: [showed(bigger), showed(count)] }],
+            }),
+            student("Ben", "Ode", {
+              plays: [{ grade: 4, tasks: [showed(bigger)] }],
+            }),
+            student("Cy", "Park", { plays: [{ grade: 4, tasks: right(2) }] }),
+          ],
+        },
+      ],
+    });
+    const strip = await screen.findByRole("region", {
+      name: "Misconceptions showing up",
+    });
+    const [first, second] = within(strip).getAllByRole("button");
+    expect(first).toHaveTextContent("2 students");
+    expect(first).toHaveTextContent(biggerWords);
+    expect(first).toHaveTextContent("Fraction Hop");
+    expect(second).toHaveTextContent("1 student");
+    expect(first).toHaveAttribute("aria-expanded", "false");
+
+    await user.click(first as HTMLElement);
+    expect(first).toHaveAttribute("aria-expanded", "true");
+    const who = within(strip).getByRole("list", {
+      name: /Students who showed/,
+    });
+    expect(
+      within(who)
+        .getAllByRole("button")
+        .map((b) => b.textContent),
+    ).toEqual(["Ana D.", "Ben O."]);
+    await user.click(first as HTMLElement);
+    expect(
+      within(strip).queryByRole("list", { name: /Students who showed/ }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("says when no misconceptions are showing up yet", async () => {
+    await openDashboard({
+      classes: [
+        {
+          draft: { name: "Room 12", grades: [4] },
+          students: [student("Ana", "Diaz")],
+        },
+      ],
+    });
+    const strip = await screen.findByRole("region", {
+      name: "Misconceptions showing up",
+    });
+    expect(strip).toHaveTextContent(/None yet/);
+  });
+
+  it("goes from a misconception to a student's evidence, down to a play, and back up", async () => {
+    const user = await openDashboard({
+      classes: [
+        {
+          draft: { name: "Room 12", grades: [4] },
+          students: [
+            student("Ana", "Diaz", {
+              plays: [
+                {
+                  grade: 4,
+                  tasks: [
+                    [
+                      { succeeded: false, misconception: bigger },
+                      { succeeded: true },
+                    ],
+                    [{ succeeded: true, assisted: "hint" }],
+                    [{ succeeded: false }],
+                  ],
+                },
+                { grade: 4, tasks: right(4) },
+              ],
+            }),
+          ],
+        },
+      ],
+    });
+    const strip = await screen.findByRole("region", {
+      name: "Misconceptions showing up",
+    });
+    await user.click(within(strip).getByRole("button", { name: biggerWords }));
+    await user.click(within(strip).getByRole("button", { name: "Ana D." }));
+
+    // The evidence: who, which expectation, their band and each play.
+    expect(
+      await screen.findByRole("heading", { level: 1, name: "Ana D." }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Grade 4 · B1.6")).toBeInTheDocument();
+    expect(
+      screen.getByText(expectation("math-2020.g4.B1.6").description),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("list", { name: "Understanding" }),
+    ).toHaveTextContent("Developing");
+    const plays = within(
+      screen.getByRole("region", { name: "Plays, oldest first" }),
+    ).getAllByRole("button");
+    expect(plays).toHaveLength(2);
+    expect(plays[0]).toHaveTextContent("Fraction Hop");
+    expect(plays[0]).toHaveTextContent("Grade 4 tier · Finished");
+    expect(plays[0]).toHaveTextContent(
+      "1 of 3 tasks on their own, 1 with help, 1 not yet",
+    );
+    expect(plays[0]).toHaveTextContent(biggerWords);
+    expect(plays[1]).toHaveTextContent("4 of 4 tasks on their own");
+
+    // The play: each task's tries in order.
+    await user.click(plays[0] as HTMLElement);
+    expect(
+      await screen.findByRole("heading", { level: 1, name: /Fraction Hop/ }),
+    ).toBeInTheDocument();
+    const tasks = screen.getAllByRole("heading", { level: 2, name: /^Task/ });
+    expect(tasks.map((t) => t.textContent)).toEqual([
+      "Task 1",
+      "Task 2",
+      "Task 3",
+    ]);
+    const task1 = tasks[0]?.closest("li") as HTMLElement;
+    expect(
+      within(task1)
+        .getAllByRole("listitem")
+        .map((li) => li.textContent),
+    ).toEqual([
+      expect.stringMatching(/^First tryNot yetShowed: .*bigger bottom number/),
+      "Retry 1Got it",
+    ]);
+    expect(tasks[1]?.closest("li")).toHaveTextContent(
+      "First tryGot it, with a hint",
+    );
+    expect(screen.getByText(/^How it ended: Finished/)).toBeInTheDocument();
+
+    // And back up, one tap at a time, to the strip as it was left.
+    await user.click(screen.getByRole("button", { name: "Ana D.'s evidence" }));
+    expect(
+      await screen.findByRole("heading", { level: 1, name: "Ana D." }),
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Room 12 results" }));
+    const again = await screen.findByRole("region", {
+      name: "Misconceptions showing up",
+    });
+    expect(
+      within(again).getByRole("button", { name: "Ana D." }),
+    ).toBeInTheDocument();
+  });
+
+  it("goes from a cell to the student's evidence, down to a play, and back", async () => {
+    const user = await openDashboard({
+      classes: [
+        {
+          draft: { name: "Room 12", grades: [4] },
+          students: [
+            student("Ben", "Ode", {
+              plays: [{ grade: 4, tasks: [...right(2), ...wrong(2)] }],
+            }),
+            student("Dee", "Lam"),
+          ],
+        },
+      ],
+    });
+    // A cell with no evidence has nothing to open.
+    expect(within(await row("Dee L.")).queryByRole("button")).toBeNull();
+
+    await user.click(
+      within(await row("Ben O.")).getByRole("button", {
+        name: /Developing.*Ben O\., Grade 4 · B1\.6/,
+      }),
+    );
+    expect(
+      await screen.findByRole("heading", { level: 1, name: "Ben O." }),
+    ).toBeInTheDocument();
+    const [play] = within(
+      screen.getByRole("region", { name: "Plays, oldest first" }),
+    ).getAllByRole("button");
+    expect(play).toHaveTextContent("2 of 4 tasks on their own, 2 not yet");
+
+    await user.click(play as HTMLElement);
+    expect(
+      await screen.findAllByRole("heading", { level: 2, name: /^Task/ }),
+    ).toHaveLength(4);
+    await user.click(screen.getByRole("button", { name: "Ben O.'s evidence" }));
+    await user.click(
+      await screen.findByRole("button", { name: "Room 12 results" }),
+    );
+    expect(await row("Ben O.")).toHaveTextContent("Developing");
+  });
+
+  it("offers to try again when a student's evidence can't be loaded", async () => {
+    let offline = false;
+    const user = await openDashboard({
+      offline: () => offline,
+      classes: [
+        {
+          draft: { name: "Room 12", grades: [4] },
+          students: [
+            student("Ana", "Diaz", { plays: [{ grade: 4, tasks: right(4) }] }),
+          ],
+        },
+      ],
+    });
+    offline = true;
+    await user.click(
+      within(await row("Ana D.")).getByRole("button", {
+        name: /Showing consistently/,
+      }),
+    );
+    expect(
+      await screen.findByText("The student's evidence couldn't be loaded."),
+    ).toBeInTheDocument();
+    offline = false;
+    await user.click(screen.getByRole("button", { name: "Try again" }));
+    expect(
+      await screen.findByRole("heading", { level: 1, name: "Ana D." }),
+    ).toBeInTheDocument();
+  });
 });

@@ -1,0 +1,112 @@
+/* A cell's evidence and a play: the dashboard's drill-down. */
+.code {
+  font-weight: 700;
+}
+
+.muted {
+  color: var(--k-ink-muted);
+}
+
+.section {
+  display: grid;
+  gap: var(--mantine-spacing-sm);
+}
+
+.results {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--mantine-spacing-sm);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* The same tints as the grid's bands; the words carry the meaning. */
+.band {
+  padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
+  border-radius: var(--mantine-radius-sm);
+  line-height: 1.4;
+  color: var(--k-ink);
+  background-color: var(--k-surface-sunken);
+}
+
+.band[data-understanding="developing"] {
+  color: var(--k-educator-text);
+  background-color: var(--k-educator-soft);
+}
+
+.band[data-understanding="showing-consistently"] {
+  color: var(--k-educator-on-fill);
+  background-color: var(--k-educator-fill);
+}
+
+.band span {
+  display: block;
+  font-size: var(--mantine-font-size-xs);
+}
+
+.plays,
+.tasks,
+.attempts {
+  display: grid;
+  gap: var(--mantine-spacing-sm);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.playCard {
+  display: grid;
+  gap: var(--mantine-spacing-xs);
+  width: 100%;
+  min-height: 3rem;
+  padding: var(--mantine-spacing-md);
+  border: 1px solid var(--k-border-subtle);
+  border-radius: var(--mantine-radius-md);
+  font: inherit;
+  text-align: start;
+  color: var(--k-ink);
+  background-color: var(--k-surface-raised);
+  cursor: pointer;
+}
+
+.playCard:hover {
+  border-color: var(--k-border-strong);
+}
+
+.playCard:focus-visible {
+  outline: 2px solid var(--k-focus);
+  outline-offset: 2px;
+}
+
+.playTitle {
+  font-weight: 700;
+}
+
+.showed {
+  color: var(--k-educator-text);
+}
+
+.task {
+  display: grid;
+  gap: var(--mantine-spacing-xs);
+  padding: var(--mantine-spacing-md);
+  border: 1px solid var(--k-border-subtle);
+  border-radius: var(--mantine-radius-md);
+  background-color: var(--k-surface-raised);
+}
+
+.attempt {
+  display: grid;
+  grid-template-columns: 6rem 1fr;
+  gap: 0 var(--mantine-spacing-md);
+}
+
+.attempt .showed {
+  grid-column: 2;
+}
+
+.try {
+  font-weight: 700;
+  color: var(--k-ink-muted);
+}

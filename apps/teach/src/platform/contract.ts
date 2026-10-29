@@ -49,6 +49,8 @@ export interface TeacherPortHarness {
 export interface Try {
   succeeded: boolean;
   assisted?: "hint" | "demonstration" | "guided";
+  /** One of Fraction Hop's misconceptions, revealed by the try. */
+  misconception?: string;
 }
 
 const right = (n: number): Try[][] =>
@@ -316,8 +318,146 @@ export function dashboardContract(
       await port.signIn(await credentialFor(newGoogleAccount()));
       await expect(port.dashboard(made.id)).rejects.toThrow();
     });
+
+    it("lists the misconceptions the class showed, described, the one most students showed first", async () => {
+      const { port, made, joinClass, play } = await teacherWithClass([4]);
+      const [ana, ben, cy] = [
+        student("Ana", "Diaz"),
+        student("Ben", "Ode"),
+        student("Cy", "Park"),
+      ];
+      for (const s of [ana, ben, cy]) await joinClass(s, made.joinCode);
+      const evidenced = await play(ana, made.id, 4, [
+        showed(count),
+        showed(bigger),
+      ]);
+      await play(ben, made.id, 4, [showed(bigger), showed(bigger)]);
+      await play(cy, made.id, 4, right(2));
+      const { misconceptions, students } = await port.dashboard(made.id);
+      const [anaId, benId] = students.map((s) => s.id);
+      expect(misconceptions).toEqual([
+        {
+          game: "fraction-hop",
+          gameName: expect.any(String),
+          id: bigger,
+          description: expect.stringMatching(/\w{3,}/),
+          students: [
+            {
+              id: anaId,
+              firstName: "Ana",
+              lastInitial: "D",
+              expectation: evidenced,
+            },
+            {
+              id: benId,
+              firstName: "Ben",
+              lastInitial: "O",
+              expectation: evidenced,
+            },
+          ],
+        },
+        expect.objectContaining({
+          id: count,
+          students: [expect.objectContaining({ firstName: "Ana" })],
+        }),
+      ]);
+    });
+
+    it("opens a cell on the student's evidence, and a play on its attempts", async () => {
+      const { port, made, joinClass, play } = await teacherWithClass([4]);
+      const sam = student("Sam", "Rivera");
+      await joinClass(sam, made.joinCode);
+      const evidenced = await play(sam, made.id, 4, [
+        [{ succeeded: false, misconception: bigger }, { succeeded: true }],
+        [{ succeeded: true, assisted: "hint" }],
+        [{ succeeded: false }],
+      ]);
+      await play(sam, made.id, 4, right(4));
+      const [{ id: samId } = { id: "" }] = (await port.dashboard(made.id))
+        .students;
+
+      const evidence = await port.evidence(made.id, samId, evidenced);
+      expect(evidence).toMatchObject({
+        student: { id: samId, firstName: "Sam", lastInitial: "R", grade: 4 },
+        expectation: { id: evidenced, grade: 4 },
+        results: [{ expectation: evidenced, understanding: "developing" }],
+      });
+      expect(evidence.plays).toEqual([
+        {
+          play: expect.any(String),
+          game: "fraction-hop",
+          gameName: expect.any(String),
+          tier: expect.any(String),
+          tierGrade: 4,
+          version: 1,
+          at: expect.any(String),
+          ending: "finished",
+          tasks: 3,
+          onTheirOwn: 1,
+          withHelp: 1,
+          notYet: 1,
+          misconceptions: [expect.objectContaining({ id: bigger })],
+          counts: true,
+        },
+        expect.objectContaining({
+          tasks: 4,
+          onTheirOwn: 4,
+          misconceptions: [],
+        }),
+      ]);
+      const [first, second] = evidence.plays;
+      expect(Date.parse(first?.at ?? "")).toBeLessThanOrEqual(
+        Date.parse(second?.at ?? ""),
+      );
+
+      const opened = await port.play(made.id, samId, first?.play ?? "");
+      expect(opened).toMatchObject({
+        play: first?.play,
+        ending: "finished",
+        student: { id: samId, firstName: "Sam", lastInitial: "R" },
+      });
+      expect(
+        opened.tasks.map((t) =>
+          t.attempts.map((a) => [a.succeeded, a.assisted, a.misconception?.id]),
+        ),
+      ).toEqual([
+        [
+          [false, null, bigger],
+          [true, null, undefined],
+        ],
+        [[true, "hint", undefined]],
+        [[false, null, undefined]],
+      ]);
+    });
+
+    it("shows a teacher only their own students' evidence and plays", async () => {
+      const { port, made, joinClass, play, credentialFor } =
+        await teacherWithClass([4]);
+      const sam = student("Sam", "Rivera");
+      await joinClass(sam, made.joinCode);
+      const evidenced = await play(sam, made.id, 4, right(1));
+      const [{ id: samId } = { id: "" }] = (await port.dashboard(made.id))
+        .students;
+      const [{ play: playId } = { play: "" }] = (
+        await port.evidence(made.id, samId, evidenced)
+      ).plays;
+      await expect(
+        port.evidence(made.id, samId, "math-2020.g4.Z9.9"),
+      ).rejects.toThrow();
+      await expect(port.play(made.id, samId, "no-such-play")).rejects.toThrow();
+      await port.signIn(await credentialFor(newGoogleAccount()));
+      await expect(port.evidence(made.id, samId, evidenced)).rejects.toThrow();
+      await expect(port.play(made.id, samId, playId)).rejects.toThrow();
+    });
   });
 }
+
+const bigger = "bigger-denominator-bigger";
+const count = "numerator-not-a-count";
+/** A task got right, having shown the misconception on the way. */
+const showed = (misconception: string): Try[] => [
+  { succeeded: true, misconception },
+];
 
 /** A student's only result. */
 function only(student: DashboardStudent | undefined) {

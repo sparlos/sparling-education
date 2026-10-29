@@ -342,6 +342,39 @@ export const DashboardStudentSchema = z
   })
   .openapi("DashboardStudent");
 
+const StudentNameSchema = z.object({
+  id: z.string(),
+  firstName: z.string(),
+  lastInitial: z.string(),
+});
+
+export const MisconceptionSchema = z
+  .object({
+    game: z.string().openapi({ example: "fraction-hop" }),
+    gameName: z.string().openapi({ example: "Fraction Hop" }),
+    id: z.string().openapi({
+      description: "The game's own name for it",
+      example: "bigger-denominator-bigger",
+    }),
+    description: z.string().openapi({
+      description: "The wrong idea in a sentence, in the game's words",
+    }),
+  })
+  .openapi("Misconception");
+
+export const ClassMisconceptionSchema = MisconceptionSchema.extend({
+  students: z
+    .array(
+      StudentNameSchema.extend({
+        expectation: z.string().openapi({
+          description:
+            "The expectation of the latest attempt that revealed it, whose evidence shows it",
+        }),
+      }),
+    )
+    .openapi({ description: "Who showed it, by first name then last initial" }),
+}).openapi("ClassMisconception");
+
 export const DashboardSchema = z
   .object({
     expectations: z.array(DashboardExpectationSchema).openapi({
@@ -351,7 +384,106 @@ export const DashboardSchema = z
     students: z.array(DashboardStudentSchema).openapi({
       description: "By first name, then last initial",
     }),
+    misconceptions: z.array(ClassMisconceptionSchema).openapi({
+      description:
+        "The misconceptions revealed in the students' recent plays, the one most students showed first",
+    }),
   })
   .openapi("Dashboard");
 
 export type Dashboard = z.infer<typeof DashboardSchema>;
+
+const EndingSchema = z
+  .union([z.enum(["finished", "left", "crashed"]), z.null()])
+  .openapi({
+    description:
+      "How the play ended; null while it's going, or until its end arrives",
+  });
+
+const playBase = {
+  play: z.string().openapi({ description: "The play's ID" }),
+  game: z.string().openapi({ example: "fraction-hop" }),
+  gameName: z.string().openapi({ example: "Fraction Hop" }),
+  tier: z.string().openapi({ example: "g4" }),
+  tierGrade: z.number().int(),
+  version: z.number().int().openapi({ description: "The game's version" }),
+  at: z.iso.datetime().openapi({
+    description: "When it started, by the device's clock",
+  }),
+  ending: EndingSchema,
+};
+
+export const EvidencePlaySchema = z
+  .object({
+    ...playBase,
+    tasks: z.number().int().openapi({
+      description: "The tasks with attempts at this expectation",
+    }),
+    onTheirOwn: z
+      .number()
+      .int()
+      .openapi({ description: "Tasks succeeded at without help" }),
+    withHelp: z
+      .number()
+      .int()
+      .openapi({ description: "Tasks succeeded at only with help" }),
+    notYet: z
+      .number()
+      .int()
+      .openapi({ description: "Tasks never succeeded at" }),
+    misconceptions: z.array(MisconceptionSchema).openapi({
+      description: "Revealed in the play, in the order first revealed",
+    }),
+    counts: z.boolean().openapi({
+      description:
+        "Whether the result counts it: only the most recent plays at a tier do, and never a crashed one",
+    }),
+  })
+  .openapi("EvidencePlay");
+
+export const EvidenceSchema = z
+  .object({
+    student: StudentNameSchema.extend({
+      grade: z.union([z.number().int(), z.null()]),
+    }),
+    expectation: DashboardExpectationSchema,
+    results: z.array(ResultSchema).openapi({
+      description:
+        "Their understanding at each tier they have evidence from, their own grade's first",
+    }),
+    plays: z.array(EvidencePlaySchema).openapi({
+      description: "Every play with evidence for it, oldest first",
+    }),
+  })
+  .openapi("Evidence");
+
+export type Evidence = z.infer<typeof EvidenceSchema>;
+
+export const PlayAttemptSchema = z
+  .object({
+    at: z.iso.datetime().openapi({ description: "By the device's clock" }),
+    succeeded: z.boolean(),
+    assisted: z.union([z.enum(["hint", "demonstration", "guided"]), z.null()]),
+    misconception: z.union([MisconceptionSchema, z.null()]),
+  })
+  .openapi("PlayAttempt");
+
+export const PlaySchema = z
+  .object({
+    ...playBase,
+    student: StudentNameSchema,
+    tasks: z
+      .array(
+        z.object({
+          task: z.string(),
+          expectation: z.string(),
+          attempts: z.array(PlayAttemptSchema).openapi({
+            description: "In order; every one after the first is a retry",
+          }),
+        }),
+      )
+      .openapi({ description: "In the order each was first tried" }),
+  })
+  .openapi("Play");
+
+export type Play = z.infer<typeof PlaySchema>;

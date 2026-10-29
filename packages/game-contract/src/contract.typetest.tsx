@@ -16,6 +16,7 @@ const manifest = {
   },
   misconceptions: {
     "bigger-denominator-bigger": {
+      description: "Thinks a bigger bottom number is a bigger piece.",
       expectations: ["math-2020.g3.B2.8", "math-2020.g4.B1.4"],
     },
   },
@@ -59,8 +60,11 @@ defineGame(
   {
     ...manifest,
     misconceptions: {
-      // @ts-expect-error not an expectation in the curriculum's product layer
-      made_up: { expectations: ["math-2020.g4.Z9.9"] },
+      made_up: {
+        description: "Made up.",
+        // @ts-expect-error not an expectation in the curriculum's product layer
+        expectations: ["math-2020.g4.Z9.9"],
+      },
     },
   },
   () => null,

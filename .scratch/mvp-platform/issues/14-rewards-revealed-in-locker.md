@@ -2,7 +2,7 @@
 
 **What to build:** Effort earns students outfit pieces and stickers, up to a weekly cap. When a game ends, the student returns to their locker and any new rewards are revealed. Reaching the cap is never shown to the student.
 
-**Blocked by:** 08, 09, 13
+**Blocked by:** 08, 09, 13, 21
 
 **Status:** ready-for-agent
 

@@ -1,6 +1,8 @@
-// A class's dashboard: its students against the expectations its games
-// evidence, each cell saying how well that student's plays show
-// understanding of that expectation, or that there's no evidence yet.
+// A class's dashboard: the misconceptions showing up in the class, above its
+// students against the expectations its games evidence, each cell saying how
+// well that student's plays show understanding of that expectation, or that
+// there's no evidence yet. A cell, or a student under a misconception, opens
+// that student's evidence.
 import { Button } from "@repo/ui/button";
 import { Card } from "@repo/ui/card";
 import { Loader } from "@repo/ui/loader";
@@ -8,11 +10,13 @@ import { Stack } from "@repo/ui/stack";
 import { Table } from "@repo/ui/table";
 import { Text } from "@repo/ui/text";
 import { Title } from "@repo/ui/title";
+import { VisuallyHidden } from "@repo/ui/visually-hidden";
 import { useCallback, useEffect, useState } from "react";
 import type {
   Class,
+  ClassMisconception,
   Dashboard,
-  DashboardStudent,
+  DashboardExpectation,
   Result,
   TeacherPort,
   Understanding,
@@ -27,14 +31,27 @@ export const understandingLabels: Record<Understanding, string> = {
   "showing-consistently": "Showing consistently",
 };
 
+/** A student's evidence for one expectation, to open. */
+export interface Cell {
+  studentId: string;
+  expectationId: string;
+}
+
 export function DashboardScreen({
   teacher,
   cls,
   onBack,
+  onOpen,
+  misconception,
+  onMisconception,
 }: {
   teacher: TeacherPort;
   cls: Class;
   onBack(): void;
+  onOpen(cell: Cell): void;
+  /** The misconception opened in the strip, as `game|id`. */
+  misconception: string | null;
+  onMisconception(key: string | null): void;
 }) {
   const [dashboard, setDashboard] = useState<Dashboard | "loading" | "error">(
     "loading",
@@ -87,13 +104,117 @@ export function DashboardScreen({
             </Stack>
           </Card>
         ) : (
-          <Grid dashboard={dashboard} split={cls.grades.length > 1} />
+          <>
+            <Strip
+              misconceptions={dashboard.misconceptions}
+              open={misconception}
+              onToggle={onMisconception}
+              onOpen={onOpen}
+            />
+            <Grid
+              dashboard={dashboard}
+              split={cls.grades.length > 1}
+              onOpen={onOpen}
+            />
+          </>
         ))}
     </Stack>
   );
 }
 
-function Grid({ dashboard, split }: { dashboard: Dashboard; split: boolean }) {
+/** The misconceptions showing up in the class, each opening on who showed it. */
+function Strip({
+  misconceptions,
+  open,
+  onToggle,
+  onOpen,
+}: {
+  misconceptions: ClassMisconception[];
+  open: string | null;
+  onToggle(key: string | null): void;
+  onOpen(cell: Cell): void;
+}) {
+  return (
+    <section aria-labelledby="misconceptions" className={classes.strip}>
+      <Title order={2} size="h4" id="misconceptions">
+        Misconceptions showing up
+      </Title>
+      {misconceptions.length === 0 ? (
+        <Text c="muted">
+          None yet. When a game spots a wrong idea in a student's play, it shows
+          up here.
+        </Text>
+      ) : (
+        <ul className={classes.misconceptions}>
+          {misconceptions.map((m) => {
+            const key = `${m.game}|${m.id}`;
+            const isOpen = open === key;
+            const panel = `misconception-${key}`;
+            return (
+              <li key={key} className={classes.misconception}>
+                <button
+                  type="button"
+                  className={classes.misconceptionToggle}
+                  aria-expanded={isOpen}
+                  aria-controls={panel}
+                  onClick={() => onToggle(isOpen ? null : key)}
+                >
+                  <span className={classes.misconceptionCount}>
+                    {studentsLabel(m.students.length)}
+                  </span>
+                  <span className={classes.misconceptionDescription}>
+                    {m.description}
+                  </span>
+                  <span className={classes.misconceptionGame}>
+                    {m.gameName}
+                  </span>
+                </button>
+                {isOpen && (
+                  <ul
+                    id={panel}
+                    aria-label={`Students who showed: ${m.description}`}
+                    className={classes.misconceptionStudents}
+                  >
+                    {m.students.map((student) => (
+                      <li key={student.id}>
+                        <button
+                          type="button"
+                          className={classes.studentLink}
+                          onClick={() =>
+                            onOpen({
+                              studentId: student.id,
+                              expectationId: student.expectation,
+                            })
+                          }
+                        >
+                          {nameOf(student)}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </section>
+  );
+}
+
+function studentsLabel(n: number) {
+  return n === 1 ? "1 student" : `${n} students`;
+}
+
+function Grid({
+  dashboard,
+  split,
+  onOpen,
+}: {
+  dashboard: Dashboard;
+  split: boolean;
+  onOpen(cell: Cell): void;
+}) {
   const { expectations, students } = dashboard;
   return (
     <div className={classes.scroller}>
@@ -104,9 +225,7 @@ function Grid({ dashboard, split }: { dashboard: Dashboard; split: boolean }) {
           "Student",
           ...expectations.map((e) => (
             <span key={e.id} className={classes.expectation}>
-              <span className={classes.code}>
-                Grade {e.grade} · {e.code}
-              </span>
+              <span className={classes.code}>{expectationLabel(e)}</span>
               <span className={classes.description}>{e.description}</span>
             </span>
           )),
@@ -123,9 +242,13 @@ function Grid({ dashboard, split }: { dashboard: Dashboard; split: boolean }) {
               )}
             </span>,
             ...expectations.map((e) => (
-              <Cell
+              <ResultCell
                 key={e.id}
                 result={student.results.find((r) => r.expectation === e.id)}
+                label={`${nameOf(student)}, ${expectationLabel(e)}`}
+                onOpen={() =>
+                  onOpen({ studentId: student.id, expectationId: e.id })
+                }
               />
             )),
           ],
@@ -135,22 +258,58 @@ function Grid({ dashboard, split }: { dashboard: Dashboard; split: boolean }) {
   );
 }
 
-function Cell({ result }: { result: Result | undefined }) {
+/** A cell: its band, which opens the evidence behind it. */
+function ResultCell({
+  result,
+  label,
+  onOpen,
+}: {
+  result: Result | undefined;
+  /** Whose cell, and which expectation's, for a screen reader. */
+  label: string;
+  onOpen(): void;
+}) {
   if (!result)
     return <span className={classes.noEvidence}>No evidence yet</span>;
   return (
-    <span className={classes.band} data-understanding={result.understanding}>
+    <button
+      type="button"
+      className={classes.band}
+      data-understanding={result.understanding}
+      onClick={onOpen}
+    >
+      <Band result={result} />
+      <VisuallyHidden> — {label}: see the evidence</VisuallyHidden>
+    </button>
+  );
+}
+
+/** A result's band in words, and the tier it's from when that isn't the student's. */
+export function Band({ result }: { result: Result }) {
+  return (
+    <>
       {understandingLabels[result.understanding]}
       {result.otherTier && (
         <span className={classes.otherTier}>
           From the Grade {result.tierGrade} tier
         </span>
       )}
-    </span>
+    </>
   );
 }
 
+/** "Grade 4 · B1.6" */
+export function expectationLabel({ grade, code }: DashboardExpectation) {
+  return `Grade ${grade} · ${code}`;
+}
+
 /** "Ada L." */
-function nameOf({ firstName, lastInitial }: DashboardStudent) {
+export function nameOf({
+  firstName,
+  lastInitial,
+}: {
+  firstName: string;
+  lastInitial: string;
+}) {
   return lastInitial ? `${firstName} ${lastInitial}.` : firstName;
 }

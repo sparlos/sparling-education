@@ -17,6 +17,12 @@ export const understandingRule = {
   consistentlyNeedsTasks: 4,
 } as const;
 
+/** The provisional rule for which misconceptions a student is showing. */
+export const misconceptionRule = {
+  /** Only a student's most recent plays of each game count, by device time. */
+  recentPlays: 5,
+} as const;
+
 export type Understanding =
   | "not-yet-showing"
   | "developing"
@@ -34,8 +40,11 @@ export interface ScoredRecord {
   task: string | null;
   expectation: string | null;
   succeeded: boolean | null;
+  misconception: string | null;
   assisted: string | null;
   ending: string | null;
+  /** Arrival order: within a play, the order the shell made them in. */
+  sequence: number;
 }
 
 /** One student's understanding of one expectation, at one tier's grade. */
@@ -50,6 +59,8 @@ export interface StudentResult {
   games: { slug: string; tier: string; version: number }[];
   /** When the latest play it counts was played, by device time. */
   latest: Date;
+  /** The plays it counts. */
+  plays: string[];
 }
 
 /**
@@ -65,11 +76,7 @@ export function understandingOf(
   records: readonly ScoredRecord[],
   manifestAt: (slug: string, version: number) => GameManifest | undefined,
 ): StudentResult[] {
-  const crashed = new Set(
-    records
-      .filter((r) => r.kind === "end" && r.ending === "crashed")
-      .map((r) => playKey(r)),
-  );
+  const crashed = crashedPlays(records);
 
   // Each play's attempts, grouped by student, expectation and tier grade.
   const groups = new Map<
@@ -106,15 +113,13 @@ export function understandingOf(
 
   return [...groups.values()].map(
     ({ studentId, expectation, tierGrade, plays }) => {
-      const recent = [...plays.values()]
-        .sort((a, b) => startOf(b) - startOf(a))
-        .slice(0, understandingRule.recentPlays);
-      const tasks = recent.flatMap((attempts) =>
-        groupBy(attempts, (a) => a.task ?? ""),
+      const recent = newestFirst([...plays.values()]).slice(
+        0,
+        understandingRule.recentPlays,
       );
-      const succeeded = tasks.filter((tries) =>
-        tries.some((a) => a.succeeded && !a.assisted),
-      ).length;
+      const tallies = recent.map(tallyOf);
+      const tasks = sum(tallies.map((t) => t.tasks));
+      const succeeded = sum(tallies.map((t) => t.onTheirOwn));
       const games = new Map(
         recent
           .flat()
@@ -126,13 +131,110 @@ export function understandingOf(
       return {
         studentId,
         expectation,
-        understanding: band(succeeded, tasks.length),
+        understanding: band(succeeded, tasks),
         tierGrade,
         games: [...games.values()],
         latest: new Date(Math.max(...recent.flat().map((a) => +a.at))),
+        plays: recent.map(([first]) => first?.play ?? ""),
       };
     },
   );
+}
+
+/** A misconception a student is showing, in one game. */
+export interface ShownMisconception {
+  studentId: string;
+  game: string;
+  /** The game's version at the latest attempt that revealed it. */
+  gameVersion: number;
+  misconception: string;
+  /** The expectation of the latest attempt that revealed it. */
+  expectation: string;
+  /** When it was last revealed, by device time. */
+  latest: Date;
+}
+
+/**
+ * The misconceptions each student is showing: those revealed by any attempt
+ * in their recent plays of a game. Crashed plays don't count, as for
+ * understanding.
+ */
+export function misconceptionsOf(
+  records: readonly ScoredRecord[],
+): ShownMisconception[] {
+  const crashed = crashedPlays(records);
+  const attempts = records.filter(
+    (r) => r.kind === "attempt" && !crashed.has(playKey(r)),
+  );
+  return groupBy(attempts, (r) => `${r.studentId}|${r.game}`).flatMap(
+    (theirs) => {
+      const recent = newestFirst(groupBy(theirs, (r) => r.play))
+        .slice(0, misconceptionRule.recentPlays)
+        .flat();
+      return groupBy(
+        recent.filter((r) => r.misconception),
+        (r) => r.misconception ?? "",
+      ).map((revealing) => {
+        const last = revealing.reduce((a, b) => (+b.at > +a.at ? b : a));
+        return {
+          studentId: last.studentId,
+          game: last.game,
+          gameVersion: last.gameVersion,
+          misconception: last.misconception ?? "",
+          expectation: last.expectation ?? "",
+          latest: last.at,
+        };
+      });
+    },
+  );
+}
+
+/** How a play's tasks went, each counted once however many tries it took. */
+export interface PlayTally {
+  tasks: number;
+  /** Succeeded at without help: what understanding counts. */
+  onTheirOwn: number;
+  /** Succeeded at only with help. */
+  withHelp: number;
+  /** Never succeeded at. */
+  notYet: number;
+}
+
+export function tallyOf(attempts: readonly ScoredRecord[]): PlayTally {
+  const tasks = groupBy(attempts, (a) => a.task ?? "");
+  const onTheirOwn = tasks.filter((tries) =>
+    tries.some((a) => a.succeeded && !a.assisted),
+  ).length;
+  const succeeded = tasks.filter((tries) =>
+    tries.some((a) => a.succeeded),
+  ).length;
+  return {
+    tasks: tasks.length,
+    onTheirOwn,
+    withHelp: succeeded - onTheirOwn,
+    notYet: tasks.length - succeeded,
+  };
+}
+
+function crashedPlays(records: readonly ScoredRecord[]) {
+  return new Set(
+    records
+      .filter((r) => r.kind === "end" && r.ending === "crashed")
+      .map((r) => playKey(r)),
+  );
+}
+
+/** Plays, newest first by when they started; plays that started together, by arrival. */
+export function newestFirst<P extends readonly ScoredRecord[]>(
+  plays: readonly P[],
+): P[] {
+  return [...plays].sort(
+    (a, b) => startOf(b) - startOf(a) || firstSent(b) - firstSent(a),
+  );
+}
+
+function firstSent(records: readonly ScoredRecord[]) {
+  return Math.min(...records.map((r) => r.sequence));
 }
 
 function band(succeeded: number, tasks: number): Understanding {
@@ -149,10 +251,12 @@ function playKey(record: { studentId: string; play: string }) {
   return `${record.studentId}|${record.play}`;
 }
 
-/** When a play started, by device time: its earliest attempt. */
-function startOf(attempts: readonly ScoredRecord[]) {
+/** When a play started, by device time: its earliest record. */
+export function startOf(attempts: readonly ScoredRecord[]) {
   return Math.min(...attempts.map((a) => +a.at));
 }
+
+const sum = (ns: readonly number[]) => ns.reduce((a, b) => a + b, 0);
 
 /** The items in groups by key, in the order each key first appears. */
 export function groupBy<T>(items: readonly T[], key: (item: T) => string) {

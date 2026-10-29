@@ -15,7 +15,10 @@ const manifest = {
     g4: { grade: 4, expectations: ["math-2020.g4.B1.4"] },
   },
   misconceptions: {
-    "g4-only": { expectations: ["math-2020.g4.B1.4"] },
+    "g4-only": {
+      description: "Only at Grade 4.",
+      expectations: ["math-2020.g4.B1.4"],
+    },
   },
   strings: { "en-CA": { title: "Breaker", go: "Go" } },
 } as const;

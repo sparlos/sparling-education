@@ -17,6 +17,8 @@ export const manifest = {
   },
   misconceptions: {
     "bigger-denominator-bigger": {
+      description:
+        "Thinks a fraction with a bigger bottom number is a bigger piece (e.g. ⅛ > ¼).",
       expectations: [
         "math-2020.g3.B2.8",
         "math-2020.g4.B1.6",
@@ -24,13 +26,19 @@ export const manifest = {
       ],
     },
     "numerator-not-a-count": {
+      description:
+        "Counts the right number of pieces, but pieces of the wrong size (e.g. three fourths for three eighths).",
       expectations: [
         "math-2020.g3.B2.8",
         "math-2020.g4.B1.6",
         "math-2020.g5.B1.3",
       ],
     },
-    "no-equivalence": { expectations: ["math-2020.g5.B1.3"] },
+    "no-equivalence": {
+      description:
+        "Builds amounts only from the smallest piece, without seeing that two fourths make one half.",
+      expectations: ["math-2020.g5.B1.3"],
+    },
   },
   strings: { "en-CA": strings },
 } as const satisfies GameManifest;

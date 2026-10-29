@@ -2,7 +2,7 @@
 
 **What to build:** Students place their stickers on their locker and move them around. A teacher awards a student recognition, an exclusive sticker for a character trait, in two taps, and sees which students haven't been recognised yet this term.
 
-**Blocked by:** 14
+**Blocked by:** 14, 21
 
 **Status:** ready-for-agent
 

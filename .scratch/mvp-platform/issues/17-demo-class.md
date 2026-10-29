@@ -2,7 +2,7 @@
 
 **What to build:** Every new teacher gets a demo class of about 24 simulated students across Grades 3–5, with results already in and clear misconception patterns. They can view it as one of its students, and delete it in one step.
 
-**Blocked by:** 11, 13
+**Blocked by:** 11, 13, 21
 
 **Status:** ready-for-agent
 

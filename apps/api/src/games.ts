@@ -34,3 +34,28 @@ export function manifestAt(
     (m) => m.slug === slug && m.version === version,
   );
 }
+
+/** The game's name, or its slug when Kindling no longer hosts it. */
+export function gameName(slug: string): string {
+  return hostedGames.find((g) => g.slug === slug)?.name ?? slug;
+}
+
+/**
+ * A misconception as teachers read it: in the game's current words, or the
+ * words of the version that revealed it when the game has since dropped it.
+ */
+export function describedMisconception(
+  slug: string,
+  version: number,
+  id: string,
+) {
+  const misconception =
+    hostedGames.find((g) => g.slug === slug)?.manifest.misconceptions[id] ??
+    manifestAt(slug, version)?.misconceptions[id];
+  return {
+    game: slug,
+    gameName: gameName(slug),
+    id,
+    description: misconception?.description ?? id,
+  };
+}

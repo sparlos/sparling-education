@@ -65,9 +65,10 @@ export function stringRows(spec: Spec): Record<string, string> {
 }
 
 /**
- * Registers tests that the manifest matches the spec's header, Tiers and
- * Misconceptions: slug, version, renderer, avatar use, each tier's grade and
- * expectations, and each misconception's expectations, all in order.
+ * Registers tests that the manifest matches the spec's header, Tiers,
+ * Misconceptions and Teacher card: slug, version, renderer, avatar use, each
+ * tier's grade and expectations, and each misconception's expectations and
+ * description, all in order.
  */
 export function describeManifestSpec(spec: Spec, manifest: GameManifest) {
   describe("the manifest matches SPEC.md", () => {
@@ -107,6 +108,25 @@ export function describeManifestSpec(spec: Spec, manifest: GameManifest) {
           id,
           expectations: [...m.expectations],
         })),
+      );
+    });
+
+    it("describes each misconception to teachers in the teacher card's words", () => {
+      // `- \`id\`: "The wrong idea." Reteach: …`
+      const described = Object.fromEntries(
+        [
+          ...spec
+            .section("Teacher card")
+            .matchAll(/^\s+- `([^`]+)`(?: \([^)]*\))?: "([^"]+)"/gm),
+        ].map(([, id, description]) => [id, description]),
+      );
+      expect(described).toEqual(
+        Object.fromEntries(
+          Object.entries(manifest.misconceptions).map(([id, m]) => [
+            id,
+            m.description,
+          ]),
+        ),
       );
     });
   });

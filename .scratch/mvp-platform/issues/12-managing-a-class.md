@@ -2,7 +2,7 @@
 
 **What to build:** A teacher turns games off and on for a class, changes a student's grade, removes a student, and switches between their classes.
 
-**Blocked by:** 07
+**Blocked by:** 07, 21
 
 **Status:** ready-for-agent
 

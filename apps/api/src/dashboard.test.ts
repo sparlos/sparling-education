@@ -1,3 +1,4 @@
+import { manifest } from "@games/fraction-hop/manifest";
 import { expectation } from "@repo/curriculum";
 import { describe, expect, it } from "vitest";
 import { client, db, signInAsStudent } from "../test/client.ts";
@@ -76,6 +77,7 @@ describe("the dashboard", () => {
         },
       ],
       students: [],
+      misconceptions: [],
     });
   });
 
@@ -309,5 +311,98 @@ describe("understanding", () => {
         }),
       ]),
     );
+  });
+});
+
+describe("the misconception strip", () => {
+  const bigger = "bigger-denominator-bigger";
+  const count = "numerator-not-a-count";
+  const showed = (misconception: string) => [
+    [{ succeeded: true, misconception }],
+  ];
+
+  it("lists each misconception the class showed, in the game's words, the one most students showed first", async () => {
+    const headers = await teacher();
+    const cls = await createClass(headers, [4]);
+    const ana = await joinedStudent(cls, { name: ["Ana", "Diaz"] });
+    const ben = await joinedStudent(cls, { name: ["Ben", "Ode"] });
+    const cy = await joinedStudent(cls, { name: ["Cy", "Park"] });
+    const who = (s: typeof ana) => ({
+      studentId: s.studentId,
+      classId: cls.id,
+    });
+    await play(ana, [playOf(who(ana), [...showed(count), ...showed(bigger)])]);
+    await play(ben, [playOf(who(ben), showed(bigger))]);
+    // Showing it twice counts them once.
+    await play(cy, [
+      playOf(who(cy), [...showed(bigger), ...showed(bigger)], { at: day(1) }),
+      playOf(who(cy), right(2), { at: day(2) }),
+    ]);
+
+    const { misconceptions } = await dashboardOf(headers, cls.id);
+    const student = (
+      s: typeof ana,
+      firstName: string,
+      lastInitial: string,
+    ) => ({
+      id: s.studentId,
+      firstName,
+      lastInitial,
+      expectation: "math-2020.g4.B1.6",
+    });
+    expect(misconceptions).toEqual([
+      {
+        game: "fraction-hop",
+        gameName: "Fraction Hop",
+        id: bigger,
+        description: manifest.misconceptions[bigger].description,
+        students: [
+          student(ana, "Ana", "D"),
+          student(ben, "Ben", "O"),
+          student(cy, "Cy", "P"),
+        ],
+      },
+      {
+        game: "fraction-hop",
+        gameName: "Fraction Hop",
+        id: count,
+        description: manifest.misconceptions[count].description,
+        students: [student(ana, "Ana", "D")],
+      },
+    ]);
+  });
+
+  it("only lists what was shown in a student's five most recent plays", async () => {
+    const { teacher, classId, student, who } = await classWithStudent();
+    await play(student, [playOf(who, showed(bigger), { at: day(1) })]);
+    expect((await dashboardOf(teacher, classId)).misconceptions).toHaveLength(
+      1,
+    );
+    await play(
+      student,
+      [2, 3, 4, 5, 6].map((d) => playOf(who, right(2), { at: day(d) })),
+    );
+    expect((await dashboardOf(teacher, classId)).misconceptions).toEqual([]);
+  });
+
+  it("leaves out crashed plays", async () => {
+    const { teacher, classId, student, who } = await classWithStudent();
+    await play(student, [playOf(who, showed(bigger), { ending: "crashed" })]);
+    expect((await dashboardOf(teacher, classId)).misconceptions).toEqual([]);
+  });
+
+  it("points each student at the expectation that showed it, in a split class", async () => {
+    const { teacher, classId, student, who } = await classWithStudent(
+      [4, 5],
+      4,
+    );
+    await play(student, [
+      playOf(who, showed(bigger), { grade: 4, at: day(1) }),
+      playOf(who, showed(bigger), { grade: 5, at: day(2) }),
+    ]);
+    const [shown] = (await dashboardOf(teacher, classId)).misconceptions;
+    expect(shown?.students).toEqual([
+      expect.objectContaining({ expectation: "math-2020.g5.B1.3" }),
+    ]);
   });
 });

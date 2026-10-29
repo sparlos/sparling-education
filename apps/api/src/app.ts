@@ -14,6 +14,7 @@ import {
 } from "./accounts.ts";
 import { createClass, teacherClass, teacherClasses } from "./classes.ts";
 import { classDashboard } from "./dashboard.ts";
+import { studentEvidence, studentPlay } from "./drill-down.ts";
 import { type IdentityVerifier, identityFrom } from "./identity.ts";
 import { studentLocker, wearLook } from "./locker.ts";
 import { joinClass, pickGrade } from "./memberships.ts";
@@ -24,6 +25,7 @@ import {
   ClassSchema,
   DashboardSchema,
   ErrorSchema,
+  EvidenceSchema,
   GradePickSchema,
   HealthSchema,
   JoinSchema,
@@ -33,6 +35,7 @@ import {
   NewClassSchema,
   PlayRecordBatchSchema,
   PlayRecordsStoredSchema,
+  PlaySchema,
   SignedInSchema,
   SignInSchema,
   StudentSchema,
@@ -378,6 +381,60 @@ const dashboardRoute = createRoute({
   },
 });
 
+const evidenceRoute = createRoute({
+  method: "get",
+  path: "/classes/{classId}/students/{studentId}/expectations/{expectationId}",
+  operationId: "getEvidence",
+  summary: "A student's evidence for one expectation: a dashboard cell, opened",
+  description:
+    "Their understanding at each tier, and every play of theirs for the class with attempts at the expectation: its game, tier, how its tasks went and the misconceptions it revealed.",
+  request: {
+    params: z.object({
+      classId: z.uuid(),
+      studentId: z.uuid(),
+      expectationId: z.string().openapi({ example: "math-2020.g4.B1.6" }),
+    }),
+  },
+  responses: {
+    200: {
+      description: "The student's evidence",
+      content: { "application/json": { schema: EvidenceSchema } },
+    },
+    ...teacherOnly,
+    404: {
+      description:
+        "No class of this teacher's has that ID, the student isn't in it, or there's no such expectation",
+      content: { "application/json": { schema: ErrorSchema } },
+    },
+  },
+});
+
+const playRoute = createRoute({
+  method: "get",
+  path: "/classes/{classId}/students/{studentId}/plays/{play}",
+  operationId: "getPlay",
+  summary: "One of a student's plays, attempt by attempt",
+  request: {
+    params: z.object({
+      classId: z.uuid(),
+      studentId: z.uuid(),
+      play: z.string().min(1).max(100),
+    }),
+  },
+  responses: {
+    200: {
+      description: "The play",
+      content: { "application/json": { schema: PlaySchema } },
+    },
+    ...teacherOnly,
+    404: {
+      description:
+        "No class of this teacher's has that ID, the student isn't in it, or they have no such play for it",
+      content: { "application/json": { schema: ErrorSchema } },
+    },
+  },
+});
+
 // Where each entry point lands when sign-in isn't given somewhere to return to.
 const homes = { teacher: "/teach/" } as const;
 
@@ -580,6 +637,30 @@ export function createApp({
       );
       if (!dashboard) return c.json({ error: "no-such-class" }, 404);
       return c.json(dashboard, 200);
+    })
+    .openapi(evidenceRoute, async (c) => {
+      const teacher = await teacherOf(c);
+      if (teacher === "signed-out") return c.json({ error: teacher }, 401);
+      if (teacher === "not-a-teacher") return c.json({ error: teacher }, 403);
+      const { classId, studentId, expectationId } = c.req.valid("param");
+      const evidence = await studentEvidence(
+        db,
+        teacher.id,
+        classId,
+        studentId,
+        expectationId,
+      );
+      if (!evidence) return c.json({ error: "not-found" }, 404);
+      return c.json(evidence, 200);
+    })
+    .openapi(playRoute, async (c) => {
+      const teacher = await teacherOf(c);
+      if (teacher === "signed-out") return c.json({ error: teacher }, 401);
+      if (teacher === "not-a-teacher") return c.json({ error: teacher }, 403);
+      const { classId, studentId, play } = c.req.valid("param");
+      const found = await studentPlay(db, teacher.id, classId, studentId, play);
+      if (!found) return c.json({ error: "not-found" }, 404);
+      return c.json(found, 200);
     });
 
   app.doc31("/openapi.json", openApiConfig);

@@ -71,7 +71,9 @@ The named art slots the game needs, each drawn first as SVG from the style kit.
 - Grades and tiers: <...>
 - Expectations: <IDs with Kindling's descriptions>
 - The mechanic in 30 seconds: <...>
-- Misconceptions it reveals: <each one in plain language, and how it reads in results, e.g. "3 students treated 1/8 as larger than 1/4">
+- Misconceptions it reveals:
+  - `<misconception-id>`: "<The wrong idea in one sentence, as teachers see it on the dashboard; the manifest's `description`, word for word>" Reteach: <one classroom move>
+  - In results, e.g. "3 students treated 1/8 as larger than 1/4".
 - When to use it: <relative to instruction, e.g. after introducing equivalent fractions>
 
 ## Open questions

@@ -77,6 +77,22 @@ export interface TeacherPort {
    * evidence. Rejects when no teacher is signed in, or the class isn't theirs.
    */
   dashboard(classId: string): Promise<Dashboard>;
+  /**
+   * A dashboard cell, opened: the student's evidence for the expectation.
+   * Rejects when no teacher is signed in, the class isn't theirs, the
+   * student isn't in it, or there's no such expectation.
+   */
+  evidence(
+    classId: string,
+    studentId: string,
+    expectationId: string,
+  ): Promise<Evidence>;
+  /**
+   * One of the student's plays for the class, attempt by attempt. Rejects
+   * when no teacher is signed in, the class isn't theirs, the student isn't
+   * in it, or they have no such play.
+   */
+  play(classId: string, studentId: string, playId: string): Promise<Play>;
 }
 
 /**
@@ -94,6 +110,102 @@ export interface Dashboard {
   expectations: DashboardExpectation[];
   /** By first name, then last initial. */
   students: DashboardStudent[];
+  /**
+   * The misconceptions revealed in the students' recent plays, the one most
+   * students showed first.
+   */
+  misconceptions: ClassMisconception[];
+}
+
+/** A wrong idea a game's attempts can reveal. */
+export interface Misconception {
+  /** The game's slug. */
+  game: string;
+  gameName: string;
+  /** The game's own name for it, e.g. "bigger-denominator-bigger". */
+  id: string;
+  /** The wrong idea in a sentence, in the game's words. */
+  description: string;
+}
+
+export interface ClassMisconception extends Misconception {
+  /** Who showed it, by first name then last initial. */
+  students: {
+    id: string;
+    firstName: string;
+    lastInitial: string;
+    /** The expectation whose evidence shows it: where they last showed it. */
+    expectation: string;
+  }[];
+}
+
+/** A student's evidence for one expectation: a dashboard cell, opened. */
+export interface Evidence {
+  student: {
+    id: string;
+    firstName: string;
+    lastInitial: string;
+    grade: number | null;
+  };
+  expectation: DashboardExpectation;
+  /** Their understanding at each tier they have evidence from, their own grade's first. */
+  results: Result[];
+  /** Every play with evidence for it, oldest first. */
+  plays: EvidencePlay[];
+}
+
+/** How a play ended; null while it's going, or until its end arrives. */
+export type Ending = "finished" | "left" | "crashed" | null;
+
+/** What every view of a play shows about it. */
+export interface PlaySummary {
+  /** The play's ID. */
+  play: string;
+  /** The game's slug. */
+  game: string;
+  gameName: string;
+  tier: string;
+  tierGrade: number;
+  /** The game's version. */
+  version: number;
+  /** When it started, by the device's clock, as an ISO date-time. */
+  at: string;
+  ending: Ending;
+}
+
+/** A play, as evidence for one expectation: how its tasks at it went. */
+export interface EvidencePlay extends PlaySummary {
+  /** Tasks at this expectation, each counted once however many tries. */
+  tasks: number;
+  onTheirOwn: number;
+  /** Succeeded at only with help. */
+  withHelp: number;
+  /** Never succeeded at. */
+  notYet: number;
+  /** Revealed in the play, in the order first revealed. */
+  misconceptions: Misconception[];
+  /** Whether the result counts it: only recent plays do, and never a crashed one. */
+  counts: boolean;
+}
+
+export interface Play extends PlaySummary {
+  student: { id: string; firstName: string; lastInitial: string };
+  /** In the order each was first tried. */
+  tasks: {
+    task: string;
+    expectation: string;
+    /** In order; every one after the first is a retry. */
+    attempts: Attempt[];
+  }[];
+}
+
+export interface Attempt {
+  /** By the device's clock, as an ISO date-time. */
+  at: string;
+  succeeded: boolean;
+  /** The help the game gave before it, if any. */
+  assisted: "hint" | "demonstration" | "guided" | null;
+  misconception: Misconception | null;
 }
 
 export interface DashboardExpectation {

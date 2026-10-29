@@ -88,7 +88,8 @@ Thinking while the student chooses, happy on a right tap, encouraging on a miss,
 - Grades and tiers: placeholder.
 - Expectations: placeholder.
 - The mechanic in 30 seconds: placeholder.
-- Misconceptions it reveals: placeholder.
+- Misconceptions it reveals:
+  - `bigger-denominator-bigger`: "Thinks a fraction with a bigger bottom number is bigger." Reteach: placeholder.
 - When to use it: never; it's a template.
 
 ## Open questions

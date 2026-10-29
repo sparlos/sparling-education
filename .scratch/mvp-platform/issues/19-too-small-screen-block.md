@@ -2,7 +2,7 @@
 
 **What to build:** The games can't be played on a phone; Kindling is for iPads, Chromebooks, laptops and desktops. When the student side (`apps/play`: sign-in, locker, wardrobe, every game) is open on a screen that's too small, a full-screen block covers everything and says, out loud, that this device is too small and to use a tablet or computer. When the screen gets big enough again (rotating, resizing the window), the block goes away and the student is back where they were.
 
-**Blocked by:** none
+**Blocked by:** 21
 
 **Status:** ready-for-agent
 

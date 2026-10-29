@@ -7,14 +7,25 @@ import type { FakeStudentSeed } from "./teacher.ts";
 const right: Try[] = [{ succeeded: true }];
 const wrong: Try[] = [{ succeeded: false }];
 const retried: Try[] = [{ succeeded: false }, { succeeded: true }];
+const hinted: Try[] = [
+  { succeeded: false },
+  { succeeded: true, assisted: "hint" },
+];
+/** Got there, having shown the misconception on the way. */
+const showed = (misconception: string): Try[] => [
+  { succeeded: false, misconception },
+  { succeeded: true },
+];
+const bigger = showed("bigger-denominator-bigger");
+const count = showed("numerator-not-a-count");
 
 const students: [string, string, number, Try[][] | null][] = [
   ["Amara", "Okafor", 4, [right, right, retried, right, right]],
-  ["Ben", "Tremblay", 4, [right, wrong, retried, wrong]],
+  ["Ben", "Tremblay", 4, [right, wrong, bigger, hinted, count, wrong]],
   ["Chloé", "Gagnon", 5, [right, right, right, right]],
-  ["Dev", "Patel", 4, [wrong, wrong, right, wrong]],
+  ["Dev", "Patel", 4, [bigger, wrong, right, bigger, wrong, hinted]],
   ["Elsie", "Martin", 5, null],
-  ["Farah", "Haddad", 5, [retried, wrong, right, retried]],
+  ["Farah", "Haddad", 5, [retried, bigger, right, retried]],
 ];
 
 export const fakeSampleClasses: {

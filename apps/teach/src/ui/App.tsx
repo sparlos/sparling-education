@@ -15,7 +15,9 @@ import {
 } from "../platform/ports.ts";
 import classes from "./app.module.css";
 import { ClassesScreen } from "./Classes.tsx";
-import { DashboardScreen } from "./Dashboard.tsx";
+import { type Cell, DashboardScreen } from "./Dashboard.tsx";
+import { EvidenceScreen } from "./Evidence.tsx";
+import { PlayScreen } from "./PlayScreen.tsx";
 
 export interface AppProps {
   platform: Platform;
@@ -132,18 +134,85 @@ export function App({ platform }: AppProps) {
   }
 }
 
-/** The signed-in teacher's classes, and each one's dashboard. */
+/** Where the teacher is: each view opens from the one before it. */
+type View =
+  | { kind: "dashboard"; cls: Class; misconception: string | null }
+  | { kind: "evidence"; cls: Class; cell: Cell }
+  | {
+      kind: "play";
+      cls: Class;
+      studentId: string;
+      studentName: string;
+      playId: string;
+    };
+
+/**
+ * The signed-in teacher's classes, each one's dashboard, and its drill-down:
+ * a cell's evidence, then a play. Back returns to the view before, as it was.
+ */
 function Home({ teacher }: { teacher: TeacherPort }) {
-  const [open, setOpen] = useState<Class | null>(null);
-  return open ? (
-    <DashboardScreen
-      teacher={teacher}
-      cls={open}
-      onBack={() => setOpen(null)}
-    />
-  ) : (
-    <ClassesScreen teacher={teacher} onOpen={setOpen} />
-  );
+  const [views, setViews] = useState<View[]>([]);
+  const open = (view: View) => setViews((before) => [...before, view]);
+  const back = () => setViews((before) => before.slice(0, -1));
+  const view = views.at(-1);
+
+  switch (view?.kind) {
+    case undefined:
+      return (
+        <ClassesScreen
+          teacher={teacher}
+          onOpen={(cls) =>
+            open({ kind: "dashboard", cls, misconception: null })
+          }
+        />
+      );
+    case "dashboard":
+      return (
+        <DashboardScreen
+          teacher={teacher}
+          cls={view.cls}
+          onBack={back}
+          onOpen={(cell) => open({ kind: "evidence", cls: view.cls, cell })}
+          misconception={view.misconception}
+          onMisconception={(misconception) =>
+            setViews((before) => [
+              ...before.slice(0, -1),
+              { ...view, misconception },
+            ])
+          }
+        />
+      );
+    case "evidence":
+      return (
+        <EvidenceScreen
+          teacher={teacher}
+          cls={view.cls}
+          studentId={view.cell.studentId}
+          expectationId={view.cell.expectationId}
+          onBack={back}
+          onOpenPlay={(playId, studentName) =>
+            open({
+              kind: "play",
+              cls: view.cls,
+              studentId: view.cell.studentId,
+              studentName,
+              playId,
+            })
+          }
+        />
+      );
+    case "play":
+      return (
+        <PlayScreen
+          teacher={teacher}
+          cls={view.cls}
+          studentId={view.studentId}
+          studentName={view.studentName}
+          playId={view.playId}
+          onBack={back}
+        />
+      );
+  }
 }
 
 function SignedIn({
