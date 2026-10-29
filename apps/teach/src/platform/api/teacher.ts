@@ -3,6 +3,7 @@ import {
   type Class as ApiClass,
   createClass,
   getAccount,
+  getClass,
   getClasses,
   getDashboard,
   getEvidence,
@@ -14,6 +15,7 @@ import {
   type Class,
   type ClassGrade,
   CredentialRejected,
+  NotFound,
   type TeacherPort,
 } from "../ports.ts";
 
@@ -62,6 +64,11 @@ export function apiTeacherPort(options: {
         throw unexpected("create class", (res as { status: number }).status);
       return toClass(res.data);
     },
+    async class(classId) {
+      const res = await getClass(classId);
+      if (res.status !== 200) throw unexpected("class", res.status);
+      return toClass(res.data);
+    },
     async dashboard(classId) {
       const res = await getDashboard(classId);
       if (res.status !== 200) throw unexpected("dashboard", res.status);
@@ -81,5 +88,8 @@ export function apiTeacherPort(options: {
 }
 
 function unexpected(call: string, status: number) {
+  // A made-up ID that isn't even a UUID fails the API's validation with a
+  // 400, before it can answer 404; to the teacher, both are "not found".
+  if (status === 404 || status === 400) return new NotFound(call);
   return new Error(`[teach] The API answered ${call} with ${status}`);
 }

@@ -73,14 +73,20 @@ export interface TeacherPort {
    */
   createClass(draft: NewClass): Promise<Class>;
   /**
+   * One of the signed-in teacher's classes. Rejects when no teacher is signed
+   * in, and with `NotFound` when the class isn't theirs.
+   */
+  class(classId: string): Promise<Class>;
+  /**
    * The class's dashboard: its students against the expectations its games
-   * evidence. Rejects when no teacher is signed in, or the class isn't theirs.
+   * evidence. Rejects when no teacher is signed in, and with `NotFound` when
+   * the class isn't theirs.
    */
   dashboard(classId: string): Promise<Dashboard>;
   /**
    * A dashboard cell, opened: the student's evidence for the expectation.
-   * Rejects when no teacher is signed in, the class isn't theirs, the
-   * student isn't in it, or there's no such expectation.
+   * Rejects when no teacher is signed in, and with `NotFound` when the class
+   * isn't theirs, the student isn't in it, or there's no such expectation.
    */
   evidence(
     classId: string,
@@ -89,8 +95,8 @@ export interface TeacherPort {
   ): Promise<Evidence>;
   /**
    * One of the student's plays for the class, attempt by attempt. Rejects
-   * when no teacher is signed in, the class isn't theirs, the student isn't
-   * in it, or they have no such play.
+   * when no teacher is signed in, and with `NotFound` when the class isn't
+   * theirs, the student isn't in it, or they have no such play.
    */
   play(classId: string, studentId: string, playId: string): Promise<Play>;
 }
@@ -247,6 +253,14 @@ export class CredentialRejected extends Error {
   constructor() {
     super("Google sign-in was rejected");
     this.name = "CredentialRejected";
+  }
+}
+
+/** What was asked for isn't the signed-in teacher's to see: not theirs, gone, or made up. */
+export class NotFound extends Error {
+  constructor(what: string) {
+    super(`No such ${what}`);
+    this.name = "NotFound";
   }
 }
 

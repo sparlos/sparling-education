@@ -3,26 +3,25 @@
 // well that student's plays show understanding of that expectation, or that
 // there's no evidence yet. A cell, or a student under a misconception, opens
 // that student's evidence.
-import { Button } from "@repo/ui/button";
 import { Card } from "@repo/ui/card";
-import { Loader } from "@repo/ui/loader";
 import { Stack } from "@repo/ui/stack";
 import { Table } from "@repo/ui/table";
 import { Text } from "@repo/ui/text";
 import { Title } from "@repo/ui/title";
 import { VisuallyHidden } from "@repo/ui/visually-hidden";
-import { useCallback, useEffect, useState } from "react";
+import { Link } from "@tanstack/react-router";
+import type { ReactNode } from "react";
 import type {
   Class,
   ClassMisconception,
   Dashboard,
   DashboardExpectation,
   Result,
-  TeacherPort,
   Understanding,
 } from "../platform/ports.ts";
 import { gradesLabel } from "./Classes.tsx";
 import classes from "./dashboard.module.css";
+import { ButtonLink, useUp } from "./links.tsx";
 
 /** What each understanding band says. Descriptions, never marks or levels. */
 export const understandingLabels: Record<Understanding, string> = {
@@ -32,107 +31,104 @@ export const understandingLabels: Record<Understanding, string> = {
 };
 
 /** A student's evidence for one expectation, to open. */
-export interface Cell {
+interface Cell {
   studentId: string;
   expectationId: string;
 }
 
 export function DashboardScreen({
-  teacher,
   cls,
-  onBack,
-  onOpen,
+  dashboard,
   misconception,
   onMisconception,
 }: {
-  teacher: TeacherPort;
   cls: Class;
-  onBack(): void;
-  onOpen(cell: Cell): void;
+  dashboard: Dashboard;
   /** The misconception opened in the strip, as `game|id`. */
   misconception: string | null;
   onMisconception(key: string | null): void;
 }) {
-  const [dashboard, setDashboard] = useState<Dashboard | "loading" | "error">(
-    "loading",
-  );
-
-  const load = useCallback(() => {
-    setDashboard("loading");
-    teacher.dashboard(cls.id).then(setDashboard, (error: unknown) => {
-      console.error("[teach] Couldn't load the dashboard", error);
-      setDashboard("error");
-    });
-  }, [teacher, cls.id]);
-  useEffect(load, [load]);
-
+  const up = useUp();
   return (
     <Stack gap="lg">
       <div>
-        <Button variant="subtle" onClick={onBack}>
+        <ButtonLink to="/" variant="subtle" onClick={up}>
           Your classes
-        </Button>
+        </ButtonLink>
       </div>
       <div>
         <Title order={1}>{cls.name}</Title>
         <Text c="muted">{gradesLabel(cls.grades)}</Text>
       </div>
-      {dashboard === "loading" && (
-        <Loader label="Loading the class's results" size="md" />
-      )}
-      {dashboard === "error" && (
+      {dashboard.students.length === 0 ? (
         <Card variant="soft" tone="educator">
           <Stack gap="xs" align="flex-start">
-            <Text>The class's results couldn't be loaded.</Text>
-            <Button variant="secondary" onClick={load}>
-              Try again
-            </Button>
+            <Title order={2} size="h4">
+              No students yet
+            </Title>
+            <Text>
+              Share the class join link or a game link. Each student shows up
+              here once they join.
+            </Text>
           </Stack>
         </Card>
+      ) : (
+        <>
+          <Strip
+            classId={cls.id}
+            misconceptions={dashboard.misconceptions}
+            open={misconception}
+            onToggle={onMisconception}
+          />
+          <Grid
+            classId={cls.id}
+            dashboard={dashboard}
+            split={cls.grades.length > 1}
+          />
+        </>
       )}
-      {typeof dashboard === "object" &&
-        (dashboard.students.length === 0 ? (
-          <Card variant="soft" tone="educator">
-            <Stack gap="xs" align="flex-start">
-              <Title order={2} size="h4">
-                No students yet
-              </Title>
-              <Text>
-                Share the class join link or a game link. Each student shows up
-                here once they join.
-              </Text>
-            </Stack>
-          </Card>
-        ) : (
-          <>
-            <Strip
-              misconceptions={dashboard.misconceptions}
-              open={misconception}
-              onToggle={onMisconception}
-              onOpen={onOpen}
-            />
-            <Grid
-              dashboard={dashboard}
-              split={cls.grades.length > 1}
-              onOpen={onOpen}
-            />
-          </>
-        ))}
     </Stack>
+  );
+}
+
+/** A link down to a student's evidence for one expectation. */
+function EvidenceLink({
+  classId,
+  cell,
+  className,
+  children,
+  ...data
+}: {
+  classId: string;
+  cell: Cell;
+  className?: string;
+  children: ReactNode;
+  "data-understanding"?: Understanding;
+}) {
+  return (
+    <Link
+      to="/classes/$classId/students/$studentId/expectations/$expectationId"
+      params={{ classId, ...cell }}
+      state={{ fromAbove: true }}
+      className={className}
+      {...data}
+    >
+      {children}
+    </Link>
   );
 }
 
 /** The misconceptions showing up in the class, each opening on who showed it. */
 function Strip({
+  classId,
   misconceptions,
   open,
   onToggle,
-  onOpen,
 }: {
+  classId: string;
   misconceptions: ClassMisconception[];
   open: string | null;
   onToggle(key: string | null): void;
-  onOpen(cell: Cell): void;
 }) {
   return (
     <section aria-labelledby="misconceptions" className={classes.strip}>
@@ -177,18 +173,16 @@ function Strip({
                   >
                     {m.students.map((student) => (
                       <li key={student.id}>
-                        <button
-                          type="button"
+                        <EvidenceLink
+                          classId={classId}
+                          cell={{
+                            studentId: student.id,
+                            expectationId: student.expectation,
+                          }}
                           className={classes.studentLink}
-                          onClick={() =>
-                            onOpen({
-                              studentId: student.id,
-                              expectationId: student.expectation,
-                            })
-                          }
                         >
                           {nameOf(student)}
-                        </button>
+                        </EvidenceLink>
                       </li>
                     ))}
                   </ul>
@@ -207,13 +201,13 @@ function studentsLabel(n: number) {
 }
 
 function Grid({
+  classId,
   dashboard,
   split,
-  onOpen,
 }: {
+  classId: string;
   dashboard: Dashboard;
   split: boolean;
-  onOpen(cell: Cell): void;
 }) {
   const { expectations, students } = dashboard;
   return (
@@ -246,9 +240,8 @@ function Grid({
                 key={e.id}
                 result={student.results.find((r) => r.expectation === e.id)}
                 label={`${nameOf(student)}, ${expectationLabel(e)}`}
-                onOpen={() =>
-                  onOpen({ studentId: student.id, expectationId: e.id })
-                }
+                classId={classId}
+                cell={{ studentId: student.id, expectationId: e.id }}
               />
             )),
           ],
@@ -262,25 +255,27 @@ function Grid({
 function ResultCell({
   result,
   label,
-  onOpen,
+  classId,
+  cell,
 }: {
   result: Result | undefined;
   /** Whose cell, and which expectation's, for a screen reader. */
   label: string;
-  onOpen(): void;
+  classId: string;
+  cell: Cell;
 }) {
   if (!result)
     return <span className={classes.noEvidence}>No evidence yet</span>;
   return (
-    <button
-      type="button"
+    <EvidenceLink
+      classId={classId}
+      cell={cell}
       className={classes.band}
       data-understanding={result.understanding}
-      onClick={onOpen}
     >
       <Band result={result} />
       <VisuallyHidden> — {label}: see the evidence</VisuallyHidden>
-    </button>
+    </EvidenceLink>
   );
 }
 

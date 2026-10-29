@@ -7,6 +7,7 @@ import {
   type Class,
   CredentialRejected,
   type DashboardStudent,
+  NotFound,
   type TeacherPort,
 } from "./ports.ts";
 
@@ -177,6 +178,20 @@ export function teacherPortContract(
       expect(theirs.id).not.toBe(mine.id);
     });
 
+    it("finds one of the teacher's classes by ID, and not another teacher's or a made-up one", async () => {
+      const { port, credentialFor } = await signedInTeacher();
+      const mine = await port.createClass({ name: "Mine", grades: [3] });
+      expect(await port.class(mine.id)).toEqual(mine);
+      await expect(port.class(crypto.randomUUID())).rejects.toBeInstanceOf(
+        NotFound,
+      );
+      await expect(port.class("no-such-class")).rejects.toBeInstanceOf(
+        NotFound,
+      );
+      await port.signIn(await credentialFor(newGoogleAccount()));
+      await expect(port.class(mine.id)).rejects.toBeInstanceOf(NotFound);
+    });
+
     it("refuses a class with no name or no grades", async () => {
       const { port } = await signedInTeacher();
       await expect(
@@ -316,7 +331,7 @@ export function dashboardContract(
       await port.signOut();
       await expect(port.dashboard(made.id)).rejects.toThrow();
       await port.signIn(await credentialFor(newGoogleAccount()));
-      await expect(port.dashboard(made.id)).rejects.toThrow();
+      await expect(port.dashboard(made.id)).rejects.toBeInstanceOf(NotFound);
     });
 
     it("lists the misconceptions the class showed, described, the one most students showed first", async () => {
@@ -443,11 +458,20 @@ export function dashboardContract(
       ).plays;
       await expect(
         port.evidence(made.id, samId, "math-2020.g4.Z9.9"),
-      ).rejects.toThrow();
-      await expect(port.play(made.id, samId, "no-such-play")).rejects.toThrow();
+      ).rejects.toBeInstanceOf(NotFound);
+      await expect(
+        port.evidence(made.id, "no-such-student", evidenced),
+      ).rejects.toBeInstanceOf(NotFound);
+      await expect(
+        port.play(made.id, samId, "no-such-play"),
+      ).rejects.toBeInstanceOf(NotFound);
       await port.signIn(await credentialFor(newGoogleAccount()));
-      await expect(port.evidence(made.id, samId, evidenced)).rejects.toThrow();
-      await expect(port.play(made.id, samId, playId)).rejects.toThrow();
+      await expect(
+        port.evidence(made.id, samId, evidenced),
+      ).rejects.toBeInstanceOf(NotFound);
+      await expect(port.play(made.id, samId, playId)).rejects.toBeInstanceOf(
+        NotFound,
+      );
     });
   });
 }

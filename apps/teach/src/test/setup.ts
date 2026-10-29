@@ -17,6 +17,9 @@ if (typeof window !== "undefined")
       dispatchEvent: () => false,
     }) as MediaQueryList;
 
+// jsdom has no scrolling; the router scrolls to the top of each new screen.
+if (typeof window !== "undefined") window.scrollTo = () => {};
+
 afterEach(() => {
   cleanup();
 });

@@ -1,20 +1,19 @@
 // A dashboard cell, opened: one student's evidence for one expectation. Their
 // understanding at each tier, then every play with evidence for it, oldest
 // first, each opening on its attempts.
-import { Button } from "@repo/ui/button";
 import { Stack } from "@repo/ui/stack";
 import { Text } from "@repo/ui/text";
 import { Title } from "@repo/ui/title";
-import { useCallback } from "react";
+import { Link } from "@tanstack/react-router";
 import type {
   Class,
   Ending,
+  Evidence,
   EvidencePlay,
-  TeacherPort,
 } from "../platform/ports.ts";
 import { Band, expectationLabel, nameOf } from "./Dashboard.tsx";
 import classes from "./drill-down.module.css";
-import { Loaded } from "./Loaded.tsx";
+import { ButtonLink, useUp } from "./links.tsx";
 
 /** How each play ended, in a teacher's words. */
 export const endingLabels: Record<Exclude<Ending, null>, string> = {
@@ -27,81 +26,72 @@ export const endingLabels: Record<Exclude<Ending, null>, string> = {
 export const noEnding = "Not finished, or not all sent yet";
 
 export function EvidenceScreen({
-  teacher,
   cls,
-  studentId,
-  expectationId,
-  onBack,
-  onOpenPlay,
+  evidence: { student, expectation, results, plays },
 }: {
-  teacher: TeacherPort;
   cls: Class;
-  studentId: string;
-  expectationId: string;
-  onBack(): void;
-  onOpenPlay(playId: string, studentName: string): void;
+  evidence: Evidence;
 }) {
-  const load = useCallback(
-    () => teacher.evidence(cls.id, studentId, expectationId),
-    [teacher, cls.id, studentId, expectationId],
-  );
+  const up = useUp();
   return (
     <Stack gap="lg">
       <div>
-        <Button variant="subtle" onClick={onBack}>
+        <ButtonLink
+          to="/classes/$classId"
+          params={{ classId: cls.id }}
+          variant="subtle"
+          onClick={up}
+        >
           {`${cls.name} results`}
-        </Button>
+        </ButtonLink>
       </div>
-      <Loaded load={load} what="the student's evidence">
-        {({ student, expectation, results, plays }) => (
-          <>
-            <div>
-              <Title order={1}>{nameOf(student)}</Title>
-              <Text className={classes.code}>
-                {expectationLabel(expectation)}
-              </Text>
-              <Text c="muted">{expectation.description}</Text>
-            </div>
-            {results.length === 0 ? (
-              <Text>No evidence yet.</Text>
-            ) : (
-              <ul className={classes.results} aria-label="Understanding">
-                {results.map((result) => (
-                  <li
-                    key={result.tierGrade}
-                    className={classes.band}
-                    data-understanding={result.understanding}
-                  >
-                    <Band result={result} />
-                  </li>
-                ))}
-              </ul>
-            )}
-            {plays.length > 0 && (
-              <section aria-labelledby="plays" className={classes.section}>
-                <Title order={2} size="h4" id="plays">
-                  Plays, oldest first
-                </Title>
-                <ol className={classes.plays}>
-                  {plays.map((play) => (
-                    <li key={play.play}>
-                      <PlayCard
-                        play={play}
-                        onOpen={() => onOpenPlay(play.play, nameOf(student))}
-                      />
-                    </li>
-                  ))}
-                </ol>
-              </section>
-            )}
-          </>
-        )}
-      </Loaded>
+      <div>
+        <Title order={1}>{nameOf(student)}</Title>
+        <Text className={classes.code}>{expectationLabel(expectation)}</Text>
+        <Text c="muted">{expectation.description}</Text>
+      </div>
+      {results.length === 0 ? (
+        <Text>No evidence yet.</Text>
+      ) : (
+        <ul className={classes.results} aria-label="Understanding">
+          {results.map((result) => (
+            <li
+              key={result.tierGrade}
+              className={classes.band}
+              data-understanding={result.understanding}
+            >
+              <Band result={result} />
+            </li>
+          ))}
+        </ul>
+      )}
+      {plays.length > 0 && (
+        <section aria-labelledby="plays" className={classes.section}>
+          <Title order={2} size="h4" id="plays">
+            Plays, oldest first
+          </Title>
+          <ol className={classes.plays}>
+            {plays.map((play) => (
+              <li key={play.play}>
+                <PlayCard classId={cls.id} studentId={student.id} play={play} />
+              </li>
+            ))}
+          </ol>
+        </section>
+      )}
     </Stack>
   );
 }
 
-function PlayCard({ play, onOpen }: { play: EvidencePlay; onOpen(): void }) {
+function PlayCard({
+  classId,
+  studentId,
+  play,
+}: {
+  classId: string;
+  studentId: string;
+  play: EvidencePlay;
+}) {
   const tally = [
     `${play.onTheirOwn} of ${play.tasks} ${play.tasks === 1 ? "task" : "tasks"} on their own`,
     play.withHelp > 0 && `${play.withHelp} with help`,
@@ -110,7 +100,12 @@ function PlayCard({ play, onOpen }: { play: EvidencePlay; onOpen(): void }) {
     .filter(Boolean)
     .join(", ");
   return (
-    <button type="button" className={classes.playCard} onClick={onOpen}>
+    <Link
+      to="/classes/$classId/students/$studentId/plays/$playId"
+      params={{ classId, studentId, playId: play.play }}
+      state={{ fromAbove: true }}
+      className={classes.playCard}
+    >
       <span className={classes.playTitle}>
         {play.gameName} · {when(play.at)}
       </span>
@@ -131,7 +126,7 @@ function PlayCard({ play, onOpen }: { play: EvidencePlay; onOpen(): void }) {
             : "Not counted: only the most recent plays are."}
         </span>
       )}
-    </button>
+    </Link>
   );
 }
 

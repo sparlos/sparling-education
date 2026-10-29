@@ -5,22 +5,21 @@ import { Wordmark } from "@repo/ui/marketing/wordmark";
 import { Stack } from "@repo/ui/stack";
 import { Text } from "@repo/ui/text";
 import { Title } from "@repo/ui/title";
+import { type RouterHistory, RouterProvider } from "@tanstack/react-router";
 import { type ReactNode, useCallback, useEffect, useState } from "react";
 import {
   type Account,
-  type Class,
   CredentialRejected,
   type Platform,
   type TeacherPort,
 } from "../platform/ports.ts";
 import classes from "./app.module.css";
-import { ClassesScreen } from "./Classes.tsx";
-import { type Cell, DashboardScreen } from "./Dashboard.tsx";
-import { EvidenceScreen } from "./Evidence.tsx";
-import { PlayScreen } from "./PlayScreen.tsx";
+import { teacherRouter } from "./routes.tsx";
 
 export interface AppProps {
   platform: Platform;
+  /** The browser's history by default; tests pass a memory history. */
+  history?: RouterHistory;
 }
 
 type Screen =
@@ -29,7 +28,11 @@ type Screen =
   | { kind: "signed-out"; rejected?: boolean; busy?: boolean }
   | { kind: "signed-in"; account: Account };
 
-export function App({ platform }: AppProps) {
+/**
+ * Signing in, then the screens at their URLs. Signed out, every URL shows
+ * sign-in, and stays put, so signing in opens the screen it asked for.
+ */
+export function App({ platform, history }: AppProps) {
   const { teacher, SignInButton } = platform;
   const [screen, setScreen] = useState<Screen>({ kind: "loading" });
 
@@ -115,7 +118,7 @@ export function App({ platform }: AppProps) {
     case "signed-in":
       return screen.account.role === "teacher" ? (
         <SignedIn account={screen.account} onSignOut={signOut}>
-          <Home teacher={teacher} />
+          <Screens teacher={teacher} history={history} />
         </SignedIn>
       ) : (
         <Centered>
@@ -134,85 +137,16 @@ export function App({ platform }: AppProps) {
   }
 }
 
-/** Where the teacher is: each view opens from the one before it. */
-type View =
-  | { kind: "dashboard"; cls: Class; misconception: string | null }
-  | { kind: "evidence"; cls: Class; cell: Cell }
-  | {
-      kind: "play";
-      cls: Class;
-      studentId: string;
-      studentName: string;
-      playId: string;
-    };
-
-/**
- * The signed-in teacher's classes, each one's dashboard, and its drill-down:
- * a cell's evidence, then a play. Back returns to the view before, as it was.
- */
-function Home({ teacher }: { teacher: TeacherPort }) {
-  const [views, setViews] = useState<View[]>([]);
-  const open = (view: View) => setViews((before) => [...before, view]);
-  const back = () => setViews((before) => before.slice(0, -1));
-  const view = views.at(-1);
-
-  switch (view?.kind) {
-    case undefined:
-      return (
-        <ClassesScreen
-          teacher={teacher}
-          onOpen={(cls) =>
-            open({ kind: "dashboard", cls, misconception: null })
-          }
-        />
-      );
-    case "dashboard":
-      return (
-        <DashboardScreen
-          teacher={teacher}
-          cls={view.cls}
-          onBack={back}
-          onOpen={(cell) => open({ kind: "evidence", cls: view.cls, cell })}
-          misconception={view.misconception}
-          onMisconception={(misconception) =>
-            setViews((before) => [
-              ...before.slice(0, -1),
-              { ...view, misconception },
-            ])
-          }
-        />
-      );
-    case "evidence":
-      return (
-        <EvidenceScreen
-          teacher={teacher}
-          cls={view.cls}
-          studentId={view.cell.studentId}
-          expectationId={view.cell.expectationId}
-          onBack={back}
-          onOpenPlay={(playId, studentName) =>
-            open({
-              kind: "play",
-              cls: view.cls,
-              studentId: view.cell.studentId,
-              studentName,
-              playId,
-            })
-          }
-        />
-      );
-    case "play":
-      return (
-        <PlayScreen
-          teacher={teacher}
-          cls={view.cls}
-          studentId={view.studentId}
-          studentName={view.studentName}
-          playId={view.playId}
-          onBack={back}
-        />
-      );
-  }
+/** The signed-in teacher's screens, by URL, with a fresh router each sign-in. */
+function Screens({
+  teacher,
+  history,
+}: {
+  teacher: TeacherPort;
+  history?: RouterHistory;
+}) {
+  const [router] = useState(() => teacherRouter({ teacher, history }));
+  return <RouterProvider router={router} />;
 }
 
 function SignedIn({

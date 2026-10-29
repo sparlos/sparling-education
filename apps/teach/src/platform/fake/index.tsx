@@ -18,12 +18,20 @@ export interface FakePlatformOptions {
   origin?: string;
   /** Classes the teacher already has, with students who've played. */
   classes?: { draft: NewClass; students: FakeStudentSeed[] }[];
+  /** Classes another teacher has, made before the teacher's own. */
+  otherTeachersClasses?: NewClass[];
 }
 
 const newTeacher: GoogleAccount = {
   subject: "fake-teacher",
   firstName: "Ada",
   lastName: "Lovelace",
+};
+
+const otherTeacher: GoogleAccount = {
+  subject: "fake-other-teacher",
+  firstName: "Grace",
+  lastName: "Hopper",
 };
 
 export function createFakePlatform(
@@ -35,6 +43,8 @@ export function createFakePlatform(
     origin: options.origin,
   });
   if (options.student) backend.addStudent(google);
+  for (const draft of options.otherTeachersClasses ?? [])
+    backend.seedClass(otherTeacher, draft, []);
   for (const { draft, students } of options.classes ?? [])
     backend.seedClass(google, draft, students);
   const credential = options.rejectSignIn

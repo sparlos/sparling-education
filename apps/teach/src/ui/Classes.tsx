@@ -3,63 +3,42 @@
 import { Button } from "@repo/ui/button";
 import { Card } from "@repo/ui/card";
 import { CheckboxGroup } from "@repo/ui/checkbox-group";
-import { Loader } from "@repo/ui/loader";
 import { Stack } from "@repo/ui/stack";
 import { Text } from "@repo/ui/text";
 import { TextInput } from "@repo/ui/text-input";
 import { Title } from "@repo/ui/title";
 import { VisuallyHidden } from "@repo/ui/visually-hidden";
-import {
-  type FormEvent,
-  type ReactNode,
-  useCallback,
-  useEffect,
-  useState,
-} from "react";
+import { type FormEvent, type ReactNode, useEffect, useState } from "react";
 import {
   type Class,
   type ClassGrade,
   classGrades,
   classNameMaxLength,
   type NewClass,
-  type TeacherPort,
 } from "../platform/ports.ts";
 import classes from "./classes.module.css";
+import { ButtonLink } from "./links.tsx";
 
 export function ClassesScreen({
-  teacher,
-  onOpen,
+  list,
+  onCreate,
 }: {
-  teacher: TeacherPort;
-  /** Opens the class's dashboard. */
-  onOpen(cls: Class): void;
+  list: Class[];
+  /** Makes the class, and resolves once it's in the list. */
+  onCreate(draft: NewClass): Promise<void>;
 }) {
-  const [list, setList] = useState<Class[] | "loading" | "error">("loading");
   const [creating, setCreating] = useState(false);
 
-  const load = useCallback(() => {
-    setList("loading");
-    teacher.classes().then(setList, (error: unknown) => {
-      console.error("[teach] Couldn't load classes", error);
-      setList("error");
-    });
-  }, [teacher]);
-  useEffect(load, [load]);
-
-  const create = useCallback(
-    async (draft: NewClass) => {
-      const made = await teacher.createClass(draft);
-      setList((list) => (Array.isArray(list) ? [...list, made] : [made]));
-      setCreating(false);
-    },
-    [teacher],
-  );
+  const create = async (draft: NewClass) => {
+    await onCreate(draft);
+    setCreating(false);
+  };
 
   return (
     <Stack gap="lg">
       <div className={classes.heading}>
         <Title order={1}>Your classes</Title>
-        {Array.isArray(list) && list.length > 0 && !creating && (
+        {list.length > 0 && !creating && (
           <Button tone="educator" onClick={() => setCreating(true)}>
             New class
           </Button>
@@ -68,18 +47,7 @@ export function ClassesScreen({
       {creating && (
         <NewClassForm onCreate={create} onCancel={() => setCreating(false)} />
       )}
-      {list === "loading" && <Loader label="Loading your classes" size="md" />}
-      {list === "error" && (
-        <Card variant="soft" tone="educator">
-          <Stack gap="xs" align="flex-start">
-            <Text>Your classes couldn't be loaded.</Text>
-            <Button variant="secondary" onClick={load}>
-              Try again
-            </Button>
-          </Stack>
-        </Card>
-      )}
-      {Array.isArray(list) && list.length === 0 && !creating && (
+      {list.length === 0 && !creating && (
         <Card variant="soft" tone="educator">
           <Stack gap="sm" align="flex-start">
             <Title order={2} size="h4">
@@ -95,10 +63,9 @@ export function ClassesScreen({
           </Stack>
         </Card>
       )}
-      {Array.isArray(list) &&
-        list.map((c) => (
-          <ClassCard key={c.id} cls={c} onOpen={() => onOpen(c)} />
-        ))}
+      {list.map((c) => (
+        <ClassCard key={c.id} cls={c} />
+      ))}
     </Stack>
   );
 }
@@ -181,7 +148,7 @@ function NewClassForm({
   );
 }
 
-function ClassCard({ cls, onOpen }: { cls: Class; onOpen(): void }) {
+function ClassCard({ cls }: { cls: Class }) {
   const games = cls.games.filter((game) => game.on);
   return (
     <Card padding="lg">
@@ -194,9 +161,14 @@ function ClassCard({ cls, onOpen }: { cls: Class; onOpen(): void }) {
               </Title>
               <Text c="muted">{gradesLabel(cls.grades)}</Text>
             </div>
-            <Button tone="educator" onClick={onOpen}>
+            <ButtonLink
+              to="/classes/$classId"
+              params={{ classId: cls.id }}
+              state={{ fromAbove: true }}
+              tone="educator"
+            >
               See results <VisuallyHidden>for {cls.name}</VisuallyHidden>
-            </Button>
+            </ButtonLink>
           </div>
           <div className={classes.linkRow}>
             <div className={classes.linkText}>

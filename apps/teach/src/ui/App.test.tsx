@@ -1,6 +1,7 @@
 import { expectation } from "@repo/curriculum";
 import { UIProvider } from "@repo/ui/provider";
-import { render, screen, within } from "@testing-library/react";
+import { createMemoryHistory } from "@tanstack/react-router";
+import { act, cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import type { Try } from "../platform/contract.ts";
@@ -12,12 +13,18 @@ import type { FakeStudentSeed } from "../platform/fake/teacher.ts";
 import { App } from "./App.tsx";
 
 function renderApp(options?: FakePlatformOptions) {
+  return openAt("/teach/", options).user;
+}
+
+/** The app opened at a URL, as from a link or a reload, with a history of its own. */
+function openAt(url: string, options?: FakePlatformOptions) {
+  const history = createMemoryHistory({ initialEntries: [url] });
   render(
     <UIProvider>
-      <App platform={createFakePlatform(options)} />
+      <App platform={createFakePlatform(options)} history={history} />
     </UIProvider>,
   );
-  return userEvent.setup();
+  return { user: userEvent.setup(), history };
 }
 
 async function signInAsNewTeacher() {
@@ -184,7 +191,7 @@ describe("the dashboard", () => {
     const user = renderApp(options);
     await user.click(await signInButton());
     await user.click(
-      await screen.findByRole("button", {
+      await screen.findByRole("link", {
         name: `See results for ${className}`,
       }),
     );
@@ -262,7 +269,7 @@ describe("the dashboard", () => {
       classes: [{ draft: { name: "Room 12", grades: [3] }, students: [] }],
     });
     expect(await screen.findByText("No students yet")).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Your classes" }));
+    await user.click(screen.getByRole("link", { name: "Your classes" }));
     expect(
       await screen.findByRole("heading", { name: "Your classes" }),
     ).toBeInTheDocument();
@@ -280,7 +287,7 @@ describe("the dashboard", () => {
       ],
     });
     await user.click(await signInButton());
-    const open = await screen.findByRole("button", {
+    const open = await screen.findByRole("link", {
       name: "See results for Room 12",
     });
     offline = true;
@@ -334,7 +341,7 @@ describe("the dashboard", () => {
     });
     expect(
       within(who)
-        .getAllByRole("button")
+        .getAllByRole("link")
         .map((b) => b.textContent),
     ).toEqual(["Ana D.", "Ben O."]);
     await user.click(first as HTMLElement);
@@ -388,7 +395,7 @@ describe("the dashboard", () => {
       name: "Misconceptions showing up",
     });
     await user.click(within(strip).getByRole("button", { name: biggerWords }));
-    await user.click(within(strip).getByRole("button", { name: "Ana D." }));
+    await user.click(within(strip).getByRole("link", { name: "Ana D." }));
 
     // The evidence: who, which expectation, their band and each play.
     expect(
@@ -403,7 +410,7 @@ describe("the dashboard", () => {
     ).toHaveTextContent("Developing");
     const plays = within(
       screen.getByRole("region", { name: "Plays, oldest first" }),
-    ).getAllByRole("button");
+    ).getAllByRole("link");
     expect(plays).toHaveLength(2);
     expect(plays[0]).toHaveTextContent("Fraction Hop");
     expect(plays[0]).toHaveTextContent("Grade 4 tier · Finished");
@@ -439,16 +446,16 @@ describe("the dashboard", () => {
     expect(screen.getByText(/^How it ended: Finished/)).toBeInTheDocument();
 
     // And back up, one tap at a time, to the strip as it was left.
-    await user.click(screen.getByRole("button", { name: "Ana D.'s evidence" }));
+    await user.click(screen.getByRole("link", { name: "Ana D.'s evidence" }));
     expect(
       await screen.findByRole("heading", { level: 1, name: "Ana D." }),
     ).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Room 12 results" }));
+    await user.click(screen.getByRole("link", { name: "Room 12 results" }));
     const again = await screen.findByRole("region", {
       name: "Misconceptions showing up",
     });
     expect(
-      within(again).getByRole("button", { name: "Ana D." }),
+      within(again).getByRole("link", { name: "Ana D." }),
     ).toBeInTheDocument();
   });
 
@@ -467,10 +474,10 @@ describe("the dashboard", () => {
       ],
     });
     // A cell with no evidence has nothing to open.
-    expect(within(await row("Dee L.")).queryByRole("button")).toBeNull();
+    expect(within(await row("Dee L.")).queryByRole("link")).toBeNull();
 
     await user.click(
-      within(await row("Ben O.")).getByRole("button", {
+      within(await row("Ben O.")).getByRole("link", {
         name: /Developing.*Ben O\., Grade 4 · B1\.6/,
       }),
     );
@@ -479,16 +486,16 @@ describe("the dashboard", () => {
     ).toBeInTheDocument();
     const [play] = within(
       screen.getByRole("region", { name: "Plays, oldest first" }),
-    ).getAllByRole("button");
+    ).getAllByRole("link");
     expect(play).toHaveTextContent("2 of 4 tasks on their own, 2 not yet");
 
     await user.click(play as HTMLElement);
     expect(
       await screen.findAllByRole("heading", { level: 2, name: /^Task/ }),
     ).toHaveLength(4);
-    await user.click(screen.getByRole("button", { name: "Ben O.'s evidence" }));
+    await user.click(screen.getByRole("link", { name: "Ben O.'s evidence" }));
     await user.click(
-      await screen.findByRole("button", { name: "Room 12 results" }),
+      await screen.findByRole("link", { name: "Room 12 results" }),
     );
     expect(await row("Ben O.")).toHaveTextContent("Developing");
   });
@@ -508,7 +515,7 @@ describe("the dashboard", () => {
     });
     offline = true;
     await user.click(
-      within(await row("Ana D.")).getByRole("button", {
+      within(await row("Ana D.")).getByRole("link", {
         name: /Showing consistently/,
       }),
     );
@@ -520,5 +527,176 @@ describe("the dashboard", () => {
     expect(
       await screen.findByRole("heading", { level: 1, name: "Ana D." }),
     ).toBeInTheDocument();
+  });
+});
+
+describe("the teacher app's URLs", () => {
+  const bigger = "bigger-denominator-bigger";
+  const room12: FakePlatformOptions = {
+    classes: [
+      {
+        draft: { name: "Room 12", grades: [4] },
+        students: [
+          {
+            google: { subject: "ana", firstName: "Ana", lastName: "Diaz" },
+            plays: [
+              {
+                grade: 4,
+                tasks: [
+                  [{ succeeded: false, misconception: bigger }],
+                  [{ succeeded: true }],
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  };
+
+  const heading = (name: string | RegExp) =>
+    screen.findByRole("heading", { level: 1, name });
+  const hrefOf = async (name: string | RegExp) =>
+    (await screen.findByRole("link", { name })).getAttribute("href") ?? "";
+
+  /** Signs in from the start, and walks down to a play, keeping each screen's URL. */
+  async function walkDown() {
+    const { user, history } = openAt("/teach/", room12);
+    await user.click(await signInButton());
+    const dashboard = await hrefOf("See results for Room 12");
+    await user.click(await screen.findByRole("link", { name: /See results/ }));
+    const evidence = await hrefOf(/Ana D\., Grade 4 · B1\.6/);
+    await user.click(await screen.findByRole("link", { name: /Ana D\.,/ }));
+    const play = await hrefOf(/Fraction Hop/);
+    await user.click(await screen.findByRole("link", { name: /Fraction Hop/ }));
+    await screen.findByText(/^How it ended/);
+    return { user, history, urls: { dashboard, evidence, play } };
+  }
+
+  it("gives every screen a readable URL under /teach/", async () => {
+    const { urls } = await walkDown();
+    expect(urls.dashboard).toMatch(/^\/teach\/classes\/[^/]+$/);
+    expect(urls.evidence).toMatch(
+      /^\/teach\/classes\/[^/]+\/students\/[^/]+\/expectations\/math-2020\.g4\.B1\.6$/,
+    );
+    expect(urls.play).toMatch(
+      /^\/teach\/classes\/[^/]+\/students\/[^/]+\/plays\/[^/]+$/,
+    );
+  });
+
+  it("opens each screen straight from its URL, after signing in", async () => {
+    const { urls } = await walkDown();
+    const screens: [string, () => Promise<unknown>][] = [
+      ["/teach/", () => heading("Your classes")],
+      [urls.dashboard, () => heading("Room 12")],
+      [urls.evidence, () => heading("Ana D.")],
+      [urls.play, () => heading(/Fraction Hop/)],
+    ];
+    for (const [url, shows] of screens) {
+      cleanup();
+      const { user, history } = openAt(url, room12);
+      await user.click(await signInButton());
+      expect(await shows()).toBeInTheDocument();
+      expect(history.location.pathname).toBe(url);
+    }
+  });
+
+  it("moves back and forward through the dashboard, the evidence and a play", async () => {
+    const { history } = await walkDown();
+    act(() => history.back());
+    expect(await heading("Ana D.")).toBeInTheDocument();
+    act(() => history.back());
+    expect(await heading("Room 12")).toBeInTheDocument();
+    act(() => history.back());
+    expect(await heading("Your classes")).toBeInTheDocument();
+    act(() => history.forward());
+    expect(await heading("Room 12")).toBeInTheDocument();
+    act(() => history.forward());
+    expect(await heading("Ana D.")).toBeInTheDocument();
+    act(() => history.forward());
+    expect(await heading(/Fraction Hop/)).toBeInTheDocument();
+  });
+
+  it("goes up from a play opened straight from a link, with no history behind it", async () => {
+    const { urls } = await walkDown();
+    cleanup();
+    const { user, history } = openAt(urls.play, room12);
+    await user.click(await signInButton());
+    await user.click(
+      await screen.findByRole("link", { name: "Ana D.'s evidence" }),
+    );
+    expect(await heading("Ana D.")).toBeInTheDocument();
+    expect(history.location.pathname).toBe(urls.evidence);
+    await user.click(
+      await screen.findByRole("link", { name: "Room 12 results" }),
+    );
+    expect(await heading("Room 12")).toBeInTheDocument();
+    expect(history.location.pathname).toBe(urls.dashboard);
+  });
+
+  it("opens the misconception in the URL in the strip, and toggles it without piling up history", async () => {
+    const { urls } = await walkDown();
+    cleanup();
+    const key = `fraction-hop|${bigger}`;
+    const { user, history } = openAt(
+      `${urls.dashboard}?misconception=${encodeURIComponent(key)}`,
+      room12,
+    );
+    await user.click(await signInButton());
+    const strip = await screen.findByRole("region", {
+      name: "Misconceptions showing up",
+    });
+    const toggle = within(strip).getByRole("button", {
+      name: /bigger bottom number/,
+    });
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
+    expect(within(strip).getByRole("link", { name: "Ana D." })).toBeVisible();
+
+    const entries = history.length;
+    await user.click(toggle);
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    expect(history.location.search).toBe("");
+    await user.click(toggle);
+    expect(
+      new URLSearchParams(history.location.search).get("misconception"),
+    ).toBe(key);
+    expect(history.length).toBe(entries);
+  });
+
+  it("shows another teacher's class as not found, with a way back to their classes", async () => {
+    const { user } = openAt("/teach/classes/class-1", {
+      otherTeachersClasses: [{ name: "Their room", grades: [4] }],
+    });
+    await user.click(await signInButton());
+    expect(await heading("Not found")).toBeInTheDocument();
+    expect(screen.queryByText("Their room")).not.toBeInTheDocument();
+    await user.click(screen.getByRole("link", { name: "Your classes" }));
+    expect(await heading("Your classes")).toBeInTheDocument();
+  });
+
+  it("shows a made-up student, expectation or play, or an unknown path, as not found", async () => {
+    const { urls } = await walkDown();
+    const madeUp = [
+      urls.evidence.replace(/students\/[^/]+/, "students/nobody"),
+      urls.evidence.replace(
+        /expectations\/.+$/,
+        "expectations/math-2020.g4.Z9.9",
+      ),
+      urls.play.replace(/plays\/.+$/, "plays/no-such-play"),
+      "/teach/classes/no-such-class",
+      "/teach/no/such/page",
+    ];
+    for (const url of madeUp) {
+      cleanup();
+      const { user } = openAt(url, room12);
+      await user.click(await signInButton());
+      expect(await heading("Not found")).toBeInTheDocument();
+    }
+  });
+
+  it("tells a student this is for teachers, at any URL", async () => {
+    const { user } = openAt("/teach/classes/class-1", { student: true });
+    await user.click(await signInButton());
+    expect(await heading("This is for teachers")).toBeInTheDocument();
   });
 });

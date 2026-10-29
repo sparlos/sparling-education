@@ -63,8 +63,10 @@
   padding: var(--mantine-spacing-md);
   border: 1px solid var(--k-border-subtle);
   border-radius: var(--mantine-radius-md);
+  box-sizing: border-box;
   font: inherit;
   text-align: start;
+  text-decoration: none;
   color: var(--k-ink);
   background-color: var(--k-surface-raised);
   cursor: pointer;

@@ -19,6 +19,7 @@ import {
   type Evidence,
   type Misconception,
   type NewClass,
+  NotFound,
   type Play,
   type Result,
   type TeacherPort,
@@ -293,7 +294,7 @@ export function fakeTeacherBackend(
       (m) => m.classId === cls.id && m.student.id === studentId,
     );
     const known = expectationIds.find((id) => id === expectationId);
-    if (!member || !known) throw new Error("No such evidence (fake)");
+    if (!member || !known) throw new NotFound("evidence");
     const { student, grade } = member;
     const theirs = plays.filter(
       (p) =>
@@ -353,7 +354,7 @@ export function fakeTeacherBackend(
       (p) =>
         p.id === playId && p.studentId === studentId && p.classId === cls.id,
     );
-    if (!member || !found) throw new Error("No such play (fake)");
+    if (!member || !found) throw new NotFound("play");
     const { id, firstName, lastInitial } = member.student;
     let second = 0;
     return {
@@ -382,7 +383,7 @@ export function fakeTeacherBackend(
     const found = classes.find(
       (c) => c.teacherId === id && c.class.id === classId,
     );
-    if (!found) throw new Error("No such class (fake)");
+    if (!found) throw new NotFound("class");
     return found.class;
   }
 
@@ -455,6 +456,10 @@ export function fakeTeacherBackend(
       async createClass(draft) {
         reachable();
         return createClass(signedInTeacher().id, draft);
+      },
+      async class(classId) {
+        reachable();
+        return teachersClass(classId);
       },
       async dashboard(classId) {
         reachable();

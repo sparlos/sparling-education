@@ -74,6 +74,7 @@
   border: 0;
   font: inherit;
   text-align: start;
+  text-decoration: none;
   color: var(--k-ink);
   background-color: var(--k-surface-sunken);
   cursor: pointer;
@@ -174,12 +175,16 @@
 }
 
 .studentLink {
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
   min-height: 3rem;
   padding: 0 var(--mantine-spacing-md);
   border: 1px solid var(--k-border);
   border-radius: var(--mantine-radius-xl);
   font: inherit;
   font-weight: 700;
+  text-decoration: none;
   color: var(--k-ink);
   background-color: var(--k-surface-page);
   cursor: pointer;

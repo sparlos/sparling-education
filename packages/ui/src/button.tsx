@@ -1,5 +1,5 @@
 import { UnstyledButton } from "@mantine/core";
-import type { ReactNode } from "react";
+import type { MouseEvent, ReactNode } from "react";
 import classes from "./button.module.css";
 import { cx } from "./cx";
 import press from "./press.module.css";
@@ -15,7 +15,8 @@ interface ButtonProps {
   /** Renders a link instead of a button. */
   href?: string;
   type?: "button" | "submit";
-  onClick?: () => void;
+  /** Gets the click, so a router can take over a link's navigation. */
+  onClick?: (event: MouseEvent<HTMLElement>) => void;
   disabled?: boolean;
   fullWidth?: boolean;
   leftSection?: ReactNode;
