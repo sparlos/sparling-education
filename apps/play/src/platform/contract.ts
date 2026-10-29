@@ -54,10 +54,25 @@ export function sampleAttempt(
   };
 }
 
+/** What a valid record needs from the implementation under test: who, where, what. */
+export interface PlayContext {
+  student: string;
+  class: string;
+  game: string;
+  gameVersion: number;
+  tier: string;
+  /** One the tier evidences. */
+  expectation: AttemptRecord["expectation"];
+  /** One the game has, which belongs to `expectation`. */
+  misconception: string;
+}
+
 export interface PlayRecordsHarness {
   port: PlayRecordsPort;
   /** Every record the implementation has stored. */
   stored(): Promise<readonly PlayRecord[]>;
+  /** Defaults to the sample records' own. */
+  context?: PlayContext;
 }
 
 export function playRecordsPortContract(
@@ -65,13 +80,31 @@ export function playRecordsPortContract(
   make: () => PlayRecordsHarness | Promise<PlayRecordsHarness>,
 ) {
   describe(`${name} meets the play-records contract`, () => {
+    async function harness() {
+      const { context, ...rest } = await make();
+      const { expectation, misconception, ...common } = context ?? {};
+      return {
+        ...rest,
+        attempt: (overrides: Partial<AttemptRecord> = {}) =>
+          sampleAttempt({
+            ...common,
+            ...(expectation && { expectation }),
+            ...overrides,
+          }),
+        end: (overrides: Partial<PlayEndRecord> = {}) =>
+          sampleEnd({ ...common, ...overrides }),
+        misconception: misconception ?? "bigger-denominator-bigger",
+      };
+    }
+
     it("stores every record in a batch, unchanged", async () => {
-      const { port, stored } = await make();
+      const { port, stored, attempt, misconception } = await harness();
       const batch = [
-        sampleAttempt(),
-        sampleAttempt({
+        attempt({ task: "task-1" }),
+        attempt({
+          task: "task-2",
           succeeded: false,
-          misconception: "bigger-denominator-bigger",
+          misconception,
           assisted: "hint",
         }),
       ];
@@ -80,30 +113,30 @@ export function playRecordsPortContract(
     });
 
     it("stores a play's end after its attempts, in order", async () => {
-      const { port, stored } = await make();
-      const batch = [sampleAttempt(), sampleEnd({ ending: "left" })];
+      const { port, stored, attempt, end } = await harness();
+      const batch = [attempt(), end({ ending: "left" })];
       await port.send(batch);
       expect(await stored()).toEqual(batch);
     });
 
     it("stores a resent batch once", async () => {
-      const { port, stored } = await make();
-      const batch = [sampleAttempt(), sampleAttempt()];
+      const { port, stored, attempt } = await harness();
+      const batch = [attempt(), attempt()];
       await port.send(batch);
       await port.send(batch);
       expect(await stored()).toEqual(batch);
     });
 
     it("adds only the new records from a batch that overlaps a stored one", async () => {
-      const { port, stored } = await make();
-      const [a, b, c] = [sampleAttempt(), sampleAttempt(), sampleAttempt()];
+      const { port, stored, attempt } = await harness();
+      const [a, b, c] = [attempt(), attempt(), attempt()];
       await port.send([a, b]);
       await port.send([b, c]);
       expect(await stored()).toEqual([a, b, c]);
     });
 
     it("accepts an empty batch", async () => {
-      const { port, stored } = await make();
+      const { port, stored } = await harness();
       await port.send([]);
       expect(await stored()).toEqual([]);
     });

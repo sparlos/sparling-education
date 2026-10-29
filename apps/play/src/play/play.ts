@@ -1,7 +1,11 @@
 // One play of one game by one student: turns the game's attempts into
 // records for the outbox, records how the play ended, and sends the student
 // back to their locker.
-import type { Attempt, GameManifest } from "@repo/game-contract";
+import {
+  type Attempt,
+  attemptProblem,
+  type GameManifest,
+} from "@repo/game-contract";
 import type { LinksPort, PlayEnding, Student } from "../platform/ports.ts";
 import type { Outbox } from "./outbox.ts";
 
@@ -19,8 +23,6 @@ export interface Play {
    */
   end(ending: Ending, timeoutMs?: number): Promise<string>;
 }
-
-const assistance = new Set(["hint", "demonstration", "guided"]);
 
 export function createPlay(options: {
   id: string;
@@ -46,28 +48,7 @@ export function createPlay(options: {
 
   function problemWith(attempt: Attempt<GameManifest>): string | null {
     if (ended) return "the play has already ended";
-    const expectations: readonly string[] =
-      manifest.tiers[tier]?.expectations ?? [];
-    if (typeof attempt.task !== "string" || !attempt.task)
-      return "it has no task ID";
-    if (!expectations.includes(attempt.expectation))
-      return `${attempt.expectation} isn't evidenced by tier ${tier}`;
-    if (typeof attempt.succeeded !== "boolean")
-      return "succeeded isn't true or false";
-    if (attempt.misconception !== undefined) {
-      const misconception = manifest.misconceptions[attempt.misconception];
-      if (!misconception)
-        return `${attempt.misconception} isn't one of the game's misconceptions`;
-      if (
-        !(misconception.expectations as readonly string[]).includes(
-          attempt.expectation,
-        )
-      )
-        return `${attempt.misconception} doesn't belong to ${attempt.expectation}`;
-    }
-    if (attempt.assisted !== undefined && !assistance.has(attempt.assisted))
-      return `${attempt.assisted} isn't a kind of help`;
-    return null;
+    return attemptProblem(manifest, tier, attempt);
   }
 
   function common() {

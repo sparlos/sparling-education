@@ -203,3 +203,155 @@ export const StudentSchema = z
   .openapi("Student");
 
 export type Student = z.infer<typeof StudentSchema>;
+
+/** The most records one `POST /play-records` takes. */
+export const playRecordBatchMax = 25;
+
+const playRecordBase = {
+  id: z.string().min(1).max(100).openapi({
+    description:
+      "Made by the play shell; the idempotency key. A record already stored is skipped.",
+  }),
+  play: z
+    .string()
+    .min(1)
+    .max(100)
+    .openapi({ description: "Groups one play's records" }),
+  student: z.string().openapi({
+    description: "Must be the signed-in student, or the batch is refused",
+  }),
+  class: z.string().openapi({
+    description:
+      "The class the play was opened for, which the student must be in",
+  }),
+  game: z.string().openapi({ example: "fraction-hop" }),
+  gameVersion: z.number().int(),
+  tier: z.string().openapi({ example: "g4" }),
+  at: z.iso.datetime({ offset: true }).openapi({
+    description:
+      "When it happened, by the device's clock. Trusted over when it arrives.",
+  }),
+};
+
+export const AttemptRecordSchema = z
+  .object({
+    ...playRecordBase,
+    kind: z.literal("attempt"),
+    task: z
+      .string()
+      .min(1)
+      .max(100)
+      .openapi({ description: "The same across retries of one task" }),
+    expectation: z.string().openapi({ example: "math-2020.g4.B1.6" }),
+    succeeded: z.boolean(),
+    misconception: z.string().optional(),
+    assisted: z.enum(["hint", "demonstration", "guided"]).optional(),
+  })
+  .openapi("AttemptRecord", { description: "One try at one task" });
+
+export const PlayEndRecordSchema = z
+  .object({
+    ...playRecordBase,
+    kind: z.literal("end"),
+    ending: z.enum(["finished", "left", "crashed"]),
+  })
+  .openapi("PlayEndRecord", {
+    description: "How a play ended: at most one per play, after its attempts",
+  });
+
+export const PlayRecordSchema = z
+  .discriminatedUnion("kind", [AttemptRecordSchema, PlayEndRecordSchema])
+  .openapi("PlayRecord");
+
+export type PlayRecord = z.infer<typeof PlayRecordSchema>;
+
+export const PlayRecordBatchSchema = z
+  .array(PlayRecordSchema)
+  .max(playRecordBatchMax)
+  .openapi("PlayRecordBatch", {
+    description: `At most ${playRecordBatchMax} records, in the order the shell made them`,
+  });
+
+export const PlayRecordsStoredSchema = z
+  .object({
+    stored: z.number().int().openapi({
+      description:
+        "How many of the batch's records were new; the rest were already stored",
+    }),
+  })
+  .openapi("PlayRecordsStored");
+
+export const UnderstandingSchema = z
+  .enum(["not-yet-showing", "developing", "showing-consistently"])
+  .openapi("Understanding", {
+    description:
+      "How well a student's plays show understanding of an expectation. Descriptive bands, never a mark or an achievement level.",
+  });
+
+export const ResultSchema = z
+  .object({
+    expectation: z.string().openapi({
+      description: "With its curriculum edition",
+      example: "math-2020.g4.B1.6",
+    }),
+    understanding: UnderstandingSchema,
+    tierGrade: z.number().int().openapi({
+      description: "The grade of the tier the evidence was earned at",
+    }),
+    otherTier: z.boolean().openapi({
+      description:
+        "Earned at a tier other than the student's grade in the class",
+    }),
+    games: z
+      .array(
+        z.object({
+          slug: z.string(),
+          tier: z.string(),
+          version: z.number().int(),
+        }),
+      )
+      .openapi({ description: "The games, tiers and versions it came from" }),
+  })
+  .openapi("Result");
+
+export type Result = z.infer<typeof ResultSchema>;
+
+export const DashboardExpectationSchema = z
+  .object({
+    id: z.string().openapi({ example: "math-2020.g4.B1.6" }),
+    grade: z.number().int(),
+    code: z.string().openapi({ example: "B1.6" }),
+    description: z
+      .string()
+      .openapi({ description: "Kindling's own words; never the ministry's" }),
+  })
+  .openapi("DashboardExpectation");
+
+export const DashboardStudentSchema = z
+  .object({
+    id: z.string(),
+    firstName: z.string(),
+    lastInitial: z.string(),
+    grade: z.union([z.number().int(), z.null()]).openapi({
+      description: "Their grade in the class; null until picked",
+    }),
+    results: z.array(ResultSchema).openapi({
+      description:
+        "One per expectation they have evidence for. An expectation with none has no evidence yet.",
+    }),
+  })
+  .openapi("DashboardStudent");
+
+export const DashboardSchema = z
+  .object({
+    expectations: z.array(DashboardExpectationSchema).openapi({
+      description:
+        "What the class's games evidence at its grades, by grade then code",
+    }),
+    students: z.array(DashboardStudentSchema).openapi({
+      description: "By first name, then last initial",
+    }),
+  })
+  .openapi("Dashboard");
+
+export type Dashboard = z.infer<typeof DashboardSchema>;

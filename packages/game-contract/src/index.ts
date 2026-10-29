@@ -131,3 +131,54 @@ export function defineGame<const M extends GameManifest>(
 ): Game<M> {
   return { manifest, Component };
 }
+
+const assistance: readonly string[] = ["hint", "demonstration", "guided"];
+
+/**
+ * Why the manifest doesn't allow this attempt at this tier, or null when it
+ * does. The play shell drops such attempts, and the API refuses them, so
+ * both read the manifest the same way.
+ */
+export function attemptProblem(
+  manifest: GameManifest,
+  tier: string,
+  attempt: {
+    task: unknown;
+    expectation: unknown;
+    succeeded: unknown;
+    misconception?: unknown;
+    assisted?: unknown;
+  },
+): string | null {
+  const expectations: readonly string[] =
+    manifest.tiers[tier]?.expectations ?? [];
+  if (typeof attempt.task !== "string" || !attempt.task)
+    return "it has no task ID";
+  if (
+    typeof attempt.expectation !== "string" ||
+    !expectations.includes(attempt.expectation)
+  )
+    return `${attempt.expectation} isn't evidenced by tier ${tier}`;
+  if (typeof attempt.succeeded !== "boolean")
+    return "succeeded isn't true or false";
+  if (attempt.misconception !== undefined) {
+    const misconception =
+      typeof attempt.misconception === "string"
+        ? manifest.misconceptions[attempt.misconception]
+        : undefined;
+    if (!misconception)
+      return `${attempt.misconception} isn't one of the game's misconceptions`;
+    if (
+      !(misconception.expectations as readonly string[]).includes(
+        attempt.expectation,
+      )
+    )
+      return `${attempt.misconception} doesn't belong to ${attempt.expectation}`;
+  }
+  if (
+    attempt.assisted !== undefined &&
+    !assistance.includes(attempt.assisted as string)
+  )
+    return `${attempt.assisted} isn't a kind of help`;
+  return null;
+}

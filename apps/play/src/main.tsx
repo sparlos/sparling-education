@@ -17,7 +17,6 @@ import {
   standInClasses,
   standInGames,
 } from "./platform/stand-ins/memberships.ts";
-import { standInRecords } from "./platform/stand-ins/records.ts";
 import { StandInSignInScreen } from "./platform/stand-ins/SignInScreen.tsx";
 import { newId } from "./play/ids.ts";
 import { isLabUrl } from "./play/routes.ts";
@@ -47,10 +46,6 @@ const platform = standIn
       base,
       origin: window.location.origin,
       googleClientId: import.meta.env.VITE_GOOGLE_CLIENT_ID,
-      // STAND-IN until the API stores play records (ticket 10).
-      records: standInRecords({
-        log: (message, batch) => console.info(message, batch),
-      }),
     });
 
 createRoot(root).render(

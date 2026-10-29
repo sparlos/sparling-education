@@ -13,13 +13,16 @@ import {
   startSession,
 } from "./accounts.ts";
 import { createClass, teacherClass, teacherClasses } from "./classes.ts";
+import { classDashboard } from "./dashboard.ts";
 import { type IdentityVerifier, identityFrom } from "./identity.ts";
 import { studentLocker, wearLook } from "./locker.ts";
 import { joinClass, pickGrade } from "./memberships.ts";
+import { ingestPlayRecords } from "./play-records.ts";
 import {
   type Account,
   AccountSchema,
   ClassSchema,
+  DashboardSchema,
   ErrorSchema,
   GradePickSchema,
   HealthSchema,
@@ -28,6 +31,8 @@ import {
   LookSchema,
   MembershipSchema,
   NewClassSchema,
+  PlayRecordBatchSchema,
+  PlayRecordsStoredSchema,
   SignedInSchema,
   SignInSchema,
   StudentSchema,
@@ -254,6 +259,40 @@ const wearRoute = createRoute({
   },
 });
 
+const playRecordsRoute = createRoute({
+  method: "post",
+  path: "/play-records",
+  operationId: "sendPlayRecords",
+  summary: "Store a batch of the signed-in student's play records",
+  description:
+    "Idempotent by record ID: records already stored are skipped, so a resent batch is safe. Records arrive in the order the shell made them, and can arrive days late; their `at` is trusted. Each is checked against the student's classes and the game's manifest at its version. A 4xx means the batch will never be accepted, and the shell drops it; anything else is worth retrying.",
+  request: {
+    body: {
+      content: { "application/json": { schema: PlayRecordBatchSchema } },
+    },
+  },
+  responses: {
+    200: {
+      description: "Stored",
+      content: { "application/json": { schema: PlayRecordsStoredSchema } },
+    },
+    400: {
+      description:
+        "A record the student's classes or the game's manifest don't allow, a record added to a play that has ended, or more than 25 records",
+      content: { "application/json": { schema: ErrorSchema } },
+    },
+    401: {
+      description: "Not signed in",
+      content: { "application/json": { schema: ErrorSchema } },
+    },
+    403: {
+      description:
+        "Signed in, but not as a student, or a record is another student's",
+      content: { "application/json": { schema: ErrorSchema } },
+    },
+  },
+});
+
 // Every teacher route answers these when the browser isn't a teacher's.
 const teacherOnly = {
   401: {
@@ -309,6 +348,27 @@ const classRoute = createRoute({
     200: {
       description: "The class",
       content: { "application/json": { schema: ClassSchema } },
+    },
+    ...teacherOnly,
+    404: {
+      description: "No class of this teacher's has that ID",
+      content: { "application/json": { schema: ErrorSchema } },
+    },
+  },
+});
+
+const dashboardRoute = createRoute({
+  method: "get",
+  path: "/classes/{classId}/dashboard",
+  operationId: "getDashboard",
+  summary: "A class's students against the expectations its games evidence",
+  description:
+    "Each student's understanding of each expectation, from their plays for this class. An expectation a student has no result for has no evidence yet.",
+  request: { params: z.object({ classId: z.uuid() }) },
+  responses: {
+    200: {
+      description: "The class's dashboard",
+      content: { "application/json": { schema: DashboardSchema } },
     },
     ...teacherOnly,
     404: {
@@ -464,6 +524,24 @@ export function createApp({
         return c.json({ error: "not-owned" }, 400);
       return c.json(look, 200);
     })
+    .openapi(playRecordsRoute, async (c) => {
+      const student = await studentOf(c);
+      if (student === "signed-out") return c.json({ error: student }, 401);
+      if (student === "not-a-student") return c.json({ error: student }, 403);
+      const ingested = await ingestPlayRecords(
+        db,
+        student.id,
+        c.req.valid("json"),
+      );
+      switch (ingested.kind) {
+        case "stored":
+          return c.json({ stored: ingested.stored }, 200);
+        case "not-their-records":
+          return c.json({ error: ingested.kind }, 403);
+        case "refused":
+          return c.json({ error: ingested.problem }, 400);
+      }
+    })
     .openapi(classesRoute, async (c) => {
       const teacher = await teacherOf(c);
       if (teacher === "signed-out") return c.json({ error: teacher }, 401);
@@ -490,6 +568,18 @@ export function createApp({
       );
       if (!found) return c.json({ error: "no-such-class" }, 404);
       return c.json(found, 200);
+    })
+    .openapi(dashboardRoute, async (c) => {
+      const teacher = await teacherOf(c);
+      if (teacher === "signed-out") return c.json({ error: teacher }, 401);
+      if (teacher === "not-a-teacher") return c.json({ error: teacher }, 403);
+      const dashboard = await classDashboard(
+        db,
+        teacher.id,
+        c.req.valid("param").classId,
+      );
+      if (!dashboard) return c.json({ error: "no-such-class" }, 404);
+      return c.json(dashboard, 200);
     });
 
   app.doc31("/openapi.json", openApiConfig);

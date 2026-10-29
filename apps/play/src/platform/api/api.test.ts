@@ -8,12 +8,22 @@ import { createApp, fakeGoogle } from "api/testing";
 import { afterAll, beforeEach, describe, expect, inject, it } from "vitest";
 import type { GameRegistry, HostedGame } from "../../games.ts";
 import { boot } from "../../play/boot.ts";
-import { lockerPortContract, sessionPortContract } from "../contract.ts";
-import { NotAStudent, type Platform } from "../ports.ts";
-import { standInRecords } from "../stand-ins/records.ts";
+import {
+  lockerPortContract,
+  playRecordsPortContract,
+  sampleAttempt,
+  sessionPortContract,
+} from "../contract.ts";
+import {
+  type AttemptRecord,
+  NotAStudent,
+  type Platform,
+  type PlayRecord,
+} from "../ports.ts";
 import { apiLinks } from "./links.ts";
 import { apiLocker } from "./locker.ts";
 import { apiMemberships } from "./memberships.ts";
+import { apiRecords } from "./records.ts";
 import { apiSession } from "./session.ts";
 
 const database = await createTestDatabase(inject("databaseUrl"));
@@ -108,6 +118,103 @@ lockerPortContract("API locker", {
   },
 });
 
+/** Everything stored for the student, as the shell sent it. */
+async function storedFor(studentId: string): Promise<PlayRecord[]> {
+  const rows = await database.db.playRecord.findMany({
+    where: { studentId },
+    orderBy: { sequence: "asc" },
+  });
+  return rows.map((row) => {
+    const common = {
+      id: row.id,
+      play: row.play,
+      student: row.studentId,
+      class: row.classId,
+      game: row.game,
+      gameVersion: row.gameVersion,
+      tier: row.tier,
+      at: row.at.toISOString(),
+    };
+    if (row.kind === "end")
+      return { ...common, kind: "end", ending: row.ending ?? "finished" };
+    return {
+      ...common,
+      kind: "attempt",
+      task: row.task ?? "",
+      expectation: row.expectation as AttemptRecord["expectation"],
+      succeeded: row.succeeded ?? false,
+      ...(row.misconception !== null && { misconception: row.misconception }),
+      ...(row.assisted !== null && { assisted: row.assisted }),
+    };
+  });
+}
+
+/** A signed-in student in a Grade 4 class, sending records. */
+async function playingStudent() {
+  const { joinCode } = await asTeacher(async (send) => {
+    const res = await send("/classes", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ name: "Room 12", grades: [4] }),
+    });
+    return (await res.json()) as { joinCode: string };
+  });
+  const student = browser();
+  await student.signInAsStudent();
+  setFetch(student.send);
+  const membership = await apiMemberships().join(joinCode);
+  const self = await apiSession().current();
+  if (!self) throw new Error("Not signed in");
+  return {
+    studentId: self.id,
+    context: {
+      student: self.id,
+      class: membership.classId,
+      game: fractionHop.slug,
+      gameVersion: fractionHop.version,
+      tier: "g4",
+      expectation: "math-2020.g4.B1.6",
+      misconception: "bigger-denominator-bigger",
+    } as const,
+  };
+}
+
+playRecordsPortContract("API play records", async () => {
+  const { studentId, context } = await playingStudent();
+  return {
+    port: apiRecords(),
+    stored: () => storedFor(studentId),
+    context,
+  };
+});
+
+describe("API play records", () => {
+  it("drops a batch the API will never accept, rather than retrying it", async () => {
+    const { studentId, context } = await playingStudent();
+    const refused: number[] = [];
+    const port = apiRecords({ onRefused: (status) => refused.push(status) });
+    await port.send([sampleAttempt({ ...context, tier: "g9" })]);
+    await port.send([sampleAttempt({ ...context, student: "someone-else" })]);
+    expect(refused).toEqual([400, 403]);
+    expect(await storedFor(studentId)).toEqual([]);
+  });
+
+  it("rejects when the API can't be reached, so the batch is retried", async () => {
+    setFetch(async () => {
+      throw new TypeError("Failed to fetch");
+    });
+    await expect(apiRecords().send([sampleAttempt()])).rejects.toThrow();
+  });
+
+  it.each([500, 503, 429])(
+    "rejects when the API answers %i, so the batch is retried",
+    async (status) => {
+      setFetch(async () => new Response("Unavailable", { status }));
+      await expect(apiRecords().send([sampleAttempt()])).rejects.toThrow();
+    },
+  );
+});
+
 describe("API session", () => {
   it("rejects with NotAStudent when a teacher is signed in", async () => {
     const teacher = browser();
@@ -153,7 +260,7 @@ describe("a game link over the API", () => {
     await student.signInAsStudent();
     setFetch(student.send);
     await apiLocker().wear(defaultLook);
-    const records = standInRecords();
+    const records = apiRecords();
     const platform: Platform = {
       name: "api",
       session: apiSession(),
@@ -175,19 +282,21 @@ describe("a game link over the API", () => {
       newId: () => `id-${++n}`,
       outboxTiming: { batchDelayMs: 0, retryDelaysMs: [60_000] },
     });
-    return { result, platform, records };
+    return { result, platform };
   }
 
   it("joins a student to its class, and the play records that class", async () => {
     const { id, joinCode } = await newClass([4]);
-    const { result, platform, records } = await open(joinCode);
+    const { result, platform } = await open(joinCode);
     if (result.kind !== "ready") throw new Error(`Booted to ${result.kind}`);
     expect(result.ready.membership).toMatchObject({ classId: id, grade: 4 });
     expect((await platform.session.current())?.classes).toEqual([
       expect.objectContaining({ classId: id, grade: 4 }),
     ]);
     const exit = await result.ready.play.end("left", 1000);
-    expect(records.stored).toEqual([
+    const student = await platform.session.current();
+    if (!student) throw new Error("Not signed in");
+    expect(await storedFor(student.id)).toEqual([
       expect.objectContaining({ kind: "end", class: id, game: "fraction-hop" }),
     ]);
     expect(exit).toBe(`/play/?play=${result.ready.play.id}`);

@@ -1,10 +1,11 @@
 // The real platform: Kindling's API on this domain, and Google sign-in.
 import { setBaseUrl } from "@repo/api-client";
-import type { Platform, PlayRecordsPort } from "../ports.ts";
+import type { Platform } from "../ports.ts";
 import { googleSignInButton } from "./google-button.tsx";
 import { apiLinks } from "./links.ts";
 import { apiLocker } from "./locker.ts";
 import { apiMemberships } from "./memberships.ts";
+import { apiRecords } from "./records.ts";
 import { apiSession } from "./session.ts";
 
 export function createApiPlatform(options: {
@@ -15,8 +16,6 @@ export function createApiPlatform(options: {
   /** The site the shell is on, which Google sends the student back to. */
   origin: string;
   googleClientId: string | undefined;
-  /** The API has no play-records endpoint yet (ticket 10), so the caller supplies one. */
-  records: PlayRecordsPort;
 }): Platform {
   setBaseUrl(options.apiBase);
   return {
@@ -24,7 +23,7 @@ export function createApiPlatform(options: {
     session: apiSession(),
     memberships: apiMemberships(),
     locker: apiLocker(),
-    records: options.records,
+    records: apiRecords(),
     links: apiLinks(options),
     SignInButton: googleSignInButton({
       clientId: options.googleClientId,

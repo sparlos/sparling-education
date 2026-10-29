@@ -4,6 +4,7 @@ import {
   createClass,
   getAccount,
   getClasses,
+  getDashboard,
   signIn,
   signOut,
 } from "@repo/api-client";
@@ -58,6 +59,11 @@ export function apiTeacherPort(options: {
       if (res.status !== 201)
         throw unexpected("create class", (res as { status: number }).status);
       return toClass(res.data);
+    },
+    async dashboard(classId) {
+      const res = await getDashboard(classId);
+      if (res.status !== 200) throw unexpected("dashboard", res.status);
+      return res.data;
     },
   };
 }

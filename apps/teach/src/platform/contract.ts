@@ -3,7 +3,12 @@
 // the in-process API and the test Postgres (api/api.test.ts), so the fake
 // can't drift from the API.
 import { describe, expect, it } from "vitest";
-import { type Class, CredentialRejected, type TeacherPort } from "./ports.ts";
+import {
+  type Class,
+  CredentialRejected,
+  type DashboardStudent,
+  type TeacherPort,
+} from "./ports.ts";
 
 /** A Google account, as Google's sign-in knows it. */
 export interface GoogleAccount {
@@ -18,7 +23,38 @@ export interface TeacherPortHarness {
   credentialFor(account: GoogleAccount): string | Promise<string>;
   /** Makes the account a student's, as joining a class will. */
   addStudent(account: GoogleAccount): void | Promise<void>;
+  /**
+   * Signs the account in as a student and joins them to the class with this
+   * join code, picking `grade` in a split class.
+   */
+  joinClass(
+    account: GoogleAccount,
+    joinCode: string,
+    grade?: number,
+  ): void | Promise<void>;
+  /**
+   * The student plays one play of a game for the class, at the tier for
+   * `grade`, and finishes it: each task's tries in order. Resolves with the
+   * expectation the play evidenced.
+   */
+  play(
+    account: GoogleAccount,
+    classId: string,
+    grade: number,
+    tasks: Try[][],
+  ): string | Promise<string>;
 }
+
+/** One try at a task. */
+export interface Try {
+  succeeded: boolean;
+  assisted?: "hint" | "demonstration" | "guided";
+}
+
+const right = (n: number): Try[][] =>
+  Array.from({ length: n }, () => [{ succeeded: true }]);
+const wrong = (n: number): Try[][] =>
+  Array.from({ length: n }, () => [{ succeeded: false }]);
 
 let sequence = 0;
 
@@ -163,6 +199,132 @@ export function teacherPortContract(
       await expect(port.classes()).rejects.toThrow();
     });
   });
+}
+
+export function dashboardContract(
+  name: string,
+  make: () => TeacherPortHarness | Promise<TeacherPortHarness>,
+) {
+  describe(`${name}'s dashboard`, () => {
+    async function teacherWithClass(grades: Class["grades"]) {
+      const harness = await make();
+      await harness.port.signIn(
+        await harness.credentialFor(newGoogleAccount()),
+      );
+      const made = await harness.port.createClass({ name: "Room 12", grades });
+      return { ...harness, made };
+    }
+
+    function student(firstName: string, lastName: string): GoogleAccount {
+      return { ...newGoogleAccount(), firstName, lastName };
+    }
+
+    it("lists the expectations the class's games evidence at its grades, described, and no students yet", async () => {
+      const { port, made } = await teacherWithClass([4, 5]);
+      const { expectations, students } = await port.dashboard(made.id);
+      expect(students).toEqual([]);
+      expect(expectations.map((e) => e.grade)).toEqual(
+        [...expectations.map((e) => e.grade)].sort(),
+      );
+      expect(new Set(expectations.map((e) => e.grade))).toEqual(
+        new Set([4, 5]),
+      );
+      for (const e of expectations)
+        expect(e).toEqual({
+          id: expect.stringContaining(`.g${e.grade}.${e.code}`),
+          grade: e.grade,
+          code: expect.stringMatching(/^[A-Z]\d+\.\d+$/),
+          description: expect.stringMatching(/\w{3,}/),
+        });
+    });
+
+    it("shows a student who has joined, by first name and last initial, with no evidence yet", async () => {
+      const { port, made, joinClass } = await teacherWithClass([4]);
+      await joinClass(student("Sam", "rivera"), made.joinCode);
+      expect((await port.dashboard(made.id)).students).toEqual([
+        {
+          id: expect.any(String),
+          firstName: "Sam",
+          lastInitial: "R",
+          grade: 4,
+          results: [],
+        },
+      ]);
+    });
+
+    it("shows each student's understanding of what they played", async () => {
+      const { port, made, joinClass, play } = await teacherWithClass([4]);
+      const [ana, ben, cy] = [
+        student("Ana", "Diaz"),
+        student("Ben", "Ode"),
+        student("Cy", "Park"),
+      ];
+      for (const s of [ana, ben, cy]) await joinClass(s, made.joinCode);
+      const evidenced = await play(ana, made.id, 4, right(4));
+      await play(ben, made.id, 4, [...right(2), ...wrong(2)]);
+      await play(cy, made.id, 4, [...right(1), ...wrong(3)]);
+      const { expectations, students } = await port.dashboard(made.id);
+      expect(expectations.map((e) => e.id)).toContain(evidenced);
+      expect(students.map(only)).toEqual([
+        {
+          expectation: evidenced,
+          understanding: "showing-consistently",
+          tierGrade: 4,
+          otherTier: false,
+          games: [
+            { slug: expect.any(String), tier: expect.any(String), version: 1 },
+          ],
+        },
+        expect.objectContaining({ understanding: "developing" }),
+        expect.objectContaining({ understanding: "not-yet-showing" }),
+      ]);
+    });
+
+    it("counts a task got right after a wrong try, but not one only got right with help", async () => {
+      const { port, made, joinClass, play } = await teacherWithClass([4]);
+      const [ana, ben] = [student("Ana", "Diaz"), student("Ben", "Ode")];
+      for (const s of [ana, ben]) await joinClass(s, made.joinCode);
+      const retried = [{ succeeded: false }, { succeeded: true }];
+      const helped = [
+        { succeeded: false },
+        { succeeded: true, assisted: "hint" as const },
+      ];
+      await play(ana, made.id, 4, [retried, retried, retried, retried]);
+      await play(ben, made.id, 4, [helped, helped, helped, helped]);
+      expect(
+        (await port.dashboard(made.id)).students.map(
+          (s) => only(s).understanding,
+        ),
+      ).toEqual(["showing-consistently", "not-yet-showing"]);
+    });
+
+    it("marks evidence from a tier other than the student's grade", async () => {
+      const { port, made, joinClass, play } = await teacherWithClass([4, 5]);
+      const sam = student("Sam", "Rivera");
+      await joinClass(sam, made.joinCode, 4);
+      await play(sam, made.id, 5, right(4));
+      expect(only((await port.dashboard(made.id)).students[0])).toMatchObject({
+        tierGrade: 5,
+        otherTier: true,
+      });
+    });
+
+    it("shows a teacher only their own classes' dashboards", async () => {
+      const { port, made, credentialFor } = await teacherWithClass([4]);
+      await port.signOut();
+      await expect(port.dashboard(made.id)).rejects.toThrow();
+      await port.signIn(await credentialFor(newGoogleAccount()));
+      await expect(port.dashboard(made.id)).rejects.toThrow();
+    });
+  });
+}
+
+/** A student's only result. */
+function only(student: DashboardStudent | undefined) {
+  expect(student?.results).toHaveLength(1);
+  const [result] = student?.results ?? [];
+  if (!result) throw new Error("No result");
+  return result;
 }
 
 /** The class join link and every game link, in the form the play shell reads. */

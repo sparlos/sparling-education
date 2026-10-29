@@ -14,11 +14,13 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@games/fraction-hop": "workspace:*",
     "@hono/node-server": "2.1.5",
     "@hono/zod-openapi": "1.6.3",
-    "@games/fraction-hop": "workspace:*",
     "@repo/avatar": "workspace:*",
+    "@repo/curriculum": "workspace:*",
     "@repo/db": "workspace:*",
+    "@repo/game-contract": "workspace:*",
     "@scalar/hono-api-reference": "0.12.14",
     "hono": "4.13.13",
     "jose": "6.2.13",

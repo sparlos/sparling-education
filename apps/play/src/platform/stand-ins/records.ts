@@ -1,6 +1,6 @@
-// STAND-IN for the real play-records port. Kindling has no play-records
-// endpoint yet, so records are kept in memory and logged to the console.
-// Replace with an adapter over the backend's endpoint; see ../README.md.
+// STAND-IN for the play-records port (../api/records.ts), for running the
+// shell without the API: records are kept in memory and logged to the
+// console. See ../README.md.
 import type { PlayRecord, PlayRecordsPort } from "../ports.ts";
 
 export interface StandInRecords extends PlayRecordsPort {

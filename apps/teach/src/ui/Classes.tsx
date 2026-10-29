@@ -26,7 +26,14 @@ import {
 } from "../platform/ports.ts";
 import classes from "./classes.module.css";
 
-export function ClassesScreen({ teacher }: { teacher: TeacherPort }) {
+export function ClassesScreen({
+  teacher,
+  onOpen,
+}: {
+  teacher: TeacherPort;
+  /** Opens the class's dashboard. */
+  onOpen(cls: Class): void;
+}) {
   const [list, setList] = useState<Class[] | "loading" | "error">("loading");
   const [creating, setCreating] = useState(false);
 
@@ -88,7 +95,10 @@ export function ClassesScreen({ teacher }: { teacher: TeacherPort }) {
           </Stack>
         </Card>
       )}
-      {Array.isArray(list) && list.map((c) => <ClassCard key={c.id} cls={c} />)}
+      {Array.isArray(list) &&
+        list.map((c) => (
+          <ClassCard key={c.id} cls={c} onOpen={() => onOpen(c)} />
+        ))}
     </Stack>
   );
 }
@@ -171,17 +181,22 @@ function NewClassForm({
   );
 }
 
-function ClassCard({ cls }: { cls: Class }) {
+function ClassCard({ cls, onOpen }: { cls: Class; onOpen(): void }) {
   const games = cls.games.filter((game) => game.on);
   return (
     <Card padding="lg">
       <section aria-label={cls.name}>
         <Stack gap="md">
-          <div>
-            <Title order={2} size="h3">
-              {cls.name}
-            </Title>
-            <Text c="muted">{gradesLabel(cls.grades)}</Text>
+          <div className={classes.linkRow}>
+            <div>
+              <Title order={2} size="h3">
+                {cls.name}
+              </Title>
+              <Text c="muted">{gradesLabel(cls.grades)}</Text>
+            </div>
+            <Button tone="educator" onClick={onOpen}>
+              See results <VisuallyHidden>for {cls.name}</VisuallyHidden>
+            </Button>
           </div>
           <div className={classes.linkRow}>
             <div className={classes.linkText}>

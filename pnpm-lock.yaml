@@ -32,9 +32,15 @@ importers:
       '@repo/avatar':
         specifier: workspace:*
         version: link:../../packages/avatar
+      '@repo/curriculum':
+        specifier: workspace:*
+        version: link:../../packages/curriculum
       '@repo/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@repo/game-contract':
+        specifier: workspace:*
+        version: link:../../packages/game-contract
       '@scalar/hono-api-reference':
         specifier: 0.12.14
         version: 0.12.14(hono@4.13.13)
@@ -169,6 +175,9 @@ importers:
       '@repo/api-client':
         specifier: workspace:*
         version: link:../../packages/api-client
+      '@repo/curriculum':
+        specifier: workspace:*
+        version: link:../../packages/curriculum
       '@repo/tokens':
         specifier: workspace:*
         version: link:../../packages/tokens

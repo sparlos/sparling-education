@@ -72,6 +72,61 @@ export interface TeacherPort {
    * when the name is blank or longer than `classNameMaxLength`, or there are no grades.
    */
   createClass(draft: NewClass): Promise<Class>;
+  /**
+   * The class's dashboard: its students against the expectations its games
+   * evidence. Rejects when no teacher is signed in, or the class isn't theirs.
+   */
+  dashboard(classId: string): Promise<Dashboard>;
+}
+
+/**
+ * How well a student's plays show understanding of an expectation. A
+ * description of the evidence, never a mark or an achievement level; an
+ * expectation with no result has no evidence yet.
+ */
+export type Understanding =
+  | "not-yet-showing"
+  | "developing"
+  | "showing-consistently";
+
+export interface Dashboard {
+  /** What the class's games evidence at its grades, by grade then code. */
+  expectations: DashboardExpectation[];
+  /** By first name, then last initial. */
+  students: DashboardStudent[];
+}
+
+export interface DashboardExpectation {
+  /** With its curriculum edition, e.g. "math-2020.g4.B1.6". */
+  id: string;
+  grade: number;
+  /** The curriculum's code, e.g. "B1.6". */
+  code: string;
+  /** Kindling's own words, from the curriculum package; never the ministry's. */
+  description: string;
+}
+
+export interface DashboardStudent {
+  /** Stable and opaque. */
+  id: string;
+  firstName: string;
+  lastInitial: string;
+  /** Their grade in the class; null until they pick one in a split class. */
+  grade: number | null;
+  /** One per expectation they have evidence for. */
+  results: Result[];
+}
+
+/** A student's understanding of one expectation. */
+export interface Result {
+  expectation: string;
+  understanding: Understanding;
+  /** The grade of the tier it was earned at. */
+  tierGrade: number;
+  /** Earned at a tier other than the student's grade, and marked as such. */
+  otherTier: boolean;
+  /** The games, tiers and game versions it came from. */
+  games: { slug: string; tier: string; version: number }[];
 }
 
 export const classNameMaxLength = 60;

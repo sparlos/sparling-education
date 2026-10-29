@@ -1,11 +1,14 @@
+import { expectation } from "@repo/curriculum";
 import { UIProvider } from "@repo/ui/provider";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
+import type { Try } from "../platform/contract.ts";
 import {
   createFakePlatform,
   type FakePlatformOptions,
 } from "../platform/fake/index.tsx";
+import type { FakeStudentSeed } from "../platform/fake/teacher.ts";
 import { App } from "./App.tsx";
 
 function renderApp(options?: FakePlatformOptions) {
@@ -152,5 +155,141 @@ describe("the teacher app", () => {
     expect(gameLink.searchParams.get("join")).toBe(
       joinLink.pathname.split("/").at(-1),
     );
+  });
+});
+
+describe("the dashboard", () => {
+  const right = (n: number): Try[][] =>
+    Array.from({ length: n }, () => [{ succeeded: true }]);
+  const wrong = (n: number): Try[][] =>
+    Array.from({ length: n }, () => [{ succeeded: false }]);
+
+  let subject = 0;
+  function student(
+    firstName: string,
+    lastName: string,
+    seed: Omit<FakeStudentSeed, "google"> = {},
+  ): FakeStudentSeed {
+    subject += 1;
+    return {
+      google: { subject: `student-${subject}`, firstName, lastName },
+      ...seed,
+    };
+  }
+
+  async function openDashboard(
+    options: FakePlatformOptions,
+    className = "Room 12",
+  ) {
+    const user = renderApp(options);
+    await user.click(await signInButton());
+    await user.click(
+      await screen.findByRole("button", {
+        name: `See results for ${className}`,
+      }),
+    );
+    expect(
+      await screen.findByRole("heading", { name: className }),
+    ).toBeInTheDocument();
+    return user;
+  }
+
+  const row = (name: string) =>
+    screen.findByRole("row", { name: new RegExp(`^${name}`) });
+
+  it("shows the class's students against what its games evidence, in plain words", async () => {
+    await openDashboard({
+      classes: [
+        {
+          draft: { name: "Room 12", grades: [4] },
+          students: [
+            student("Ana", "Diaz", { plays: [{ grade: 4, tasks: right(4) }] }),
+            student("Ben", "Ode", {
+              plays: [{ grade: 4, tasks: [...right(2), ...wrong(2)] }],
+            }),
+            student("Cy", "Park", {
+              plays: [{ grade: 4, tasks: [...right(1), ...wrong(3)] }],
+            }),
+            student("Dee", "Lam"),
+          ],
+        },
+      ],
+    });
+
+    const { description } = expectation("math-2020.g4.B1.6");
+    const header = await screen.findByRole("columnheader", {
+      name: /Grade 4 · B1.6/,
+    });
+    expect(header).toHaveTextContent(description);
+
+    expect(await row("Ana D.")).toHaveTextContent("Showing consistently");
+    expect(await row("Ben O.")).toHaveTextContent("Developing");
+    expect(await row("Cy P.")).toHaveTextContent("Not yet showing");
+    expect(await row("Dee L.")).toHaveTextContent("No evidence yet");
+    // Never a mark.
+    expect(screen.queryByText(/%/)).not.toBeInTheDocument();
+  });
+
+  it("shows every expectation for every student, and marks evidence from another tier", async () => {
+    await openDashboard(
+      {
+        classes: [
+          {
+            draft: { name: "Room 14", grades: [4, 5] },
+            students: [
+              student("Sam", "Rivera", {
+                grade: 4,
+                plays: [{ grade: 5, tasks: right(4) }],
+              }),
+            ],
+          },
+        ],
+      },
+      "Room 14",
+    );
+
+    expect(screen.getAllByRole("columnheader")).toHaveLength(3);
+    const sam = await row("Sam R.");
+    expect(sam).toHaveTextContent("Grade 4");
+    const [g4, g5] = within(sam).getAllByRole("cell");
+    expect(g4).toHaveTextContent("No evidence yet");
+    expect(g5).toHaveTextContent("Showing consistently");
+    expect(g5).toHaveTextContent("From the Grade 5 tier");
+  });
+
+  it("says when no students have joined yet, and goes back to the classes", async () => {
+    const user = await openDashboard({
+      classes: [{ draft: { name: "Room 12", grades: [3] }, students: [] }],
+    });
+    expect(await screen.findByText("No students yet")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Your classes" }));
+    expect(
+      await screen.findByRole("heading", { name: "Your classes" }),
+    ).toBeInTheDocument();
+  });
+
+  it("offers to try again when the results can't be loaded", async () => {
+    let offline = false;
+    const user = renderApp({
+      offline: () => offline,
+      classes: [
+        {
+          draft: { name: "Room 12", grades: [4] },
+          students: [student("Ana", "Diaz")],
+        },
+      ],
+    });
+    await user.click(await signInButton());
+    const open = await screen.findByRole("button", {
+      name: "See results for Room 12",
+    });
+    offline = true;
+    await user.click(open);
+    expect(
+      await screen.findByText("The class's results couldn't be loaded."),
+    ).toBeInTheDocument();
+    offline = false;
+    await user.click(screen.getByRole("button", { name: "Try again" }));
+    expect(await row("Ana D.")).toHaveTextContent("No evidence yet");
   });
 });

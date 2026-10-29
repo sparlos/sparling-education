@@ -1,0 +1,93 @@
+/* The grid scrolls sideways inside its card when a class has many
+   expectations; the page itself never does. */
+.scroller {
+  overflow-x: auto;
+  border: 1px solid var(--k-border-subtle);
+  border-radius: var(--mantine-radius-md);
+  background-color: var(--k-surface-raised);
+}
+
+.grid {
+  font-size: var(--mantine-font-size-sm);
+}
+
+.grid th,
+.grid td {
+  vertical-align: top;
+}
+
+.caption {
+  padding: var(--mantine-spacing-sm) var(--mantine-spacing-lg) 0;
+  color: var(--k-ink-muted);
+  text-align: start;
+}
+
+.expectation {
+  display: block;
+  min-width: 14rem;
+  max-width: 20rem;
+  font-weight: normal;
+}
+
+.code {
+  display: block;
+  font-weight: 700;
+  color: var(--k-ink);
+}
+
+.description {
+  display: block;
+  margin-top: var(--mantine-spacing-xs);
+  color: var(--k-ink-muted);
+  line-height: 1.4;
+}
+
+.student {
+  display: block;
+  min-width: 7rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.studentGrade {
+  display: block;
+  font-weight: normal;
+  color: var(--k-ink-muted);
+}
+
+.band,
+.noEvidence {
+  display: inline-block;
+  min-width: 9rem;
+  padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
+  border-radius: var(--mantine-radius-sm);
+  line-height: 1.4;
+}
+
+/* Tints that tell the bands apart at a glance. The words carry the meaning,
+   so the grid still reads in greyscale. */
+.band {
+  color: var(--k-ink);
+  background-color: var(--k-surface-sunken);
+}
+
+.band[data-understanding="developing"] {
+  color: var(--k-educator-text);
+  background-color: var(--k-educator-soft);
+}
+
+.band[data-understanding="showing-consistently"] {
+  color: var(--k-educator-on-fill);
+  background-color: var(--k-educator-fill);
+}
+
+.otherTier {
+  display: block;
+  font-size: var(--mantine-font-size-xs);
+  opacity: 0.85;
+}
+
+.noEvidence {
+  color: var(--k-ink-muted);
+  border: 1px dashed var(--k-border);
+}

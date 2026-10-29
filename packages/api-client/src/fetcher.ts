@@ -19,6 +19,16 @@ export function setFetch(fetch: typeof globalThis.fetch) {
 export async function fetcher<T>(url: string, init?: RequestInit): Promise<T> {
   const res = await send(`${baseUrl}${url}`, init);
   const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-  const data = body ? JSON.parse(body) : {};
-  return { data, status: res.status, headers: res.headers } as T;
+  return { data: parse(body), status: res.status, headers: res.headers } as T;
+}
+
+// A failure answered by something other than the API (a proxy's error page,
+// say) isn't JSON; its status still has to reach the caller.
+function parse(body: string | null) {
+  if (!body) return {};
+  try {
+    return JSON.parse(body);
+  } catch {
+    return body;
+  }
 }

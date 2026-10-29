@@ -35,6 +35,8 @@ model Account {
   classes       Class[]
   // A student's classes.
   memberships   Membership[]
+  // A student's plays, as the play shell sent them.
+  playRecords   PlayRecord[]
 }
 
 // A signed-in browser. The cookie holds a random token; only its hash is kept.
@@ -63,6 +65,7 @@ model Class {
   gamesOff    String[]     @default([])
   createdAt   DateTime     @default(now())
   memberships Membership[]
+  playRecords PlayRecord[]
 
   @@index([teacherId])
 }
@@ -80,4 +83,58 @@ model Membership {
 
   @@id([studentId, classId])
   @@index([classId])
+}
+
+enum PlayRecordKind {
+  attempt
+  end
+}
+
+enum Assistance {
+  hint
+  demonstration
+  guided
+}
+
+enum PlayEnding {
+  finished
+  left
+  crashed
+}
+
+// One record of one play, stored as the play shell sent it: an attempt at a
+// task, or how the play ended. Results are computed from these when they're
+// read (the API's scoring module), so the rules can change without touching
+// what's stored. A record keeps its game version, tier and expectation
+// (edition included), so old evidence stays accurate.
+model PlayRecord {
+  studentId     String          @db.Uuid
+  student       Account         @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  // Made by the shell; with the student, the idempotency key.
+  id            String
+  // The class the play was opened for; its results go there.
+  classId       String          @db.Uuid
+  class         Class           @relation(fields: [classId], references: [id], onDelete: Cascade)
+  play          String
+  game          String
+  gameVersion   Int
+  tier          String
+  // When it happened, by the device's clock. Records can arrive days late.
+  at            DateTime
+  kind          PlayRecordKind
+  // An attempt's fields.
+  task          String?
+  expectation   String?
+  succeeded     Boolean?
+  misconception String?
+  assisted      Assistance?
+  // An end's.
+  ending        PlayEnding?
+  // Arrival order, which within a play is the order the shell made them in.
+  sequence      Int             @default(autoincrement())
+  receivedAt    DateTime        @default(now())
+
+  @@id([studentId, id])
+  @@index([classId])
+  @@index([studentId, play])
 }

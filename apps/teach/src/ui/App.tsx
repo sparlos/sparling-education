@@ -8,11 +8,14 @@ import { Title } from "@repo/ui/title";
 import { type ReactNode, useCallback, useEffect, useState } from "react";
 import {
   type Account,
+  type Class,
   CredentialRejected,
   type Platform,
+  type TeacherPort,
 } from "../platform/ports.ts";
 import classes from "./app.module.css";
 import { ClassesScreen } from "./Classes.tsx";
+import { DashboardScreen } from "./Dashboard.tsx";
 
 export interface AppProps {
   platform: Platform;
@@ -110,7 +113,7 @@ export function App({ platform }: AppProps) {
     case "signed-in":
       return screen.account.role === "teacher" ? (
         <SignedIn account={screen.account} onSignOut={signOut}>
-          <ClassesScreen teacher={teacher} />
+          <Home teacher={teacher} />
         </SignedIn>
       ) : (
         <Centered>
@@ -127,6 +130,20 @@ export function App({ platform }: AppProps) {
         </Centered>
       );
   }
+}
+
+/** The signed-in teacher's classes, and each one's dashboard. */
+function Home({ teacher }: { teacher: TeacherPort }) {
+  const [open, setOpen] = useState<Class | null>(null);
+  return open ? (
+    <DashboardScreen
+      teacher={teacher}
+      cls={open}
+      onBack={() => setOpen(null)}
+    />
+  ) : (
+    <ClassesScreen teacher={teacher} onOpen={setOpen} />
+  );
 }
 
 function SignedIn({

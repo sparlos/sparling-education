@@ -7,7 +7,7 @@ The play shell needs six things from the rest of Kindling. It reaches each one o
 | `SessionPort` | Who is signed in: their ID, locale, avatar look, and the classes they're in with their grade in each | `GET /session` | A pretend student picked on the stand-in sign-in screen, kept in this browser's localStorage |
 | `MembershipsPort` | Joining a class by its join code, and picking a grade in a split class | `POST /memberships`, `PUT /memberships/{classId}/grade` | Adds stand-in classes to the stored student. Any join code names one: `G4` is Grade 4, `G45` a Grade 4/5 split, a code with no digits Grades 3–5, a code starting with `X` no class |
 | `LockerPort` | The outfit pieces the student owns, and dressing their avatar (designing it the first time, then the wardrobe) | `GET /locker`, `PUT /locker/look` | Owns the base set, plus pieces granted with `standInGrant` (kept in localStorage); the look is kept on the stored student |
-| `PlayRecordsPort` | Stores each play's records: its attempts, then how it ended | **None yet** (ticket 10): `main.tsx` gives the real platform the stand-in | Kept in memory and logged to the console |
+| `PlayRecordsPort` | Stores each play's records: its attempts, then how it ended | `POST /play-records` | Kept in memory and logged to the console |
 | `LinksPort.signIn` | The sign-in page, returning to where the student was headed | `/play/sign-in`: Google's button in redirect mode | `/play/__stand-in/sign-in` |
 | `LinksPort.locker` | Where every game returns the student, naming the play | The locker, `/play/?play=<play>` | The same |
 
@@ -63,7 +63,7 @@ A game opens for one class, and that class's grade picks the tier, and every pla
 - Skin tones (`body`) and `hair` are everyone's; `top`, `bottom`, `shoes` and `hat` must be owned. A look with a piece the student doesn't own answers 400, which the adapter turns into `NotOwned`.
 - The look is stored on the student and returned by `GET /session` from then on.
 
-### `POST /play-records` with `PlayRecord[]` → 2xx
+### `POST /play-records` with `PlayRecord[]` → `{ stored: number }`
 
 Every record carries:
 
@@ -105,8 +105,9 @@ plus, by `kind`:
 - **How a play ended is evidence.** `finished` means the game reached its end. `left` means the student chose to stop partway. `crashed` means the game broke, through no choice of the student's, so it must never count against their effort. A play with no `end` record was abandoned (the tab closed or the device died), and its `end` may still arrive later.
 - **Batches hold at most 25 records.** They can arrive late: the shell keeps unsent records on the device and sends them on the student's next play, even days later. Trust `at` for when something happened, not the arrival time.
 - **The adapter rejects only on failures where retrying can help:** network errors, timeouts, 5xx and 429. Those batches are retried. A 4xx means the batch will never be accepted, so the adapter logs it and resolves, and the shell doesn't retry it forever.
-- Validate `game`, `gameVersion`, `tier`, `expectation` and `misconception` against the game's manifest at that version. The shell already drops attempts its manifest doesn't allow, and attempts made after a play ended.
-- Scoring, results and rewards are computed from these records server-side, and are out of scope here (see ADR 0002).
+- Validate `game`, `gameVersion`, `tier`, `expectation` and `misconception` against the game's manifest at that version (`attemptProblem` in `@repo/game-contract`, which the shell uses too). The shell already drops attempts its manifest doesn't allow, and attempts made after a play ended.
+- The API answers 200 with how many of the batch's records were new. It refuses the whole batch with 400 for a record its manifest or the student's classes don't allow, an attempt or second end added to a play that has ended, or more than 25 records, and with 403 when a record is another student's. Nothing in a refused batch is stored.
+- Scoring, results and rewards are computed from these records server-side, in the API's scoring module (see ADR 0002).
 
 ### Links
 

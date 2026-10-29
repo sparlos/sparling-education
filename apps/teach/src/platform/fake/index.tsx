@@ -2,8 +2,8 @@
 // button signs straight in as one made-up Google account.
 import { Button } from "@repo/ui/button";
 import type { GoogleAccount } from "../contract.ts";
-import type { Platform, SignInButtonProps } from "../ports.ts";
-import { fakeTeacherBackend } from "./teacher.ts";
+import type { NewClass, Platform, SignInButtonProps } from "../ports.ts";
+import { type FakeStudentSeed, fakeTeacherBackend } from "./teacher.ts";
 
 export interface FakePlatformOptions {
   /** Who the sign-in button signs in as. A new teacher by default. */
@@ -16,6 +16,8 @@ export interface FakePlatformOptions {
   offline?: () => boolean;
   /** The site links point at. */
   origin?: string;
+  /** Classes the teacher already has, with students who've played. */
+  classes?: { draft: NewClass; students: FakeStudentSeed[] }[];
 }
 
 const newTeacher: GoogleAccount = {
@@ -33,6 +35,8 @@ export function createFakePlatform(
     origin: options.origin,
   });
   if (options.student) backend.addStudent(google);
+  for (const { draft, students } of options.classes ?? [])
+    backend.seedClass(google, draft, students);
   const credential = options.rejectSignIn
     ? "forged"
     : backend.credentialFor(google);
