@@ -66,9 +66,11 @@ import {
   StudentSchema,
   StudentSignInSchema,
   UnhealthySchema,
+  WalkthroughsSchema,
 } from "./schemas.ts";
 import { studentSession } from "./session.ts";
 import { studentPage } from "./student-page.ts";
+import { markWalkthroughSeen, seenWalkthroughs } from "./walkthroughs.ts";
 
 export const openApiConfig = {
   openapi: "3.1.0",
@@ -726,6 +728,47 @@ const viewDemoRoute = createRoute({
   },
 });
 
+const walkthroughsRoute = createRoute({
+  method: "get",
+  path: "/walkthroughs",
+  operationId: "getWalkthroughs",
+  summary: "The teacher app's walkthroughs the signed-in teacher has seen",
+  description:
+    "Finished or skipped, by the app's IDs. Each walkthrough starts by itself only until it's seen.",
+  responses: {
+    200: {
+      description: "The walkthroughs they've seen",
+      content: { "application/json": { schema: WalkthroughsSchema } },
+    },
+    ...teacherOnly,
+  },
+});
+
+const walkthroughSeenRoute = createRoute({
+  method: "put",
+  path: "/walkthroughs/{walkthrough}",
+  operationId: "markWalkthroughSeen",
+  summary: "The signed-in teacher has finished or skipped a walkthrough",
+  description:
+    "It won't start by itself again, on any browser. Marking one already seen changes nothing.",
+  request: {
+    params: z.object({
+      walkthrough: z
+        .string()
+        .regex(/^[a-z0-9-]{1,64}$/)
+        .openapi({ example: "welcome" }),
+    }),
+  },
+  responses: {
+    204: { description: "Marked as seen" },
+    400: {
+      description: "Not a walkthrough ID, or the teacher has seen too many",
+      content: { "application/json": { schema: ErrorSchema } },
+    },
+    ...teacherOnly,
+  },
+});
+
 // Where each entry point lands when sign-in isn't given somewhere to return to.
 const homes = { teacher: "/teach/" } as const;
 
@@ -1119,6 +1162,21 @@ export function createApp({
       );
       if (!view) return c.json({ error: "no-demo-class" }, 404);
       return c.json(view, 200);
+    })
+    .openapi(walkthroughsRoute, async (c) => {
+      const teacher = await teacherOf(c);
+      if (teacher === "signed-out") return c.json({ error: teacher }, 401);
+      if (teacher === "not-a-teacher") return c.json({ error: teacher }, 403);
+      return c.json({ seen: await seenWalkthroughs(db, teacher.id) }, 200);
+    })
+    .openapi(walkthroughSeenRoute, async (c) => {
+      const teacher = await teacherOf(c);
+      if (teacher === "signed-out") return c.json({ error: teacher }, 401);
+      if (teacher === "not-a-teacher") return c.json({ error: teacher }, 403);
+      const { walkthrough } = c.req.valid("param");
+      if (!(await markWalkthroughSeen(db, teacher.id, walkthrough)))
+        return c.json({ error: "too-many-walkthroughs" }, 400);
+      return c.body(null, 204);
     });
 
   app.doc31("/openapi.json", openApiConfig);

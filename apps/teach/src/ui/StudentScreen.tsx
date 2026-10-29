@@ -8,19 +8,17 @@ import { Button } from "@repo/ui/button";
 import { Stack } from "@repo/ui/stack";
 import { Text } from "@repo/ui/text";
 import { Title } from "@repo/ui/title";
-import { VisuallyHidden } from "@repo/ui/visually-hidden";
 import { useEffect } from "react";
 import type {
   Class,
   Evidence,
-  QuickAssessExpectation,
   QuickAssessStudent,
   StudentPage,
 } from "../platform/ports.ts";
 import { Band, nameOf } from "./Dashboard.tsx";
+import drill from "./drill-down.module.css";
 import { EvidencePanel } from "./Evidence.tsx";
 import { ButtonLink, useUp } from "./links.tsx";
-import { expectationLabel } from "./OfficialCode.tsx";
 import { StudentBlock } from "./QuickAssess.tsx";
 import classes from "./quick-assess.module.css";
 import { type OnRecognise, StudentRecognition } from "./Recognition.tsx";
@@ -60,32 +58,31 @@ export function StudentScreen({
     };
   }, [who, date]);
 
-  const toggle = ({ expectation }: QuickAssessExpectation) => {
-    const result = page.results.find(
-      (r) => r.expectation.id === expectation.id,
-    );
-    if (!result) return null;
-    const isOpen = open === expectation.id;
-    return (
-      <div className={`${classes.screenOnly} ${classes.extra}`}>
-        <Button
-          variant="secondary"
-          aria-expanded={isOpen}
-          onClick={() => onOpen(isOpen ? null : expectation.id)}
-        >
-          <span>
+  const opening = {
+    open,
+    onOpen,
+    summary: (id: string) => {
+      const result = page.results.find((r) => r.expectation.id === id);
+      return (
+        result && (
+          <span
+            className={drill.band}
+            data-understanding={result.result.understanding}
+          >
             <Band result={result.result} />
           </span>
-          <VisuallyHidden>
-            {" "}
-            — {expectationLabel(expectation)}: plays
-          </VisuallyHidden>
-        </Button>
-        {isOpen && evidence && evidence.expectation.id === expectation.id && (
-          <EvidencePanel classId={cls.id} evidence={evidence} />
-        )}
-      </div>
-    );
+        )
+      );
+    },
+    panel: (id: string) =>
+      evidence &&
+      evidence.expectation.id === id && (
+        <EvidencePanel
+          classId={cls.id}
+          evidence={evidence}
+          bands={evidence.results.length > 1}
+        />
+      ),
   };
 
   return (
@@ -101,7 +98,7 @@ export function StudentScreen({
         </ButtonLink>
       </div>
       <div className={classes.heading}>
-        <div>
+        <div data-walkthrough="evidence">
           <Title order={1}>{nameOf(student)}</Title>
           <Text c="muted">
             {student.grade === null
@@ -113,23 +110,30 @@ export function StudentScreen({
         <Button
           variant="secondary"
           className={classes.screenOnly}
+          data-walkthrough="print"
           onClick={() => window.print()}
         >
           Print
         </Button>
       </div>
       <Text className={classes.note}>
-        Kindling never gives a level: the grade is yours.
+        {`What ${student.firstName}'s games show so far. Use it with what you see in class. Kindling never gives a level: you decide the grade.`}
       </Text>
-      <StudentBlock assessed={assessed} named={false} extra={toggle} />
-      <div className={classes.screenOnly}>
-        <StudentRecognition
-          student={student}
-          recognised={recognised}
-          settings={recognition}
-          onRecognise={onRecognise}
-        />
-      </div>
+      <StudentBlock
+        assessed={assessed}
+        named={false}
+        opening={opening}
+        aside={
+          <div data-walkthrough="recognise">
+            <StudentRecognition
+              student={student}
+              recognised={recognised}
+              settings={recognition}
+              onRecognise={onRecognise}
+            />
+          </div>
+        }
+      />
     </Stack>
   );
 }

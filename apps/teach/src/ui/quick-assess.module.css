@@ -11,11 +11,35 @@
   max-width: 48rem;
 }
 
-.extra {
+/* An expectation's opener: its code and band, what it says, then its counts. */
+.opener {
   display: grid;
-  gap: var(--mantine-spacing-sm);
-  justify-items: start;
-  margin-top: var(--mantine-spacing-xs);
+  gap: var(--mantine-spacing-xs);
+  text-align: start;
+}
+
+.openerTop {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
+}
+
+/* The code's link, and the code under it: the same size, one unseen on screen. */
+.overLink,
+.underLink {
+  line-height: 1.5;
+}
+
+.underLink {
+  color: transparent;
+}
+
+/* The band, kept whole. */
+.summary {
+  display: inline-flex;
+  white-space: nowrap;
 }
 
 /* Only on paper. */
@@ -56,6 +80,30 @@
   display: grid;
   gap: var(--mantine-spacing-md);
   max-width: 48rem;
+}
+
+/* On screen, a student's own page: each part a card, math beside the rest. */
+@media screen {
+  .bare > .part {
+    gap: var(--mantine-spacing-sm);
+    padding: var(--mantine-spacing-md) var(--mantine-spacing-lg);
+    border: 1px solid var(--k-border-subtle);
+    border-radius: var(--mantine-radius-md);
+    background-color: var(--k-surface-raised);
+  }
+}
+
+@media (--k-lg-up) {
+  .bare {
+    grid-template-columns: minmax(0, 1fr) minmax(16rem, 22rem);
+    grid-template-rows: auto auto 1fr;
+    align-items: start;
+    max-width: 72rem;
+  }
+
+  .bare > .part:first-child {
+    grid-row: span 3;
+  }
 }
 
 .name {
@@ -113,10 +161,15 @@
   }
 
   .bare {
+    grid-template-columns: none;
     gap: var(--mantine-spacing-xs);
     max-width: none;
     font-size: var(--mantine-font-size-sm);
     line-height: 1.4;
+  }
+
+  .bare > .part:first-child {
+    grid-row: auto;
   }
 
   .bare h3 {
@@ -162,12 +215,14 @@
     gap: 2px;
   }
 
-  .list li {
+  .list li,
+  .opener {
     break-inside: avoid;
   }
 
   /* Plain ink: legible in greyscale, with nothing told by colour alone. */
-  .muted {
+  .muted,
+  .underLink {
     color: var(--k-ink);
   }
 

@@ -81,6 +81,7 @@ export function DashboardScreen({
           {!cls.demo && (
             <Button
               tone="educator"
+              data-walkthrough="share"
               aria-expanded={sharing}
               onClick={() => setSharing(!sharing)}
             >
@@ -92,6 +93,7 @@ export function DashboardScreen({
             params={{ classId: cls.id }}
             state={{ fromAbove: true }}
             variant="secondary"
+            data-walkthrough="quick-assess"
           >
             Quick assess
           </ButtonLink>
@@ -153,7 +155,11 @@ function Switcher({
   current: string;
 }) {
   return (
-    <nav aria-label="Your classes" className={classes.switcher}>
+    <nav
+      aria-label="Your classes"
+      className={classes.switcher}
+      data-walkthrough="classes"
+    >
       {all.map((c) => (
         <Link
           key={c.id}
@@ -165,7 +171,7 @@ function Switcher({
           {c.name}
         </Link>
       ))}
-      <Link to="/new" className={classes.switch}>
+      <Link to="/new" className={classes.switch} data-walkthrough="new-class">
         New class
       </Link>
     </nav>
@@ -185,6 +191,7 @@ export function EvidenceLink({
   className?: string;
   children: ReactNode;
   "data-understanding"?: Understanding;
+  "data-walkthrough"?: string;
 }) {
   return (
     <Link
@@ -225,7 +232,11 @@ export function Strip({
       ? misconceptions
       : misconceptions.slice(0, commonMisconceptions);
   return (
-    <section aria-labelledby="misconceptions" className={classes.strip}>
+    <section
+      aria-labelledby="misconceptions"
+      className={classes.strip}
+      data-walkthrough="misconceptions"
+    >
       <Title order={2} size="h4" id="misconceptions">
         Misconceptions showing up
       </Title>
@@ -411,6 +422,7 @@ function ResultCell({
       cell={cell}
       className={classes.band}
       data-understanding={result.understanding}
+      data-walkthrough="result"
     >
       <Band result={result} />
       <VisuallyHidden> — {label}: see the evidence</VisuallyHidden>
@@ -425,7 +437,7 @@ export function Band({ result }: { result: Result }) {
       {understandingLabels[result.understanding]}
       {result.otherTier && (
         <span className={classes.otherTier}>
-          From the Grade {result.tierGrade} tier
+          At the Grade {result.tierGrade} level
         </span>
       )}
     </>

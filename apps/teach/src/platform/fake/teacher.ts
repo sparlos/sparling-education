@@ -166,6 +166,8 @@ export function fakeTeacherBackend(
      * does. Off by default, so a teacher starts with no classes.
      */
     demoClass?: boolean;
+    /** The walkthroughs every teacher has already seen. None by default. */
+    walkthroughsSeen?: readonly string[];
   } = {},
 ): FakeTeacherBackend {
   const { origin = "https://kindling.test", games = fakeGames } = options;
@@ -194,6 +196,17 @@ export function fakeTeacherBackend(
   let classesMade = 0;
   /** Teachers who've been given their demo class, deleted or not. */
   const demoGiven = new Set<string>();
+  /** The walkthroughs each teacher has seen, by teacher ID. */
+  const walkthroughs = new Map<string, Set<string>>();
+
+  function walkthroughsOf(teacherId: string) {
+    let seen = walkthroughs.get(teacherId);
+    if (!seen) {
+      seen = new Set(options.walkthroughsSeen);
+      walkthroughs.set(teacherId, seen);
+    }
+    return seen;
+  }
 
   function reachable() {
     if (options.offline?.()) throw new Error("Can't reach Kindling (fake)");
@@ -814,6 +827,14 @@ export function fakeTeacherBackend(
           student: { id, firstName, lastInitial },
           link: `${origin}/play/`,
         };
+      },
+      async walkthroughsSeen() {
+        reachable();
+        return [...walkthroughsOf(signedInTeacher().id)];
+      },
+      async markWalkthroughSeen(walkthrough) {
+        reachable();
+        walkthroughsOf(signedInTeacher().id).add(walkthrough);
       },
     },
     credentialFor(google) {

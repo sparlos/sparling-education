@@ -21,13 +21,16 @@ export const noEnding = "Not finished, or not all sent yet";
 export function EvidencePanel({
   classId,
   evidence: { student, results, plays },
+  bands = true,
 }: {
   classId: string;
   evidence: Evidence;
+  /** Whether to show their understanding at each tier: not where it's shown already. */
+  bands?: boolean;
 }) {
   return (
     <div className={classes.panel}>
-      {results.length === 0 ? (
+      {!bands ? null : results.length === 0 ? (
         <Text>No evidence yet.</Text>
       ) : (
         <ul className={classes.results} aria-label="Understanding">
@@ -43,9 +46,12 @@ export function EvidencePanel({
         </ul>
       )}
       {plays.length > 0 && (
-        <section aria-label="Plays, newest first" className={classes.section}>
+        <section
+          aria-label="Each time they played, newest first"
+          className={classes.section}
+        >
           <Title order={3} size="h5">
-            Plays, newest first
+            Each time they played, newest first
           </Title>
           <ol className={classes.plays}>
             {plays.map((play) => (
@@ -91,7 +97,7 @@ function PlayCard({
         {play.gameName} · {when(play.at)}
       </span>
       <span className={classes.muted}>
-        Grade {play.tierGrade} tier ·{" "}
+        Grade {play.tierGrade} level ·{" "}
         {play.ending ? endingLabels[play.ending] : noEnding}
       </span>
       <span>{tally}</span>
@@ -108,7 +114,7 @@ function PlayCard({
         <span className={classes.muted}>
           {play.ending === "crashed"
             ? "Not counted, because it crashed."
-            : "Not counted: only the most recent plays are."}
+            : "Not counted: only their most recent games count."}
         </span>
       )}
     </Link>

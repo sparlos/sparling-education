@@ -32,9 +32,13 @@ _Avoid_: Deep link, assignment link
 A class of simulated students with results already in, which every new teacher gets at their first sign-in, alongside their own classes, and can explore as both teacher and student ("view as a student"). Its plays come from each game's **simulator** and are scored like any others. Only its own simulated students are ever in it. The teacher can delete it in one step, and it never comes back.
 _Avoid_: Sandbox, trial, test class
 
-**Welcome walkthrough**:
-A new teacher's first-run guide, three steps at most: share a game link, spot the misconceptions showing up in the class, and view quick assess.
+**Walkthrough**:
+A guide through the teacher app's real controls, one at a time: each is spotlit with the rest of the screen dimmed, beside a card saying what it's for, with Back, Next and Skip. Each starts by itself once per teacher, is remembered on the server once finished or skipped, and can be replayed from Help.
 _Avoid_: Tour (that's the automated playthrough of a game), onboarding, tutorial
+
+**Welcome walkthrough**:
+The walkthrough a new teacher gets on their first dashboard: what Kindling does in a nutshell, across the dashboard and quick assess (the classes, sharing a game link, the misconceptions showing up, the grid, quick assess, viewing the demo class as a student, Help). The other screens each have a short walkthrough of their own, which starts the first time the teacher opens that screen after the welcome.
+_Avoid_: Tour, onboarding, tutorial
 
 ### Locker
 

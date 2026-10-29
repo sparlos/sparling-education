@@ -1152,3 +1152,50 @@ export function demoClassContract(
     });
   });
 }
+
+export function walkthroughsContract(
+  name: string,
+  make: () => TeacherPortHarness | Promise<TeacherPortHarness>,
+) {
+  describe(`${name}'s walkthroughs`, () => {
+    async function newTeacher() {
+      const harness = await make();
+      const google = newGoogleAccount();
+      await harness.port.signIn(await harness.credentialFor(google));
+      return { ...harness, google };
+    }
+
+    it("start with none seen", async () => {
+      const { port } = await newTeacher();
+      expect(await port.walkthroughsSeen()).toEqual([]);
+    });
+
+    it("are remembered after signing out and back in, once each", async () => {
+      const { port, credentialFor, google } = await newTeacher();
+      await port.markWalkthroughSeen("welcome");
+      await port.markWalkthroughSeen("welcome");
+      await port.markWalkthroughSeen("student-page");
+      await port.signOut();
+      await port.signIn(await credentialFor(google));
+      expect(await port.walkthroughsSeen()).toEqual([
+        "welcome",
+        "student-page",
+      ]);
+    });
+
+    it("are each teacher's own", async () => {
+      const { port, credentialFor } = await newTeacher();
+      await port.markWalkthroughSeen("welcome");
+      await port.signOut();
+      await port.signIn(await credentialFor(newGoogleAccount()));
+      expect(await port.walkthroughsSeen()).toEqual([]);
+    });
+
+    it("need a teacher signed in", async () => {
+      const { port } = await newTeacher();
+      await port.signOut();
+      await expect(port.walkthroughsSeen()).rejects.toThrow();
+      await expect(port.markWalkthroughSeen("welcome")).rejects.toThrow();
+    });
+  });
+}

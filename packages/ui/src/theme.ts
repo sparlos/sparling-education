@@ -171,6 +171,7 @@ export const cssVariablesResolver: CSSVariablesResolver = () => {
     "--k-border": color.border.default,
     "--k-border-strong": color.border.strong,
     "--k-focus": color.focus,
+    "--k-scrim": color.scrim,
     "--k-success": color.status.success,
     "--k-success-soft": color.status.successSoft,
     "--k-info": color.status.info,

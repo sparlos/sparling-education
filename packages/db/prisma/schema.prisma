@@ -33,6 +33,9 @@ model Account {
   // A teacher: whether they've been given their demo class. They get it once,
   // at their first sign-in, and it never comes back once they delete it.
   demoGiven     Boolean      @default(false)
+  // A teacher: the teacher app's walkthroughs they've finished or skipped, by
+  // the app's own IDs, so each starts by itself only once. Empty for a student.
+  walkthroughsSeen String[]  @default([])
   // A demo student: the demo class they were made for, and are only ever in.
   // Deleting the class deletes them, and everything of theirs with them.
   demoClassId   String?      @db.Uuid

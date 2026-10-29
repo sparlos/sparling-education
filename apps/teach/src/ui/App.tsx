@@ -1,5 +1,4 @@
 import { Button } from "@repo/ui/button";
-import { Container } from "@repo/ui/container";
 import { Loader } from "@repo/ui/loader";
 import { Wordmark } from "@repo/ui/marketing/wordmark";
 import { Stack } from "@repo/ui/stack";
@@ -117,9 +116,12 @@ export function App({ platform, history }: AppProps) {
       );
     case "signed-in":
       return screen.account.role === "teacher" ? (
-        <SignedIn account={screen.account} onSignOut={signOut}>
-          <Screens teacher={teacher} history={history} />
-        </SignedIn>
+        <Screens
+          teacher={teacher}
+          account={screen.account}
+          onSignOut={signOut}
+          history={history}
+        />
       ) : (
         <Centered>
           <Title order={1} size="h2">
@@ -140,46 +142,19 @@ export function App({ platform, history }: AppProps) {
 /** The signed-in teacher's screens, by URL, with a fresh router each sign-in. */
 function Screens({
   teacher,
+  account,
+  onSignOut,
   history,
 }: {
   teacher: TeacherPort;
-  history?: RouterHistory;
-}) {
-  const [router] = useState(() => teacherRouter({ teacher, history }));
-  return <RouterProvider router={router} />;
-}
-
-function SignedIn({
-  account,
-  onSignOut,
-  children,
-}: {
   account: Account;
   onSignOut(): void;
-  children: ReactNode;
+  history?: RouterHistory;
 }) {
-  const name = [
-    account.firstName,
-    account.lastInitial && `${account.lastInitial}.`,
-  ]
-    .filter(Boolean)
-    .join(" ");
-  return (
-    <>
-      <header className={classes.header}>
-        <Wordmark />
-        <div className={classes.account}>
-          {name && <Text size="sm">{name}</Text>}
-          <Button variant="subtle" onClick={onSignOut}>
-            Sign out
-          </Button>
-        </div>
-      </header>
-      <main className={classes.main}>
-        <Container>{children}</Container>
-      </main>
-    </>
+  const [router] = useState(() =>
+    teacherRouter({ teacher, account, onSignOut, history }),
   );
+  return <RouterProvider router={router} />;
 }
 
 function Centered({ children }: { children: ReactNode }) {

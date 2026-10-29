@@ -15,13 +15,15 @@ import {
   createRouter,
   type ErrorComponentProps,
   notFound,
+  Outlet,
   type RouterHistory,
   redirect,
   useParams,
   useRouter,
 } from "@tanstack/react-router";
 import { type ReactNode, useEffect } from "react";
-import { NotFound, type TeacherPort } from "../platform/ports.ts";
+import { type Account, NotFound, type TeacherPort } from "../platform/ports.ts";
+import { Chrome } from "./Chrome.tsx";
 import { DashboardScreen } from "./Dashboard.tsx";
 import { ButtonLink } from "./links.tsx";
 import { ManageScreen } from "./Manage.tsx";
@@ -30,7 +32,20 @@ import { PlayScreen } from "./PlayScreen.tsx";
 import { ClassQuickAssessScreen } from "./QuickAssess.tsx";
 import { StudentScreen } from "./StudentScreen.tsx";
 
-const root = createRootRouteWithContext<{ teacher: TeacherPort }>()({});
+const root = createRootRouteWithContext<{
+  teacher: TeacherPort;
+  account: Account;
+  onSignOut(): void;
+}>()({
+  component: function Root() {
+    const { teacher, account, onSignOut } = root.useRouteContext();
+    return (
+      <Chrome teacher={teacher} account={account} onSignOut={onSignOut}>
+        <Outlet />
+      </Chrome>
+    );
+  },
+});
 
 /** Where this browser remembers the class the teacher last opened. */
 const lastClassKey = "kindling.teach.last-class";
@@ -316,15 +331,20 @@ const routeTree = root.addChildren([
 
 export function teacherRouter({
   teacher,
+  account,
+  onSignOut,
   history,
 }: {
   teacher: TeacherPort;
+  /** The teacher signed in, for the header. */
+  account: Account;
+  onSignOut(): void;
   /** The browser's own by default; tests pass a memory history. */
   history?: RouterHistory;
 }) {
   return createRouter({
     routeTree,
-    context: { teacher },
+    context: { teacher, account, onSignOut },
     history,
     // Vite's `base` (vite.config.ts). Not `import.meta.env.BASE_URL`, which
     // is "/" under Vitest.

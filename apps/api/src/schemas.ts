@@ -268,6 +268,16 @@ export const SeenSchema = z
   })
   .openapi("Seen");
 
+export const WalkthroughsSchema = z
+  .object({
+    seen: z.array(z.string()).openapi({
+      description:
+        "The teacher app's walkthroughs the teacher has finished or skipped, by the app's IDs",
+      example: ["welcome"],
+    }),
+  })
+  .openapi("Walkthroughs");
+
 export const StudentSchema = z
   .object({
     id: z

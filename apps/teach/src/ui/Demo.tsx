@@ -46,7 +46,11 @@ export function DemoCard({ actions }: { actions: DemoActions }) {
 
   return (
     <Card variant="soft" tone="educator" padding="md">
-      <section aria-label="Demo class" className={classes.banner}>
+      <section
+        aria-label="Demo class"
+        className={classes.banner}
+        data-walkthrough="demo"
+      >
         {confirming ? (
           <>
             <Text>

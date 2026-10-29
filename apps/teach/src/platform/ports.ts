@@ -192,6 +192,17 @@ export interface TeacherPort {
    * `NotFound` when they have no demo class.
    */
   viewDemoAsStudent(): Promise<DemoView>;
+  /**
+   * The app's walkthroughs the signed-in teacher has finished or skipped, by
+   * the app's own IDs, on any browser. Rejects when no teacher is signed in.
+   */
+  walkthroughsSeen(): Promise<string[]>;
+  /**
+   * Remembers that the signed-in teacher has finished or skipped the
+   * walkthrough, so it doesn't start by itself again. Seen again, it stays
+   * seen once. Rejects when no teacher is signed in.
+   */
+  markWalkthroughSeen(walkthrough: string): Promise<void>;
 }
 
 /** Viewing the play shell as a demo student. */

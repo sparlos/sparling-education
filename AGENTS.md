@@ -27,9 +27,16 @@ Multi-context: root `GLOSSARY-MAP.md` points to per-workspace `GLOSSARY.md` file
 
 Before calling front-end work done, or before reaching for any browser: see `docs/agents/frontend-testing.md`. Rendered-app tests are the proof, and headless Chrome in the sandbox is for the look.
 
+### User-facing content
+
+Everything a user reads or hears: screen text, walkthroughs, emails, and voice lines in games and the play shell.
+
+- **No internal language.** Glossary terms are for the code and its docs. Words a user sees or hears must make sense to someone who has no idea how Kindling works or how it identifies things, unless the UI explains the term somewhere they'll see it. Say "each time Ben played a game", not "Ben's plays".
+- **Easy to read on the first pass.** Use natural, short sentences. Unpack noun-heavy phrases, and spell out how things connect.
+
 ### Voice lines
 
-Every spoken line, in a game or the play shell (`apps/play/src/ui/shell-strings.ts`), is recorded with `@repo/voice`; see `packages/voice/README.md`. `pnpm voice` runs only on the founder's Mac, so after adding or changing a spoken string, tell the founder to run it, then listen and commit. Until then the line falls back to browser speech, and `pnpm check-voice` fails.
+Every spoken line, in a game or the play shell (`apps/play/src/ui/shell-strings.ts`), follows User-facing content above and is recorded with `@repo/voice`; see `packages/voice/README.md`. `pnpm voice` runs only on the founder's Mac, so after adding or changing a spoken string, tell the founder to run it, then listen and commit. Until then the line falls back to browser speech, and `pnpm check-voice` fails.
 
 ### Testing against the database
 

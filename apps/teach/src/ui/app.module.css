@@ -23,6 +23,13 @@
   gap: var(--mantine-spacing-sm);
 }
 
+/* On a phone there's room for Help and Sign out, not who's signed in too. */
+@media (--k-xs-down) {
+  .name {
+    display: none;
+  }
+}
+
 .main {
   min-height: 100dvh;
   padding-block: var(--mantine-spacing-xl);

@@ -19,6 +19,9 @@ if (typeof window !== "undefined")
 
 // jsdom has no scrolling; the router scrolls to the top of each new screen.
 if (typeof window !== "undefined") window.scrollTo = () => {};
+// …and a walkthrough scrolls each step's control into view.
+if (typeof window !== "undefined")
+  Element.prototype.scrollIntoView ??= () => {};
 
 afterEach(() => {
   cleanup();

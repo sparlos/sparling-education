@@ -4,8 +4,8 @@ import type { EffortKind, EffortSkill } from "../platform/ports.ts";
 /** Each kind of effort evidence, counted, in a teacher's words. */
 export const effortLabels: Record<EffortKind, (n: number) => string> = {
   improvedAfterMistake: (n) =>
-    `${n} ${n === 1 ? "task" : "tasks"} got right after a mistake`,
-  finishedPlays: (n) => `${n} ${n === 1 ? "play" : "plays"} finished`,
+    `got ${n} ${n === 1 ? "task" : "tasks"} right after a mistake`,
+  finishedPlays: (n) => `played ${n} ${n === 1 ? "game" : "games"} to the end`,
 };
 
 /** The Learning Skills with something to say: a count of zero is left out. */

@@ -13,6 +13,7 @@ import type { FakeStudentSeed } from "../platform/fake/teacher.ts";
 import type { NewClass } from "../platform/ports.ts";
 import { App } from "./App.tsx";
 import { Strip } from "./Dashboard.tsx";
+import { walkthroughIds } from "./walkthroughs.ts";
 
 // The class last opened is remembered in the browser; each test starts fresh.
 beforeEach(() => localStorage.clear());
@@ -26,7 +27,14 @@ function openAt(url: string, options?: FakePlatformOptions) {
   const history = createMemoryHistory({ initialEntries: [url] });
   render(
     <UIProvider>
-      <App platform={createFakePlatform(options)} history={history} />
+      <App
+        platform={createFakePlatform({
+          // Most tests are about something else: the walkthroughs are seen.
+          walkthroughsSeen: walkthroughIds,
+          ...options,
+        })}
+        history={history}
+      />
     </UIProvider>,
   );
   return { user: userEvent.setup(), history };
@@ -388,7 +396,7 @@ describe("the dashboard", () => {
     const [g4, g5] = within(sam).getAllByRole("cell");
     expect(g4).toHaveTextContent("No evidence yet");
     expect(g5).toHaveTextContent("Showing consistently");
-    expect(g5).toHaveTextContent("From the Grade 5 tier");
+    expect(g5).toHaveTextContent("At the Grade 5 level");
   });
 
   it("says when no students have joined yet", async () => {
@@ -588,20 +596,26 @@ describe("the dashboard", () => {
     expect(
       await screen.findByRole("heading", { level: 1, name: "Ana D." }),
     ).toBeInTheDocument();
-    expect(screen.getByText("Grade 4 · B1.6")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /^Grade 4 · B1\.6.*Developing/ }),
+    ).toHaveAttribute("aria-expanded", "true");
     expect(
       screen.getByText(expectation("math-2020.g4.B1.6").description),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("list", { name: "Understanding" }),
-    ).toHaveTextContent("Developing");
+      await screen.findByRole("link", {
+        name: /^Grade 4 · B1\.6, official wording/,
+      }),
+    ).toBeInTheDocument();
     const plays = within(
-      screen.getByRole("region", { name: "Plays, newest first" }),
+      screen.getByRole("region", {
+        name: "Each time they played, newest first",
+      }),
     ).getAllByRole("link");
     expect(plays).toHaveLength(2);
     expect(plays[0]).toHaveTextContent("4 of 4 tasks on their own");
     expect(plays[1]).toHaveTextContent("Fraction Hop");
-    expect(plays[1]).toHaveTextContent("Grade 4 tier · Finished");
+    expect(plays[1]).toHaveTextContent("Grade 4 level · Finished");
     expect(plays[1]).toHaveTextContent(
       "1 of 3 tasks on their own, 1 with help, 1 not yet",
     );
@@ -638,7 +652,9 @@ describe("the dashboard", () => {
       await screen.findByRole("heading", { level: 1, name: "Ana D." }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("region", { name: "Plays, newest first" }),
+      screen.getByRole("region", {
+        name: "Each time they played, newest first",
+      }),
     ).toBeInTheDocument();
     await user.click(screen.getByRole("link", { name: "Room 12" }));
     const again = await screen.findByRole("region", {
@@ -692,7 +708,9 @@ describe("the dashboard", () => {
       within(await row("Ben O.")).getByRole("link", { name: /Ben O\., Grade/ }),
     );
     const [play] = within(
-      await screen.findByRole("region", { name: "Plays, newest first" }),
+      await screen.findByRole("region", {
+        name: "Each time they played, newest first",
+      }),
     ).getAllByRole("link");
     expect(play).toHaveTextContent("3 tries, and 1 explored");
 
@@ -762,7 +780,9 @@ describe("the dashboard", () => {
       await screen.findByRole("heading", { level: 1, name: "Ben O." }),
     ).toBeInTheDocument();
     const [play] = within(
-      screen.getByRole("region", { name: "Plays, newest first" }),
+      screen.getByRole("region", {
+        name: "Each time they played, newest first",
+      }),
     ).getAllByRole("link");
     expect(play).toHaveTextContent("2 of 4 tasks on their own, 2 not yet");
 
@@ -866,22 +886,24 @@ describe("a student's page", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("Grade 4")).toBeInTheDocument();
     const { description } = expectation("math-2020.g4.B1.6");
-    const math = part("Math: what their plays show");
+    const math = part("Math");
     expect(math).toHaveTextContent(description);
     expect(math).toHaveTextContent(
-      "3 of 5 tasks on their own, in their 2 most recent plays",
+      "3 of 5 tasks done on their own, over the last 2 times they played",
     );
-    expect(part("Next steps seen in play")).toHaveTextContent(
-      "No misconceptions in their recent plays.",
+    expect(part("What to work on next")).toHaveTextContent(
+      "No common mistakes showed up in their recent games.",
     );
     // The left play isn't finished; the spammed task was never got right.
     const skills = part("Learning Skills");
-    expect(skills).toHaveTextContent("Responsibility: 1 play finished");
     expect(skills).toHaveTextContent(
-      "Self-Regulation: 2 tasks got right after a mistake",
+      "Responsibility: played 1 game to the end",
     );
     expect(skills).toHaveTextContent(
-      "Reported separately from the math grade.",
+      "Self-Regulation: got 2 tasks right after a mistake",
+    );
+    expect(skills).toHaveTextContent(
+      "Report cards grade these separately from math.",
     );
     // Never a raw count of tries, a mark or a rating.
     expect(skills).not.toHaveTextContent(/\d+ (tries|minutes|seconds)/);
@@ -903,11 +925,13 @@ describe("a student's page", () => {
   it("opens an expectation on its bands and plays, and closes it, without piling up history", async () => {
     const { user, history } = await openStudentPage([ben()], "Ben O.");
     const toggle = await screen.findByRole("button", {
-      name: /Developing.*Grade 4 · B1\.6/,
+      name: /Grade 4 · B1\.6.*Developing/,
     });
     expect(toggle).toHaveAttribute("aria-expanded", "false");
     expect(
-      screen.queryByRole("region", { name: "Plays, newest first" }),
+      screen.queryByRole("region", {
+        name: "Each time they played, newest first",
+      }),
     ).toBeNull();
     const entries = history.length;
 
@@ -916,11 +940,12 @@ describe("a student's page", () => {
     expect(
       new URLSearchParams(history.location.search).get("expectation"),
     ).toBe("math-2020.g4.B1.6");
-    expect(
-      screen.getByRole("list", { name: "Understanding" }),
-    ).toHaveTextContent("Developing");
+    // One tier: its band is on the opener, not again inside.
+    expect(screen.queryByRole("list", { name: "Understanding" })).toBeNull();
     const plays = within(
-      await screen.findByRole("region", { name: "Plays, newest first" }),
+      await screen.findByRole("region", {
+        name: "Each time they played, newest first",
+      }),
     ).getAllByRole("link");
     expect(plays).toHaveLength(2);
 
@@ -928,7 +953,9 @@ describe("a student's page", () => {
     expect(history.location.search).toBe("");
     expect(history.length).toBe(entries);
     expect(
-      screen.queryByRole("region", { name: "Plays, newest first" }),
+      screen.queryByRole("region", {
+        name: "Each time they played, newest first",
+      }),
     ).toBeNull();
   });
 
@@ -945,8 +972,10 @@ describe("a student's page", () => {
     expect(
       await screen.findByRole("heading", { level: 1, name: "Dee L." }),
     ).toBeInTheDocument();
-    expect(screen.getByText("No plays yet.")).toBeInTheDocument();
-    expect(document.body).not.toHaveTextContent(/\b0 (plays|tasks)/);
+    expect(
+      screen.getByText("Dee hasn't played any games yet."),
+    ).toBeInTheDocument();
+    expect(document.body).not.toHaveTextContent(/\b0 (plays|games|tasks)/);
   });
 
   it("offers to try again when the student's page can't be loaded", async () => {
@@ -1062,7 +1091,9 @@ describe("the teacher app's URLs", () => {
       new URLSearchParams(history.location.search).get("expectation"),
     ).toBe("math-2020.g4.B1.6");
     expect(
-      await screen.findByRole("region", { name: "Plays, newest first" }),
+      await screen.findByRole("region", {
+        name: "Each time they played, newest first",
+      }),
     ).toBeInTheDocument();
   });
 
@@ -1247,7 +1278,7 @@ describe("managing a class", () => {
     const samRow = await screen.findByRole("row", { name: /^Sam R\./ });
     expect(within(samRow).getByText("Grade 5")).toBeInTheDocument();
     expect(
-      within(samRow).getByText("From the Grade 4 tier"),
+      within(samRow).getByText("At the Grade 4 level"),
     ).toBeInTheDocument();
   });
 
@@ -1625,7 +1656,7 @@ describe("quick assess", () => {
     ).toBeInTheDocument();
 
     const benBlock = screen.getByRole("region", { name: "Ben O." });
-    const math = part(benBlock, "Math: what their plays show");
+    const math = part(benBlock, "Math");
     const [atFour, atFive] = within(math).getAllByRole("listitem");
     if (!atFour || !atFive) throw new Error("No expectation lines");
     const { description } = expectation("math-2020.g4.B1.6");
@@ -1639,27 +1670,31 @@ describe("quick assess", () => {
     );
     // The left play's task is one of theirs, not done yet.
     expect(atFour).toHaveTextContent(
-      "3 of 4 tasks on their own, in their 2 most recent plays",
+      "3 of 4 tasks done on their own, over the last 2 times they played",
     );
     expect(atFour).toHaveTextContent("Fraction Hop · Oct 1");
     expect(atFive).toHaveTextContent(
-      "1 of 1 task on their own, in their most recent play",
+      "1 of 1 task done on their own, the last time they played",
     );
-    expect(atFive).toHaveTextContent("Grade 5 tier, not their grade");
-    expect(part(benBlock, "Next steps seen in play")).toHaveTextContent(
+    expect(atFive).toHaveTextContent(
+      "Played at the Grade 5 level, not their own grade",
+    );
+    expect(part(benBlock, "What to work on next")).toHaveTextContent(
       /bigger.*\(Fraction Hop\)/i,
     );
     const skills = part(benBlock, "Learning Skills");
-    expect(skills).toHaveTextContent("Responsibility: 2 plays finished");
     expect(skills).toHaveTextContent(
-      "Self-Regulation: 2 tasks got right after a mistake",
+      "Responsibility: played 2 games to the end",
     );
     expect(skills).toHaveTextContent(
-      "Reported separately from the math grade.",
+      "Self-Regulation: got 2 tasks right after a mistake",
+    );
+    expect(skills).toHaveTextContent(
+      "Report cards grade these separately from math.",
     );
 
     const deeBlock = screen.getByRole("region", { name: "Dee L." });
-    expect(deeBlock).toHaveTextContent("No plays yet.");
+    expect(deeBlock).toHaveTextContent("Dee hasn't played any games yet.");
     // Evidence, never a judgement of it.
     expect(document.body).not.toHaveTextContent(
       /Developing|Showing consistently|Not yet showing|%/,
@@ -1678,25 +1713,29 @@ describe("quick assess", () => {
     expect(
       await screen.findByRole("heading", { level: 1, name: "Ben O." }),
     ).toBeInTheDocument();
-    const math = part(document.body, "Math: what their plays show");
-    const [atFour, atFive] = within(math).getAllByRole("listitem");
+    const math = part(document.body, "Math");
+    // On screen, each expectation opens on its plays.
+    const [atFour, atFive] = within(math).getAllByRole("button");
     expect(atFour).toHaveTextContent(
-      "3 of 4 tasks on their own, in their 2 most recent plays",
+      "3 of 4 tasks done on their own, over the last 2 times they played",
     );
-    expect(atFive).toHaveTextContent("Grade 5 tier, not their grade");
-    expect(part(document.body, "Next steps seen in play")).toHaveTextContent(
+    expect(atFive).toHaveTextContent(
+      "Played at the Grade 5 level, not their own grade",
+    );
+    expect(part(document.body, "What to work on next")).toHaveTextContent(
       /bigger.*\(Fraction Hop\)/i,
     );
     expect(part(document.body, "Learning Skills")).toHaveTextContent(
-      "Responsibility: 2 plays finished",
+      "Responsibility: played 2 games to the end",
     );
     // The print has the counts, never a level.
-    for (const line of within(math).getAllByRole("listitem")) {
+    // (The band beside each opener is on screen only.)
+    for (const line of within(math).getAllByRole("button")) {
       expect(
         within(line).queryByText(
           /^(Developing|Showing consistently|Not yet showing)/,
           {
-            selector: ":not(button *)",
+            selector: ":not([data-understanding]):not([data-understanding] *)",
           },
         ),
       ).toBeNull();
@@ -1816,5 +1855,228 @@ describe("the demo class", () => {
     expect(
       screen.getByRole("button", { name: "View as a student" }),
     ).toBeInTheDocument();
+  });
+});
+
+describe("walkthroughs", () => {
+  /** A new teacher, signed in to their demo class, with nothing seen. */
+  async function newTeacher(options: FakePlatformOptions = {}) {
+    const user = renderApp({
+      demoClass: true,
+      walkthroughsSeen: [],
+      ...options,
+    });
+    await user.click(await signInButton());
+    return user;
+  }
+
+  const step = (title: string) => screen.findByRole("dialog", { name: title });
+  const gone = () =>
+    vi.waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+  /** The step's title, after one or more Nexts. */
+  async function next(user: ReturnType<typeof userEvent.setup>) {
+    await user.click(screen.getByRole("button", { name: "Next" }));
+  }
+
+  async function signOutAndIn(user: ReturnType<typeof userEvent.setup>) {
+    await user.click(screen.getByRole("button", { name: "Sign out" }));
+    await user.click(await signInButton());
+    await screen.findByRole("heading", { level: 1, name: "Demo class" });
+  }
+
+  it("welcomes a new teacher on their first dashboard, and goes through it step by step", async () => {
+    const user = await newTeacher();
+    const welcome = await step("Welcome to Kindling");
+    expect(welcome).toHaveTextContent("1 of 9");
+    // Nothing to go back to yet; the way out is always there.
+    expect(within(welcome).queryByRole("button", { name: "Back" })).toBeNull();
+    expect(
+      within(welcome).getByRole("button", { name: "Skip" }),
+    ).toBeInTheDocument();
+
+    await next(user);
+    await step("Your classes");
+    // The demo class has no Share: the step says where links will be.
+    await next(user);
+    expect(await step("Share a game link")).toHaveTextContent(
+      "Make your own class",
+    );
+    await next(user);
+    await step("Misconceptions showing up");
+    await user.click(screen.getByRole("button", { name: "Back" }));
+    await step("Share a game link");
+    await next(user);
+    await next(user);
+    await step("How each student is doing");
+    await next(user);
+    await step("Quick assess");
+
+    // The next step is on quick assess: it goes there.
+    await next(user);
+    expect(await step("Ready for report cards")).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { level: 1, name: "Quick assess" }),
+    ).toBeInTheDocument();
+
+    // And back to the dashboard for the rest.
+    await next(user);
+    await step("See it as a student");
+    expect(
+      screen.getByRole("heading", { level: 1, name: "Demo class" }),
+    ).toBeInTheDocument();
+    await next(user);
+    const last = await step("Help is here");
+    expect(last).toHaveTextContent("9 of 9");
+    await user.click(within(last).getByRole("button", { name: "Done" }));
+    await gone();
+  });
+
+  it("is shown once per teacher: finished, it doesn't come back, on any browser", async () => {
+    const user = await newTeacher();
+    await step("Welcome to Kindling");
+    for (let i = 0; i < 8; i++) await next(user);
+    await user.click(await screen.findByRole("button", { name: "Done" }));
+    await gone();
+
+    await signOutAndIn(user);
+    expect(screen.queryByRole("dialog")).toBeNull();
+  });
+
+  it("can be skipped from any step, and skipping is remembered too", async () => {
+    const user = await newTeacher();
+    await step("Welcome to Kindling");
+    await next(user);
+    await user.click(
+      within(await step("Your classes")).getByRole("button", { name: "Skip" }),
+    );
+    await gone();
+
+    await signOutAndIn(user);
+    expect(screen.queryByRole("dialog")).toBeNull();
+  });
+
+  it("closes with Escape, as skipped", async () => {
+    const user = await newTeacher();
+    await step("Welcome to Kindling");
+    await user.keyboard("{Escape}");
+    await gone();
+    await signOutAndIn(user);
+    expect(screen.queryByRole("dialog")).toBeNull();
+  });
+
+  it("can be replayed from Help, from any screen of a class", async () => {
+    const user = await newTeacher({ walkthroughsSeen: ["welcome"] });
+    await screen.findByRole("heading", { level: 1, name: "Demo class" });
+    await user.click(screen.getByRole("link", { name: "Manage class" }));
+    await screen.findByRole("heading", { name: "Manage Demo class" });
+    // Manage's own walkthrough starts by itself the first time.
+    await user.click(
+      within(await step("Your students")).getByRole("button", { name: "Done" }),
+    );
+    await gone();
+
+    await user.click(screen.getByRole("button", { name: "Help" }));
+    await user.click(
+      await screen.findByRole("menuitem", { name: "Show me around" }),
+    );
+    await step("Welcome to Kindling");
+    expect(
+      screen.getByRole("heading", { level: 1, name: "Demo class" }),
+    ).toBeInTheDocument();
+  });
+
+  it("falls back to the teacher's own class once the demo class is gone", async () => {
+    const user = await newTeacher({
+      walkthroughsSeen: ["welcome"],
+      classes: [
+        {
+          draft: { name: "Room 12", grades: [4] },
+          students: [
+            {
+              google: { subject: "s-1", firstName: "Ana", lastName: "Diaz" },
+              plays: [
+                {
+                  grade: 4,
+                  tasks: [
+                    [{ succeeded: false, misconception: "no-equivalence" }],
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+    await screen.findByRole("heading", { level: 1, name: "Room 12" });
+    await user.click(screen.getByRole("link", { name: "Demo class" }));
+    await user.click(await screen.findByRole("button", { name: "Delete" }));
+    await user.click(screen.getByRole("button", { name: "Delete demo class" }));
+    await screen.findByRole("heading", { level: 1, name: "Room 12" });
+
+    await user.click(screen.getByRole("button", { name: "Help" }));
+    await user.click(
+      await screen.findByRole("menuitem", { name: "Show me around" }),
+    );
+    await step("Welcome to Kindling");
+    await next(user);
+    await next(user);
+    // A real class has Share, so the step points at it.
+    expect(await step("Share a game link")).toHaveTextContent(
+      "Share has a link to join your class",
+    );
+    await next(user);
+    await step("Misconceptions showing up");
+    // No demo banner to point at: that step is left out.
+    expect(screen.getByRole("dialog")).toHaveTextContent("4 of 8");
+  });
+
+  it("starts each screen's own walkthrough the first time, once past the welcome", async () => {
+    const user = await newTeacher();
+    await user.click(
+      within(await step("Welcome to Kindling")).getByRole("button", {
+        name: "Skip",
+      }),
+    );
+    await gone();
+
+    const studentLink = /^[A-Z][a-zé]+ [A-Z]\.$/;
+    const [name] = screen.getAllByRole("link", { name: studentLink });
+    if (!name?.textContent) throw new Error("No student");
+    const who = name.textContent;
+    await user.click(name);
+    const page = await step("A student's page");
+    expect(page).toHaveTextContent("1 of 3");
+    await user.click(within(page).getByRole("button", { name: "Skip" }));
+    await gone();
+
+    // Back to it: seen.
+    await user.click(screen.getByRole("link", { name: "Demo class" }));
+    await screen.findByRole("heading", { level: 1, name: "Demo class" });
+    await user.click(
+      (await screen.findAllByRole("link", { name: who }))[0] as HTMLElement,
+    );
+    await screen.findByRole("heading", { level: 1, name: who });
+    expect(screen.queryByRole("dialog")).toBeNull();
+
+    // Help has it, as well as the welcome.
+    await user.click(screen.getByRole("button", { name: "Help" }));
+    expect(
+      (await screen.findAllByRole("menuitem")).map((i) => i.textContent),
+    ).toEqual(["Show me around", "Explain this page"]);
+    await user.click(
+      screen.getByRole("menuitem", { name: "Explain this page" }),
+    );
+    await step("A student's page");
+  });
+
+  it("waits for the welcome before a screen's own starts by itself", async () => {
+    await openAt("/teach/", {
+      demoClass: true,
+      walkthroughsSeen: [],
+    }).user.click(await signInButton());
+    await step("Welcome to Kindling");
+    expect(
+      screen.queryByRole("dialog", { name: "A student's page" }),
+    ).toBeNull();
   });
 });

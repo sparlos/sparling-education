@@ -24,6 +24,8 @@ interface ButtonProps {
   leftSection?: ReactNode;
   rightSection?: ReactNode;
   className?: string;
+  /** Names the button for a walkthrough step to point at. */
+  "data-walkthrough"?: string;
 }
 
 export function Button({
@@ -40,6 +42,7 @@ export function Button({
   leftSection,
   rightSection,
   className,
+  "data-walkthrough": walkthrough,
 }: ButtonProps) {
   const shared = {
     className: cx(
@@ -51,6 +54,7 @@ export function Button({
     "data-tone": variant === "secondary" ? "neutral" : tone,
     "data-full-width": fullWidth || undefined,
     "aria-expanded": expanded,
+    "data-walkthrough": walkthrough,
     onClick,
   };
   const content = (

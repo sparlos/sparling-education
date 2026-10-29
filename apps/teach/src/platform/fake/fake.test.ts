@@ -5,6 +5,7 @@ import {
   recognitionContract,
   type TeacherPortHarness,
   teacherPortContract,
+  walkthroughsContract,
 } from "../contract.ts";
 import { fakeTeacherBackend } from "./teacher.ts";
 
@@ -23,3 +24,4 @@ dashboardContract("Fake teacher port", harness);
 managingContract("Fake teacher port", harness);
 recognitionContract("Fake teacher port", harness);
 demoClassContract("Fake teacher port", () => harness(true));
+walkthroughsContract("Fake teacher port", harness);

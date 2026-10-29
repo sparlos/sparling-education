@@ -189,7 +189,7 @@ export function StudentRecognition({
     .map((r) => r.trait);
   return (
     <section aria-labelledby="recognition" className={classes.section}>
-      <Title order={2} size="h4" id="recognition">
+      <Title order={2} size="h5" id="recognition">
         Recognition
       </Title>
       {thisTerm.length === 0 && <Text>Not recognised yet this term.</Text>}

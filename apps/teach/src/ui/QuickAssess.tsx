@@ -5,6 +5,7 @@
 // the grade is the teacher's. Made to print: the navigation goes, a student
 // stays on one page where they fit, and every page's header names the class
 // or student and the date.
+import { Accordion } from "@repo/ui/accordion";
 import { Button } from "@repo/ui/button";
 import { Stack } from "@repo/ui/stack";
 import { Text } from "@repo/ui/text";
@@ -18,7 +19,7 @@ import type {
 import { nameOf } from "./Dashboard.tsx";
 import { effortLabels, withEvidence } from "./effort.ts";
 import { ButtonLink, useUp } from "./links.tsx";
-import { OfficialCode } from "./OfficialCode.tsx";
+import { expectationLabel, OfficialCode } from "./OfficialCode.tsx";
 import classes from "./quick-assess.module.css";
 
 export function ClassQuickAssessScreen({
@@ -85,15 +86,16 @@ function QuickAssessPage({
         <Button
           variant="secondary"
           className={classes.screenOnly}
+          data-walkthrough="print"
           onClick={() => window.print()}
         >
           Print
         </Button>
       </div>
       <Text className={classes.note}>
-        What your students' plays show, to weigh with your own observations when
-        you write report cards. Kindling never gives a level: the grade is
-        yours.
+        What your students' games show so far. Use it with what you see in class
+        when you write report cards. Kindling never gives a level: you decide
+        the grade.
       </Text>
       {/* A table only so the header repeats on every printed page. */}
       <table className={classes.pages} role="presentation">
@@ -121,13 +123,23 @@ function QuickAssessPage({
 export function StudentBlock({
   assessed: { student, expectations, nextSteps, learningSkills },
   named = true,
-  extra,
+  opening,
+  aside,
 }: {
   assessed: QuickAssessStudent;
   /** Whether the block names its student: not on their own page. */
   named?: boolean;
-  /** Screen-only extras after an expectation's lines, e.g. its plays. */
-  extra?: (expectation: QuickAssessExpectation) => ReactNode;
+  /** On screen, each expectation opens, e.g. on its plays. */
+  opening?: {
+    /** The open expectation. */
+    open: string | null;
+    onOpen(expectationId: string | null): void;
+    /** Shown beside an expectation's lines, on screen only. */
+    summary(expectationId: string): ReactNode;
+    panel(expectationId: string): ReactNode;
+  };
+  /** On screen, after the rest, e.g. recognising the student. */
+  aside?: ReactNode;
 }) {
   const id = `student-${student.id}`;
   const part = (name: string) => `${id}-${name}`;
@@ -147,33 +159,79 @@ export function StudentBlock({
         </div>
       )}
       {expectations.length === 0 ? (
-        <Text>No plays yet.</Text>
+        <Text>{`${student.firstName} hasn't played any games yet.`}</Text>
       ) : (
         <>
           <section aria-labelledby={part("math")} className={classes.part}>
             <Title order={3} size="h5" id={part("math")}>
-              Math: what their plays show
+              Math
             </Title>
-            <ul className={classes.list}>
-              {expectations.map((line, i) => (
-                <li key={`${line.expectation.id}|${line.tierGrade}`}>
-                  <ExpectationLine line={line} />
-                  {/* Once for an expectation, however many tiers it has. */}
-                  {extra &&
-                    expectations.findIndex(
-                      (l) => l.expectation.id === line.expectation.id,
-                    ) === i &&
-                    extra(line)}
-                </li>
-              ))}
-            </ul>
+            {opening ? (
+              <div data-walkthrough="plays">
+                <Text size="sm" c="muted" className={classes.screenOnly}>
+                  {`Open an expectation to see each time ${student.firstName} played a game for it.`}
+                </Text>
+                <Accordion
+                  variant="list"
+                  value={opening.open}
+                  onChange={opening.onOpen}
+                  items={byExpectation(expectations).map(
+                    ({ expectation, lines }) => ({
+                      value: expectation.id,
+                      title: (
+                        <span className={classes.opener}>
+                          <span className={classes.openerTop}>
+                            {/* Room for the link laid over it, still in the button's name. */}
+                            <span
+                              className={`${classes.strong} ${classes.underLink}`}
+                            >
+                              {expectationLabel(expectation)}
+                            </span>
+                            <span
+                              className={`${classes.screenOnly} ${classes.summary}`}
+                            >
+                              {opening.summary(expectation.id)}
+                            </span>
+                          </span>
+                          <span>{expectation.description}</span>
+                          {lines.map((line) => (
+                            <Tally key={line.tierGrade} line={line} />
+                          ))}
+                        </span>
+                      ),
+                      overlay: (
+                        <OfficialCode
+                          expectation={expectation}
+                          className={`${classes.strong} ${classes.overLink} ${classes.screenOnly}`}
+                        />
+                      ),
+                      content: (
+                        <div className={classes.screenOnly}>
+                          {opening.panel(expectation.id)}
+                        </div>
+                      ),
+                    }),
+                  )}
+                />
+              </div>
+            ) : (
+              <ul className={classes.list}>
+                {expectations.map((line) => (
+                  <li key={`${line.expectation.id}|${line.tierGrade}`}>
+                    <ExpectationLine line={line} />
+                  </li>
+                ))}
+              </ul>
+            )}
           </section>
           <section aria-labelledby={part("next")} className={classes.part}>
             <Title order={3} size="h5" id={part("next")}>
-              Next steps seen in play
+              What to work on next
             </Title>
             {nextSteps.length === 0 ? (
-              <Text c="muted">No misconceptions in their recent plays.</Text>
+              <Text c="muted">
+                No common mistakes showed up in their recent games.
+              </Text>
             ) : (
               <ul className={classes.list}>
                 {nextSteps.map((m) => (
@@ -203,18 +261,40 @@ export function StudentBlock({
               ))}
             </ul>
             <Text size="sm" c="muted">
-              Reported separately from the math grade.
+              Report cards grade these separately from math.
             </Text>
           </section>
         </>
+      )}
+      {aside && (
+        <div className={`${classes.part} ${classes.screenOnly}`}>{aside}</div>
       )}
     </section>
   );
 }
 
+/** Each expectation with its lines, one per tier, in its first line's place. */
+function byExpectation(lines: QuickAssessExpectation[]) {
+  const groups = new Map<
+    string,
+    {
+      expectation: QuickAssessExpectation["expectation"];
+      lines: QuickAssessExpectation[];
+    }
+  >();
+  for (const line of lines) {
+    const group = groups.get(line.expectation.id);
+    if (group) group.lines.push(line);
+    else
+      groups.set(line.expectation.id, {
+        expectation: line.expectation,
+        lines: [line],
+      });
+  }
+  return [...groups.values()];
+}
+
 export function ExpectationLine({ line }: { line: QuickAssessExpectation }) {
-  const plays =
-    line.plays === 1 ? "most recent play" : `${line.plays} most recent plays`;
   return (
     <span className={classes.line}>
       <span>
@@ -224,14 +304,28 @@ export function ExpectationLine({ line }: { line: QuickAssessExpectation }) {
         />{" "}
         {line.expectation.description}
       </span>
+      <Tally line={line} />
+    </span>
+  );
+}
+
+/** What a line's plays show: the counts, then the games and when. */
+function Tally({ line }: { line: QuickAssessExpectation }) {
+  const times =
+    line.plays === 1
+      ? "the last time they played"
+      : `over the last ${line.plays} times they played`;
+  return (
+    <span className={classes.line}>
       <span>
-        {`${line.onTheirOwn} of ${line.tasks} ${line.tasks === 1 ? "task" : "tasks"} on their own, in their ${plays}`}
+        {`${line.onTheirOwn} of ${line.tasks} ${line.tasks === 1 ? "task" : "tasks"} done on their own, ${times}`}
       </span>
       <span className={classes.muted}>
         {[
           line.games.map((g) => g.name).join(", "),
           span(line.first, line.last),
-          line.otherTier && `Grade ${line.tierGrade} tier, not their grade`,
+          line.otherTier &&
+            `Played at the Grade ${line.tierGrade} level, not their own grade`,
         ]
           .filter(Boolean)
           .join(" · ")}

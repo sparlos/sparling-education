@@ -46,7 +46,7 @@ export function PlayScreen({ classId, play }: { classId: string; play: Play }) {
       </div>
       <ol className={classes.tasks}>
         {play.tasks.map((task, i) => (
-          <li key={task.task} className={classes.task}>
+          <li key={task.task} className={classes.task} data-walkthrough="tries">
             <Title order={2} size="h5">
               Task {i + 1}
             </Title>

@@ -13,6 +13,8 @@ import {
   getQuickAssess,
   getStudentPage,
   getStudentQuickAssess,
+  getWalkthroughs,
+  markWalkthroughSeen,
   type RecognitionTrait,
   recogniseStudent,
   removeStudent,
@@ -149,6 +151,15 @@ export function apiTeacherPort(options: {
       if (res.status !== 200) throw unexpected("demo class", res.status);
       const { student, path } = res.data;
       return { student, link: new URL(path, options.origin).href };
+    },
+    async walkthroughsSeen() {
+      const res = await getWalkthroughs();
+      if (res.status !== 200) throw unexpected("walkthroughs", res.status);
+      return res.data.seen;
+    },
+    async markWalkthroughSeen(walkthrough) {
+      const res = await markWalkthroughSeen(walkthrough);
+      if (res.status !== 204) throw unexpected("walkthrough seen", res.status);
     },
   };
 }

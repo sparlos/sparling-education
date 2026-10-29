@@ -175,6 +175,8 @@ export const color = {
   },
   /** Keyboard focus ring; meets 3:1 against every surface. */
   focus: sky[6],
+  /** Dims the page behind something that needs the eye, like a walkthrough's spotlight. */
+  scrim: "rgba(31, 31, 31, 0.6)",
   brand: {
     fill: ember[7],
     fillHover: ember[8],

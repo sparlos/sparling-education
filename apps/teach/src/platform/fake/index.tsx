@@ -24,6 +24,8 @@ export interface FakePlatformOptions {
   now?: Date;
   /** Give the teacher a demo class at their first sign-in, as Kindling does. */
   demoClass?: boolean;
+  /** The walkthroughs the teacher has already seen. None, as for a new teacher, by default. */
+  walkthroughsSeen?: readonly string[];
 }
 
 const newTeacher: GoogleAccount = {
@@ -47,6 +49,7 @@ export function createFakePlatform(
     origin: options.origin,
     now: options.now ? () => options.now ?? new Date() : undefined,
     demoClass: options.demoClass,
+    walkthroughsSeen: options.walkthroughsSeen,
   });
   if (options.student) backend.addStudent(google);
   for (const draft of options.otherTeachersClasses ?? [])

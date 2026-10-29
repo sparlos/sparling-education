@@ -152,7 +152,11 @@ function StudentRow({
   };
 
   return (
-    <li className={classes.student} aria-label={name}>
+    <li
+      className={classes.student}
+      aria-label={name}
+      data-walkthrough="student"
+    >
       <div className={classes.row}>
         <div>
           <Text className={classes.name}>{name}</Text>
