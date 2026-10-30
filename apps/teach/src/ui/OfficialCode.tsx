@@ -19,7 +19,12 @@ export function OfficialCode({
   label?: string;
 }) {
   return (
-    <Anchor href={expectation.link} newTab className={className}>
+    <Anchor
+      href={expectation.link}
+      newTab
+      className={className}
+      data-walkthrough="official"
+    >
       {label}
       <VisuallyHidden>, official wording (opens in a new tab)</VisuallyHidden>
     </Anchor>

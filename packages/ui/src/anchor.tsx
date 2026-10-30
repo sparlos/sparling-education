@@ -7,9 +7,17 @@ interface AnchorProps {
   className?: string;
   /** Opens in a new tab, for a page outside Kindling. */
   newTab?: boolean;
+  /** Marks it for a walkthrough step to point at. */
+  "data-walkthrough"?: string;
 }
 
-export function Anchor({ children, href, className, newTab }: AnchorProps) {
+export function Anchor({
+  children,
+  href,
+  className,
+  newTab,
+  "data-walkthrough": walkthrough,
+}: AnchorProps) {
   return (
     <MantineAnchor
       href={href}
@@ -17,6 +25,7 @@ export function Anchor({ children, href, className, newTab }: AnchorProps) {
       c="var(--tone-text)"
       underline="hover"
       className={className}
+      data-walkthrough={walkthrough}
     >
       {children}
     </MantineAnchor>

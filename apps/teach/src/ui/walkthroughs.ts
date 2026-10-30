@@ -41,7 +41,6 @@ export const welcome: Walkthrough = {
   id: "welcome",
   screen: "dashboard",
   name: "Show me around",
-  covers: ["quick-assess"],
   steps: [
     {
       screen: "dashboard",
@@ -83,15 +82,15 @@ export const welcome: Walkthrough = {
     },
     {
       screen: "dashboard",
-      target: at("quick-assess"),
-      title: "Quick assess",
-      body: "When it's time for report cards, open Quick assess. It gathers what each student has shown you in one place. Let's go there now!",
+      target: at("official"),
+      title: "The curriculum's own words",
+      body: "Each expectation's code is a link. Click it to read the ministry's full wording on Ontario's curriculum site. It opens in a new tab.",
     },
     {
-      screen: "quick-assess",
-      target: at("print"),
-      title: "Ready for report cards",
-      body: "Go through your class one student at a time: pick a name, type to find one, or use Next. Each student shows how they're doing on each expectation, what to work on next, and their Learning Skills. Print gives every student, or save it as a PDF. You still decide the grade.",
+      screen: "dashboard",
+      target: at("quick-assess"),
+      title: "Quick assess",
+      body: "Open Quick assess when you write report cards. It shows what each student has done, ready to print.",
     },
     {
       screen: "dashboard",
@@ -125,6 +124,12 @@ export const screenWalkthroughs: Walkthrough[] = [
       },
       {
         screen: "student",
+        target: at("official"),
+        title: "The curriculum's own words",
+        body: "Click an expectation's code to read the ministry's full wording on Ontario's curriculum site. It opens in a new tab.",
+      },
+      {
+        screen: "student",
         target: at("plays"),
         title: "The plays behind it",
         body: "Open an expectation to see the games the student played for it, newest first. Open a game to see each answer they gave.",
@@ -145,9 +150,41 @@ export const screenWalkthroughs: Walkthrough[] = [
     steps: [
       {
         screen: "quick-assess",
-        target: at("print"),
         title: "Ready for report cards",
-        body: "Go through your class one student at a time: pick a name, type to find one, or use Next. Each student shows how they're doing on each expectation, what to work on next, and their Learning Skills. Print gives every student, or save it as a PDF. You still decide the grade.",
+        body: "This page helps you write report cards. It shows what each student's games tell you, one student at a time. You still decide the grade.",
+      },
+      {
+        screen: "quick-assess",
+        target: at("students"),
+        position: "right",
+        title: "Pick a student",
+        body: "Click a name to see that student. Type in the box to find someone fast.",
+      },
+      {
+        screen: "quick-assess",
+        target: at("stepper"),
+        title: "Go through your class",
+        body: "Use Previous and Next to go from one student to the next. The arrow keys work too.",
+      },
+      {
+        screen: "quick-assess",
+        target: at("assessed"),
+        position: "left",
+        title: "What each student has shown",
+        body: "First is math, one expectation at a time. Next is what the student should work on. Learning Skills come last, since report cards grade them on their own.",
+      },
+      {
+        screen: "quick-assess",
+        // The student showing: the others are only there to print.
+        target: `${at("assessed")} ${at("official")}`,
+        title: "The curriculum's own words",
+        body: "Click an expectation's code to read the ministry's full wording on Ontario's curriculum site. It opens in a new tab.",
+      },
+      {
+        screen: "quick-assess",
+        target: at("print"),
+        title: "Print it all",
+        body: "Print gives you every student in the class, each on their own page. You can also save it as a PDF.",
       },
     ],
   },

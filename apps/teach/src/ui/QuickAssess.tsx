@@ -160,7 +160,10 @@ export function ClassQuickAssessScreen({
             )}
           </nav>
           <div ref={shownRef} className={classes.shown}>
-            <div className={`${classes.stepper} ${classes.screenOnly}`}>
+            <div
+              className={`${classes.stepper} ${classes.screenOnly}`}
+              data-walkthrough="stepper"
+            >
               <Button
                 variant="secondary"
                 disabled={index === 0}
@@ -195,7 +198,11 @@ export function ClassQuickAssessScreen({
                       assessed === shown ? undefined : classes.printOnlyRow
                     }
                   >
-                    <td>
+                    <td
+                      data-walkthrough={
+                        assessed === shown ? "assessed" : undefined
+                      }
+                    >
                       <StudentBlock assessed={assessed} />
                     </td>
                   </tr>

@@ -1998,16 +1998,9 @@ describe("walkthroughs", () => {
     await next(user);
     await step("How each student is doing");
     await next(user);
-    await step("Quick assess");
-
-    // The next step is on quick assess: it goes there.
+    await step("The curriculum's own words");
     await next(user);
-    expect(await step("Ready for report cards")).toBeInTheDocument();
-    expect(
-      screen.getByRole("heading", { level: 1, name: "Quick assess" }),
-    ).toBeInTheDocument();
-
-    // And back to the dashboard for the rest.
+    await step("Quick assess");
     await next(user);
     await step("See it as a student");
     expect(
@@ -2134,7 +2127,7 @@ describe("walkthroughs", () => {
     const who = name.textContent;
     await user.click(name);
     const page = await step("A student's page");
-    expect(page).toHaveTextContent("1 of 3");
+    expect(page).toHaveTextContent("1 of 4");
     await user.click(within(page).getByRole("button", { name: "Skip" }));
     await gone();
 
@@ -2156,6 +2149,25 @@ describe("walkthroughs", () => {
       screen.getByRole("menuitem", { name: "Explain this page" }),
     );
     await step("A student's page");
+  });
+
+  it("explains quick assess on its own the first time it's opened", async () => {
+    const user = await newTeacher({ walkthroughsSeen: ["welcome"] });
+    await screen.findByRole("heading", { level: 1, name: "Demo class" });
+    await user.click(screen.getByRole("link", { name: "Quick assess" }));
+    expect(await step("Ready for report cards")).toHaveTextContent("1 of 6");
+    await next(user);
+    await step("Pick a student");
+    await next(user);
+    await step("Go through your class");
+    await next(user);
+    await step("What each student has shown");
+    await next(user);
+    await step("The curriculum's own words");
+    await next(user);
+    const last = await step("Print it all");
+    await user.click(within(last).getByRole("button", { name: "Done" }));
+    await gone();
   });
 
   it("waits for the welcome before a screen's own starts by itself", async () => {
