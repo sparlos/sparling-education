@@ -3,6 +3,7 @@
 // well that student's plays show understanding of that expectation, or that
 // there's no evidence yet. A cell, or a student under a misconception, opens
 // that student's page at that expectation; a student's name opens their page.
+// A box above the grid narrows its rows to the students whose names match.
 // Below, the students not recognised yet this term. The header has the three
 // things a teacher does here: share the class, quick assess, manage it.
 import { Button } from "@repo/ui/button";
@@ -25,6 +26,7 @@ import type {
 } from "../platform/ports.ts";
 import { type DemoActions, DemoCard } from "./Demo.tsx";
 import classes from "./dashboard.module.css";
+import { FindStudent, matchesName, noMatch } from "./FindStudent.tsx";
 import { ButtonLink } from "./links.tsx";
 import { gradesLabel } from "./NewClass.tsx";
 import { expectationLabel, OfficialCode } from "./OfficialCode.tsx";
@@ -67,6 +69,8 @@ export function DashboardScreen({
   share: ShareActions;
 }) {
   const [sharing, setSharing] = useState(false);
+  const [query, setQuery] = useState("");
+  const found = dashboard.students.filter((s) => matchesName(s, query));
   return (
     <Stack gap="md">
       <Switcher classes={all} current={cls.id} />
@@ -130,11 +134,23 @@ export function DashboardScreen({
             open={misconception}
             onToggle={onMisconception}
           />
-          <Grid
-            classId={cls.id}
-            dashboard={dashboard}
-            split={cls.grades.length > 1}
-          />
+          <Stack gap="xs">
+            <FindStudent
+              query={query}
+              onQuery={setQuery}
+              className={classes.find}
+            />
+            {found.length === 0 ? (
+              <Text>{noMatch(query)}</Text>
+            ) : (
+              <Grid
+                classId={cls.id}
+                expectations={dashboard.expectations}
+                students={found}
+                split={cls.grades.length > 1}
+              />
+            )}
+          </Stack>
           <NotYetRecognised
             students={dashboard.students}
             settings={dashboard.recognition}
@@ -322,14 +338,16 @@ function studentsLabel(n: number) {
 
 function Grid({
   classId,
-  dashboard,
+  expectations,
+  students,
   split,
 }: {
   classId: string;
-  dashboard: Dashboard;
+  expectations: Dashboard["expectations"];
+  /** The students shown: all of them, or those the search found. */
+  students: Dashboard["students"];
   split: boolean;
 }) {
-  const { expectations, students } = dashboard;
   return (
     <div className={classes.scroller}>
       <Table

@@ -1,4 +1,5 @@
-/* Quick assess: a block per student on screen, made to print in black and white. */
+/* Quick assess: one student at a time on screen, beside the class's names;
+   every student printed, in black and white. */
 .heading {
   display: flex;
   flex-wrap: wrap;
@@ -9,6 +10,95 @@
 
 .note {
   max-width: 48rem;
+}
+
+/* The names, then the student shown: side by side where there's room. */
+.scan {
+  display: grid;
+  gap: var(--mantine-spacing-lg);
+  align-items: start;
+}
+
+@media (--k-sm-up) {
+  .scan {
+    grid-template-columns: 14rem minmax(0, 1fr);
+  }
+
+  /* The names stay in reach while the student scrolls. */
+  .roster {
+    position: sticky;
+    top: var(--mantine-spacing-md);
+  }
+}
+
+.roster {
+  display: grid;
+  gap: var(--mantine-spacing-sm);
+}
+
+.names {
+  display: grid;
+  max-height: 60vh;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+@media (--k-xs-down) {
+  .names {
+    max-height: 14rem;
+  }
+}
+
+.pick {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 3rem;
+  padding: 0 var(--mantine-spacing-sm);
+  border: 0;
+  border-radius: var(--mantine-radius-sm);
+  background: none;
+  color: var(--k-ink);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.pick:hover {
+  background-color: var(--k-surface-sunken);
+}
+
+.pick[aria-current] {
+  background-color: var(--k-surface-raised);
+  box-shadow: inset 3px 0 0 var(--k-focus);
+  font-weight: 700;
+}
+
+.pick:focus-visible {
+  outline: 3px solid var(--k-focus);
+  outline-offset: -3px;
+}
+
+.shown {
+  display: grid;
+  gap: var(--mantine-spacing-md);
+  min-width: 0;
+}
+
+.stepper {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--mantine-spacing-sm) var(--mantine-spacing-md);
+}
+
+/* Every student prints; on screen, only the one shown. */
+@media screen {
+  .printOnlyRow {
+    display: none;
+  }
 }
 
 /* An expectation's opener: its code and band, what it says, then its counts. */
@@ -149,6 +239,11 @@
   }
 
   .printOnly {
+    display: block;
+  }
+
+  .scan,
+  .shown {
     display: block;
   }
 

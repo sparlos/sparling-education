@@ -4,13 +4,16 @@ import { inputClassNames } from "./input";
 interface TextInputProps {
   label: string;
   name: string;
-  type?: "text" | "email";
+  type?: "text" | "email" | "search";
   placeholder?: string;
   required?: boolean;
   autoComplete?: string;
   maxLength?: number;
   error?: string;
   className?: string;
+  /** Controlled: the value, and each change to it. */
+  value?: string;
+  onChange?(value: string): void;
 }
 
 export function TextInput({
@@ -23,6 +26,8 @@ export function TextInput({
   maxLength,
   error,
   className,
+  value,
+  onChange,
 }: TextInputProps) {
   return (
     <MantineTextInput
@@ -35,6 +40,8 @@ export function TextInput({
       maxLength={maxLength}
       error={error}
       className={className}
+      value={value}
+      onChange={onChange && ((event) => onChange(event.currentTarget.value))}
       classNames={inputClassNames}
     />
   );

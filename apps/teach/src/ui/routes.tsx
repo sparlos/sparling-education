@@ -297,6 +297,9 @@ const playRoute = createRoute({
 const quickAssessRoute = createRoute({
   getParentRoute: () => classRoute,
   path: "quick-assess",
+  // The student shown on screen.
+  validateSearch: (search): { student?: string } =>
+    typeof search.student === "string" ? { student: search.student } : {},
   loader: async ({ context: { teacher }, params: { classId } }) => {
     const [cls, assessed] = await found(
       Promise.all([teacher.class(classId), teacher.quickAssess(classId)]),
@@ -305,10 +308,22 @@ const quickAssessRoute = createRoute({
   },
   component: function QuickAssess() {
     const { cls, assessed } = quickAssessRoute.useLoaderData();
+    const { student } = quickAssessRoute.useSearch();
+    const navigate = quickAssessRoute.useNavigate();
     return (
       <ClassQuickAssessScreen
         cls={cls}
         students={assessed.students}
+        shown={student ?? null}
+        // Going through the class doesn't pile up history, or scroll.
+        onShow={(id) =>
+          navigate({
+            search: { student: id },
+            replace: true,
+            resetScroll: false,
+            state: (before) => before,
+          })
+        }
         today={new Date()}
       />
     );

@@ -12,6 +12,7 @@
     "stop": "docker compose stop",
     "migrate": "prisma migrate dev",
     "clear-students": "node scripts/clear-students.ts",
+    "clear-teachers": "node scripts/clear-teachers.ts",
     "generate": "prisma generate",
     "check-types": "tsc --noEmit"
   },

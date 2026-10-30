@@ -299,3 +299,7 @@
   justify-content: space-between;
   gap: var(--mantine-spacing-sm) var(--mantine-spacing-md);
 }
+
+.find {
+  max-width: 20rem;
+}

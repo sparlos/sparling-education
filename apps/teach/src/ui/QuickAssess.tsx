@@ -2,15 +2,17 @@
 // for each student, what their plays show for each expectation, the next
 // steps those plays point to, and their Learning Skills, which report cards
 // keep apart from the math grade. Counts only, never a level, rating or mark:
-// the grade is the teacher's. Made to print: the navigation goes, a student
-// stays on one page where they fit, and every page's header names the class
-// or student and the date.
+// the grade is the teacher's. On screen it's one student at a time, as report
+// cards are written: the class's names beside them, found by typing, and
+// previous and next (or the arrow keys) to go through the class. Made to
+// print every student: the navigation goes, a student stays on one page where
+// they fit, and every page's header names the class and the date.
 import { Accordion } from "@repo/ui/accordion";
 import { Button } from "@repo/ui/button";
 import { Stack } from "@repo/ui/stack";
 import { Text } from "@repo/ui/text";
 import { Title } from "@repo/ui/title";
-import { type ReactNode, useEffect } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 import type {
   Class,
   QuickAssessExpectation,
@@ -18,6 +20,7 @@ import type {
 } from "../platform/ports.ts";
 import { nameOf } from "./Dashboard.tsx";
 import { effortLabels, withEvidence } from "./effort.ts";
+import { FindStudent, matchesName, noMatch } from "./FindStudent.tsx";
 import { ButtonLink, useUp } from "./links.tsx";
 import { expectationLabel, OfficialCode } from "./OfficialCode.tsx";
 import classes from "./quick-assess.module.css";
@@ -25,17 +28,76 @@ import classes from "./quick-assess.module.css";
 export function ClassQuickAssessScreen({
   cls,
   students,
+  shown: shownId,
+  onShow,
   today,
 }: {
   cls: Class;
   students: QuickAssessStudent[];
+  /** The student shown on screen; the first when null or not in the class. */
+  shown: string | null;
+  onShow(studentId: string): void;
   /** The date it's printed on. */
   today: Date;
 }) {
   const up = useUp();
+  const date = today.toLocaleDateString("en-CA", { dateStyle: "long" });
+  // Saving as a PDF names the file after the page's title.
+  useEffect(() => {
+    const before = document.title;
+    document.title = `Quick assess, ${cls.name}, ${date}`;
+    return () => {
+      document.title = before;
+    };
+  }, [cls.name, date]);
+
+  const [query, setQuery] = useState("");
+  const found = students.filter(({ student }) => matchesName(student, query));
+  const index = Math.max(
+    0,
+    students.findIndex(({ student }) => student.id === shownId),
+  );
+  const shown = students[index];
+  const step = (by: -1 | 1) => {
+    const next = students[index + by];
+    if (next) onShow(next.student.id);
+  };
+
+  // The arrow keys go through the class, except while typing or in a dialog,
+  // such as the walkthrough, which has arrow keys of its own.
+  const stepRef = useRef(step);
+  stepRef.current = step;
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (
+        event.defaultPrevented ||
+        event.altKey ||
+        event.ctrlKey ||
+        event.metaKey ||
+        event.shiftKey ||
+        (event.target instanceof HTMLElement &&
+          event.target.closest(
+            "input, textarea, select, [contenteditable], [role=dialog]",
+          ))
+      )
+        return;
+      if (event.key === "ArrowLeft") stepRef.current(-1);
+      else if (event.key === "ArrowRight") stepRef.current(1);
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
+
+  // On a phone the names are above: picking one brings its student into view.
+  const shownRef = useRef<HTMLDivElement>(null);
+  const pick = (studentId: string) => {
+    onShow(studentId);
+    shownRef.current?.scrollIntoView?.({ block: "nearest" });
+  };
+
   return (
-    <QuickAssessPage
-      back={
+    <Stack gap="lg">
+      <div className={classes.screenOnly}>
         <ButtonLink
           to="/classes/$classId"
           params={{ classId: cls.id }}
@@ -44,43 +106,11 @@ export function ClassQuickAssessScreen({
         >
           {cls.name}
         </ButtonLink>
-      }
-      who={cls.name}
-      today={today}
-      students={students}
-    />
-  );
-}
-
-function QuickAssessPage({
-  back,
-  who,
-  today,
-  students,
-}: {
-  back: ReactNode;
-  /** The class or student, for every page's header. */
-  who: string;
-  today: Date;
-  students: QuickAssessStudent[];
-}) {
-  const date = today.toLocaleDateString("en-CA", { dateStyle: "long" });
-  // Saving as a PDF names the file after the page's title.
-  useEffect(() => {
-    const before = document.title;
-    document.title = `Quick assess, ${who}, ${date}`;
-    return () => {
-      document.title = before;
-    };
-  }, [who, date]);
-
-  return (
-    <Stack gap="lg">
-      <div className={classes.screenOnly}>{back}</div>
+      </div>
       <div className={classes.heading}>
         <div>
           <Title order={1}>Quick assess</Title>
-          <Text>{who}</Text>
+          <Text>{cls.name}</Text>
           <Text c="muted">{date}</Text>
         </div>
         <Button
@@ -97,25 +127,83 @@ function QuickAssessPage({
         when you write report cards. Kindling never gives a level: you decide
         the grade.
       </Text>
-      {/* A table only so the header repeats on every printed page. */}
-      <table className={classes.pages} role="presentation">
-        <thead aria-hidden="true">
-          <tr>
-            <td className={classes.pageHeader}>
-              {`Quick assess · ${who} · ${date}`}
-            </td>
-          </tr>
-        </thead>
-        <tbody>
-          {students.map((assessed) => (
-            <tr key={assessed.student.id} className={classes.page}>
-              <td>
-                <StudentBlock assessed={assessed} />
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      {!shown ? (
+        <Text>Your students show up here once they join.</Text>
+      ) : (
+        <div className={classes.scan}>
+          <nav
+            aria-label="Students"
+            className={`${classes.roster} ${classes.screenOnly}`}
+            data-walkthrough="students"
+          >
+            <FindStudent query={query} onQuery={setQuery} />
+            {found.length === 0 ? (
+              <Text>{noMatch(query)}</Text>
+            ) : (
+              <ul className={classes.names}>
+                {found.map(({ student }) => (
+                  <li key={student.id}>
+                    <button
+                      type="button"
+                      className={classes.pick}
+                      aria-current={
+                        student.id === shown.student.id ? "true" : undefined
+                      }
+                      onClick={() => pick(student.id)}
+                    >
+                      {nameOf(student)}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </nav>
+          <div ref={shownRef} className={classes.shown}>
+            <div className={`${classes.stepper} ${classes.screenOnly}`}>
+              <Button
+                variant="secondary"
+                disabled={index === 0}
+                onClick={() => step(-1)}
+              >
+                ‹ Previous
+              </Button>
+              <Text c="muted">{`${index + 1} of ${students.length}`}</Text>
+              <Button
+                variant="secondary"
+                disabled={index === students.length - 1}
+                onClick={() => step(1)}
+              >
+                Next ›
+              </Button>
+            </div>
+            {/* A table only so the header repeats on every printed page. */}
+            <table className={classes.pages} role="presentation">
+              <thead aria-hidden="true">
+                <tr>
+                  <td className={classes.pageHeader}>
+                    {`Quick assess · ${cls.name} · ${date}`}
+                  </td>
+                </tr>
+              </thead>
+              <tbody>
+                {students.map((assessed) => (
+                  <tr
+                    key={assessed.student.id}
+                    // Every student prints; only the one shown is on screen.
+                    className={
+                      assessed === shown ? undefined : classes.printOnlyRow
+                    }
+                  >
+                    <td>
+                      <StudentBlock assessed={assessed} />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </Stack>
   );
 }

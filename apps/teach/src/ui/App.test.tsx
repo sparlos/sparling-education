@@ -1706,6 +1706,95 @@ describe("quick assess", () => {
     ).toBeInTheDocument();
   });
 
+  it("goes through the class one student at a time, found by name, while every student still prints", async () => {
+    const { user, history } = await openDashboard();
+    await user.click(screen.getByRole("link", { name: "Quick assess" }));
+    const names = await screen.findByRole("navigation", { name: "Students" });
+    const current = () =>
+      within(names).getByRole("button", { current: true }).textContent;
+    // The first student, without one in the URL.
+    expect(current()).toBe("Ben O.");
+    expect(screen.getByText("1 of 2")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "‹ Previous" })).toBeDisabled();
+
+    await user.click(screen.getByRole("button", { name: "Next ›" }));
+    expect(current()).toBe("Dee L.");
+    expect(screen.getByText("2 of 2")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Next ›" })).toBeDisabled();
+    expect(history.location.search).toMatch(/^\?student=/);
+
+    // The arrow keys, except while typing.
+    await user.keyboard("{ArrowLeft}");
+    expect(current()).toBe("Ben O.");
+    const find = within(names).getByRole("searchbox", {
+      name: "Find a student",
+    });
+    await user.type(find, "d");
+    await user.keyboard("{ArrowRight}");
+    expect(screen.getByText("1 of 2")).toBeInTheDocument();
+    // Found by the start of a name, whatever the case.
+    expect(
+      within(names)
+        .getAllByRole("button")
+        .map((b) => b.textContent),
+    ).toEqual(["Dee L."]);
+    await user.click(within(names).getByRole("button", { name: "Dee L." }));
+    expect(current()).toBe("Dee L.");
+    await user.clear(find);
+    await user.type(find, "ben o");
+    expect(
+      within(names)
+        .getAllByRole("button")
+        .map((b) => b.textContent),
+    ).toEqual(["Ben O."]);
+    await user.clear(find);
+    await user.type(find, "zed");
+    expect(names).toHaveTextContent(`No student's name starts with "zed".`);
+
+    // Every student is still there to print.
+    expect(screen.getByRole("region", { name: "Ben O." })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "Dee L." })).toBeInTheDocument();
+
+    // Going through the class left no history: back is the dashboard.
+    await user.click(screen.getByRole("link", { name: "Room 12" }));
+    expect(
+      await screen.findByRole("heading", { level: 1, name: "Room 12" }),
+    ).toBeInTheDocument();
+  });
+
+  it("opens at the student in its URL", async () => {
+    const first = await openDashboard();
+    await first.user.click(screen.getByRole("link", { name: "Quick assess" }));
+    const names = await screen.findByRole("navigation", { name: "Students" });
+    await first.user.click(
+      within(names).getByRole("button", { name: "Dee L." }),
+    );
+    const { pathname, search } = first.history.location;
+    cleanup();
+
+    const { user } = openAt(`${pathname}${search}`, { classes: [room()] });
+    await user.click(await signInButton());
+    const again = await screen.findByRole("navigation", { name: "Students" });
+    expect(
+      within(again).getByRole("button", { current: true }),
+    ).toHaveTextContent("Dee L.");
+    expect(screen.getByText("2 of 2")).toBeInTheDocument();
+  });
+
+  it("finds a student on the dashboard's grid", async () => {
+    const { user } = await openDashboard();
+    const find = screen.getByRole("searchbox", { name: "Find a student" });
+    await user.type(find, "DE");
+    expect(screen.getByRole("row", { name: /^Dee L\./ })).toBeInTheDocument();
+    expect(screen.queryByRole("row", { name: /^Ben O\./ })).toBeNull();
+    await user.clear(find);
+    await user.type(find, "zed");
+    expect(
+      screen.getByText(`No student's name starts with "zed".`),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("table")).toBeNull();
+  });
+
   it("is the student's page for one student, with a print button and recognition on screen only", async () => {
     const { user } = await openDashboard();
     const row = screen.getByRole("row", { name: /^Ben O\./ });
