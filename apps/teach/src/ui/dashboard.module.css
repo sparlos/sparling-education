@@ -286,6 +286,20 @@
   background-color: var(--k-surface-raised);
 }
 
+/* The ones "All" adds fade up into place. */
+@media (prefers-reduced-motion: no-preference) {
+  .misconception[data-arriving] {
+    animation: arrive var(--k-duration-slow) var(--k-ease-standard);
+  }
+}
+
+@keyframes arrive {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+}
+
 /* Open, it spans the row, so its students have room. */
 .misconception:has([aria-expanded="true"]) {
   grid-column: 1 / -1;
@@ -307,6 +321,22 @@
   color: var(--k-ink);
   background: none;
   cursor: pointer;
+}
+
+.sharePanel {
+  padding-top: var(--mantine-spacing-lg);
+}
+
+.misconceptionHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--mantine-spacing-sm);
+  width: 100%;
+}
+
+.chevron {
+  color: var(--k-ink-muted);
 }
 
 /* Always amber, in every class: a count looks the same everywhere. */

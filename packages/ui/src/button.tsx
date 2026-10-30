@@ -21,7 +21,10 @@ interface ButtonProps {
   /** Gets the click, so a router can take over a link's navigation. */
   onClick?: (event: MouseEvent<HTMLElement>) => void;
   disabled?: boolean;
-  /** For a button that opens and closes something: whether it's open. */
+  /**
+   * For a button that opens and closes something: whether it's open. Use
+   * `DisclosureButton` for those, which adds the chevron.
+   */
   "aria-expanded"?: boolean;
   fullWidth?: boolean;
   leftSection?: ReactNode;

@@ -1,0 +1,16 @@
+/* Points down while closed, and spins round to point up once open. */
+.chevron {
+  display: inline-flex;
+  flex-shrink: 0;
+  transition: transform var(--k-duration-slow) var(--k-ease-standard);
+}
+
+.chevron[data-open] {
+  transform: rotate(-180deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chevron {
+    transition: none;
+  }
+}

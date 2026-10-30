@@ -10,6 +10,7 @@ import { Badge } from "@repo/ui/badge";
 import { Button } from "@repo/ui/button";
 import { Card } from "@repo/ui/card";
 import { CheckboxGroup } from "@repo/ui/checkbox-group";
+import { Chevron } from "@repo/ui/chevron";
 import { Container } from "@repo/ui/container";
 import { Icon } from "@repo/ui/icon";
 import { ComparisonTable } from "@repo/ui/marketing/comparison-table";
@@ -216,6 +217,14 @@ export default function DesignPage() {
             <Button variant="secondary">Secondary</Button>
             <Button variant="secondary" size="lg">
               Secondary large
+            </Button>
+          </div>
+          <div className={classes.row}>
+            <Button variant="secondary" rightSection={<Chevron open={false} />}>
+              Shows content (closed)
+            </Button>
+            <Button variant="secondary" rightSection={<Chevron open />}>
+              Hides content (open)
             </Button>
           </div>
         </Block>

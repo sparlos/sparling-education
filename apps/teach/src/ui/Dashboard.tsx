@@ -8,8 +8,10 @@
 // things a teacher does here: share the class, quick assess, manage it.
 import { classColour } from "@repo/tokens";
 import { Badge } from "@repo/ui/badge";
-import { Button } from "@repo/ui/button";
 import { Card } from "@repo/ui/card";
+import { Chevron } from "@repo/ui/chevron";
+import { Collapse } from "@repo/ui/collapse";
+import { DisclosureButton } from "@repo/ui/disclosure-button";
 import { Icon } from "@repo/ui/icon";
 import { InitialCircle } from "@repo/ui/initial-circle";
 import { Stack } from "@repo/ui/stack";
@@ -79,6 +81,8 @@ export function DashboardScreen({
   return (
     <Stack gap="lg">
       <Switcher classes={all} current={cls.id} />
+      {/* With the panel, so the gap above it slides open too. */}
+      <div>
       <div className={classes.heading}>
         <div className={classes.title}>
           <Title order={1} size="h2">
@@ -88,14 +92,14 @@ export function DashboardScreen({
         </div>
         <div className={classes.actions}>
           {!cls.demo && (
-            <Button
+            <DisclosureButton
               tone="accent"
               data-walkthrough="share"
-              aria-expanded={sharing}
-              onClick={() => setSharing(!sharing)}
+              open={sharing}
+              onToggle={() => setSharing(!sharing)}
             >
               Share
-            </Button>
+            </DisclosureButton>
           )}
           <ButtonLink
             to="/classes/$classId/quick-assess"
@@ -116,7 +120,14 @@ export function DashboardScreen({
           </ButtonLink>
         </div>
       </div>
-      {sharing && !cls.demo && <SharePanel cls={cls} actions={share} />}
+      {!cls.demo && (
+        <Collapse open={sharing}>
+          <div className={classes.sharePanel}>
+            <SharePanel cls={cls} actions={share} />
+          </div>
+        </Collapse>
+      )}
+      </div>
       {cls.demo && <DemoCard actions={demo} />}
       {dashboard.students.length === 0 ? (
         <Card variant="soft" tone="accent">
@@ -295,12 +306,19 @@ export function Strip({
         <Text c="muted">None yet.</Text>
       ) : (
         <ul className={classes.misconceptions}>
-          {shown.map((m) => {
+          {shown.map((m, index) => {
             const key = `${m.game}|${m.id}`;
             const isOpen = open === key;
             const panel = `misconception-${key}`;
             return (
-              <li key={key} className={classes.misconception}>
+              <li
+                key={key}
+                className={classes.misconception}
+                data-arriving={
+                  (all && !hidden && index >= commonMisconceptions) ||
+                  undefined
+                }
+              >
                 <button
                   type="button"
                   className={classes.misconceptionToggle}
@@ -308,8 +326,11 @@ export function Strip({
                   aria-controls={panel}
                   onClick={() => onToggle(isOpen ? null : key)}
                 >
-                  <span className={classes.misconceptionCount}>
-                    {studentsLabel(m.students.length)}
+                  <span className={classes.misconceptionHead}>
+                    <span className={classes.misconceptionCount}>
+                      {studentsLabel(m.students.length)}
+                    </span>
+                    <Chevron open={isOpen} className={classes.chevron} />
                   </span>
                   <span className={classes.misconceptionDescription}>
                     {m.description}
@@ -320,9 +341,8 @@ export function Strip({
                     </span>
                   )}
                 </button>
-                {isOpen && (
+                <Collapse open={isOpen} id={panel}>
                   <ul
-                    id={panel}
                     aria-label={`Students who showed: ${m.description}`}
                     className={classes.misconceptionStudents}
                   >
@@ -341,7 +361,7 @@ export function Strip({
                       </li>
                     ))}
                   </ul>
-                )}
+                </Collapse>
               </li>
             );
           })}
@@ -349,15 +369,15 @@ export function Strip({
       )}
       {misconceptions.length > commonMisconceptions && !hidden && (
         <div>
-          <Button
+          <DisclosureButton
             variant="subtle"
-            aria-expanded={all}
-            onClick={() => setAll(!all)}
+            open={all}
+            onToggle={() => setAll(!all)}
           >
             {all
               ? "Show the most common"
               : `All ${misconceptions.length} misconceptions`}
-          </Button>
+          </DisclosureButton>
         </div>
       )}
     </section>
