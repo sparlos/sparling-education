@@ -2,6 +2,7 @@
 // shell-check game: what a student can do, and what records come out.
 import { UIProvider } from "@repo/ui/provider";
 import {
+  act,
   cleanup,
   fireEvent,
   render,
@@ -10,7 +11,7 @@ import {
   within,
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { hosted } from "../games.ts";
 import {
   type AvatarLook,
@@ -96,6 +97,7 @@ function setUp({
       : standInSession(storage);
   const navigate = vi.fn();
   const spoken: string[] = [];
+  const cutOff: string[] = [];
   let n = 0;
   render(
     <UIProvider>
@@ -116,7 +118,7 @@ function setUp({
         newId={() => `id-${++n}`}
         speak={(text) => {
           spoken.push(text);
-          return () => {};
+          return () => cutOff.push(text);
         }}
         finishTimeoutMs={200}
         outboxTiming={outboxTiming}
@@ -127,6 +129,7 @@ function setUp({
     records,
     navigate,
     spoken,
+    cutOff,
     storage,
     user: userEvent.setup(),
     goOnline: () => {
@@ -598,5 +601,120 @@ describe("leaving", () => {
     const locker = sentTo(navigate);
     expect(locker.pathname).toBe("/play/");
     expect(locker.searchParams.get("play")).toBe(records.stored[0]?.play);
+  });
+});
+
+describe("a screen too small to play on", () => {
+  const tooSmallLine =
+    "This screen is too small for Kindling. Please use a tablet or a computer.";
+
+  /** Resizes the window, as rotating or dragging its edge does. */
+  function resize(width: number, height: number) {
+    act(() => {
+      Object.assign(window, { innerWidth: width, innerHeight: height });
+      window.dispatchEvent(new Event("resize"));
+    });
+  }
+
+  afterEach(() => {
+    // jsdom's own size, which every other test plays at.
+    Object.assign(window, { innerWidth: 1024, innerHeight: 768 });
+    Reflect.deleteProperty(navigator, "userActivation");
+  });
+
+  const block = () => screen.queryByRole("alertdialog", { hidden: true });
+
+  it.each([
+    ["a phone upright", 390, 844],
+    ["a phone sideways", 844, 390],
+  ])("blocks %s, saying why", async (_, width, height) => {
+    resize(width, height);
+    const { spoken } = setUp();
+    expect(await screen.findByRole("alertdialog")).toHaveTextContent(
+      tooSmallLine,
+    );
+    expect(spoken).toEqual([tooSmallLine]);
+  });
+
+  it.each([
+    ["an iPad mini upright", 744, 1133],
+    ["an iPad mini sideways", 1133, 744],
+    ["a Chromebook, under the browser's toolbars", 1366, 650],
+  ])("lets %s through", async (_, width, height) => {
+    resize(width, height);
+    setUp();
+    await screen.findByRole("button", { name: "Start" });
+    expect(block()).not.toBeInTheDocument();
+  });
+
+  it("comes and goes as the screen changes, leaving the game where it was", async () => {
+    const { user } = setUp();
+    await game();
+    await user.click(screen.getByRole("button", { name: "Right" }));
+    expect(screen.getByText("1/2")).toBeInTheDocument();
+
+    resize(844, 390);
+    expect(screen.getByRole("alertdialog")).toBeInTheDocument();
+    resize(1024, 768);
+    expect(block()).not.toBeInTheDocument();
+    expect(screen.getByTestId("tier")).toBeInTheDocument();
+    expect(screen.getByText("1/2")).toBeInTheDocument();
+  });
+
+  it("keeps input from the page underneath", async () => {
+    const { user } = setUp();
+    const start = await screen.findByRole("button", { name: "Start" });
+    const heardKeys = vi.fn();
+    window.addEventListener("keydown", heardKeys);
+    try {
+      resize(390, 844);
+      expect(start.closest("[inert]")).not.toBeNull();
+      // Focus is on the block, and its keys stop there.
+      expect(screen.getByRole("alertdialog")).toContainElement(
+        document.activeElement as HTMLElement,
+      );
+      await user.keyboard("{Escape}");
+      // Keys aimed past the block stop too.
+      fireEvent.keyDown(document.body, { key: "Escape" });
+      expect(heardKeys).not.toHaveBeenCalled();
+    } finally {
+      window.removeEventListener("keydown", heardKeys);
+    }
+  });
+
+  it("cuts off what's being said, and nothing else is said while it's up", async () => {
+    const { user, spoken, cutOff } = setUp();
+    await game();
+    await user.click(
+      screen.getByRole("button", { name: "Tap a button to send an attempt." }),
+    );
+    expect(spoken).toEqual(["Tap a button to send an attempt."]);
+
+    resize(390, 844);
+    expect(cutOff).toEqual(["Tap a button to send an attempt."]);
+    expect(spoken.at(-1)).toBe(tooSmallLine);
+
+    // The game says a line while blocked: dropped, not saved for later.
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "Tap a button to send an attempt.",
+        hidden: true,
+      }),
+    );
+    resize(1024, 768);
+    expect(spoken).toEqual(["Tap a button to send an attempt.", tooSmallLine]);
+  });
+
+  it("says its line on the first tap when the browser wouldn't play it yet", async () => {
+    Object.defineProperty(navigator, "userActivation", {
+      value: { hasBeenActive: false },
+      configurable: true,
+    });
+    resize(390, 844);
+    const { user, spoken } = setUp();
+    const dialog = await screen.findByRole("alertdialog");
+    await user.click(dialog);
+    await user.click(dialog);
+    expect(spoken).toEqual([tooSmallLine, tooSmallLine]);
   });
 });

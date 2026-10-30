@@ -1,3 +1,13 @@
+/* Only there to make the page inert under the too-small block; lays out nothing. */
+.page {
+  display: contents;
+}
+
+/* Over everything, portals included, and solid, so nothing behind shows through. */
+.tooSmall {
+  z-index: 1000;
+}
+
 /* The shell fills the screen; a game owns everything inside .game. */
 .play {
   position: fixed;

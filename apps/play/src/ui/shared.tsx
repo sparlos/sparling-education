@@ -18,7 +18,12 @@ import {
 } from "react";
 import type { AvatarLook } from "../platform/ports.ts";
 import { translator } from "../play/strings.ts";
-import { createVoice, type Voice, type VoiceOptions } from "../play/voice.ts";
+import {
+  createVoice,
+  type Voice,
+  type VoiceGate,
+  type VoiceOptions,
+} from "../play/voice.ts";
 import type { LineMap } from "../play/voice-lines.ts";
 import classes from "./app.module.css";
 import { type ShellStringId, shellStrings } from "./shell-strings.ts";
@@ -38,6 +43,12 @@ export interface ShellRecordings {
 export const noRecordings: ShellRecordings = { shell: {}, titles: {} };
 
 export const ShellLines = createContext<ShellRecordings>(noRecordings);
+
+/**
+ * The gate every voice under it shares, so the too-small screen's line can
+ * silence them all. Without one, nothing silences a voice.
+ */
+export const ShellVoiceGate = createContext<VoiceGate | undefined>(undefined);
 
 // Names are spoken as they are; everything else is a shell line by ID. A
 // game's name is its manifest's title, recorded with the game's lines; a
@@ -71,6 +82,7 @@ export function useShellVoice(
   speak?: VoiceOptions["speak"],
 ): Voice {
   const recordings = useContext(ShellLines);
+  const gate = useContext(ShellVoiceGate);
   const voice = useMemo(
     () =>
       createVoice({
@@ -81,8 +93,9 @@ export function useShellVoice(
             ? recordings.titles[parseGameLine(line).slug]
             : recordings.shell[line],
         speak,
+        gate,
       }),
-    [locale, recordings, speak],
+    [locale, recordings, speak, gate],
   );
   useEffect(() => () => voice.stop(), [voice]);
   return voice;

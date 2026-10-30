@@ -4,7 +4,7 @@
 
 **Blocked by:** 22
 
-**Status:** ready-for-agent
+**Status:** ready-for-human
 
 This is a spec change the founder asked for (2026-10-29). It reverses two lines of the spec: "Exactly one attempt per task" and "Runs inside a task are never separate attempts". Use the `build-game` skill for the change, starting from SPEC.md.
 
@@ -25,3 +25,5 @@ This is a spec change the founder asked for (2026-10-29). It reverses two lines 
 - Results, from the integration tests in `apps/api/src/drill-down.test.ts`: a task solved after misses counts once, with the same understanding as v1's single attempt. A task left after misses now counts as "not yet" (e.g. 1 of 2 tasks, so "developing", where v1 counted only the solved one). The local tuning log is unchanged.
 - Readings for the founder are in `.scratch/game-framework/build-log.md` ("Fraction Hop v2").
 - Checked: game tests (99), API (148), play shell (281), types, Biome, `pnpm mutate` (36 caught or explained), `pnpm tour fraction-hop` clean, `check-voice` passes (no new spoken lines).
+
+**Agent, 2026-10-30:** Status brought up to date: the build was committed in `c677e52`. Still open: the `review-game` review (last checkbox), to run in a fresh session.

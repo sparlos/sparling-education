@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   browserSpeak,
   createVoice,
+  createVoiceGate,
   type Synth,
   speechTimeoutMs,
   type VoiceOptions,
@@ -303,5 +304,66 @@ describe("browser speech", () => {
       "en_GB",
     );
     expect(voiceFor([voice("fr-CA")], "en-CA")).toBeUndefined();
+  });
+});
+
+describe("voice gate", () => {
+  it("stops what every voice behind it is saying when it closes", () => {
+    const gate = createVoiceGate();
+    const a = setUp({ gate });
+    const b = setUp({ gate });
+    a.voice.say("intro");
+    b.voice.say("hint");
+    gate.close();
+    expect(a.stopSpeech).toHaveBeenCalled();
+    expect(b.stopSpeech).toHaveBeenCalled();
+  });
+
+  it("drops lines said while closed, and doesn't say them when it opens", () => {
+    const gate = createVoiceGate();
+    const { voice, spoken } = setUp({ gate });
+    gate.close();
+    voice.say("intro");
+    voice.again();
+    gate.open();
+    expect(spoken).toEqual([]);
+  });
+
+  it("holds a dropped line's instruction until it opens, so what awaits it waits", async () => {
+    const gate = createVoiceGate();
+    const { voice } = setUp({ gate });
+    gate.close();
+    const settled = vi.fn();
+    void voice.say("intro").then(settled);
+    await Promise.resolve();
+    expect(settled).not.toHaveBeenCalled();
+    gate.open();
+    await vi.waitFor(() => expect(settled).toHaveBeenCalled());
+  });
+
+  it("settles a held instruction when its voice stops", async () => {
+    const gate = createVoiceGate();
+    const { voice } = setUp({ gate });
+    gate.close();
+    const said = voice.say("intro");
+    voice.stop();
+    await said;
+  });
+
+  it("doesn't touch a voice without it", () => {
+    const gate = createVoiceGate();
+    const { voice, spoken } = setUp();
+    gate.close();
+    voice.say("intro");
+    expect(spoken).toEqual(["text of intro"]);
+  });
+
+  it("speaks again once open", () => {
+    const gate = createVoiceGate();
+    const { voice, spoken } = setUp({ gate });
+    gate.close();
+    gate.open();
+    voice.say("intro");
+    expect(spoken).toEqual(["text of intro"]);
   });
 });

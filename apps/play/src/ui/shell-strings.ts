@@ -43,6 +43,8 @@ export const shellStrings = {
     "game-off": "That game is turned off for your class.",
     "to-locker": "Go to your locker",
     "for-students": "This is for students. Teachers, use the teacher app.",
+    "too-small":
+      "This screen is too small for Kindling. Please use a tablet or a computer.",
     "sign-in": "Sign in to play.",
     "sign-in-failed": "That didn't work. Let's try again.",
     "sign-in-unavailable":

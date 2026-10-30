@@ -39,6 +39,54 @@ export interface VoiceOptions {
    * a function that stops it, or null if speech is unavailable.
    */
   speak?(text: string, locale: Locale, onEnd?: () => void): (() => void) | null;
+  /** The gate that can silence this voice; see `createVoiceGate`. */
+  gate?: VoiceGate;
+}
+
+/**
+ * Silences every voice that shares it, for a line that must be heard over
+ * everything else (the too-small screen's). While it's closed, a voice drops
+ * what it's asked to say rather than queueing it, and the instruction settles
+ * only when the gate opens, so a game awaiting it waits instead of racing
+ * ahead in silence.
+ */
+export interface VoiceGate {
+  readonly closed: boolean;
+  /** Stops whatever is being said, and keeps every voice silent until `open`. */
+  close(): void;
+  open(): void;
+  /** For voices: an instruction has started; closing stops it. Returns its untracking. */
+  track(stop: () => void): () => void;
+  /** For voices: settles once the gate is open. */
+  opened(): Promise<void>;
+}
+
+export function createVoiceGate(): VoiceGate {
+  let closed = false;
+  const playing = new Set<() => void>();
+  let waiting: (() => void)[] = [];
+  return {
+    get closed() {
+      return closed;
+    },
+    close() {
+      closed = true;
+      for (const stop of [...playing]) stop();
+    },
+    open() {
+      closed = false;
+      for (const resolve of waiting) resolve();
+      waiting = [];
+    },
+    track(stop) {
+      playing.add(stop);
+      return () => playing.delete(stop);
+    },
+    opened() {
+      if (!closed) return Promise.resolve();
+      return new Promise((resolve) => waiting.push(resolve));
+    },
+  };
 }
 
 /**
@@ -67,10 +115,19 @@ export function createVoice(options: VoiceOptions): Voice {
   function play(ids: readonly string[]): Promise<void> {
     stop();
     const mine = generation;
+    const gate = options.gate;
+    if (gate?.closed)
+      return new Promise<void>((resolve) => {
+        settleCurrent = resolve;
+        void gate.opened().then(resolve);
+      });
+    // Its own function, so a late settle of this one can't untrack the next.
+    const untrack = gate?.track(() => stop());
     return new Promise<void>((resolve) => {
       let timer: ReturnType<typeof setTimeout> | undefined;
       const settle = () => {
         clearTimeout(timer);
+        untrack?.();
         if (settleCurrent === settle) settleCurrent = null;
         resolve();
       };

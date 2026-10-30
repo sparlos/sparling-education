@@ -10,7 +10,14 @@ import { Icon } from "@repo/ui/icon";
 import { IconButton } from "@repo/ui/icon-button";
 import { Progress as ProgressBar } from "@repo/ui/progress";
 import { Stack } from "@repo/ui/stack";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import type { GameRegistry } from "../games.ts";
 import {
   type AvatarLook,
@@ -26,7 +33,12 @@ import type { Ending } from "../play/play.ts";
 import { parseRoute } from "../play/routes.ts";
 import type { KeyValueStore } from "../play/storage.ts";
 import { translator } from "../play/strings.ts";
-import { createVoice, type Voice, type VoiceOptions } from "../play/voice.ts";
+import {
+  createVoice,
+  createVoiceGate,
+  type Voice,
+  type VoiceOptions,
+} from "../play/voice.ts";
 import { type LineMap, resolveLineUrl } from "../play/voice-lines.ts";
 import classes from "./app.module.css";
 import { ErrorBoundary } from "./ErrorBoundary.tsx";
@@ -42,10 +54,12 @@ import {
   noRecordings,
   Question,
   ShellLines,
+  ShellVoiceGate,
   SpokenMessage,
   shellT,
   ToLocker,
 } from "./shared.tsx";
+import { TooSmall, useTooSmall } from "./TooSmall.tsx";
 import { AvatarDesign } from "./Wardrobe.tsx";
 
 export interface AppProps {
@@ -82,7 +96,11 @@ type Screen =
   | { kind: "playing"; ready: ReadyPlay }
   | { kind: "ending"; ready: ReadyPlay };
 
-/** The shell: the locker, joining a class, sign-in, or a game, by the URL. */
+/**
+ * The shell: the locker, joining a class, sign-in, or a game, by the URL.
+ * On a screen too small to play on, a block covers it all; the page stays
+ * underneath as it was, inert and silent, until the screen is big enough.
+ */
 export function App(props: AppProps) {
   const { shellLines, titleLines } = props;
   const recordings = useMemo(
@@ -92,9 +110,17 @@ export function App(props: AppProps) {
         : noRecordings,
     [shellLines, titleLines],
   );
+  const gate = useMemo(createVoiceGate, []);
+  const tooSmall = useTooSmall();
   return (
     <ShellLines.Provider value={recordings}>
-      <RoutedScreen {...props} />
+      {/* Outside the gate's provider: the block's own line is the one that's heard. */}
+      {tooSmall && <TooSmall gate={gate} speak={props.speak} />}
+      <ShellVoiceGate.Provider value={gate}>
+        <div className={classes.page} inert={tooSmall}>
+          <RoutedScreen {...props} />
+        </div>
+      </ShellVoiceGate.Provider>
     </ShellLines.Provider>
   );
 }
@@ -266,6 +292,7 @@ function PlayScreen({
   // a tap on start before its first line.
   const [started, setStarted] = useState(false);
   const [progress, setProgress] = useState<Progress | null>(null);
+  const gate = useContext(ShellVoiceGate);
   const voice = useMemo<Voice>(
     () =>
       createVoice({
@@ -273,8 +300,9 @@ function PlayScreen({
         locale: student.locale,
         lineUrl: (id) => resolveLineUrl(game, student.locale, id),
         speak,
+        gate,
       }),
-    [game, student, speak],
+    [game, student, speak, gate],
   );
   useEffect(() => () => voice.stop(), [voice]);
 
