@@ -1,8 +1,10 @@
 // The composition root: the only file that knows which platform the shell
 // runs on: Kindling's API, or the stand-ins with VITE_PLAY_PLATFORM=stand-in.
 // See src/platform/README.md.
-import "@fontsource-variable/nunito/wght.css";
-import "@fontsource-variable/nunito-sans/wght.css";
+// Three weights, Latin only, to keep the shell light on Chromebooks.
+import "@fontsource/plus-jakarta-sans/latin-500.css";
+import "@fontsource/plus-jakarta-sans/latin-700.css";
+import "@fontsource/plus-jakarta-sans/latin-800.css";
 import "./ui/global.css";
 import shellLines from "virtual:voice-lines/shell";
 import titleLines from "virtual:voice-titles";
@@ -25,6 +27,9 @@ import { App } from "./ui/App.tsx";
 
 // The prototype lab is dev only; production builds drop it entirely.
 const Lab = import.meta.env.DEV ? lazy(() => import("./lab/index.tsx")) : null;
+
+// Pressable things show a press a child can see (@repo/ui's press.module.css).
+document.documentElement.dataset.press = "touch";
 
 const root = document.getElementById("root");
 if (!root) throw new Error("Missing #root");

@@ -3,6 +3,18 @@ import { itemsIn, type PartSlot } from "@repo/avatar/parts";
 import { type LearningSkill, learningSkills } from "@repo/curriculum";
 import { teacherTextMaxLength } from "@repo/game-contract";
 import { recognitionTraits } from "@repo/rewards";
+import { type ClassColourSlug, classColours } from "@repo/tokens";
+
+/** A class colour's slug, from @repo/tokens: the only ones a class can have. */
+export const ClassColourSchema = z
+  .enum(
+    classColours.map((c) => c.slug) as [ClassColourSlug, ...ClassColourSlug[]],
+  )
+  .openapi("ClassColour", {
+    description:
+      "A class colour's slug, from @repo/tokens. Every screen for the class takes its hue from it.",
+    example: "teal",
+  });
 
 export const HealthSchema = z
   .object({ status: z.literal("ok") })
@@ -64,6 +76,10 @@ export const NewClassSchema = z
         description: "The class's grade, or grades for a split class",
         example: [4, 5],
       }),
+    colour: ClassColourSchema.optional().openapi({
+      description:
+        "Its class colour. Without one, the first, in the set's order, that none of the teacher's other classes has; once all are used, they're given out again in turn.",
+    }),
   })
   .openapi("NewClass");
 
@@ -90,6 +106,7 @@ export const ClassSchema = z
       description:
         "The demo class every new teacher gets: simulated students, with results already in",
     }),
+    colour: ClassColourSchema,
     joinCode: z.string().openapi({ example: "K7QM4XRT" }),
     joinPath: z.string().openapi({
       description: "The class join link, as a path on this domain",
@@ -102,6 +119,10 @@ export const ClassSchema = z
   .openapi("Class");
 
 export type Class = z.infer<typeof ClassSchema>;
+
+export const ClassColourChangeSchema = z
+  .object({ colour: ClassColourSchema })
+  .openapi("ClassColourChange");
 
 export const GameSwitchSchema = z
   .object({
@@ -167,6 +188,7 @@ export const MembershipSchema = z
   .object({
     classId: z.string().openapi({ description: "Stable and opaque" }),
     className: z.string(),
+    classColour: ClassColourSchema,
     grades: z
       .array(z.number().int())
       .openapi({ description: "The class's grades, ascending" }),

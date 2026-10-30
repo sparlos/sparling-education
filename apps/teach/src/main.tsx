@@ -1,7 +1,9 @@
 // The composition root: the only file that picks the platform the teacher
 // app runs on. See README.md.
-import "@fontsource-variable/nunito/wght.css";
-import "@fontsource-variable/nunito-sans/wght.css";
+// Three weights, Latin only, to keep the shell light on Chromebooks.
+import "@fontsource/plus-jakarta-sans/latin-500.css";
+import "@fontsource/plus-jakarta-sans/latin-700.css";
+import "@fontsource/plus-jakarta-sans/latin-800.css";
 import "./ui/global.css";
 import { UIProvider } from "@repo/ui/provider";
 import { StrictMode } from "react";

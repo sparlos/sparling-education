@@ -98,12 +98,12 @@ sessionPortContract("API session", {
     setFetch(student.send);
     return { session: apiSession(), memberships: apiMemberships() };
   },
-  newClass: (name, grades) =>
+  newClass: (name, grades, colour) =>
     asTeacher(async (send) => {
       const res = await send("/classes", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ name, grades }),
+        body: JSON.stringify({ name, grades, colour: colour ?? "teal" }),
       });
       const { id, joinCode } = await res.json();
       return { classId: id, joinCode };

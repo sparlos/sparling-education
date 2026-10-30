@@ -9,7 +9,10 @@ interface ButtonProps {
   children: ReactNode;
   /** `primary` and `secondary` get the 3D press; `subtle` reads as a link. */
   variant?: "primary" | "secondary" | "subtle";
-  /** Colour of a primary or subtle button. Secondary is always neutral. */
+  /**
+   * Colour of a primary or subtle button: the class colour in scope (the
+   * brand's outside one) by default. Secondary is always neutral.
+   */
   tone?: Tone;
   size?: "md" | "lg";
   /** Renders a link instead of a button. */
@@ -31,7 +34,7 @@ interface ButtonProps {
 export function Button({
   children,
   variant = "primary",
-  tone = "brand",
+  tone = "accent",
   size = "md",
   href,
   type = "button",

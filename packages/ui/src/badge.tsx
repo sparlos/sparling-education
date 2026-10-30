@@ -14,7 +14,7 @@ interface BadgeProps {
 
 export function Badge({
   children,
-  tone = "brand",
+  tone = "accent",
   leftSection,
   size = "lg",
   className,

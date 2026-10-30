@@ -4,9 +4,84 @@
 .scroller {
   position: relative;
   overflow-x: auto;
-  border: 1px solid var(--k-border-subtle);
-  border-radius: var(--mantine-radius-md);
+}
+
+/* A card on the page: its shadow, no border. */
+.card {
+  padding: var(--mantine-spacing-lg);
+  border-radius: var(--k-radius-card);
   background-color: var(--k-surface-raised);
+  box-shadow: var(--k-shadow-card);
+}
+
+/* The results: the key and the search above the grid, all in one card. */
+.results {
+  display: grid;
+  gap: var(--mantine-spacing-md);
+  padding-top: var(--mantine-spacing-lg);
+  border-radius: var(--k-radius-card);
+  background-color: var(--k-surface-raised);
+  box-shadow: var(--k-shadow-card);
+  overflow: hidden;
+}
+
+.resultsTop {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--mantine-spacing-sm) var(--mantine-spacing-lg);
+  padding-inline: var(--mantine-spacing-lg);
+}
+
+/* The key, then the search with its label beside it. */
+.resultsTools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--mantine-spacing-sm) var(--mantine-spacing-md);
+}
+
+.noMatch {
+  padding: 0 var(--mantine-spacing-lg) var(--mantine-spacing-lg);
+}
+
+/* What each shade means. */
+.key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--mantine-spacing-xs) var(--mantine-spacing-md);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--mantine-font-size-sm);
+  color: var(--k-ink-muted);
+}
+
+.key li {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--mantine-spacing-xs);
+}
+
+.swatch {
+  width: 0.875rem;
+  height: 0.875rem;
+  border-radius: 4px;
+}
+
+.swatch[data-understanding="not-yet-showing"] {
+  background-color: var(--k-result-weak);
+  box-shadow: inset 0 0 0 1px
+    color-mix(in srgb, var(--k-accent-edge) 25%, transparent);
+}
+
+.swatch[data-understanding="developing"] {
+  background-color: var(--k-result-middle);
+}
+
+.swatch[data-understanding="showing-consistently"] {
+  background-color: var(--k-result-strong);
 }
 
 .grid {
@@ -17,6 +92,25 @@
 .grid td {
   vertical-align: middle;
   padding-block: var(--mantine-spacing-xs);
+  border-bottom: 1px solid var(--k-border-subtle);
+}
+
+.grid thead th {
+  padding-block: var(--mantine-spacing-sm);
+  background-color: color-mix(
+    in srgb,
+    var(--k-surface-page) 50%,
+    var(--k-surface-raised)
+  );
+}
+
+.grid tr:last-child td {
+  border-bottom: 0;
+}
+
+.grid th:first-child,
+.grid td:first-child {
+  padding-inline-start: var(--mantine-spacing-lg);
 }
 
 /* The student column stays put while the expectations scroll sideways. */
@@ -25,8 +119,20 @@
   position: sticky;
   inset-inline-start: 0;
   z-index: 1;
-  background-color: var(--k-surface-raised);
+  background-color: inherit;
   box-shadow: 1px 0 0 var(--k-border-subtle);
+}
+
+.grid tbody td:first-child {
+  background-color: var(--k-surface-raised);
+}
+
+.grid thead th:first-child {
+  background-color: color-mix(
+    in srgb,
+    var(--k-surface-page) 50%,
+    var(--k-surface-raised)
+  );
 }
 
 .caption {
@@ -59,7 +165,7 @@
 /* One line: the name, and the grade in a split class. */
 .student {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: var(--mantine-spacing-sm);
   min-width: 7rem;
   font-weight: 700;
@@ -102,20 +208,23 @@
   line-height: 1.4;
 }
 
-/* Tints that tell the bands apart at a glance. The words carry the meaning,
-   so the grid still reads in greyscale. A band opens its evidence. */
+/* The class colour's results ramp, light to dark: a heat map. The words
+   carry the meaning, so the grid still reads in greyscale. A band opens its
+   evidence. */
 .band {
   display: inline-flex;
   flex-direction: column;
   justify-content: center;
+  min-width: 8.75rem;
   min-height: 2.5rem;
   border: 0;
   font: inherit;
   font-size: var(--mantine-font-size-xs);
+  font-weight: 700;
   text-align: start;
   text-decoration: none;
-  color: var(--k-ink);
-  background-color: var(--k-surface-sunken);
+  color: var(--k-result-weak-text);
+  background-color: var(--k-result-weak);
   cursor: pointer;
 }
 
@@ -131,13 +240,13 @@
 }
 
 .band[data-understanding="developing"] {
-  color: var(--k-educator-text);
-  background-color: var(--k-educator-soft);
+  color: var(--k-result-middle-text);
+  background-color: var(--k-result-middle);
 }
 
 .band[data-understanding="showing-consistently"] {
-  color: var(--k-educator-on-fill);
-  background-color: var(--k-educator-fill);
+  color: var(--k-result-strong-text);
+  background-color: var(--k-result-strong);
 }
 
 .otherTier {
@@ -147,38 +256,50 @@
 }
 
 .noEvidence {
+  min-width: 8.75rem;
   color: var(--k-ink-muted);
-  border: 1px dashed var(--k-border);
+  font-size: var(--mantine-font-size-xs);
+  border: 1px dashed var(--k-border-strong);
 }
 
-/* The misconception strip, above the grid. */
+/* The misconception strip, above the grid: a card of cards. */
 .strip {
   display: grid;
-  gap: var(--mantine-spacing-sm);
+  gap: var(--mantine-spacing-md);
 }
 
 .misconceptions {
   display: grid;
-  gap: var(--mantine-spacing-xs);
+  grid-template-columns: repeat(auto-fit, minmax(min(16.25rem, 100%), 1fr));
+  gap: 0.875rem;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
+/* Cards in a row are the same height. */
 .misconception {
+  display: flex;
+  flex-direction: column;
   border: 1px solid var(--k-border-subtle);
-  border-radius: var(--mantine-radius-md);
+  border-radius: 0.875rem;
   background-color: var(--k-surface-raised);
+}
+
+/* Open, it spans the row, so its students have room. */
+.misconception:has([aria-expanded="true"]) {
+  grid-column: 1 / -1;
 }
 
 .misconceptionToggle {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0 var(--mantine-spacing-md);
-  align-items: baseline;
+  flex-direction: column;
+  gap: var(--mantine-spacing-sm);
+  align-items: flex-start;
   width: 100%;
-  min-height: 3rem;
-  padding: var(--mantine-spacing-xs) var(--mantine-spacing-md);
+  flex: 1 0 auto;
+  min-height: 8.5rem;
+  padding: 1.125rem;
   border: 0;
   border-radius: inherit;
   font: inherit;
@@ -188,15 +309,23 @@
   cursor: pointer;
 }
 
+/* Always amber, in every class: a count looks the same everywhere. */
 .misconceptionCount {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.75rem;
+  padding: 0 0.625rem;
+  border-radius: var(--mantine-radius-xl);
+  font-size: var(--mantine-font-size-xs);
   font-weight: 700;
   white-space: nowrap;
-  color: var(--k-educator-text);
+  color: var(--k-misconception-text);
+  background-color: var(--k-misconception-soft);
 }
 
 .misconceptionDescription {
-  flex: 1 1 16rem;
-  line-height: 1.4;
+  line-height: 1.45;
+  font-weight: 500;
 }
 
 .misconceptionGame {
@@ -246,8 +375,8 @@
 .title {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0 var(--mantine-spacing-md);
+  align-items: center;
+  gap: var(--mantine-spacing-xs) var(--mantine-spacing-md);
 }
 
 .actions {
@@ -256,39 +385,58 @@
   gap: var(--mantine-spacing-sm);
 }
 
-/* The teacher's classes, the one shown marked. */
+/* The teacher's classes, as a segmented control: each with a dot in its
+   class colour, the one shown filled with it. */
 .switcher {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--mantine-spacing-xs);
+  align-self: flex-start;
+  gap: 4px;
+  padding: 4px;
+  border-radius: var(--mantine-radius-md);
+  background-color: var(--k-surface-raised);
+  box-shadow: var(--mantine-shadow-xs);
 }
 
 .switch {
   display: inline-flex;
   align-items: center;
+  gap: var(--mantine-spacing-xs);
   min-height: 3rem;
   padding: 0 var(--mantine-spacing-md);
-  border: 1px solid var(--k-border-subtle);
-  border-radius: var(--mantine-radius-xl);
-  color: var(--k-ink);
-  background-color: var(--k-surface-raised);
+  border-radius: 9px;
+  color: var(--k-ink-muted);
+  font-size: var(--mantine-font-size-sm);
   font-weight: 700;
   text-decoration: none;
+  transition: background-color var(--k-duration-fast) var(--k-ease-standard);
 }
 
 .switch:hover {
-  text-decoration: underline;
+  color: var(--k-ink);
+  background-color: var(--k-surface-page);
 }
 
 .switch:focus-visible {
-  outline: 2px solid var(--k-focus);
+  outline: 3px solid var(--k-focus);
   outline-offset: 2px;
 }
 
+.dot {
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 50%;
+  background-color: var(--switch-fill);
+}
+
 .switch[aria-current="page"] {
-  border-color: var(--k-educator-fill);
-  color: var(--k-educator-on-fill);
-  background-color: var(--k-educator-fill);
+  color: var(--switch-on-fill);
+  background-color: var(--switch-fill);
+  box-shadow: 0 2px 6px color-mix(in srgb, var(--switch-fill) 35%, transparent);
+}
+
+.switch[aria-current="page"] .dot {
+  background-color: var(--switch-on-fill);
 }
 
 /* The demo class's banner: one line where it fits. */
@@ -300,6 +448,6 @@
   gap: var(--mantine-spacing-sm) var(--mantine-spacing-md);
 }
 
-.find {
-  max-width: 20rem;
+.find input {
+  width: 12.5rem;
 }

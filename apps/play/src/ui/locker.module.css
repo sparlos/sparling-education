@@ -10,11 +10,11 @@
   padding: var(--mantine-spacing-lg)
     max(
       var(--mantine-spacing-lg),
-      calc((100% - 720px) / 2 + var(--mantine-spacing-lg))
+      calc((100% - 800px) / 2 + var(--mantine-spacing-lg))
     );
   display: flex;
   flex-direction: column;
-  gap: var(--mantine-spacing-xl);
+  gap: var(--mantine-spacing-lg);
   background-color: var(--k-surface-page);
 }
 
@@ -22,6 +22,14 @@
   display: flex;
   align-items: center;
   gap: var(--mantine-spacing-md);
+}
+
+/* A white card on the page, by its shadow alone. */
+.card {
+  padding: var(--mantine-spacing-lg);
+  border-radius: var(--mantine-radius-lg);
+  background-color: var(--k-surface-raised);
+  box-shadow: var(--k-shadow-card);
 }
 
 .instruction {
@@ -40,27 +48,112 @@
   gap: var(--mantine-spacing-sm);
 }
 
+.classHeading :global(h2) {
+  flex: 1;
+}
+
 .games {
   list-style: none;
   margin: 0;
   padding: 0;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(18rem, 100%), 1fr));
   gap: var(--mantine-spacing-md);
 }
 
 .game {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: var(--mantine-spacing-sm);
 }
 
-/* Big enough to hit without aiming: well over the 48 px minimum. */
-.gameButton {
+/* A big card with a picture: found without reading, hit without aiming. It
+   lifts under a pointer and sinks when pressed, so a tap shows it worked. */
+.gameCard {
   flex: 1;
-  min-height: 5rem;
-  justify-content: flex-start;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: var(--mantine-radius-lg);
+  background-color: var(--k-surface-raised);
+  color: var(--k-ink);
+  text-decoration: none;
+  box-shadow:
+    0 var(--k-press-rest) 0 0
+    color-mix(in srgb, var(--k-accent-fill) 30%, var(--k-border)),
+    var(--k-shadow-card);
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform var(--k-duration-base) var(--k-ease-springy),
+    box-shadow var(--k-duration-base) var(--k-ease-springy);
+}
+
+@media (hover: hover) {
+  .gameCard:hover {
+    transform: translateY(-2px);
+    box-shadow:
+      0 calc(var(--k-press-rest) + 2px) 0 0
+      color-mix(in srgb, var(--k-accent-fill) 30%, var(--k-border)),
+      var(--mantine-shadow-lg);
+  }
+}
+
+.gameCard:active {
+  transform: translateY(var(--k-press-rest));
+  box-shadow:
+    0 0 0 0 transparent,
+    var(--mantine-shadow-xs);
+  transition-duration: var(--k-duration-fast);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gameCard,
+  .gameCard:hover,
+  .gameCard:active {
+    transform: none;
+    transition: none;
+  }
+}
+
+.gameCard:focus-visible {
+  outline: 0.25rem solid var(--k-focus);
+  outline-offset: 0.25rem;
+}
+
+.picture {
+  display: block;
+  height: 7.5rem;
+  background-color: var(--k-accent-soft);
+}
+
+.picture svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.gameName {
+  display: flex;
+  align-items: center;
+  gap: var(--mantine-spacing-sm);
+  min-height: 4rem;
+  padding: var(--mantine-spacing-sm) var(--mantine-spacing-lg);
+  box-sizing: border-box;
+  font-family: var(--k-font-heading-stack);
   font-size: var(--mantine-font-size-xl);
+  font-weight: 800;
+}
+
+.play {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  background-color: var(--k-accent-fill);
+  color: var(--k-accent-on-fill);
 }
 
 .grades {
@@ -82,7 +175,7 @@
   position: relative;
   display: inline-flex;
   flex-shrink: 0;
-  border-radius: var(--mantine-radius-lg);
+  border-radius: 50%;
   background-color: var(--tone-soft);
   -webkit-tap-highlight-color: transparent;
 }
@@ -103,7 +196,7 @@
   border-radius: 50%;
   background-color: var(--tone-fill);
   color: var(--tone-on-fill);
-  border: var(--k-press-border) solid var(--tone-edge);
+  border: 3px solid var(--k-surface-raised);
 }
 
 /* Rewards being revealed, each on a card of its own. */
@@ -174,7 +267,7 @@
   overflow: hidden;
   border: var(--k-press-border) solid var(--k-border);
   border-radius: var(--mantine-radius-lg);
-  background-color: var(--k-surface-sunken);
+  background-color: var(--k-surface-page);
 }
 
 .board[data-holding] {

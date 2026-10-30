@@ -127,6 +127,7 @@ describe("joining a class", () => {
     const membership = {
       classId: room.id,
       className: "Room 12",
+      classColour: "teal",
       grades: [4],
       grade: 4,
       games: [fractionHop],

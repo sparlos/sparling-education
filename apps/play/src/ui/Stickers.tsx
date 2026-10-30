@@ -7,6 +7,7 @@ import { type RecognitionTrait, traitOf } from "@repo/rewards";
 import { StickerPicture } from "@repo/rewards/sticker";
 import { Icon } from "@repo/ui/icon";
 import { IconButton } from "@repo/ui/icon-button";
+import { ThemeIcon } from "@repo/ui/theme-icon";
 import { Title } from "@repo/ui/title";
 import {
   type ReactNode,
@@ -220,8 +221,15 @@ export function Stickers({
   }, [held, voice]);
 
   return (
-    <section className={styles.section} aria-labelledby="stickers">
+    <section
+      className={`${styles.section} ${styles.card}`}
+      aria-labelledby="stickers"
+      data-tone="recognition"
+    >
       <div className={styles.classHeading}>
+        <ThemeIcon tone="recognition" size="md">
+          <Icon name="star" size={24} />
+        </ThemeIcon>
         <Title order={2} size="h3" id="stickers">
           {shellT("stickers")}
         </Title>

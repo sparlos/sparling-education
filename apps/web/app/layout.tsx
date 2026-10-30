@@ -1,20 +1,22 @@
 import { htmlProps, UIHead, UIProvider } from "@repo/ui/provider";
 import type { Metadata } from "next";
-import { Nunito, Nunito_Sans } from "next/font/google";
+import { Plus_Jakarta_Sans } from "next/font/google";
 import { Footer } from "../components/footer";
 import { Header } from "../components/header";
 import { site } from "../content/site";
 
 // Self-hosted at build time, so visitors' browsers never contact Google.
 // Variable names must match `fontVariables` in @repo/ui/provider.
-const heading = Nunito({
+// One family for headings and body, as in the apps.
+const heading = Plus_Jakarta_Sans({
   subsets: ["latin", "latin-ext"],
-  weight: ["700", "800"],
+  weight: ["500", "700", "800"],
   variable: "--k-font-heading",
   display: "swap",
 });
-const body = Nunito_Sans({
+const body = Plus_Jakarta_Sans({
   subsets: ["latin", "latin-ext"],
+  weight: ["500", "700", "800"],
   variable: "--k-font-body",
   display: "swap",
 });

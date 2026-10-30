@@ -56,6 +56,7 @@ const student: Student = {
     {
       classId: "class-1",
       className: "Room 12",
+      classColour: "teal",
       grades: [4],
       grade: 4,
       games: standInGames(["shell-check"]),
@@ -251,6 +252,7 @@ describe("opening a game", () => {
           {
             classId: "class-2",
             className: "Math",
+            classColour: "teal",
             grades: [3],
             grade: 3,
             games: standInGames(["shell-check"]),
@@ -327,6 +329,22 @@ describe("a teacher's game link", () => {
     );
   });
 
+  it("puts the screens around the play in the colour of the class it's for", async () => {
+    const { user } = setUp({ path: "/play/shell-check?join=G4-AMBER" });
+    const start = await screen.findByRole("button", { name: "Start" });
+    expect(start.closest("[data-class-colour]")).toHaveAttribute(
+      "data-class-colour",
+      "amber",
+    );
+    await user.click(start);
+    await user.click(screen.getByRole("button", { name: "Leave the game" }));
+    const question = await screen.findByRole("dialog");
+    expect(question.closest("[data-class-colour]")).toHaveAttribute(
+      "data-class-colour",
+      "amber",
+    );
+  });
+
   it("joins a student to its class, and plays for that class at its grade", async () => {
     const { user, records, storage } = setUp({
       path: "/play/shell-check?join=G3",
@@ -354,6 +372,7 @@ describe("a teacher's game link", () => {
           {
             classId: "stand-in-G3",
             className: "Room 3",
+            classColour: "teal",
             grades: [3],
             grade: 3,
             games: standInGames(["shell-check"]),

@@ -4,6 +4,7 @@
 // class's teacher can change a student's grade, or remove them from the class.
 
 import type { Db } from "@repo/db";
+import { storedColour } from "./classes.ts";
 import { byName } from "./dashboard.ts";
 import { hostedGames } from "./games.ts";
 import type { ClassStudent, Membership } from "./schemas.ts";
@@ -162,12 +163,19 @@ function toClassStudent(row: {
 
 function toMembership(row: {
   grade: number | null;
-  class: { id: string; name: string; grades: number[]; gamesOff: string[] };
+  class: {
+    id: string;
+    name: string;
+    colour: string;
+    grades: number[];
+    gamesOff: string[];
+  };
 }): Membership {
-  const { id, name, grades, gamesOff } = row.class;
+  const { id, name, colour, grades, gamesOff } = row.class;
   return {
     classId: id,
     className: name,
+    classColour: storedColour(colour),
     grades,
     grade: row.grade,
     games: hostedGames

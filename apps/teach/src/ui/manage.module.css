@@ -33,3 +33,10 @@
 .name {
   font-weight: 700;
 }
+
+/* A student's circle, then their name and grade. */
+.who {
+  display: flex;
+  align-items: center;
+  gap: var(--mantine-spacing-sm);
+}

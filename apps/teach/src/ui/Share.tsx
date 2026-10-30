@@ -23,7 +23,7 @@ export function SharePanel({
   actions: ShareActions;
 }) {
   return (
-    <Card variant="soft" tone="educator">
+    <Card variant="soft" tone="accent">
       <section aria-label="Share this class" className={classes.panel}>
         <div className={classes.row}>
           <div className={classes.text}>
@@ -65,7 +65,7 @@ function GameRow({
   return (
     <li className={classes.row}>
       <Switch
-        tone="educator"
+        tone="accent"
         label={game.name}
         checked={game.on}
         disabled={state === "busy"}

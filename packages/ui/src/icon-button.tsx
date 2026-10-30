@@ -22,7 +22,7 @@ export function IconButton({
   children,
   label,
   onClick,
-  tone = "brand",
+  tone = "accent",
   size = "xl",
   disabled,
   className,

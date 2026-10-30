@@ -6,8 +6,12 @@
 // A box above the grid narrows its rows to the students whose names match.
 // Below, the students not recognised yet this term. The header has the three
 // things a teacher does here: share the class, quick assess, manage it.
+import { classColour } from "@repo/tokens";
+import { Badge } from "@repo/ui/badge";
 import { Button } from "@repo/ui/button";
 import { Card } from "@repo/ui/card";
+import { Icon } from "@repo/ui/icon";
+import { InitialCircle } from "@repo/ui/initial-circle";
 import { Stack } from "@repo/ui/stack";
 import { Table } from "@repo/ui/table";
 import { Text } from "@repo/ui/text";
@@ -15,7 +19,7 @@ import { Title } from "@repo/ui/title";
 import { Tooltip } from "@repo/ui/tooltip";
 import { VisuallyHidden } from "@repo/ui/visually-hidden";
 import { Link } from "@tanstack/react-router";
-import { type ReactNode, useState } from "react";
+import { type CSSProperties, type ReactNode, useState } from "react";
 import type {
   Class,
   ClassMisconception,
@@ -31,6 +35,7 @@ import { ButtonLink } from "./links.tsx";
 import { gradesLabel } from "./NewClass.tsx";
 import { expectationLabel, OfficialCode } from "./OfficialCode.tsx";
 import { NotYetRecognised, type OnRecognise } from "./Recognition.tsx";
+import { SectionTitle } from "./SectionTitle.tsx";
 import { type ShareActions, SharePanel } from "./Share.tsx";
 
 /** What each understanding band says. Descriptions, never marks or levels. */
@@ -72,19 +77,19 @@ export function DashboardScreen({
   const [query, setQuery] = useState("");
   const found = dashboard.students.filter((s) => matchesName(s, query));
   return (
-    <Stack gap="md">
+    <Stack gap="lg">
       <Switcher classes={all} current={cls.id} />
       <div className={classes.heading}>
         <div className={classes.title}>
           <Title order={1} size="h2">
             {cls.name}
           </Title>
-          <Text c="muted">{gradesLabel(cls.grades)}</Text>
+          <Badge tone="accent">{gradesLabel(cls.grades)}</Badge>
         </div>
         <div className={classes.actions}>
           {!cls.demo && (
             <Button
-              tone="educator"
+              tone="accent"
               data-walkthrough="share"
               aria-expanded={sharing}
               onClick={() => setSharing(!sharing)}
@@ -114,7 +119,7 @@ export function DashboardScreen({
       {sharing && !cls.demo && <SharePanel cls={cls} actions={share} />}
       {cls.demo && <DemoCard actions={demo} />}
       {dashboard.students.length === 0 ? (
-        <Card variant="soft" tone="educator">
+        <Card variant="soft" tone="accent">
           <Stack gap="xs" align="flex-start">
             <Title order={2} size="h4">
               No students yet
@@ -134,14 +139,23 @@ export function DashboardScreen({
             open={misconception}
             onToggle={onMisconception}
           />
-          <Stack gap="xs">
-            <FindStudent
-              query={query}
-              onQuery={setQuery}
-              className={classes.find}
-            />
+          <section aria-labelledby="results" className={classes.results}>
+            <div className={classes.resultsTop}>
+              <SectionTitle id="results" icon="grid">
+                Students
+              </SectionTitle>
+              <div className={classes.resultsTools}>
+                <BandsKey />
+                <FindStudent
+                  query={query}
+                  onQuery={setQuery}
+                  hideLabel
+                  className={classes.find}
+                />
+              </div>
+            </div>
             {found.length === 0 ? (
-              <Text>{noMatch(query)}</Text>
+              <Text className={classes.noMatch}>{noMatch(query)}</Text>
             ) : (
               <Grid
                 classId={cls.id}
@@ -150,7 +164,7 @@ export function DashboardScreen({
                 split={cls.grades.length > 1}
               />
             )}
-          </Stack>
+          </section>
           <NotYetRecognised
             students={dashboard.students}
             settings={dashboard.recognition}
@@ -176,20 +190,41 @@ function Switcher({
       className={classes.switcher}
       data-walkthrough="classes"
     >
-      {all.map((c) => (
-        <Link
-          key={c.id}
-          to="/classes/$classId"
-          params={{ classId: c.id }}
-          aria-current={c.id === current ? "page" : undefined}
-          className={classes.switch}
-        >
-          {c.name}
-        </Link>
-      ))}
+      {all.map((c) => {
+        const colour = classColour(c.colour);
+        return (
+          <Link
+            key={c.id}
+            to="/classes/$classId"
+            params={{ classId: c.id }}
+            aria-current={c.id === current ? "page" : undefined}
+            aria-describedby={`switch-${c.id}`}
+            className={classes.switch}
+            data-class-colour={colour.slug}
+            style={
+              {
+                "--switch-fill": colour.tone.fill,
+                "--switch-on-fill": colour.tone.onFill,
+              } as CSSProperties
+            }
+          >
+            <span className={classes.dot} aria-hidden="true" />
+            {c.name}
+          </Link>
+        );
+      })}
       <Link to="/new" className={classes.switch} data-walkthrough="new-class">
+        <Icon name="plus" size={16} />
         New class
       </Link>
+      {/* Each class's colour, for a screen reader, beside its name. */}
+      <VisuallyHidden>
+        {all.map((c) => (
+          <span key={c.id} id={`switch-${c.id}`}>
+            {`Class colour: ${classColour(c.colour).name}`}
+          </span>
+        ))}
+      </VisuallyHidden>
     </nav>
   );
 }
@@ -250,12 +285,12 @@ export function Strip({
   return (
     <section
       aria-labelledby="misconceptions"
-      className={classes.strip}
+      className={`${classes.card} ${classes.strip}`}
       data-walkthrough="misconceptions"
     >
-      <Title order={2} size="h4" id="misconceptions">
+      <SectionTitle id="misconceptions" icon="idea" tone="misconception">
         Misconceptions showing up
-      </Title>
+      </SectionTitle>
       {misconceptions.length === 0 ? (
         <Text c="muted">None yet.</Text>
       ) : (
@@ -378,6 +413,11 @@ function Grid({
           key: student.id,
           cells: [
             <span key="name" className={classes.student}>
+              <InitialCircle
+                id={student.id}
+                name={student.firstName}
+                size="sm"
+              />
               <Link
                 to="/classes/$classId/students/$studentId"
                 params={{ classId, studentId: student.id }}
@@ -417,6 +457,24 @@ function shortCode({ grade, code }: DashboardExpectation) {
 export function shortLabel(description: string) {
   const words = description.replace(/[,:;.]$/, "").split(" ");
   return words.length <= 4 ? description : `${words.slice(0, 4).join(" ")}…`;
+}
+
+/** What each band's shade means, above the grid. */
+function BandsKey() {
+  return (
+    <ul className={classes.key} aria-label="Key">
+      {(Object.keys(understandingLabels) as Understanding[]).map((u) => (
+        <li key={u}>
+          <span
+            className={classes.swatch}
+            data-understanding={u}
+            aria-hidden="true"
+          />
+          {understandingLabels[u]}
+        </li>
+      ))}
+    </ul>
+  );
 }
 
 /** A cell: its band, which opens the evidence behind it. */

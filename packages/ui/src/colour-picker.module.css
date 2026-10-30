@@ -1,0 +1,91 @@
+/* The class colours as named swatches: real radios, each a 44 px target. */
+.group {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+
+/* Said, not shown, when a heading above already names the group. */
+.legendHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.legend {
+  padding: 0;
+  margin-bottom: 0.375rem;
+  font-family: var(--k-font-heading-stack);
+  font-weight: 800;
+  color: var(--k-ink);
+}
+
+.swatches {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(7rem, 1fr));
+  gap: var(--mantine-spacing-xs);
+}
+
+.option {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--mantine-spacing-xs);
+  min-height: 2.75rem;
+  padding: 0.25rem 0.5rem 0.25rem 0.25rem;
+  border-radius: var(--mantine-radius-xl);
+  box-sizing: border-box;
+  cursor: pointer;
+  font-size: var(--mantine-font-size-sm);
+  font-weight: 700;
+  color: var(--k-ink);
+}
+
+.option:hover {
+  background-color: var(--k-surface-sunken);
+}
+
+/* Visually hidden, but the real control: arrow keys, forms, screen readers. */
+.input {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.dot {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  background-color: var(--swatch-fill);
+  color: var(--swatch-on-fill);
+}
+
+.check {
+  display: none;
+}
+
+/* Picked: a ring in ink, and a tick, so it reads without colour. */
+.option:has(.input:checked) {
+  background-color: var(--k-surface-raised);
+  box-shadow:
+    0 0 0 2px var(--k-ink),
+    var(--mantine-shadow-xs);
+}
+
+.input:checked ~ .dot .check {
+  display: block;
+}
+
+.option:has(.input:focus-visible) {
+  outline: 3px solid var(--k-focus);
+  outline-offset: 3px;
+}

@@ -3,8 +3,12 @@ import { test } from "node:test";
 import { contrastRatio, hexToRgb01 } from "./color.ts";
 import {
   breakpoint,
+  classColours,
   color,
   customMedia,
+  initialTint,
+  initialTints,
+  nextClassColour,
   palette,
   type ToneTokens,
 } from "./index.ts";
@@ -27,10 +31,18 @@ function expectContrast(fg: string, bg: string, min: number, label: string) {
   );
 }
 
+// The three steps of a results ramp must differ by at least this contrast,
+// so they're told apart by lightness alone.
+const RAMP_STEP = 1.5;
+
 const tones: Record<string, ToneTokens> = {
   brand: color.brand,
   neutral: color.neutral,
   ...color.audience,
+  ...color.meaning,
+  ...Object.fromEntries(
+    classColours.map((c) => [`class colour ${c.slug}`, c.tone]),
+  ),
 };
 
 test("body text is readable on every light surface", () => {
@@ -66,6 +78,86 @@ test("focus ring is visible on every light surface", () => {
   for (const [name, bg] of Object.entries(lightSurfaces)) {
     expectContrast(color.focus, bg, UI, `focus/${name}`);
   }
+});
+
+test("focus ring, with its halo, is visible beside every fill", () => {
+  const fills: [string, string][] = [
+    ...Object.entries(tones).flatMap(([name, tone]) => [
+      [`${name} fill`, tone.fill] as [string, string],
+      [`${name} fillHover`, tone.fillHover] as [string, string],
+    ]),
+    ...classColours.flatMap((c) =>
+      Object.entries(c.results).map(([step, { fill }]): [string, string] => [
+        `${c.slug} results ${step}`,
+        fill,
+      ]),
+    ),
+  ];
+  for (const [name, fill] of fills) {
+    const ratio = Math.max(
+      contrastRatio(color.focus, fill),
+      contrastRatio(color.focusHalo, fill),
+    );
+    assert.ok(
+      ratio >= UI,
+      `focus by ${name} (${fill}) is ${ratio.toFixed(2)}:1, needs ${UI}:1`,
+    );
+  }
+  expectContrast(color.focus, color.focusHalo, UI, "focus/halo");
+});
+
+test("there are 12 to 16 class colours, each with its own slug and name", () => {
+  assert.ok(classColours.length >= 12 && classColours.length <= 16);
+  assert.equal(
+    new Set(classColours.map((c) => c.slug)).size,
+    classColours.length,
+  );
+  assert.equal(
+    new Set(classColours.map((c) => c.name)).size,
+    classColours.length,
+  );
+  for (const c of classColours) assert.match(c.slug, /^[a-z]+(-[a-z]+)*$/);
+});
+
+for (const c of classColours) {
+  test(`${c.slug}'s results ramp is readable and runs light to dark`, () => {
+    const { weak, middle, strong } = c.results;
+    for (const [step, { fill, text }] of Object.entries(c.results))
+      expectContrast(text, fill, TEXT, `${c.slug} results ${step}`);
+    expectContrast(weak.fill, middle.fill, RAMP_STEP, `${c.slug} weak/middle`);
+    expectContrast(
+      middle.fill,
+      strong.fill,
+      RAMP_STEP,
+      `${c.slug} middle/strong`,
+    );
+    assert.ok(
+      contrastRatio(weak.fill, "#000000") >
+        contrastRatio(middle.fill, "#000000") &&
+        contrastRatio(middle.fill, "#000000") >
+          contrastRatio(strong.fill, "#000000"),
+      `${c.slug}'s ramp doesn't run light to dark`,
+    );
+  });
+}
+
+test("a new class gets the first colour no other class has, then they cycle", () => {
+  const slugs = classColours.map((c) => c.slug);
+  assert.equal(nextClassColour([]), slugs[0]);
+  assert.equal(nextClassColour([slugs[0] as string]), slugs[1]);
+  assert.equal(nextClassColour([slugs[1] as string]), slugs[0]);
+  assert.equal(nextClassColour(slugs), slugs[0]);
+  assert.equal(nextClassColour([...slugs, slugs[0] as string]), slugs[1]);
+});
+
+test("initials are readable on their tints, the same each time for a student", () => {
+  for (const { fill, text } of initialTints)
+    expectContrast(text, fill, TEXT, `initial ${fill}`);
+  assert.deepEqual(initialTint("student-1"), initialTint("student-1"));
+  const used = new Set(
+    Array.from({ length: 40 }, (_, i) => initialTint(`student-${i}`).fill),
+  );
+  assert.ok(used.size > 4, "initial tints barely vary");
 });
 
 test("status colours are readable as text", () => {

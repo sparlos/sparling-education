@@ -6,8 +6,11 @@ import {
 } from "@mantine/core";
 import {
   breakpoint,
+  type ClassColour,
+  classColour,
   color,
   contentWidth,
+  defaultClassColour,
   font,
   fontSize,
   headingSize,
@@ -65,10 +68,10 @@ export const theme = createTheme({
   colors: {
     ...(palette as unknown as Record<string, MantineColorsTuple>),
     // Mantine draws borders and muted UI from `gray`; tint it toward ink.
-    gray: palette.ink,
+    gray: palette.slate,
   },
-  primaryColor: "ember",
-  primaryShade: 7,
+  primaryColor: "jade",
+  primaryShade: 6,
   autoContrast: true,
   white: "#FFFFFF",
   black: color.ink.default,
@@ -122,7 +125,7 @@ export const theme = createTheme({
       defaultProps: { c: color.ink.default },
     },
     Card: {
-      defaultProps: { radius: "lg", padding: "xl", withBorder: true },
+      defaultProps: { radius: radius.card, padding: "xl", withBorder: false },
     },
     Badge: {
       defaultProps: { radius: "xl", size: "lg", variant: "light" },
@@ -136,7 +139,7 @@ export const theme = createTheme({
   },
 });
 
-function toneVariables(name: string, tone: ToneTokens) {
+export function toneVariables(name: string, tone: ToneTokens) {
   return {
     [`--k-${name}-fill`]: tone.fill,
     [`--k-${name}-fill-hover`]: tone.fillHover,
@@ -145,6 +148,22 @@ function toneVariables(name: string, tone: ToneTokens) {
     [`--k-${name}-soft`]: tone.soft,
     [`--k-${name}-text`]: tone.text,
   };
+}
+
+/**
+ * The variables a class colour sets: its tone as `--k-accent-*`, and its
+ * results ramp as `--k-result-<step>` and `--k-result-<step>-text`.
+ */
+export function classColourVariables({ tone, results }: ClassColour) {
+  return {
+    ...toneVariables("accent", tone),
+    ...Object.fromEntries(
+      Object.entries(results).flatMap(([step, { fill, text }]) => [
+        [`--k-result-${step}`, fill],
+        [`--k-result-${step}-text`, text],
+      ]),
+    ),
+  } as Record<string, string>;
 }
 
 /**
@@ -157,7 +176,7 @@ export const cssVariablesResolver: CSSVariablesResolver = () => {
     "--mantine-color-text": color.ink.default,
     "--mantine-color-dimmed": color.ink.muted,
     "--mantine-color-default-border": color.border.default,
-    "--mantine-color-placeholder": palette.ink[5],
+    "--mantine-color-placeholder": palette.slate[5],
     "--mantine-color-anchor": color.brand.text,
     "--k-surface-page": color.surface.page,
     "--k-surface-raised": color.surface.raised,
@@ -171,6 +190,7 @@ export const cssVariablesResolver: CSSVariablesResolver = () => {
     "--k-border": color.border.default,
     "--k-border-strong": color.border.strong,
     "--k-focus": color.focus,
+    "--k-focus-halo": color.focusHalo,
     "--k-scrim": color.scrim,
     "--k-success": color.status.success,
     "--k-success-soft": color.status.successSoft,
@@ -181,6 +201,10 @@ export const cssVariablesResolver: CSSVariablesResolver = () => {
     ...toneVariables("educator", color.audience.educator),
     ...toneVariables("parent", color.audience.parent),
     ...toneVariables("student", color.audience.student),
+    ...toneVariables("misconception", color.meaning.misconception),
+    ...toneVariables("recognition", color.meaning.recognition),
+    // Outside any class colour scope, the accent is the brand's.
+    ...classColourVariables(classColour(defaultClassColour)),
   };
   return {
     variables: {
@@ -194,6 +218,8 @@ export const cssVariablesResolver: CSSVariablesResolver = () => {
       "--k-space-section": rem(space.section),
       "--k-space-section-compact": rem(space.sectionCompact),
       "--k-width-prose": rem(contentWidth.prose),
+      "--k-shadow-card": shadow.card,
+      "--k-radius-card": rem(radius.card),
       "--k-press-border": rem(press.borderWidth),
       "--k-press-rest": rem(press.offset.rest),
       "--k-press-hover": rem(press.offset.hover),

@@ -4,15 +4,18 @@ import { TextInput } from "@repo/ui/text-input";
 export function FindStudent({
   query,
   onQuery,
+  hideLabel,
   className,
 }: {
   query: string;
   onQuery(query: string): void;
+  hideLabel?: boolean;
   className?: string;
 }) {
   return (
     <TextInput
       label="Find a student"
+      hideLabel={hideLabel}
       name="find-student"
       type="search"
       autoComplete="off"

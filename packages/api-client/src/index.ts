@@ -24,6 +24,7 @@ export {
   recogniseStudent,
   removeStudent,
   sendPlayRecords,
+  setClassColour,
   setStudentGrade,
   signIn,
   signOut,

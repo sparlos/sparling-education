@@ -2,6 +2,7 @@
 // API. Joining adds the class to the stand-in student kept in this browser's
 // storage. Any join code names a stand-in class (see `standInClasses`). The
 // real adapter is ../api/memberships.ts; see ../README.md.
+import { classColours, defaultClassColour } from "@repo/tokens";
 import type { KeyValueStore } from "../../play/storage.ts";
 import {
   type LockerGame,
@@ -20,8 +21,9 @@ export type StandInClasses = (joinCode: string) => StandInClass | null;
 /**
  * The stand-in's classes. Every join code names one, with every game on: its
  * grades are the digits 1–8 in the code (`/play/join/G4`: Grade 4,
- * `/play/join/G45`: a Grade 4/5 split), or Grades 3–5 when it has none. A
- * code starting with X names no class.
+ * `/play/join/G45`: a Grade 4/5 split), or Grades 3–5 when it has none. Its
+ * colour is the class colour the code names (`/play/join/G4-AMBER`), or teal.
+ * A code starting with X names no class.
  */
 export function standInClasses(games: readonly LockerGame[]): StandInClasses {
   return (joinCode) => {
@@ -31,6 +33,9 @@ export function standInClasses(games: readonly LockerGame[]): StandInClasses {
     return {
       classId: `stand-in-${code}`,
       className: `Stand-in class ${code}`,
+      classColour:
+        classColours.find((c) => code.includes(c.slug.toUpperCase()))?.slug ??
+        defaultClassColour,
       grades: digits.length > 0 ? digits.sort((a, b) => a - b) : [3, 4, 5],
       games: [...games],
     };

@@ -88,6 +88,9 @@ model Class {
   // The demo class every new teacher gets: simulated students, with results
   // already in. Its students are made for it (`Account.demoClassId`).
   demo        Boolean      @default(false)
+  // The class colour's slug, from `classColours` in @repo/tokens. The API
+  // only ever stores one that's in the set.
+  colour      String       @default("teal")
   createdAt   DateTime     @default(now())
   demoStudents Account[]   @relation("DemoStudents")
   memberships  Membership[]

@@ -5,6 +5,7 @@ import type {
   GameProps,
   Progress,
 } from "@repo/game-contract";
+import { ClassColourScope } from "@repo/ui/class-colour-scope";
 import { Icon } from "@repo/ui/icon";
 import { IconButton } from "@repo/ui/icon-button";
 import { Progress as ProgressBar } from "@repo/ui/progress";
@@ -304,8 +305,14 @@ function PlayScreen({
     [game, student, tier, play, voice, endOnce],
   );
 
+  // The shell around the game is in the colour of the class it counts for.
   return (
-    <main className={classes.play} aria-busy={ending}>
+    <ClassColourScope
+      as="main"
+      colour={ready.membership.classColour}
+      className={classes.play}
+      aria-busy={ending}
+    >
       <div className={classes.controls} inert={asking || ending}>
         <IconButton
           tone="neutral"
@@ -366,7 +373,7 @@ function PlayScreen({
         />
       )}
       {ending && <Message text={shellT("saving")} busy overlay />}
-    </main>
+    </ClassColourScope>
   );
 }
 
@@ -378,7 +385,7 @@ function PlayScreen({
 function ProgressStrip({ progress }: { progress: Progress }) {
   const { done, total } = progress;
   return (
-    <div className={classes.progress} data-tone="student">
+    <div className={classes.progress} data-tone="accent">
       <div className={classes.progressBar}>
         <ProgressBar
           value={total > 0 ? (100 * Math.min(done, total)) / total : 0}
@@ -411,7 +418,7 @@ function StartScreen({ look, onStart }: { look: AvatarLook; onStart(): void }) {
           label={shellT("avatar")}
         />
         <div ref={start}>
-          <IconButton tone="student" label={shellT("start")} onClick={onStart}>
+          <IconButton tone="accent" label={shellT("start")} onClick={onStart}>
             <Icon name="play" size={48} />
           </IconButton>
         </div>
@@ -457,11 +464,7 @@ function LeaveQuestion({
 }) {
   return (
     <Question line="leave-question" look={look} speak={speak} onCancel={onStay}>
-      <IconButton
-        tone="student"
-        label={shellT("keep-playing")}
-        onClick={onStay}
-      >
+      <IconButton tone="accent" label={shellT("keep-playing")} onClick={onStay}>
         <Icon name="play" size={32} />
       </IconButton>
       <IconButton tone="neutral" label={shellT("leave")} onClick={onLeave}>

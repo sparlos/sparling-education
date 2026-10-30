@@ -10,6 +10,7 @@ import {
   type LearningSkill,
   learningSkills,
 } from "@repo/curriculum";
+import { isClassColour, nextClassColour } from "@repo/tokens";
 import type { GoogleAccount, Try } from "../contract.ts";
 import {
   type Account,
@@ -239,12 +240,17 @@ export function fakeTeacherBackend(
       throw new Error("A class needs a name (fake)");
     if (draft.grades.length === 0)
       throw new Error("A class needs a grade (fake)");
+    if (draft.colour && !isClassColour(draft.colour))
+      throw new Error("No such class colour (fake)");
+    const theirs = classes.filter((c) => c.teacherId === teacherId);
     const joinCode = newJoinCode();
     const made: Class = {
       id: `class-${++classesMade}`,
       name,
       grades: [...new Set(draft.grades)].sort((a, b) => a - b),
       demo,
+      colour:
+        draft.colour ?? nextClassColour(theirs.map((c) => c.class.colour)),
       joinCode,
       joinLink: `${origin}/play/join/${joinCode}`,
       games: games.map(({ slug, name }) => ({
@@ -722,6 +728,16 @@ export function fakeTeacherBackend(
       async class(classId) {
         reachable();
         return teachersClass(classId);
+      },
+      async setClassColour(classId, colour) {
+        reachable();
+        const cls = teachersClass(classId);
+        if (!isClassColour(colour))
+          throw new Error("No such class colour (fake)");
+        const changed: Class = { ...cls, colour };
+        const entry = classes.find((c) => c.class === cls);
+        if (entry) entry.class = changed;
+        return changed;
       },
       async switchGame(classId, slug, on) {
         reachable();

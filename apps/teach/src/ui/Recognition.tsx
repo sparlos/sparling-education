@@ -2,9 +2,9 @@
 // then the trait. It gives them the trait's sticker, revealed in their
 // locker. Offered from the dashboard (each student's row, and the students
 // not recognised yet this term) and from the student's page.
+import { InitialCircle } from "@repo/ui/initial-circle";
 import { Menu } from "@repo/ui/menu";
 import { Text } from "@repo/ui/text";
-import { Title } from "@repo/ui/title";
 import { VisuallyHidden } from "@repo/ui/visually-hidden";
 import { useState } from "react";
 import type {
@@ -14,6 +14,7 @@ import type {
 } from "../platform/ports.ts";
 import { nameOf } from "./Dashboard.tsx";
 import classes from "./recognition.module.css";
+import { SectionTitle } from "./SectionTitle.tsx";
 
 /** Recognises a student; resolves once the screen shows it. */
 export type OnRecognise = (studentId: string, trait: string) => Promise<void>;
@@ -87,7 +88,7 @@ export function Recognise({
     <span className={classes.recognise}>
       <Menu
         variant={variant}
-        tone="educator"
+        tone="accent"
         label={`Recognise ${name} for`}
         disabled={state.kind === "busy"}
         items={settings.traits.map(({ trait, name }) => ({
@@ -137,11 +138,14 @@ export function NotYetRecognised({
       );
   };
   return (
-    <section aria-labelledby="not-recognised" className={classes.section}>
+    <section
+      aria-labelledby="not-recognised"
+      className={`${classes.section} ${classes.card}`}
+    >
       <div>
-        <Title order={2} size="h4" id="not-recognised">
+        <SectionTitle id="not-recognised" icon="star" tone="recognition">
           Not recognised yet this term
-        </Title>
+        </SectionTitle>
         <Text size="sm" c="muted">
           {`This term: ${dateLabel(settings.term.start)} to ${dateLabel(settings.term.end)}.`}
         </Text>
@@ -153,7 +157,14 @@ export function NotYetRecognised({
           {notYet.map((student) => (
             <li key={student.id} className={classes.student}>
               {/* Not a link: the grid's row has the one to their page. */}
-              <span className={classes.name}>{nameOf(student)}</span>
+              <span className={classes.name}>
+                <InitialCircle
+                  id={student.id}
+                  name={student.firstName}
+                  size="sm"
+                />
+                {nameOf(student)}
+              </span>
               <Recognise
                 student={student}
                 settings={settings}
@@ -189,9 +200,15 @@ export function StudentRecognition({
     .map((r) => r.trait);
   return (
     <section aria-labelledby="recognition" className={classes.section}>
-      <Title order={2} size="h5" id="recognition">
+      <SectionTitle
+        id="recognition"
+        icon="star"
+        tone="recognition"
+        order={2}
+        size="h5"
+      >
         Recognition
-      </Title>
+      </SectionTitle>
       {thisTerm.length === 0 && <Text>Not recognised yet this term.</Text>}
       {recognised.length > 0 && (
         <ul className={classes.given}>

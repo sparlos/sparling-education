@@ -28,6 +28,10 @@ _Avoid_: Invite link
 A direct link to one game for one class, usually shared by a teacher in a class stream. A full entry point for students: opening it joins the student to that class if they aren't in it yet, and their results go to that class exactly as if the game were opened from their locker.
 _Avoid_: Deep link, assignment link
 
+**Class colour**:
+The colour a teacher picks for a class, from a fixed set, which every screen for that class takes its hue from. Never shown to students as a choice.
+_Avoid_: Theme, class theme, skin
+
 **Demo class**:
 A class of simulated students with results already in, which every new teacher gets at their first sign-in, alongside their own classes, and can explore as both teacher and student ("view as a student"). Its plays come from each game's **simulator** and are scored like any others. Only its own simulated students are ever in it. The teacher can delete it in one step, and it never comes back.
 _Avoid_: Sandbox, trial, test class

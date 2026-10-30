@@ -2169,3 +2169,126 @@ describe("walkthroughs", () => {
     ).toBeNull();
   });
 });
+
+describe("class colours", () => {
+  /** The class colour the screen is in, by the screen's main heading. */
+  const colourShown = () =>
+    screen
+      .getByRole("heading", { level: 1 })
+      .closest("[data-class-colour]")
+      ?.getAttribute("data-class-colour");
+
+  const colourPicker = () =>
+    screen.getByRole("group", { name: "Class colour" });
+
+  it("starts a new class on a colour the teacher's other classes haven't got", async () => {
+    const user = await signInAsNewTeacher();
+    expect(
+      within(colourPicker()).getByRole("radio", { name: "Teal" }),
+    ).toBeChecked();
+    await createClass(user, "Room 12", ["Grade 4"]);
+    expect(colourShown()).toBe("teal");
+
+    await user.click(screen.getByRole("link", { name: "New class" }));
+    await screen.findByRole("heading", { name: "New class" });
+    expect(
+      within(colourPicker()).getByRole("radio", { name: "Green" }),
+    ).toBeChecked();
+    expect(
+      within(colourPicker()).getByRole("radio", { name: "Teal" }),
+    ).not.toBeChecked();
+  });
+
+  it("offers every colour by name, and makes the class in the one picked", async () => {
+    const user = await signInAsNewTeacher();
+    const radios = within(colourPicker()).getAllByRole("radio");
+    expect(radios).toHaveLength(12);
+    await user.click(
+      within(colourPicker()).getByRole("radio", { name: "Indigo" }),
+    );
+    await createClass(user, "Room 12", ["Grade 4"]);
+    expect(colourShown()).toBe("indigo");
+  });
+
+  it("changes from Manage class, and the dashboard and switcher show it at once", async () => {
+    const user = await signInAsNewTeacher();
+    await createClass(user, "Room 12", ["Grade 4"]);
+    await user.click(screen.getByRole("link", { name: "Manage class" }));
+    await screen.findByRole("heading", { level: 1, name: "Manage Room 12" });
+    await user.click(
+      within(colourPicker()).getByRole("radio", { name: "Amber" }),
+    );
+    await vi.waitFor(() => expect(colourShown()).toBe("amber"));
+    expect(
+      within(colourPicker()).getByRole("radio", { name: "Amber" }),
+    ).toBeChecked();
+
+    await user.click(screen.getByRole("link", { name: "Room 12" }));
+    await screen.findByRole("heading", { level: 1, name: "Room 12" });
+    expect(colourShown()).toBe("amber");
+    const switcher = screen.getByRole("navigation", { name: "Your classes" });
+    expect(
+      within(switcher).getByRole("link", { name: "Room 12" }),
+    ).toHaveAccessibleDescription("Class colour: Amber");
+  });
+
+  it("marks each class in the switcher with its colour's name", async () => {
+    const user = renderApp({
+      demoClass: true,
+      classes: [
+        {
+          draft: { name: "Room 12", grades: [4], colour: "amber" },
+          students: [],
+        },
+      ],
+    });
+    await user.click(await signInButton());
+    const switcher = await screen.findByRole("navigation", {
+      name: "Your classes",
+    });
+    expect(
+      within(switcher).getByRole("link", { name: "Room 12" }),
+    ).toHaveAccessibleDescription("Class colour: Amber");
+    expect(
+      within(switcher).getByRole("link", { name: "Demo class" }),
+    ).toHaveAccessibleDescription("Class colour: Teal");
+  });
+
+  it("shows the demo class in teal", async () => {
+    const user = renderApp({ demoClass: true });
+    await user.click(await signInButton());
+    await screen.findByRole("heading", { level: 1, name: "Demo class" });
+    expect(colourShown()).toBe("teal");
+  });
+
+  it("keys the grid's shades, and leaves no evidence yet uncoloured", async () => {
+    const user = renderApp({
+      classes: [
+        {
+          draft: { name: "Room 12", grades: [4] },
+          students: [
+            {
+              google: { subject: "s-1", firstName: "Ana", lastName: "Diaz" },
+              plays: [{ grade: 4, tasks: [[{ succeeded: true }]] }],
+            },
+            {
+              google: { subject: "s-2", firstName: "Ben", lastName: "Ortiz" },
+            },
+          ],
+        },
+      ],
+    });
+    await user.click(await signInButton());
+    const key = await screen.findByRole("list", { name: "Key" });
+    expect(
+      within(key)
+        .getAllByRole("listitem")
+        .map((li) => li.textContent),
+    ).toEqual(["Not yet showing", "Developing", "Showing consistently"]);
+
+    const ben = screen.getByRole("row", { name: /Ben O\./ });
+    const gap = within(ben).getByText("No evidence yet");
+    expect(gap.closest("a")).toBeNull();
+    expect(gap).not.toHaveAttribute("data-understanding");
+  });
+});

@@ -6,6 +6,8 @@ interface TextInputProps {
   name: string;
   type?: "text" | "email" | "search";
   placeholder?: string;
+  /** Only a screen reader says the label; the box shows it as its placeholder. */
+  hideLabel?: boolean;
   required?: boolean;
   autoComplete?: string;
   maxLength?: number;
@@ -21,6 +23,7 @@ export function TextInput({
   name,
   type = "text",
   placeholder,
+  hideLabel,
   required,
   autoComplete,
   maxLength,
@@ -31,10 +34,11 @@ export function TextInput({
 }: TextInputProps) {
   return (
     <MantineTextInput
-      label={label}
+      label={hideLabel ? undefined : label}
+      aria-label={hideLabel ? label : undefined}
       name={name}
       type={type}
-      placeholder={placeholder}
+      placeholder={placeholder ?? (hideLabel ? label : undefined)}
       required={required}
       autoComplete={autoComplete}
       maxLength={maxLength}

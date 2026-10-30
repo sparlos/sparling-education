@@ -53,6 +53,7 @@ describe("creating a class", () => {
       name: "Room 12",
       grades: [4, 5],
       demo: false,
+      colour: "teal",
       joinCode: expect.stringMatching(/^[A-Z2-9]{8}$/),
       joinPath: `/play/join/${created.joinCode}`,
       games: [

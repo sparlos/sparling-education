@@ -155,6 +155,7 @@ try {
                 {
                   classId: "tour",
                   className: "Tour",
+                  classColour: "teal",
                   grades: [grade],
                   grade,
                   games: [{ slug, name: slug }],

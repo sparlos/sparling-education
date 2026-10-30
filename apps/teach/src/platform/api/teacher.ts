@@ -18,6 +18,7 @@ import {
   type RecognitionTrait,
   recogniseStudent,
   removeStudent,
+  setClassColour,
   setStudentGrade,
   signIn,
   signOut,
@@ -80,6 +81,11 @@ export function apiTeacherPort(options: {
     async class(classId) {
       const res = await getClass(classId);
       if (res.status !== 200) throw unexpected("class", res.status);
+      return toClass(res.data);
+    },
+    async setClassColour(classId, colour) {
+      const res = await setClassColour(classId, { colour });
+      if (res.status !== 200) throw unexpected("class colour", res.status);
       return toClass(res.data);
     },
     async switchGame(classId, slug, on) {

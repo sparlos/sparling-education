@@ -1,7 +1,8 @@
-// Managing a class's students: changing a student's grade in a split class,
-// and removing a student. Each change takes effect at once.
+// Managing a class: its colour, and its students (changing a student's grade
+// in a split class, and removing a student). Each change takes effect at once.
 import { Button } from "@repo/ui/button";
 import { Card } from "@repo/ui/card";
+import { InitialCircle } from "@repo/ui/initial-circle";
 import { Menu } from "@repo/ui/menu";
 import { RadioGroup } from "@repo/ui/radio-group";
 import { Stack } from "@repo/ui/stack";
@@ -9,14 +10,21 @@ import { Text } from "@repo/ui/text";
 import { Title } from "@repo/ui/title";
 import { VisuallyHidden } from "@repo/ui/visually-hidden";
 import { useState } from "react";
-import type { Class, ClassGrade, ClassStudent } from "../platform/ports.ts";
+import type {
+  Class,
+  ClassColourSlug,
+  ClassGrade,
+  ClassStudent,
+} from "../platform/ports.ts";
 import { nameOf } from "./Dashboard.tsx";
 import { ButtonLink, useUp } from "./links.tsx";
 import classes from "./manage.module.css";
-import { gradesLabel } from "./NewClass.tsx";
+import { ClassColourPicker, gradesLabel } from "./NewClass.tsx";
+import { SectionTitle } from "./SectionTitle.tsx";
 
 /** The changes a teacher can make; each resolves once the screen shows it. */
 export interface ManageActions {
+  setColour(colour: ClassColourSlug): Promise<void>;
   setGrade(studentId: string, grade: ClassGrade): Promise<void>;
   remove(studentId: string): Promise<void>;
 }
@@ -47,6 +55,7 @@ export function ManageScreen({
         <Title order={1}>Manage {cls.name}</Title>
         <Text c="muted">{gradesLabel(cls.grades)}</Text>
       </div>
+      <Colour cls={cls} actions={actions} />
       <Students cls={cls} students={students} actions={actions} />
     </Stack>
   );
@@ -74,6 +83,29 @@ function useChange() {
   return { busy: state === "busy", failed: state === "failed", run };
 }
 
+/** The class's colour: every screen for the class takes it, at once. */
+function Colour({ cls, actions }: { cls: Class; actions: ManageActions }) {
+  const { busy, failed, run } = useChange();
+  return (
+    <Card padding="lg">
+      <section aria-labelledby="colour">
+        <Stack gap="md">
+          <SectionTitle id="colour" icon="create">
+            Class colour
+          </SectionTitle>
+          <ClassColourPicker
+            value={cls.colour}
+            disabled={busy}
+            hideLabel
+            onChange={(colour) => run(() => actions.setColour(colour))}
+          />
+          {failed && <Text size="sm">{unsaved}</Text>}
+        </Stack>
+      </section>
+    </Card>
+  );
+}
+
 function Students({
   cls,
   students,
@@ -87,11 +119,9 @@ function Students({
     <Card padding="lg">
       <section aria-labelledby="students">
         <Stack gap="md">
-          <div>
-            <Title order={2} size="h3" id="students">
-              Students
-            </Title>
-          </div>
+          <SectionTitle id="students" icon="users">
+            Students
+          </SectionTitle>
           {students.length === 0 ? (
             <Text c="muted">
               No students yet. Each student shows up here once they join.
@@ -158,15 +188,18 @@ function StudentRow({
       data-walkthrough="student"
     >
       <div className={classes.row}>
-        <div>
-          <Text className={classes.name}>{name}</Text>
-          {split && (
-            <Text size="sm" c="muted">
-              {student.grade === null
-                ? "No grade picked yet"
-                : `Grade ${student.grade}`}
-            </Text>
-          )}
+        <div className={classes.who}>
+          <InitialCircle id={student.id} name={student.firstName} />
+          <div>
+            <Text className={classes.name}>{name}</Text>
+            {split && (
+              <Text size="sm" c="muted">
+                {student.grade === null
+                  ? "No grade picked yet"
+                  : `Grade ${student.grade}`}
+              </Text>
+            )}
+          </div>
         </div>
         {opened === "none" && (
           <Menu
@@ -200,7 +233,7 @@ function StudentRow({
         </Text>
       )}
       {opened === "grade" && (
-        <Card variant="soft" tone="educator">
+        <Card variant="soft" tone="accent">
           <Stack gap="sm" align="flex-start">
             <RadioGroup
               label={`${name}'s grade in ${cls.name}`}
@@ -217,7 +250,7 @@ function StudentRow({
               this grade's tier; results they already have keep theirs.
             </Text>
             <div className={classes.controls}>
-              <Button tone="educator" disabled={busy} onClick={save}>
+              <Button tone="accent" disabled={busy} onClick={save}>
                 Save grade
               </Button>
               <Button variant="subtle" onClick={() => setOpened("none")}>
@@ -228,7 +261,7 @@ function StudentRow({
         </Card>
       )}
       {opened === "remove" && (
-        <Card variant="soft" tone="educator">
+        <Card variant="soft" tone="accent">
           <Stack gap="sm" align="flex-start">
             <Text>
               Remove {name} from {cls.name}? The class leaves their locker, and
@@ -236,7 +269,7 @@ function StudentRow({
             </Text>
             <div className={classes.controls}>
               <Button
-                tone="educator"
+                tone="accent"
                 disabled={busy}
                 onClick={() => run(() => actions.remove(student.id))}
               >

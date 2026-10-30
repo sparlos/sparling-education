@@ -24,6 +24,7 @@ import { FindStudent, matchesName, noMatch } from "./FindStudent.tsx";
 import { ButtonLink, useUp } from "./links.tsx";
 import { expectationLabel, OfficialCode } from "./OfficialCode.tsx";
 import classes from "./quick-assess.module.css";
+import { SectionTitle } from "./SectionTitle.tsx";
 
 export function ClassQuickAssessScreen({
   cls,
@@ -251,9 +252,9 @@ export function StudentBlock({
       ) : (
         <>
           <section aria-labelledby={part("math")} className={classes.part}>
-            <Title order={3} size="h5" id={part("math")}>
+            <SectionTitle id={part("math")} icon="chart" order={3} size="h5">
               Math
-            </Title>
+            </SectionTitle>
             {opening ? (
               <div data-walkthrough="plays">
                 <Text size="sm" c="muted" className={classes.screenOnly}>
@@ -313,9 +314,9 @@ export function StudentBlock({
             )}
           </section>
           <section aria-labelledby={part("next")} className={classes.part}>
-            <Title order={3} size="h5" id={part("next")}>
+            <SectionTitle id={part("next")} icon="target" order={3} size="h5">
               What to work on next
-            </Title>
+            </SectionTitle>
             {nextSteps.length === 0 ? (
               <Text c="muted">
                 No common mistakes showed up in their recent games.
@@ -332,9 +333,14 @@ export function StudentBlock({
             )}
           </section>
           <section aria-labelledby={part("skills")} className={classes.part}>
-            <Title order={3} size="h5" id={part("skills")}>
+            <SectionTitle
+              id={part("skills")}
+              icon="sparkles"
+              order={3}
+              size="h5"
+            >
               Learning Skills
-            </Title>
+            </SectionTitle>
             {withEvidence(learningSkills).length === 0 && (
               <Text c="muted">None yet.</Text>
             )}

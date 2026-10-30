@@ -23,6 +23,8 @@ import type { DemoView, PlayRecord } from "./schemas.ts";
 import { termOf, weekOf } from "./scoring.ts";
 
 export const demoClassName = "Demo class";
+/** Its class colour: the brand's, the first a teacher sees. */
+export const demoClassColour = "teal";
 const demoGrades = [3, 4, 5];
 
 /** Where viewing as a demo student opens the play shell: their locker. */
@@ -148,6 +150,7 @@ async function makeDemoClass(
       name: demoClassName,
       grades: demoGrades,
       demo: true,
+      colour: demoClassColour,
       joinCode: newJoinCode(),
     },
   });

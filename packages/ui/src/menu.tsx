@@ -33,7 +33,7 @@ interface MenuProps {
 export function Menu({
   children,
   variant = "secondary",
-  tone = "brand",
+  tone = "accent",
   label,
   items,
   checkedLabel,

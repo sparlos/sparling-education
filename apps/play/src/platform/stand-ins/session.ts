@@ -3,6 +3,7 @@
 // screen, kept in this browser's storage with the classes they've joined.
 // The real adapter is ../api/session.ts; see ../README.md.
 import { parseLook } from "@repo/avatar";
+import { defaultClassColour, isClassColour } from "@repo/tokens";
 import {
   type KeyValueStore,
   readJson,
@@ -24,7 +25,17 @@ export function standInSession(storage: KeyValueStore | null): SessionPort {
 /** The stand-in's signed-in student, or null. */
 export function standInStudent(storage: KeyValueStore | null): Student | null {
   const student = readJson(storage, key);
-  return isStudent(student) ? student : null;
+  if (!isStudent(student)) return null;
+  // Kept from before classes had colours: theirs is the default.
+  return {
+    ...student,
+    classes: student.classes.map((m) => ({
+      ...m,
+      classColour: isClassColour(m.classColour ?? "")
+        ? m.classColour
+        : defaultClassColour,
+    })),
+  };
 }
 
 /** What the stand-in sign-in screen does in place of Google sign-in. */

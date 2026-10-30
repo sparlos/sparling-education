@@ -56,8 +56,11 @@ export const metadata: Metadata = {
 
 const toneTokens: Record<string, ToneTokens> = {
   brand: color.brand,
+  // Outside a class colour scope, as here, the accent is the brand's.
+  accent: color.brand,
   neutral: color.neutral,
   ...color.audience,
+  ...color.meaning,
 };
 
 function ratio(fg: string, bg: string) {

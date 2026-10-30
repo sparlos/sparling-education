@@ -3,8 +3,8 @@
   padding: var(--mantine-spacing-lg);
   color: var(--k-ink);
   background-color: var(--k-surface-raised);
-  border: 1px solid var(--k-border-subtle);
-  border-radius: var(--mantine-radius-lg);
+  border: 0;
+  border-radius: var(--k-radius-card);
 }
 
 .title {
@@ -31,7 +31,7 @@
   width: 0.5rem;
   height: 0.5rem;
   border-radius: var(--mantine-radius-xl);
-  background-color: var(--k-border-subtle);
+  background-color: var(--k-border);
   transition:
     width var(--k-duration-base) var(--k-ease-standard),
     background-color var(--k-duration-base) var(--k-ease-standard);

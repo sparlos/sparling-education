@@ -4,6 +4,12 @@
 
 import { randomInt } from "node:crypto";
 import type { Db } from "@repo/db";
+import {
+  type ClassColourSlug,
+  defaultClassColour,
+  isClassColour,
+  nextClassColour,
+} from "@repo/tokens";
 import { hostedGames } from "./games.ts";
 import type { Class, NewClass } from "./schemas.ts";
 
@@ -43,16 +49,24 @@ export async function teacherClass(
   return row && toClass(row);
 }
 
-/** Makes a class for the teacher, with every hosted game on. */
+/**
+ * Makes a class for the teacher, with every hosted game on. Without a
+ * colour, it gets the first one their other classes haven't got.
+ */
 export async function createClass(
   db: Db,
   teacherId: string,
-  { name, grades }: NewClass,
+  { name, grades, colour }: NewClass,
 ): Promise<Class> {
+  const others = await db.class.findMany({
+    where: { teacherId },
+    select: { colour: true },
+  });
   const data = {
     teacherId,
     name: name.trim(),
     grades: [...new Set(grades)].sort((a, b) => a - b),
+    colour: colour ?? nextClassColour(others.map((c) => c.colour)),
   };
   // A clash is vanishingly rare (30⁸ codes); try a fresh code if one happens.
   for (let tries = 0; ; tries++) {
@@ -90,6 +104,29 @@ export async function setGameOn(
   return toClass(row);
 }
 
+/**
+ * Sets the class's colour. Null when the class isn't one of this teacher's.
+ * The slug is checked against the set by the route's schema.
+ */
+export async function setClassColour(
+  db: Db,
+  teacherId: string,
+  classId: string,
+  colour: ClassColourSlug,
+): Promise<Class | null> {
+  const { count } = await db.class.updateMany({
+    where: { id: classId, teacherId },
+    data: { colour },
+  });
+  if (count === 0) return null;
+  return teacherClass(db, teacherId, classId);
+}
+
+/** A stored colour, as a slug in the set: one dropped from it reads as the default. */
+export function storedColour(colour: string): ClassColourSlug {
+  return isClassColour(colour) ? colour : defaultClassColour;
+}
+
 export function newJoinCode() {
   let code = "";
   for (let i = 0; i < joinCodeLength; i++)
@@ -108,13 +145,15 @@ export function toClass(row: {
   joinCode: string;
   gamesOff: string[];
   demo: boolean;
+  colour: string;
 }): Class {
-  const { id, name, grades, joinCode, gamesOff, demo } = row;
+  const { id, name, grades, joinCode, gamesOff, demo, colour } = row;
   return {
     id,
     name,
     grades,
     demo,
+    colour: storedColour(colour),
     joinCode,
     joinPath: joinPath(joinCode),
     games: hostedGames.map(({ slug, name }) => ({

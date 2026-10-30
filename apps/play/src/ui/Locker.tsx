@@ -5,10 +5,12 @@
 // label is also spoken, so a Grade 3 student can use it without reading.
 import { Portrait } from "@repo/avatar/portrait";
 import { Button } from "@repo/ui/button";
+import { ClassColourScope } from "@repo/ui/class-colour-scope";
 import { Icon } from "@repo/ui/icon";
 import { IconButton } from "@repo/ui/icon-button";
 import { Stack } from "@repo/ui/stack";
 import { Text } from "@repo/ui/text";
+import { ThemeIcon } from "@repo/ui/theme-icon";
 import { Title } from "@repo/ui/title";
 import { VisuallyHidden } from "@repo/ui/visually-hidden";
 import { useEffect, useState } from "react";
@@ -33,6 +35,7 @@ import type { VoiceOptions } from "../play/voice.ts";
 import type { AppProps } from "./App.tsx";
 import classes from "./app.module.css";
 import styles from "./locker.module.css";
+import { LockerPicture } from "./locker-art.tsx";
 import { Reveal } from "./Reveal.tsx";
 import { Stickers } from "./Stickers.tsx";
 import {
@@ -253,7 +256,6 @@ function Locker({
   const hear = (name: string, line: string) => (
     <IconButton
       tone="neutral"
-      size="lg"
       label={`${shellT("hear")} ${name}`}
       onClick={() => void voice.say(line)}
     >
@@ -267,13 +269,13 @@ function Locker({
         <VisuallyHidden>
           <h1>{shellT("locker")}</h1>
         </VisuallyHidden>
-        <div className={styles.header}>
+        <div className={`${styles.header} ${styles.card}`}>
           <a
             href={wardrobePath(base)}
             className={styles.wardrobeLink}
             aria-label={shellT("change-clothes")}
             title={shellT("change-clothes")}
-            data-tone="student"
+            data-tone="brand"
           >
             <Portrait
               look={student.look}
@@ -299,13 +301,18 @@ function Locker({
         {sections.map(({ membership, games }) => {
           const headingId = `class-${membership.classId}`;
           return (
-            <section
+            <ClassColourScope
               key={membership.classId}
+              colour={membership.classColour}
+              as="section"
               className={styles.section}
               aria-labelledby={sections.length > 1 ? headingId : undefined}
             >
               {sections.length > 1 && (
                 <div className={styles.classHeading}>
+                  <ThemeIcon tone="accent" size="md">
+                    <Icon name="grid" size={24} />
+                  </ThemeIcon>
                   <Title order={2} size="h3" id={headingId}>
                     {membership.className}
                   </Title>
@@ -315,20 +322,25 @@ function Locker({
               <ul className={styles.games}>
                 {games.map((game) => (
                   <li key={game.slug} className={styles.game}>
-                    <Button
+                    <a
                       href={lockerGamePath(base, game.slug, membership.classId)}
-                      size="lg"
-                      tone="student"
-                      className={styles.gameButton}
-                      leftSection={<Icon name="play" size={32} />}
+                      className={styles.gameCard}
                     >
-                      {game.name}
-                    </Button>
+                      <span className={styles.picture}>
+                        <LockerPicture slug={game.slug} />
+                      </span>
+                      <span className={styles.gameName}>
+                        <span className={styles.play} aria-hidden="true">
+                          <Icon name="play" size={20} />
+                        </span>
+                        {game.name}
+                      </span>
+                    </a>
                     {hear(game.name, gameLine(game.slug, game.name))}
                   </li>
                 ))}
               </ul>
-            </section>
+            </ClassColourScope>
           );
         })}
         {stickers.length > 0 && contents !== "loading" && contents !== null && (
@@ -398,7 +410,11 @@ export function GradePick({
   };
 
   return (
-    <main className={classes.message}>
+    <ClassColourScope
+      as="main"
+      colour={membership.classColour}
+      className={classes.message}
+    >
       {/* Out of reach while the question covers it. */}
       <div inert={asking !== null}>
         <Stack align="center" gap="lg">
@@ -425,7 +441,7 @@ export function GradePick({
               <Button
                 key={grade}
                 size="lg"
-                tone="student"
+                tone="accent"
                 className={styles.gradeButton}
                 disabled={picking}
                 onClick={() => {
@@ -447,7 +463,7 @@ export function GradePick({
           onCancel={notThat}
         >
           <IconButton
-            tone="student"
+            tone="accent"
             label={shellT("yes")}
             disabled={picking}
             onClick={() => pick(asking)}
@@ -464,7 +480,7 @@ export function GradePick({
           </IconButton>
         </Question>
       )}
-    </main>
+    </ClassColourScope>
   );
 }
 

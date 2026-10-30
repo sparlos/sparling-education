@@ -145,7 +145,7 @@ function Designer({
               key={s}
               label={shellT(slotLine(s))}
               selected={s === slot}
-              tone="student"
+              tone="brand"
               size={4.5}
               onClick={() => {
                 setSlot(s);
@@ -177,7 +177,7 @@ function Designer({
       </div>
       <div className={styles.done}>
         <IconButton
-          tone="student"
+          tone="brand"
           label={shellT("avatar-done")}
           onClick={save}
           disabled={saving}

@@ -9,15 +9,16 @@ interface ThemeIconProps {
   tone?: Tone;
   /** `soft` tints the background; `filled` uses the solid tone colour. */
   variant?: "soft" | "filled";
-  size?: "md" | "lg" | "xl";
+  /** `sm` is a section heading's tile; `md` the locker's. */
+  size?: "sm" | "md" | "lg" | "xl";
   className?: string;
 }
 
-const sizes = { md: 40, lg: 52, xl: 64 } as const;
+const sizes = { sm: 36, md: 44, lg: 52, xl: 64 } as const;
 
 export function ThemeIcon({
   children,
-  tone = "brand",
+  tone = "accent",
   variant = "soft",
   size = "lg",
   className,
@@ -26,7 +27,7 @@ export function ThemeIcon({
     <MantineThemeIcon
       data-tone={tone}
       size={sizes[size]}
-      radius="lg"
+      radius={size === "sm" || size === "md" ? "md" : "lg"}
       aria-hidden
       className={cx(
         variant === "filled" ? classes.iconFilled : classes.icon,

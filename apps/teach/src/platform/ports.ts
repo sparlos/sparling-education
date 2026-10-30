@@ -3,6 +3,10 @@
 // by the in-memory fake in ./fake/ and the API adapter in ./api/, and both
 // must pass the suite in ./contract.ts.
 import type { LearningSkill } from "@repo/curriculum";
+import type { ClassColourSlug } from "@repo/tokens";
+
+export type { ClassColourSlug } from "@repo/tokens";
+
 import type { ComponentType } from "react";
 
 /** Whoever is signed in on this browser, as the teacher app needs them. */
@@ -24,6 +28,11 @@ export interface NewClass {
   name: string;
   /** The class's grade, or grades for a split class. */
   grades: ClassGrade[];
+  /**
+   * Its class colour. Without one, the first, in the set's order, that none
+   * of the teacher's other classes has (see `nextClassColour`).
+   */
+  colour?: ClassColourSlug;
 }
 
 /** One of the signed-in teacher's classes. */
@@ -38,6 +47,8 @@ export interface Class {
    * students, with results already in.
    */
   demo: boolean;
+  /** Every screen for the class takes its hue from it. */
+  colour: ClassColourSlug;
   joinCode: string;
   /** The class join link, as a full URL to share. */
   joinLink: string;
@@ -93,6 +104,12 @@ export interface TeacherPort {
    * in, and with `NotFound` when the class isn't theirs.
    */
   class(classId: string): Promise<Class>;
+  /**
+   * Sets the class's colour, resolving with the class. Rejects when no
+   * teacher is signed in or the colour isn't one of `classColours`, and with
+   * `NotFound` when the class isn't theirs.
+   */
+  setClassColour(classId: string, colour: ClassColourSlug): Promise<Class>;
   /**
    * Turns one of the class's games on or off, resolving with the class.
    * Students see only the games that are on; a game link for one that's off

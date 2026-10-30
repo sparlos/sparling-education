@@ -5,6 +5,7 @@
 import { type AvatarLook, defaultLook } from "@repo/avatar";
 import { baseSet, isItem, outfitSlots } from "@repo/avatar/parts";
 import { isReward, isSticker, rewardKind } from "@repo/rewards";
+import type { ClassColourSlug } from "@repo/tokens";
 import { describe, expect, it } from "vitest";
 import {
   type AttemptRecord,
@@ -172,9 +173,11 @@ export interface SessionHarness {
     | { session: SessionPort; memberships: MembershipsPort }
     | Promise<{ session: SessionPort; memberships: MembershipsPort }>;
   /** Makes a class the way its teacher would, with every game on. */
+  /** Teal unless `colour` says otherwise. */
   newClass(
     name: string,
     grades: number[],
+    colour?: ClassColourSlug,
   ): Promise<{ classId: string; joinCode: string }>;
 }
 
@@ -205,6 +208,7 @@ export function sessionPortContract(name: string, harness: SessionHarness) {
       expect(membership).toEqual({
         classId,
         className: "Room 12",
+        classColour: "teal",
         grades: [4],
         grade: 4,
         games: expect.any(Array),
@@ -216,6 +220,17 @@ export function sessionPortContract(name: string, harness: SessionHarness) {
           name: expect.any(String),
         });
       expect((await session.current())?.classes).toEqual([membership]);
+    });
+
+    it("carries each class's colour", async () => {
+      const { session, memberships } = await harness.newStudent();
+      const { joinCode } = await harness.newClass("Room 12", [4], "amber");
+      expect(await memberships.join(joinCode)).toMatchObject({
+        classColour: "amber",
+      });
+      expect((await session.current())?.classes).toEqual([
+        expect.objectContaining({ classColour: "amber" }),
+      ]);
     });
 
     it("leaves a split class's grade for the student to pick, once", async () => {

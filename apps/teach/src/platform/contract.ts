@@ -2,6 +2,7 @@
 // against the in-memory fake (fake/fake.test.ts) and the API adapter over
 // the in-process API and the test Postgres (api/api.test.ts), so the fake
 // can't drift from the API.
+import { classColours } from "@repo/tokens";
 import { describe, expect, it } from "vitest";
 import {
   type Class,
@@ -199,6 +200,46 @@ export function teacherPortContract(
       );
       await port.signIn(await credentialFor(newGoogleAccount()));
       await expect(port.class(mine.id)).rejects.toBeInstanceOf(NotFound);
+    });
+
+    it("gives a class the colour picked, or else the first its teacher's other classes haven't got", async () => {
+      const { port } = await signedInTeacher();
+      const [first, second, third] = classColours.map((c) => c.slug);
+      expect(
+        (await port.createClass({ name: "A", grades: [3], colour: second }))
+          .colour,
+      ).toBe(second);
+      expect((await port.createClass({ name: "B", grades: [3] })).colour).toBe(
+        first,
+      );
+      expect((await port.createClass({ name: "C", grades: [3] })).colour).toBe(
+        third,
+      );
+    });
+
+    it("cycles through the colours once all are used", async () => {
+      const { port } = await signedInTeacher();
+      for (const { slug } of classColours)
+        await port.createClass({ name: slug, grades: [3], colour: slug });
+      expect((await port.createClass({ name: "Z", grades: [3] })).colour).toBe(
+        classColours[0]?.slug,
+      );
+    });
+
+    it("changes a class's colour, for every read of it, and only for its teacher", async () => {
+      const { port, credentialFor } = await signedInTeacher();
+      const made = await port.createClass({ name: "Room 12", grades: [4] });
+      const changed = await port.setClassColour(made.id, "indigo");
+      expect(changed).toEqual({ ...made, colour: "indigo" });
+      expect(await port.class(made.id)).toEqual(changed);
+      expect(await port.classes()).toEqual([changed]);
+      await expect(
+        port.setClassColour(made.id, "chartreuse" as never),
+      ).rejects.toThrow();
+      await port.signIn(await credentialFor(newGoogleAccount()));
+      await expect(port.setClassColour(made.id, "teal")).rejects.toBeInstanceOf(
+        NotFound,
+      );
     });
 
     it("refuses a class with no name or no grades", async () => {
@@ -1080,6 +1121,11 @@ export function demoClassContract(
           demo: true,
         }),
       ]);
+      // Teal, so the teacher's first class of their own takes the next colour.
+      expect(classes[0]?.colour).toBe("teal");
+      expect(
+        (await port.createClass({ name: "Room 12", grades: [4] })).colour,
+      ).toBe("green");
       const students = await port.students(classes[0]?.id ?? "");
       expect(students).toHaveLength(24);
       expect(new Set(students.map((s) => s.grade))).toEqual(new Set([3, 4, 5]));

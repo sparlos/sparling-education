@@ -55,6 +55,7 @@ function membership(overrides: Partial<Membership> = {}): Membership {
   return {
     classId: "class-1",
     className: "Room 12",
+    classColour: "teal",
     grades: [4],
     grade: 4,
     games: classGames,
@@ -171,6 +172,7 @@ describe("the locker", () => {
         membership({
           classId: "class-2",
           className: "Math",
+          classColour: "teal",
           games: standInGames(["shell-check"]),
         }),
       ),
@@ -185,6 +187,27 @@ describe("the locker", () => {
       within(math).getByRole("button", { name: "Hear it: Math" }),
     );
     expect(spoken).toContain("Math");
+  });
+
+  it("shows each class in its own colour, with the same spoken labels", async () => {
+    setUp({
+      signedIn: studentIn(
+        membership({ classColour: "teal" }),
+        membership({
+          classId: "class-2",
+          className: "Math",
+          classColour: "indigo",
+          games: standInGames(["shell-check"]),
+        }),
+      ),
+    });
+    const math = await screen.findByRole("region", { name: "Math" });
+    const room = screen.getByRole("region", { name: "Room 12" });
+    expect(math).toHaveAttribute("data-class-colour", "indigo");
+    expect(room).toHaveAttribute("data-class-colour", "teal");
+    expect(
+      within(math).getByRole("button", { name: "Hear it: Shell Check" }),
+    ).toBeInTheDocument();
   });
 
   it("leaves out games the class has turned off, and games this shell can't host", async () => {

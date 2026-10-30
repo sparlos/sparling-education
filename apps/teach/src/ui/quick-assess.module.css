@@ -8,6 +8,13 @@
   gap: var(--mantine-spacing-sm) var(--mantine-spacing-md);
 }
 
+/* A student's circle beside their name. */
+.who {
+  display: flex;
+  align-items: center;
+  gap: var(--mantine-spacing-md);
+}
+
 .note {
   max-width: 48rem;
 }
@@ -71,8 +78,9 @@
 }
 
 .pick[aria-current] {
-  background-color: var(--k-surface-raised);
-  box-shadow: inset 3px 0 0 var(--k-focus);
+  color: var(--k-accent-text);
+  background-color: var(--k-accent-soft);
+  box-shadow: inset 3px 0 0 var(--k-accent-fill);
   font-weight: 700;
 }
 
@@ -158,11 +166,12 @@
   display: grid;
   gap: var(--mantine-spacing-md);
   max-width: 48rem;
-  padding: var(--mantine-spacing-md) var(--mantine-spacing-lg);
-  border: 1px solid var(--k-border-subtle);
-  border-radius: var(--mantine-radius-md);
+  padding: var(--mantine-spacing-lg);
+  border: 0;
+  border-radius: var(--k-radius-card);
   box-sizing: border-box;
   background-color: var(--k-surface-raised);
+  box-shadow: var(--k-shadow-card);
 }
 
 /* A student's own page: the block without its card. */
@@ -176,10 +185,10 @@
 @media screen {
   .bare > .part {
     gap: var(--mantine-spacing-sm);
-    padding: var(--mantine-spacing-md) var(--mantine-spacing-lg);
-    border: 1px solid var(--k-border-subtle);
-    border-radius: var(--mantine-radius-md);
+    padding: var(--mantine-spacing-lg);
+    border-radius: var(--k-radius-card);
     background-color: var(--k-surface-raised);
+    box-shadow: var(--k-shadow-card);
   }
 }
 
@@ -281,6 +290,7 @@
     border-bottom: 1px solid var(--k-border-strong);
     border-radius: 0;
     background-color: transparent;
+    box-shadow: none;
   }
 
   /* Tighter than on screen, so a class takes as few pages as it can. */

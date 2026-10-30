@@ -45,7 +45,7 @@ export function DemoCard({ actions }: { actions: DemoActions }) {
   };
 
   return (
-    <Card variant="soft" tone="educator" padding="md">
+    <Card variant="soft" tone="accent" padding="md">
       <section
         aria-label="Demo class"
         className={classes.banner}
@@ -59,7 +59,7 @@ export function DemoCard({ actions }: { actions: DemoActions }) {
             </Text>
             <div className={classes.actions}>
               <Button
-                tone="educator"
+                tone="accent"
                 disabled={state === "busy"}
                 onClick={remove}
               >
@@ -77,7 +77,7 @@ export function DemoCard({ actions }: { actions: DemoActions }) {
             </Text>
             <div className={classes.actions}>
               <Button
-                tone="educator"
+                tone="accent"
                 disabled={state === "busy"}
                 onClick={viewAsStudent}
               >

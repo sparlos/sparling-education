@@ -4,6 +4,14 @@
   gap: var(--mantine-spacing-sm);
 }
 
+.card {
+  gap: var(--mantine-spacing-md);
+  padding: var(--mantine-spacing-lg);
+  border-radius: var(--k-radius-card);
+  background-color: var(--k-surface-raised);
+  box-shadow: var(--k-shadow-card);
+}
+
 .recognise {
   display: inline-flex;
   flex-wrap: wrap;
@@ -39,14 +47,16 @@
   display: inline-flex;
   align-items: center;
   gap: var(--mantine-spacing-sm);
-  padding: var(--mantine-spacing-xs) var(--mantine-spacing-xs)
-    var(--mantine-spacing-xs) var(--mantine-spacing-md);
+  padding: 6px 6px 6px 8px;
   border: 1px solid var(--k-border-subtle);
-  border-radius: var(--mantine-radius-xl);
+  border-radius: var(--mantine-radius-md);
   background-color: var(--k-surface-raised);
 }
 
 .name {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--mantine-spacing-sm);
   font-weight: 700;
   color: var(--k-ink);
 }

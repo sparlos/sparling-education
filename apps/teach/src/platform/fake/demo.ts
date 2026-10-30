@@ -10,6 +10,8 @@ import type { FakeStudentSeed } from "./teacher.ts";
 export const fakeDemoDraft: NewClass = {
   name: "Demo class",
   grades: [3, 4, 5],
+  // The API's: the brand's, the first a teacher sees.
+  colour: "teal",
 };
 
 const right: Try[] = [{ succeeded: true }];

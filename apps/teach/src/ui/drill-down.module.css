@@ -31,18 +31,29 @@
   padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
   border-radius: var(--mantine-radius-sm);
   line-height: 1.4;
-  color: var(--k-ink);
-  background-color: var(--k-surface-sunken);
+  font-weight: 700;
+  color: var(--k-result-weak-text);
+  background-color: var(--k-result-weak);
 }
 
 .band[data-understanding="developing"] {
-  color: var(--k-educator-text);
-  background-color: var(--k-educator-soft);
+  color: var(--k-result-middle-text);
+  background-color: var(--k-result-middle);
 }
 
 .band[data-understanding="showing-consistently"] {
-  color: var(--k-educator-on-fill);
-  background-color: var(--k-educator-fill);
+  color: var(--k-result-strong-text);
+  background-color: var(--k-result-strong);
+}
+
+/* On paper, the words alone: legible in black and white. */
+@media print {
+  .band,
+  .band[data-understanding] {
+    color: var(--k-ink);
+    background: none;
+    border: 1px solid var(--k-ink);
+  }
 }
 
 .band span {
@@ -91,7 +102,7 @@
 }
 
 .showed {
-  color: var(--k-educator-text);
+  color: var(--k-accent-text);
 }
 
 .task {

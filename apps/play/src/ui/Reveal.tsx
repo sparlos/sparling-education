@@ -51,7 +51,7 @@ export function Reveal({
       role="dialog"
       aria-modal="true"
       aria-labelledby={id}
-      data-tone="student"
+      data-tone="recognition"
     >
       <Stack align="center" gap="lg">
         <Portrait
@@ -86,7 +86,7 @@ export function Reveal({
         </ul>
         <div ref={done}>
           <IconButton
-            tone="student"
+            tone="brand"
             label={shellT("avatar-done")}
             onClick={() => {
               voice.stop();

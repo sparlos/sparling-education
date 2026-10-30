@@ -1,7 +1,7 @@
 /* The self-hosted fonts loaded in main.tsx; names match `fontVariables` in @repo/ui. */
 :root {
-  --k-font-heading: "Nunito Variable";
-  --k-font-body: "Nunito Sans Variable";
+  --k-font-heading: "Plus Jakarta Sans";
+  --k-font-body: "Plus Jakarta Sans";
 }
 
 /* Teacher targets are 48px at least: a teacher taps while running a class. */

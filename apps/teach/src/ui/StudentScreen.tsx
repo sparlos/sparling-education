@@ -5,6 +5,7 @@
 // the student can be recognised. Counts only, never a level: the grade is the
 // teacher's.
 import { Button } from "@repo/ui/button";
+import { InitialCircle } from "@repo/ui/initial-circle";
 import { Stack } from "@repo/ui/stack";
 import { Text } from "@repo/ui/text";
 import { Title } from "@repo/ui/title";
@@ -98,14 +99,19 @@ export function StudentScreen({
         </ButtonLink>
       </div>
       <div className={classes.heading}>
-        <div data-walkthrough="evidence">
-          <Title order={1}>{nameOf(student)}</Title>
-          <Text c="muted">
-            {student.grade === null
-              ? "No grade picked yet"
-              : `Grade ${student.grade}`}
-          </Text>
-          <Text className={classes.printOnly}>{`${cls.name} · ${date}`}</Text>
+        <div data-walkthrough="evidence" className={classes.who}>
+          <span className={classes.screenOnly}>
+            <InitialCircle id={student.id} name={student.firstName} size="lg" />
+          </span>
+          <div>
+            <Title order={1}>{nameOf(student)}</Title>
+            <Text c="muted">
+              {student.grade === null
+                ? "No grade picked yet"
+                : `Grade ${student.grade}`}
+            </Text>
+            <Text className={classes.printOnly}>{`${cls.name} · ${date}`}</Text>
+          </div>
         </div>
         <Button
           variant="secondary"

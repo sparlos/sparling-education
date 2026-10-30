@@ -15,6 +15,7 @@ import {
 } from "./accounts.ts";
 import {
   createClass,
+  setClassColour,
   setGameOn,
   teacherClass,
   teacherClasses,
@@ -37,6 +38,7 @@ import { recognise } from "./recognition.ts";
 import {
   type Account,
   AccountSchema,
+  ClassColourChangeSchema,
   ClassSchema,
   ClassStudentSchema,
   DashboardSchema,
@@ -453,6 +455,36 @@ const gameSwitchRoute = createRoute({
     404: {
       description:
         "No class of this teacher's has that ID, or Kindling doesn't host that game",
+      content: { "application/json": { schema: ErrorSchema } },
+    },
+  },
+});
+
+const classColourRoute = createRoute({
+  method: "put",
+  path: "/classes/{classId}/colour",
+  operationId: "setClassColour",
+  summary: "Set a class's colour",
+  description:
+    "Every screen for the class takes its hue from it, for the teacher and in its students' lockers.",
+  request: {
+    params: z.object({ classId: z.uuid() }),
+    body: {
+      content: { "application/json": { schema: ClassColourChangeSchema } },
+    },
+  },
+  responses: {
+    200: {
+      description: "The class, in its new colour",
+      content: { "application/json": { schema: ClassSchema } },
+    },
+    400: {
+      description: "Not one of the class colours",
+      content: { "application/json": { schema: ErrorSchema } },
+    },
+    ...teacherOnly,
+    404: {
+      description: "No class of this teacher's has that ID",
       content: { "application/json": { schema: ErrorSchema } },
     },
   },
@@ -1006,6 +1038,19 @@ export function createApp({
       );
       if (!switched) return c.json({ error: "not-found" }, 404);
       return c.json(switched, 200);
+    })
+    .openapi(classColourRoute, async (c) => {
+      const teacher = await teacherOf(c);
+      if (teacher === "signed-out") return c.json({ error: teacher }, 401);
+      if (teacher === "not-a-teacher") return c.json({ error: teacher }, 403);
+      const changed = await setClassColour(
+        db,
+        teacher.id,
+        c.req.valid("param").classId,
+        c.req.valid("json").colour,
+      );
+      if (!changed) return c.json({ error: "no-such-class" }, 404);
+      return c.json(changed, 200);
     })
     .openapi(classStudentsRoute, async (c) => {
       const teacher = await teacherOf(c);

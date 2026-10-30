@@ -6,3 +6,4 @@
   - "what to work on next" should also be something different I think...maybe "what they could be struggling with"? something like that
 - "Recognise", when an option is already checked, should show "you have already recognised --- during this term for ---". currently, it shows the default text, which is "___  recognised for ____. They'll see a sticker in their locker."
 - thumbs up and thumbs down instead of smiley and sad for yes and no RE: modals. we should also make this consistent across all modals - ex. for the shell, the exit game uses a play button and a exit sign, which is very confusing
+- too drab - colors are kind of flat and washed out. we want it to be popaloppin with colors and FUN

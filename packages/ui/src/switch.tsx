@@ -21,7 +21,7 @@ export function Switch({
   checked,
   onChange,
   disabled,
-  tone = "brand",
+  tone = "accent",
   className,
 }: SwitchProps) {
   return (

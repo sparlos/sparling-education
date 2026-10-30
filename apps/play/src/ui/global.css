@@ -16,6 +16,6 @@ body {
 
 /* The self-hosted fonts loaded in main.tsx; names match `fontVariables` in @repo/ui. */
 :root {
-  --k-font-heading: "Nunito Variable";
-  --k-font-body: "Nunito Sans Variable";
+  --k-font-heading: "Plus Jakarta Sans";
+  --k-font-body: "Plus Jakarta Sans";
 }

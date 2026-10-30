@@ -1,0 +1,36 @@
+.circle {
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  background-color: var(--initial-fill);
+  color: var(--initial-text);
+  font-family: var(--k-font-heading-stack);
+  font-size: 0.9375rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.circle::before {
+  content: attr(data-initial);
+}
+
+.circle[data-size="sm"] {
+  width: 2rem;
+  height: 2rem;
+  font-size: 0.8125rem;
+}
+
+.circle[data-size="lg"] {
+  width: 3rem;
+  height: 3rem;
+  font-size: 1.25rem;
+}
+
+@media print {
+  .circle {
+    display: none;
+  }
+}

@@ -1,0 +1,12 @@
+.heading {
+  display: flex;
+  align-items: center;
+  gap: var(--mantine-spacing-sm);
+}
+
+/* Printed in plain ink: the tile is decoration. */
+@media print {
+  .heading > :first-child {
+    display: none;
+  }
+}

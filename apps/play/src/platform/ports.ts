@@ -8,6 +8,7 @@
 import type { AvatarLook } from "@repo/avatar";
 import type { ExpectationId } from "@repo/curriculum";
 import type { Attempt, GameManifest, Locale } from "@repo/game-contract";
+import type { ClassColourSlug } from "@repo/tokens";
 import type { ComponentType } from "react";
 
 export type { AvatarLook } from "@repo/avatar";
@@ -34,6 +35,11 @@ export interface Membership {
   /** Stable and opaque. */
   classId: string;
   className: string;
+  /**
+   * The class's colour, which its section of the locker and the screens
+   * around its games take. Never named to the student.
+   */
+  classColour: ClassColourSlug;
   /** The class's grades, ascending: several for a split class. */
   grades: number[];
   /**

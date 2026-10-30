@@ -1,3 +1,5 @@
+/* Offset from the element, so the page shows between ring and fill as its
+   light halo, and the ring shows beside any fill. */
 .focus:focus-visible {
   outline: 3px solid var(--k-focus);
   outline-offset: 3px;

@@ -1,7 +1,9 @@
 /* Site-wide defaults for Kindling. Loaded once by UIProvider. */
 
-/* `data-tone` re-points the `--tone-*` variables at an audience or the brand,
-   so any component can be recoloured by an ancestor. Brand is the default. */
+/* `data-tone` re-points the `--tone-*` variables at an audience, the brand, a
+   fixed meaning, or `accent` (the class colour in scope), so any component
+   can be recoloured by an ancestor. Brand is the default, which is also the
+   accent outside any class colour scope. */
 :root,
 [data-tone="brand"] {
   --tone-fill: var(--k-brand-fill);
@@ -46,6 +48,33 @@
   --tone-edge: var(--k-student-edge);
   --tone-soft: var(--k-student-soft);
   --tone-text: var(--k-student-text);
+}
+
+[data-tone="accent"] {
+  --tone-fill: var(--k-accent-fill);
+  --tone-fill-hover: var(--k-accent-fill-hover);
+  --tone-on-fill: var(--k-accent-on-fill);
+  --tone-edge: var(--k-accent-edge);
+  --tone-soft: var(--k-accent-soft);
+  --tone-text: var(--k-accent-text);
+}
+
+[data-tone="misconception"] {
+  --tone-fill: var(--k-misconception-fill);
+  --tone-fill-hover: var(--k-misconception-fill-hover);
+  --tone-on-fill: var(--k-misconception-on-fill);
+  --tone-edge: var(--k-misconception-edge);
+  --tone-soft: var(--k-misconception-soft);
+  --tone-text: var(--k-misconception-text);
+}
+
+[data-tone="recognition"] {
+  --tone-fill: var(--k-recognition-fill);
+  --tone-fill-hover: var(--k-recognition-fill-hover);
+  --tone-on-fill: var(--k-recognition-on-fill);
+  --tone-edge: var(--k-recognition-edge);
+  --tone-soft: var(--k-recognition-soft);
+  --tone-text: var(--k-recognition-text);
 }
 
 html {

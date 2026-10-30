@@ -3,8 +3,10 @@
 // reload, a bookmark or a shared link opens the same screen. Everything for
 // one class lives under /classes/<classId>/. "/" opens the class the teacher
 // last had open, or their only one, or makes a first.
+import { defaultClassColour, nextClassColour } from "@repo/tokens";
 import { Button } from "@repo/ui/button";
 import { Card } from "@repo/ui/card";
+import { ClassColourScope } from "@repo/ui/class-colour-scope";
 import { Loader } from "@repo/ui/loader";
 import { Stack } from "@repo/ui/stack";
 import { Text } from "@repo/ui/text";
@@ -22,7 +24,12 @@ import {
   useRouter,
 } from "@tanstack/react-router";
 import { type ReactNode, useEffect } from "react";
-import { type Account, NotFound, type TeacherPort } from "../platform/ports.ts";
+import {
+  type Account,
+  type Class,
+  NotFound,
+  type TeacherPort,
+} from "../platform/ports.ts";
 import { Chrome } from "./Chrome.tsx";
 import { DashboardScreen } from "./Dashboard.tsx";
 import { ButtonLink } from "./links.tsx";
@@ -67,12 +74,20 @@ function rememberClass(classId: string) {
 }
 
 /** The new-class form, for a teacher with no classes or the switcher's "New class". */
-function NewClassRoute({ first }: { first: boolean }) {
+function NewClassRoute({
+  first,
+  classes = [],
+}: {
+  first: boolean;
+  /** The teacher's classes, whose colours a new one avoids. */
+  classes?: Class[];
+}) {
   const router = useRouter();
   const { teacher } = router.options.context;
   return (
     <NewClassScreen
       first={first}
+      colour={nextClassColour(classes.map((c) => c.colour))}
       onCreate={async (draft) => {
         const made = await teacher.createClass(draft);
         await router.navigate({
@@ -105,12 +120,30 @@ const indexRoute = createRoute({
 const newClassRoute = createRoute({
   getParentRoute: () => root,
   path: "new",
-  component: () => <NewClassRoute first={false} />,
+  loader: ({ context: { teacher } }) => teacher.classes(),
+  component: function NewClass() {
+    return (
+      <NewClassRoute first={false} classes={newClassRoute.useLoaderData()} />
+    );
+  },
+  ...loading("your classes", { home: true, label: "Your classes" }),
 });
 
+// Every screen of a class is in its class colour. A class that can't be
+// loaded leaves its screen to say so, in the brand's colour.
 const classRoute = createRoute({
   getParentRoute: () => root,
   path: "classes/$classId",
+  loader: ({ context: { teacher }, params: { classId } }) =>
+    teacher.class(classId).catch(() => null),
+  component: function InClass() {
+    const cls = classRoute.useLoaderData();
+    return (
+      <ClassColourScope colour={cls?.colour ?? defaultClassColour}>
+        <Outlet />
+      </ClassColourScope>
+    );
+  },
 });
 
 const dashboardRoute = createRoute({
@@ -199,6 +232,7 @@ const manageRoute = createRoute({
         cls={cls}
         students={students}
         actions={{
+          setColour: (colour) => then(teacher.setClassColour(cls.id, colour)),
           setGrade: (studentId, grade) =>
             then(teacher.setStudentGrade(cls.id, studentId, grade)),
           remove: (studentId) => then(teacher.removeStudent(cls.id, studentId)),
@@ -429,7 +463,7 @@ function Failed({
           <UpLink up={up} />
         </div>
       )}
-      <Card variant="soft" tone="educator">
+      <Card variant="soft" tone="accent">
         <Stack gap="xs" align="flex-start">
           <Text>{`${capitalised(what)} couldn't be loaded.`}</Text>
           <Button variant="secondary" onClick={() => router.invalidate()}>
@@ -465,7 +499,7 @@ function NotFoundScreen() {
         This page isn't here. It may not be one of your classes, or the link may
         be wrong.
       </Text>
-      <ButtonLink to="/" tone="educator">
+      <ButtonLink to="/" tone="accent">
         Your classes
       </ButtonLink>
     </Stack>

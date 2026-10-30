@@ -50,11 +50,17 @@ sessionPortContract("Stand-in session", {
       ),
     };
   },
-  newClass: async (className, grades) => {
+  newClass: async (className, grades, colour) => {
     classes += 1;
     const joinCode = `CODE${classes}`;
     const classId = `class-${classes}`;
-    made.set(joinCode, { classId, className, grades, games });
+    made.set(joinCode, {
+      classId,
+      className,
+      classColour: colour ?? "teal",
+      grades,
+      games,
+    });
     return { classId, joinCode };
   },
 });
