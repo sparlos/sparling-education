@@ -488,7 +488,7 @@ describe("the dashboard", () => {
 
     await user.click(first as HTMLElement);
     expect(first).toHaveAttribute("aria-expanded", "true");
-    const who = within(strip).getByRole("list", {
+    const who = await within(strip).findByRole("list", {
       name: /Students who showed/,
     });
     expect(
@@ -590,7 +590,9 @@ describe("the dashboard", () => {
       name: "Misconceptions showing up",
     });
     await user.click(within(strip).getByRole("button", { name: biggerWords }));
-    await user.click(within(strip).getByRole("link", { name: "Ana D." }));
+    await user.click(
+      await within(strip).findByRole("link", { name: "Ana D." }),
+    );
 
     // The student's page at that expectation: its bands and each play.
     expect(

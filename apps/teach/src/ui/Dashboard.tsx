@@ -83,50 +83,50 @@ export function DashboardScreen({
       <Switcher classes={all} current={cls.id} />
       {/* With the panel, so the gap above it slides open too. */}
       <div>
-      <div className={classes.heading}>
-        <div className={classes.title}>
-          <Title order={1} size="h2">
-            {cls.name}
-          </Title>
-          <Badge tone="accent">{gradesLabel(cls.grades)}</Badge>
-        </div>
-        <div className={classes.actions}>
-          {!cls.demo && (
-            <DisclosureButton
-              tone="accent"
-              data-walkthrough="share"
-              open={sharing}
-              onToggle={() => setSharing(!sharing)}
-            >
-              Share
-            </DisclosureButton>
-          )}
-          <ButtonLink
-            to="/classes/$classId/quick-assess"
-            params={{ classId: cls.id }}
-            state={{ fromAbove: true }}
-            variant="secondary"
-            data-walkthrough="quick-assess"
-          >
-            Quick assess
-          </ButtonLink>
-          <ButtonLink
-            to="/classes/$classId/manage"
-            params={{ classId: cls.id }}
-            state={{ fromAbove: true }}
-            variant="secondary"
-          >
-            Manage class
-          </ButtonLink>
-        </div>
-      </div>
-      {!cls.demo && (
-        <Collapse open={sharing}>
-          <div className={classes.sharePanel}>
-            <SharePanel cls={cls} actions={share} />
+        <div className={classes.heading}>
+          <div className={classes.title}>
+            <Title order={1} size="h2">
+              {cls.name}
+            </Title>
+            <Badge tone="accent">{gradesLabel(cls.grades)}</Badge>
           </div>
-        </Collapse>
-      )}
+          <div className={classes.actions}>
+            {!cls.demo && (
+              <DisclosureButton
+                tone="accent"
+                data-walkthrough="share"
+                open={sharing}
+                onToggle={() => setSharing(!sharing)}
+              >
+                Share
+              </DisclosureButton>
+            )}
+            <ButtonLink
+              to="/classes/$classId/quick-assess"
+              params={{ classId: cls.id }}
+              state={{ fromAbove: true }}
+              variant="secondary"
+              data-walkthrough="quick-assess"
+            >
+              Quick assess
+            </ButtonLink>
+            <ButtonLink
+              to="/classes/$classId/manage"
+              params={{ classId: cls.id }}
+              state={{ fromAbove: true }}
+              variant="secondary"
+            >
+              Manage class
+            </ButtonLink>
+          </div>
+        </div>
+        {!cls.demo && (
+          <Collapse open={sharing}>
+            <div className={classes.sharePanel}>
+              <SharePanel cls={cls} actions={share} />
+            </div>
+          </Collapse>
+        )}
       </div>
       {cls.demo && <DemoCard actions={demo} />}
       {dashboard.students.length === 0 ? (
@@ -315,8 +315,7 @@ export function Strip({
                 key={key}
                 className={classes.misconception}
                 data-arriving={
-                  (all && !hidden && index >= commonMisconceptions) ||
-                  undefined
+                  (all && !hidden && index >= commonMisconceptions) || undefined
                 }
               >
                 <button
