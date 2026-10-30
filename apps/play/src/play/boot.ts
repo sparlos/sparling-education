@@ -28,6 +28,12 @@ export interface ReadyPlay {
   game: HostedGame;
   tier: string;
   play: Play;
+  /**
+   * Whether this is the student's first play of the game, as far as the
+   * shell knows yet. Asked for while the game loads, but never waited for:
+   * true until the platform answers that they've played it before.
+   */
+  firstPlay(): boolean;
   /** This play's outbox and those of earlier plays still sending; dispose them all when done. */
   outboxes: Outbox[];
 }
@@ -94,6 +100,14 @@ export async function boot(options: {
     if (!membership) return { kind: "locker" };
   }
 
+  let played = false;
+  platform.records.played(link.slug).then(
+    (answer) => {
+      played = answer;
+    },
+    (error: unknown) =>
+      console.warn("[play] Couldn't tell whether this is a first play", error),
+  );
   const game = await load();
   const tier = chooseTier(game.manifest.tiers, membership.grade);
   const id = newId();
@@ -130,6 +144,7 @@ export async function boot(options: {
       game,
       tier,
       play,
+      firstPlay: () => !played,
       outboxes: [outbox, ...leftovers],
     },
   };

@@ -164,11 +164,9 @@ The contract's character API starts minimal: the portrait at any size, with an e
 
 ## Tutorial
 
-A scripted, in-code "video": the avatar and a ghost hand act out one course while the voice explains (strings `tutorial.*`). It opens with a welcome ("Welcome to Fraction Hop!"), then shows: the goal's fraction, dragging two blocks into the plan, pressing play, a hop splashing, fixing it by dragging the hops into the other order, and reaching the goal. It plays at the start of every play, before task 1, and a skip button ends it at any time. It's never recorded as help.
+A scripted, in-code "video": the avatar and a ghost hand act out one course while the voice explains (strings `tutorial.*`). It opens with a welcome ("Welcome to Fraction Hop!"), then shows: the goal's fraction, dragging two blocks into the plan, pressing play, a hop splashing, fixing it by dragging the hops into the other order, and reaching the goal. It plays only on the student's first play of Fraction Hop, in any class and at any tier (founder's call; the shell's `firstPlay`), before task 1, and a skip button ends it at any time. A returning student starts at task 1. It's never recorded as help.
 
 **The voice and the hand take turns, never both at once** (founder's call). A line is said first, and the hand may rest on what it's about while it's said. Then the hand acts. Each step waits for the voice to finish (the contract's `say` settles when it has), rather than guessing a line's length. The buttons the hand taps look enabled, though the student can't tap them. On the lower half of the screen, the hand points down from above.
-
-Later, when the contract can remember things per student: play it only the first time, and again when a block type appears that the student hasn't seen.
 
 ## Strings
 
@@ -279,7 +277,6 @@ Whether visual polish becomes its own skill is decided after this build (see `.s
 ## Open questions
 
 - **`numerator-not-a-count` with a smaller wrong unit is a probe.** Two 1⁄12 hops for ⅔ stop short on grass, which never counts, so that direction goes unseen. Only the overshoot direction (three ¼ for ³⁄₈) is recorded. Accepted for v1; revisit if teachers miss it.
-- **The tutorial plays every play** until the contract can remember per student which block types they've seen. Add that to the contract during the build if it's cheap.
 - **Every run is an attempt** (since version 2): a teacher can follow a task run by run. Probes are sent as exploring tries, which never count. A task left after misses now reads "not yet", where version 1 recorded nothing for it.
 - **Thresholds** (misses per help step, matches per misconception) are starting numbers, to tune from the locally logged counts.
 - **Separate tasks, not this game's:** the portrait's expressions look "weird/ugly" (fix in `@repo/avatar`'s portrait, shared by every game). A repeat block ("3 × ¼ hop", like Lightbot's loops) would evidence `math-2020.g4.B2.7`: prototype it later, maybe as the second MVP game.

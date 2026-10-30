@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { client, signInAsStudent } from "../test/client.ts";
+import { client, db, signInAsStudent } from "../test/client.ts";
 import {
   createClass,
   joinedStudent,
@@ -8,6 +8,7 @@ import {
   sendRecords,
   teacher,
 } from "../test/plays.ts";
+import { toRow } from "./play-records.ts";
 
 /** A student in a new Grade 4 class. */
 async function student() {
@@ -284,5 +285,91 @@ describe("play records that will never be accepted", () => {
       { headers },
     );
     expect(res.status).toBe(400);
+  });
+});
+
+describe("whether a student has played a game", () => {
+  async function played(headers: { cookie: string }, slug = "fraction-hop") {
+    const res = await client.games[":slug"].played.$get(
+      { param: { slug } },
+      { headers },
+    );
+    if (res.status !== 200) throw new Error(`Played failed: ${res.status}`);
+    return (await res.json()).played;
+  }
+
+  it("hasn't, before any of their plays has arrived", async () => {
+    const who = await student();
+    expect(await played(who.headers)).toBe(false);
+  });
+
+  it("has, once any record of a play has arrived, before it ends", async () => {
+    const who = await student();
+    const [first] = playOf(who, right(2), { ending: null });
+    if (!first) throw new Error("No record");
+    await sendRecords(who.headers, [first]);
+    expect(await played(who.headers)).toBe(true);
+  });
+
+  it("has, after a play that crashed before any attempt", async () => {
+    const who = await student();
+    await sendRecords(who.headers, playOf(who, [], { ending: "crashed" }));
+    expect(await played(who.headers)).toBe(true);
+  });
+
+  it("has, after playing in another class at another tier", async () => {
+    const teacherHeaders = await teacher();
+    const split = await createClass(teacherHeaders, [3, 4]);
+    const other = await createClass(teacherHeaders, [5]);
+    const who = await joinedStudent(split, { grade: 3 });
+    const joined = await client.memberships.$post(
+      { json: { joinCode: other.joinCode } },
+      { headers: who.headers },
+    );
+    expect(joined.status).toBe(200);
+    await sendRecords(
+      who.headers,
+      playOf({ ...who, classId: other.id }, right(1), { grade: 5 }),
+    );
+    expect(await played(who.headers)).toBe(true);
+  });
+
+  it("hasn't, when they've only played a different game", async () => {
+    const who = await student();
+    // Kindling hosts one game so far, so another game's play is seeded.
+    const [record] = playOf(who, right(1), { ending: null });
+    if (!record) throw new Error("No record");
+    await db.playRecord.create({
+      data: {
+        ...toRow(who.studentId, record),
+        game: "another-game",
+        gameVersion: 1,
+      },
+    });
+    expect(await played(who.headers)).toBe(false);
+    expect(await played(who.headers, "another-game")).toBe(true);
+  });
+
+  it("only counts the signed-in student's own plays", async () => {
+    const cls = await createClass(await teacher(), [4]);
+    const someone = await joinedStudent(cls);
+    await sendRecords(
+      someone.headers,
+      playOf({ ...someone, classId: cls.id }, right(1)),
+    );
+    const who = await joinedStudent(cls, { name: ["Ada", "Lee"] });
+    expect(await played(who.headers)).toBe(false);
+  });
+
+  it("is only for students", async () => {
+    const signedOut = await client.games[":slug"].played.$get({
+      param: { slug: "fraction-hop" },
+    });
+    expect(signedOut.status).toBe(401);
+    const asTeacher = await client.games[":slug"].played.$get(
+      { param: { slug: "fraction-hop" } },
+      { headers: await teacher() },
+    );
+    expect(asTeacher.status).toBe(403);
   });
 });

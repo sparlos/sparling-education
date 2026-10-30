@@ -24,10 +24,19 @@ interface User {
   click(el: Element): Promise<void>;
 }
 
-/** By default every line is said at once. */
-function setUp(tier: TierId, voice?: () => Promise<void>) {
+/** By default every line is said at once, on the student's first play. */
+function setUp(
+  tier: TierId,
+  voice?: () => Promise<void>,
+  options: { firstPlay?: boolean } = {},
+) {
   const courses = generatePlay(tier, seeded(Math.floor(seedFrom * 2 ** 31)));
-  const shell = mountGame(game, { tier, voice, random: seedFrom });
+  const shell = mountGame(game, {
+    tier,
+    voice,
+    random: seedFrom,
+    firstPlay: options.firstPlay,
+  });
   const user: User = { click: shell.tap };
   return { courses, shell, user, said: shell.said, lastSaid: shell.lastSaid };
 }
@@ -205,6 +214,26 @@ describe("the tutorial", () => {
     // Nothing the tutorial had queued plays after the skip.
     await wait(60_000);
     expect(lastSaid()[0]).toBe("task.goal-is-at");
+  });
+
+  it("plays only on the student's first play: a returning student starts at task 1", async () => {
+    const { said, courses } = setUp("g4", undefined, { firstPlay: false });
+    const first = courses[0] as Course;
+    expect(
+      screen.queryByRole("button", { name: "Skip" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByTestId("goal-at").querySelector("[data-frac]"),
+    ).toHaveAttribute("data-frac", `${first.shown.n}/${first.shown.d}`);
+    expect(screen.getByRole("button", { name: "Play" })).toBeEnabled();
+    await wait(60_000);
+    expect(said).toEqual([
+      [
+        "task.goal-is-at",
+        `amount.${first.shown.n}-${first.shown.d}`,
+        "task.make-a-plan",
+      ],
+    ]);
   });
 });
 

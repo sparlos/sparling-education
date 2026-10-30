@@ -1,4 +1,4 @@
-// The game: the tutorial, then six tasks. The rules live in ../rules; this
+// The game: the tutorial (on the student's first play only), then six tasks. The rules live in ../rules; this
 // file wires them to taps, the run's animation, the voice and the shell.
 import type { AvatarExpression, GameProps } from "@repo/game-contract";
 import { seeded } from "@repo/game-kit/random";
@@ -57,13 +57,19 @@ export const runMs = (run: Run) =>
 type Mode = "tutorial" | "play" | "done";
 
 export function FractionHop(props: GameProps<Manifest>) {
-  const { tier, t, say, onAttempt, onProgress, onFinish } = props;
+  const { tier, firstPlay, t, say, onAttempt, onProgress, onFinish } = props;
   const courses = useMemo(
     () => generatePlay(tier, seeded(Math.floor(Math.random() * 2 ** 31))),
     [tier],
   );
-  const [mode, setMode] = useState<Mode>("tutorial");
-  const [task, setTask] = useState(() => startTask(tier, 0, tutorialCourse));
+  // The tutorial plays on a first play only; a returning student starts at task 1.
+  const [mode, setMode] = useState<Mode>(firstPlay ? "tutorial" : "play");
+  const [task, setTask] = useState(() => {
+    const first = courses[0];
+    return firstPlay || !first
+      ? startTask(tier, 0, tutorialCourse)
+      : startTask(tier, 1, first);
+  });
   const current = useRef(task);
   const [hopper, setHopper] = useState<Hopper>(home);
   const [result, setResult] = useState<RunEnd | null>(null);
@@ -173,6 +179,12 @@ export function FractionHop(props: GameProps<Manifest>) {
 
   // The shell's progress bar: tasks solved out of the play's.
   useEffect(() => onProgress({ done: 0, total: tasksPerPlay }), [onProgress]);
+
+  // A returning student's first task is on screen already; say its goal.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: once, as the game opens
+  useEffect(() => {
+    if (!firstPlay) beginTask(1);
+  }, []);
 
   // The tutorial: a fixed script on its own course, never recorded. Each cue
   // waits for the last, so the voice and the hand take turns.

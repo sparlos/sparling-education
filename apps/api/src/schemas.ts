@@ -407,6 +407,15 @@ export const PlayRecordsStoredSchema = z
   })
   .openapi("PlayRecordsStored");
 
+export const PlayedSchema = z
+  .object({
+    played: z.boolean().openapi({
+      description:
+        "Whether any record of the student's for the game is stored: from any class, at any tier, however the play ended",
+    }),
+  })
+  .openapi("Played");
+
 export const UnderstandingSchema = z
   .enum(["not-yet-showing", "developing", "showing-consistently"])
   .openapi("Understanding", {

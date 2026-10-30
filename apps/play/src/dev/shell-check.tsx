@@ -37,7 +37,8 @@ const expectationFor = {
 } as const;
 
 export default defineGame(manifest, function ShellCheck(props) {
-  const { Avatar, t, say, onAttempt, onProgress, onFinish, tier } = props;
+  const { Avatar, t, say, onAttempt, onProgress, onFinish, tier, firstPlay } =
+    props;
   // Two tasks: each right answer finishes one.
   const [done, setDone] = useState(0);
   useEffect(() => onProgress({ done, total: 2 }), [done, onProgress]);
@@ -58,6 +59,9 @@ export default defineGame(manifest, function ShellCheck(props) {
     <section style={{ display: "grid", gap: 16, padding: 24 }}>
       <Avatar expression={mood} size={96} />
       <p data-testid="tier">{tier}</p>
+      <p data-testid="first-play">
+        {firstPlay ? "first play" : "played before"}
+      </p>
       <button type="button" onClick={() => say("intro")}>
         {t("intro")}
       </button>

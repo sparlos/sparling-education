@@ -22,6 +22,8 @@ import { vi } from "vitest";
 
 export interface FakeShellOptions<M extends GameManifest> {
   tier: TierId<M>;
+  /** Whether it's the student's first play of the game: true by default. */
+  firstPlay?: boolean;
   /**
    * What each `say` returns. By default every line is said at once. Pass
    * `heldVoice().voice` to finish lines by hand and test turn-taking.
@@ -136,7 +138,12 @@ export function mountGame<M extends GameManifest>(
   options: FakeShellOptions<M>,
 ): FakeShell<M> {
   const { manifest } = game;
-  const { tier, voice = () => Promise.resolve(), random } = options;
+  const {
+    tier,
+    firstPlay = true,
+    voice = () => Promise.resolve(),
+    random,
+  } = options;
   const strings: Record<string, string> = manifest.strings["en-CA"];
   const said: StringId<M>[][] = [];
   const attempts: Attempt<M>[] = [];
@@ -148,6 +155,7 @@ export function mountGame<M extends GameManifest>(
   const props: GameProps<M> = {
     tier,
     locale: "en-CA",
+    firstPlay,
     Avatar: ({ expression }) => (
       <span data-testid="avatar" data-expression={expression} />
     ),

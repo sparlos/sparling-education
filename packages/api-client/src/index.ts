@@ -16,6 +16,7 @@ export {
   getStudentPage,
   getStudentQuickAssess,
   getWalkthroughs,
+  hasPlayed,
   joinClass,
   markRewardsSeen,
   markWalkthroughSeen,

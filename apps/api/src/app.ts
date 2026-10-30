@@ -32,7 +32,7 @@ import {
   removeStudent,
   setStudentGrade,
 } from "./memberships.ts";
-import { ingestPlayRecords } from "./play-records.ts";
+import { hasPlayed, ingestPlayRecords } from "./play-records.ts";
 import { classQuickAssess, studentQuickAssess } from "./quick-assess.ts";
 import { recognise } from "./recognition.ts";
 import {
@@ -54,6 +54,7 @@ import {
   MembershipSchema,
   NewClassSchema,
   PlacementsSchema,
+  PlayedSchema,
   PlayRecordBatchSchema,
   PlayRecordsStoredSchema,
   PlaySchema,
@@ -365,6 +366,27 @@ const playRecordsRoute = createRoute({
         "Signed in, but not as a student, or a record is another student's",
       content: { "application/json": { schema: ErrorSchema } },
     },
+  },
+});
+
+const playedRoute = createRoute({
+  method: "get",
+  path: "/games/{slug}/played",
+  operationId: "hasPlayed",
+  summary: "Whether the signed-in student has played this game before",
+  description:
+    "True once any record of a play of theirs has arrived, from any class, at any tier, including a play that crashed. The play shell plays a game's tutorial only when it's false. Records can arrive late, so a play on another device may not count yet.",
+  request: {
+    params: z.object({
+      slug: z.string().min(1).max(100).openapi({ example: "fraction-hop" }),
+    }),
+  },
+  responses: {
+    200: {
+      description: "Whether they've played it",
+      content: { "application/json": { schema: PlayedSchema } },
+    },
+    ...studentOnly,
   },
 });
 
@@ -996,6 +1018,13 @@ export function createApp({
         case "refused":
           return c.json({ error: ingested.problem }, 400);
       }
+    })
+    .openapi(playedRoute, async (c) => {
+      const student = await studentOf(c);
+      if (student === "signed-out") return c.json({ error: student }, 401);
+      if (student === "not-a-student") return c.json({ error: student }, 403);
+      const { slug } = c.req.valid("param");
+      return c.json({ played: await hasPlayed(db, student.id, slug) }, 200);
     })
     .openapi(classesRoute, async (c) => {
       const teacher = await teacherOf(c);

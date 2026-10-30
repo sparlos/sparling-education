@@ -136,8 +136,15 @@ try {
       page.on("console", (m) => {
         if (m.type() === "error") errors.push(m.text());
       });
+      const firstPlay = tour.firstPlay?.({ grade, first: index === 0 }) ?? true;
       await page.addInitScript(
-        ([grade, slug]) => {
+        ([grade, slug, firstPlay]) => {
+          // The stand-in's record of the games each student has played.
+          if (!firstPlay)
+            localStorage.setItem(
+              "kindling.stand-in.played",
+              JSON.stringify({ tour: [slug] }),
+            );
           localStorage.setItem(
             "kindling.stand-in.student",
             JSON.stringify({
@@ -172,7 +179,7 @@ try {
           };
           s.cancel = () => {};
         },
-        [grade, slug] as const,
+        [grade, slug, firstPlay] as const,
       );
       const problem = (message: string) => {
         problems++;
@@ -184,6 +191,7 @@ try {
         grade,
         label,
         first: index === 0,
+        firstPlay,
         problem,
         log: (message) => console.log(`  ${message}`),
         screenshot: async (name) => {

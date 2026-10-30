@@ -163,6 +163,27 @@ export function playRecordsPortContract(
       await port.send([]);
       expect(await stored()).toEqual([]);
     });
+
+    it("hasn't played a game until one of its records is stored", async () => {
+      const { port, attempt } = await harness();
+      const record = attempt();
+      expect(await port.played(record.game)).toBe(false);
+      await port.send([record]);
+      expect(await port.played(record.game)).toBe(true);
+    });
+
+    it("has played a game whose only play crashed", async () => {
+      const { port, end } = await harness();
+      const record = end({ ending: "crashed" });
+      await port.send([record]);
+      expect(await port.played(record.game)).toBe(true);
+    });
+
+    it("hasn't played a game when only another game's records are stored", async () => {
+      const { port, attempt } = await harness();
+      await port.send([attempt()]);
+      expect(await port.played("another-game")).toBe(false);
+    });
   });
 }
 

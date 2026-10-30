@@ -291,6 +291,8 @@ function PlayScreen({
   // Browsers block sound until the page is tapped, so every game waits for
   // a tap on start before its first line.
   const [started, setStarted] = useState(false);
+  // Fixed when the student taps start, from whatever the platform has said by then.
+  const [firstPlay, setFirstPlay] = useState(true);
   const [progress, setProgress] = useState<Progress | null>(null);
   const gate = useContext(ShellVoiceGate);
   const voice = useMemo<Voice>(
@@ -320,6 +322,7 @@ function PlayScreen({
     () => ({
       tier,
       locale: student.locale,
+      firstPlay,
       Avatar: avatarFor(student.look),
       t: translator(game.manifest.strings, student.locale),
       say(...ids) {
@@ -330,7 +333,7 @@ function PlayScreen({
       onProgress: (next) => setProgress(next),
       onFinish: () => endOnce("finished"),
     }),
-    [game, student, tier, play, voice, endOnce],
+    [game, student, tier, firstPlay, play, voice, endOnce],
   );
 
   // The shell around the game is in the colour of the class it counts for.
@@ -386,7 +389,10 @@ function PlayScreen({
             ) : (
               <StartScreen
                 look={student.look}
-                onStart={() => setStarted(true)}
+                onStart={() => {
+                  setFirstPlay(ready.firstPlay());
+                  setStarted(true);
+                }}
               />
             )}
           </ErrorBoundary>

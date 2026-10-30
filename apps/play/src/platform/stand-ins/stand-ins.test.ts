@@ -27,7 +27,10 @@ import { standInRecords } from "./records.ts";
 import { standInSession, standInSignIn, standInSignOut } from "./session.ts";
 
 playRecordsPortContract("Stand-in attempts", () => {
-  const port = standInRecords();
+  const port = standInRecords({
+    storage: memoryStorage(),
+    student: () => "student-1",
+  });
   return { port, stored: async () => port.stored };
 });
 
@@ -182,6 +185,17 @@ describe("stand-in attempts", () => {
     offline = false;
     await port.send([sampleAttempt()]);
     expect(port.stored).toHaveLength(1);
+  });
+
+  it("remembers across a reload which games the signed-in student has played", async () => {
+    const storage = memoryStorage();
+    let student = "student-1";
+    const port = standInRecords({ storage, student: () => student });
+    await port.send([sampleAttempt({ student, game: "fraction-hop" })]);
+    const reloaded = standInRecords({ storage, student: () => student });
+    expect(await reloaded.played("fraction-hop")).toBe(true);
+    student = "student-2";
+    expect(await reloaded.played("fraction-hop")).toBe(false);
   });
 });
 

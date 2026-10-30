@@ -13,6 +13,7 @@ import {
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { hosted } from "../games.ts";
+import { sampleAttempt } from "../platform/contract.ts";
 import {
   type AvatarLook,
   NotAStudent,
@@ -33,10 +34,14 @@ import {
   standInSignIn,
   standInStudent,
 } from "../platform/stand-ins/session.ts";
+import type { KeyValueStore } from "../play/storage.ts";
 import { memoryStorage } from "../test/memory-storage.ts";
 import { App } from "./App.tsx";
 
-const games = { "shell-check": hosted(() => import("../dev/shell-check.tsx")) };
+const games = {
+  "shell-check": hosted(() => import("../dev/shell-check.tsx")),
+  "fraction-hop": hosted(() => import("@games/fraction-hop")),
+};
 
 // Send almost at once, and never retry on a timer, so only the shell's own
 // triggers (the connection coming back, finishing) can send after a failure.
@@ -83,13 +88,24 @@ function setUp({
   classes = standInClasses(standInGames(["shell-check"])) as StandInClasses,
   // This browser's storage, kept between visits.
   storage = memoryStorage(),
+  // In place of the stand-in's answer to whether they've played the game before.
+  played = undefined as ((game: string) => Promise<boolean>) | undefined,
 } = {}) {
   if (signedIn) standInSignIn(storage, signedIn);
   let isOffline = offline;
-  const records = standInRecords({
+  const standIn = standInRecords({
+    storage,
+    student: () => standInStudent(storage)?.id ?? null,
     offline: () => isOffline,
     onStored: (fresh) => standInEarn(storage, fresh),
   });
+  const records = {
+    get stored() {
+      return standIn.stored;
+    },
+    send: standIn.send,
+    played: played ?? standIn.played,
+  };
   const session = failSession
     ? { current: () => Promise.reject(new Error("offline")) }
     : teacher
@@ -307,6 +323,91 @@ describe("opening a game", () => {
     expect(spoken).toContain(
       "This is for students. Teachers, use the teacher app.",
     );
+  });
+});
+
+describe("a game's first play", () => {
+  /** Stores a record of a play of `game` by the student, as an earlier visit would have. */
+  async function playedBefore(storage: KeyValueStore, game = "shell-check") {
+    await standInRecords({ storage }).send([
+      sampleAttempt({ student: student.id, game }),
+    ]);
+  }
+
+  it("tells the game it's a first play when the student hasn't played it", async () => {
+    setUp();
+    await game();
+    expect(screen.getByTestId("first-play")).toHaveTextContent("first play");
+  });
+
+  it("tells the game they've played it before, in any class", async () => {
+    const storage = memoryStorage();
+    await playedBefore(storage);
+    setUp({ storage });
+    await game();
+    expect(screen.getByTestId("first-play")).toHaveTextContent("played before");
+  });
+
+  it("only counts plays of the same game", async () => {
+    const storage = memoryStorage();
+    await playedBefore(storage, "fraction-hop");
+    setUp({ storage });
+    await game();
+    expect(screen.getByTestId("first-play")).toHaveTextContent("first play");
+  });
+
+  it("counts it as a first play when it can't be checked", async () => {
+    setUp({ played: () => Promise.reject(new Error("offline")) });
+    await game();
+    expect(screen.getByTestId("first-play")).toHaveTextContent("first play");
+  });
+
+  it("never holds the game back for the answer: none yet is a first play", async () => {
+    setUp({ played: () => new Promise<boolean>(() => {}) });
+    await game();
+    expect(screen.getByTestId("first-play")).toHaveTextContent("first play");
+  });
+
+  it("starts a returning student's Fraction Hop at task 1, with no tutorial", async () => {
+    const storage = memoryStorage();
+    await playedBefore(storage, "fraction-hop");
+    const withFractionHop: Student = {
+      ...student,
+      classes: student.classes.map((m) => ({
+        ...m,
+        games: standInGames(["shell-check", "fraction-hop"]),
+      })),
+    };
+    setUp({
+      path: "/play/fraction-hop?class=class-1",
+      signedIn: withFractionHop,
+      storage,
+    });
+    fireEvent.click(await screen.findByRole("button", { name: "Start" }));
+    const board = await screen.findByTestId("board");
+    expect(
+      within(board).queryByRole("button", { name: "Skip" }),
+    ).not.toBeInTheDocument();
+    // The tutorial's Play button can't be tapped; task 1's can.
+    expect(within(board).getByRole("button", { name: "Play" })).toBeEnabled();
+  });
+
+  it("plays a new student's Fraction Hop tutorial first", async () => {
+    setUp({
+      path: "/play/fraction-hop?class=class-1",
+      signedIn: {
+        ...student,
+        classes: student.classes.map((m) => ({
+          ...m,
+          games: standInGames(["fraction-hop"]),
+        })),
+      },
+    });
+    fireEvent.click(await screen.findByRole("button", { name: "Start" }));
+    const board = await screen.findByTestId("board");
+    expect(
+      within(board).getByRole("button", { name: "Skip" }),
+    ).toBeInTheDocument();
   });
 });
 

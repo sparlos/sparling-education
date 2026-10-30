@@ -18,7 +18,7 @@ export interface Outbox {
 }
 
 export interface OutboxOptions {
-  records: PlayRecordsPort;
+  records: Pick<PlayRecordsPort, "send">;
   storage: KeyValueStore | null;
   /** Storage key for this outbox; see outboxKey. */
   key: string;
@@ -148,7 +148,7 @@ export function createOutbox({
  * the tab closed while offline. The outboxes clean up after themselves.
  */
 export function sendLeftovers(options: {
-  records: PlayRecordsPort;
+  records: Pick<PlayRecordsPort, "send">;
   storage: KeyValueStore | null;
   student: string;
   /** The current play's key, which its own outbox handles. */

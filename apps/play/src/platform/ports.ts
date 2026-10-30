@@ -225,6 +225,13 @@ export interface PlayRecordsPort {
    * when a response is lost.
    */
   send(batch: readonly PlayRecord[]): Promise<void>;
+  /**
+   * Whether the signed-in student has played this game before: true once any
+   * record of a play of theirs is stored, from any class, at any tier, however
+   * it ended. Records can arrive late, so a play on another device may not
+   * count yet. Rejects when it can't be checked.
+   */
+  played(game: string): Promise<boolean>;
 }
 
 /** Where the shell sends the student in other apps. All URLs are absolute or root-relative. */

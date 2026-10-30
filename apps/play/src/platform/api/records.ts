@@ -1,5 +1,5 @@
 // The play-records port over Kindling's API, through the generated client.
-import { sendPlayRecords } from "@repo/api-client";
+import { hasPlayed, sendPlayRecords } from "@repo/api-client";
 import type { PlayRecordsPort } from "../ports.ts";
 import { unexpected } from "./unexpected.ts";
 
@@ -24,6 +24,11 @@ export function apiRecords(
       if (status >= 400 && status < 500 && status !== 429)
         return onRefused(status, res.data);
       throw unexpected("play records", status);
+    },
+    async played(game) {
+      const res = await hasPlayed(game);
+      if (res.status !== 200) throw unexpected("played", res.status);
+      return res.data.played;
     },
   };
 }

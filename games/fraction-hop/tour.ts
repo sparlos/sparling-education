@@ -1,6 +1,7 @@
 // Fraction Hop's browser tour: `pnpm tour fraction-hop`. Every tier at
-// Chromebook sizes: watches the whole tutorial once (Grade 3, widest size),
-// then on every task plays a miss, taps hint twice on task 2, and solves
+// Chromebook sizes: new to the game at the widest size, where it watches the
+// whole tutorial once (Grade 3) or skips it, and returning (no tutorial) at
+// the others. Then on every task plays a miss, taps hint twice on task 2, and solves
 // (building task 3's plan by dragging).
 // Checks the screen fits, the goal caption shows and targets are 64 px at
 // every step. See packages/game-kit/src/tour.ts.
@@ -106,10 +107,14 @@ export default defineTour({
   // The founder's call for this game: 64 px at every grade.
   minTarget: () => 64,
   mustShow: ['[data-hand="goal"]', '[data-testid="board"]'],
+  // New to the game at the widest size, where the tutorial is looked at;
+  // returning, so it starts at task 1, everywhere else.
+  firstPlay: ({ first }) => first,
   async play({
     page,
     grade,
     first,
+    firstPlay,
     checkFit,
     screenshot,
     log,
@@ -117,10 +122,14 @@ export default defineTour({
     spoken,
   }) {
     await page.waitForSelector('[data-testid="board"]');
-    await page.waitForTimeout(4000);
-    await screenshot("tutorial-plan");
-    await checkFit("tutorial");
-    if (first && grade === 3) {
+    if (!firstPlay) {
+      // A returning student: no tutorial, straight to task 1.
+      if (await page.getByRole("button", { name: "Skip" }).isVisible())
+        problem("a returning student got the tutorial");
+    } else if (first && grade === 3) {
+      await page.waitForTimeout(4000);
+      await screenshot("tutorial-plan");
+      await checkFit("tutorial");
       // Watch the whole tutorial once, with a look at the hand dragging.
       const t0 = Date.now();
       await page.waitForSelector('[data-testid="carried"]', {
@@ -140,6 +149,9 @@ export default defineTour({
         `tutorial took ${Math.round((Date.now() - t0) / 1000) + 4}s; said: ${(await spoken()).join(" / ").slice(0, 400)}`,
       );
     } else {
+      await page.waitForTimeout(4000);
+      await screenshot("tutorial-plan");
+      await checkFit("tutorial");
       await page.getByRole("button", { name: "Skip" }).click();
     }
     await page.waitForTimeout(300);

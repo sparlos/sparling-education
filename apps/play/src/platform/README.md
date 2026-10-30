@@ -7,7 +7,7 @@ The play shell needs six things from the rest of Kindling. It reaches each one o
 | `SessionPort` | Who is signed in: their ID, locale, avatar look, and the classes they're in with their grade in each | `GET /session` | A pretend student picked on the stand-in sign-in screen, kept in this browser's localStorage |
 | `MembershipsPort` | Joining a class by its join code, and picking a grade in a split class | `POST /memberships`, `PUT /memberships/{classId}/grade` | Adds stand-in classes to the stored student. Any join code names one: `G4` is Grade 4, `G45` a Grade 4/5 split, a code with no digits Grades 3–5, a code starting with `X` no class |
 | `LockerPort` | The outfit pieces and stickers the student owns, the rewards and recognition they haven't seen yet, where their stickers are on the locker, and dressing their avatar (designing it the first time, then the wardrobe) | `GET /locker`, `PUT /locker/look`, `POST /locker/seen`, `PUT /locker/stickers` | Owns the base set, plus rewards granted with `standInGrant` or earned with `standInEarn` (each finished play earns the next one, with no effort rule or cap) and recognition given with `standInRecognise`, and sticker placements, all kept in localStorage; the look is kept on the stored student |
-| `PlayRecordsPort` | Stores each play's records: its attempts, then how it ended | `POST /play-records` | Kept in memory and logged to the console |
+| `PlayRecordsPort` | Stores each play's records: its attempts, then how it ended; and whether the student has played a game before | `POST /play-records`, `GET /games/{slug}/played` | Kept in memory and logged to the console; the games each student has played are kept in localStorage (`kindling.stand-in.played`), so a reload knows a returning student |
 | `LinksPort.signIn` | The sign-in page, returning to where the student was headed | `/play/sign-in`: Google's button in redirect mode | `/play/__stand-in/sign-in` |
 | `LinksPort.locker` | Where every game returns the student, naming the play | The locker, `/play/?play=<play>` | The same |
 
@@ -122,6 +122,12 @@ plus, by `kind`:
 - Validate `game`, `gameVersion`, `tier`, `expectation` and `misconception` against the game's manifest at that version (`attemptProblem` in `@repo/game-contract`, which the shell uses too). The shell already drops attempts its manifest doesn't allow, and attempts made after a play ended.
 - The API answers 200 with how many of the batch's records were new. It refuses the whole batch with 400 for a record its manifest or the student's classes don't allow, an attempt or second end added to a play that has ended, or more than 25 records, and with 403 when a record is another student's. Nothing in a refused batch is stored.
 - Scoring, results and rewards are computed from these records server-side, in the API's scoring module (see ADR 0002).
+
+### `GET /games/{slug}/played` → `{ played: boolean }`
+
+- Whether the signed-in student has played the game before: true once any of their records for it is stored, from any class, at any tier, including a play that only crashed. Nothing new is stored for it.
+- The shell asks as the game loads, and passes the answer to the game as `firstPlay` when the student taps start. It never waits for it: an answer that hasn't come by then, or a failure, counts as a first play, since showing a tutorial again beats leaving a new student without one.
+- Records can arrive late, so a play on another device may not count yet. At worst, the tutorial plays one extra time.
 
 ### Links
 

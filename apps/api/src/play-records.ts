@@ -77,6 +77,23 @@ async function ingest(
   return { kind: "stored", stored: count };
 }
 
+/**
+ * Whether any of the student's records for the game is stored, from any
+ * class, at any tier: a play counts as soon as one of its records arrives.
+ */
+export async function hasPlayed(
+  db: Db,
+  studentId: string,
+  game: string,
+): Promise<boolean> {
+  return (
+    (await db.playRecord.findFirst({
+      where: { studentId, game },
+      select: { id: true },
+    })) !== null
+  );
+}
+
 /** Why the new records can never be accepted, or null when they can. */
 async function problemWith(
   db: DbTransaction,

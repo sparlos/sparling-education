@@ -153,6 +153,14 @@ export interface Progress {
 export interface GameProps<M extends GameManifest> {
   tier: TierId<M>;
   locale: Locale;
+  /**
+   * True when this is the student's first play of this game, in any class
+   * and at any tier: a game plays its tutorial only then. It's set before the
+   * game mounts and never changes during a play. When the shell can't tell
+   * (offline, or the answer is slow), it's true: showing the tutorial again
+   * beats leaving a new student without one.
+   */
+  firstPlay: boolean;
   /** The student's avatar portrait, already dressed in their look. */
   Avatar: ComponentType<{ expression: AvatarExpression; size: number }>;
   /** The string in the student's locale. */

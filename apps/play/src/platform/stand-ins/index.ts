@@ -7,7 +7,7 @@ import { standInLinks } from "./links.ts";
 import { standInEarn, standInLocker } from "./locker.ts";
 import { standInClasses, standInMemberships } from "./memberships.ts";
 import { standInRecords } from "./records.ts";
-import { standInSession } from "./session.ts";
+import { standInSession, standInStudent } from "./session.ts";
 
 export function createStandInPlatform(options: {
   storage: KeyValueStore | null;
@@ -29,7 +29,9 @@ export function createStandInPlatform(options: {
     ),
     locker: standInLocker(options.storage),
     records: standInRecords({
+      storage: options.storage,
       offline: options.offline,
+      student: () => standInStudent(options.storage)?.id ?? null,
       log: (message, batch) => console.info(message, batch),
       onStored: (fresh) => standInEarn(options.storage, fresh),
     }),

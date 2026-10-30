@@ -7,6 +7,7 @@
 // `defineTour({ play })`. `pnpm tour <slug>` (scripts/tour.ts) runs it: for
 // each grade and size it signs a stand-in student in at that grade, opens
 // /play/<slug>, taps the shell's start button and hands the page to `play`.
+// The student is new to the game unless `firstPlay` says otherwise.
 // After `play` it checks the student is back in their locker, and for errors. Speech is
 // stubbed: each utterance "ends" after 300 ms, and `spoken()` lists them.
 import type { Page } from "playwright-core";
@@ -18,6 +19,8 @@ export interface TourContext {
   label: string;
   /** True at the first (widest) size, where screenshots are taken. */
   first: boolean;
+  /** Whether the student has never played the game, so it plays its tutorial. */
+  firstPlay: boolean;
   /** Records a problem; the tour goes on, and fails at the end. */
   problem(message: string): void;
   /** Logs a line under this grade and size. */
@@ -56,6 +59,11 @@ export interface GameTour {
    * from Grade 3, the design doc's budgets.
    */
   minTarget?(grade: number): number;
+  /**
+   * Whether the student is new to the game at this grade and size, or has
+   * played it before. By default, new everywhere.
+   */
+  firstPlay?(at: { grade: number; first: boolean }): boolean;
   /** Selectors `checkFit` always checks are on screen. */
   mustShow?: string[];
   /** Plays one whole play, from the game's first screen to its end. */
