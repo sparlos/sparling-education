@@ -24,7 +24,13 @@ import { classDashboard } from "./dashboard.ts";
 import { deleteDemoClass, giveDemoClass, viewDemoAsStudent } from "./demo.ts";
 import { studentEvidence, studentPlay } from "./drill-down.ts";
 import { type IdentityVerifier, identityFrom } from "./identity.ts";
-import { markSeen, placeStickers, studentLocker, wearLook } from "./locker.ts";
+import {
+  markSeen,
+  markSeenInWardrobe,
+  placeStickers,
+  studentLocker,
+  wearLook,
+} from "./locker.ts";
 import {
   classStudents,
   joinClass,
@@ -308,6 +314,22 @@ const seenRoute = createRoute({
   },
   responses: {
     204: { description: "Marked as seen" },
+    ...studentOnly,
+  },
+});
+
+const wardrobeSeenRoute = createRoute({
+  method: "post",
+  path: "/locker/wardrobe-seen",
+  operationId: "markSeenInWardrobe",
+  summary: "The signed-in student has seen these outfit pieces in the wardrobe",
+  description:
+    "They opened the slot holding them, so they stop being new in the wardrobe. Seeing them revealed in the locker doesn't change this, and this doesn't change that. Pieces the student hasn't got, or has already seen there, are ignored.",
+  request: {
+    body: { content: { "application/json": { schema: SeenSchema } } },
+  },
+  responses: {
+    204: { description: "Marked as seen in the wardrobe" },
     ...studentOnly,
   },
 });
@@ -990,6 +1012,13 @@ export function createApp({
       if (student === "signed-out") return c.json({ error: student }, 401);
       if (student === "not-a-student") return c.json({ error: student }, 403);
       await markSeen(db, student.id, c.req.valid("json").rewards);
+      return c.body(null, 204);
+    })
+    .openapi(wardrobeSeenRoute, async (c) => {
+      const student = await studentOf(c);
+      if (student === "signed-out") return c.json({ error: student }, 401);
+      if (student === "not-a-student") return c.json({ error: student }, 403);
+      await markSeenInWardrobe(db, student.id, c.req.valid("json").rewards);
       return c.body(null, 204);
     })
     .openapi(placementsRoute, async (c) => {

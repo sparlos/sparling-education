@@ -102,6 +102,12 @@ export interface Locker {
    * they open their locker, until they've seen them.
    */
   unseen: string[];
+  /**
+   * Outfit pieces they were given and haven't seen in the wardrobe yet, in
+   * the order they were given: new there until they open the piece's slot,
+   * whether or not they've seen it revealed. Never a sticker.
+   */
+  newInWardrobe: string[];
   /** The stickers they put on their locker, and where, the one underneath first. */
   placements: Placement[];
 }
@@ -130,6 +136,11 @@ export interface LockerPort {
    * so they're no longer new.
    */
   markSeen(rewards: readonly string[]): Promise<void>;
+  /**
+   * The student has opened the wardrobe slot holding these outfit pieces, so
+   * they're no longer new there. Doesn't change what's new in the locker.
+   */
+  markSeenInWardrobe(items: readonly string[]): Promise<void>;
   /**
    * Puts the student's stickers on their locker where `placements` says,
    * the one underneath first, taking off any left out. Only the signed-in

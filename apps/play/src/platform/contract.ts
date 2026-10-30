@@ -316,6 +316,25 @@ export interface LockerHarness {
   newStudent(): LockerStudent | Promise<LockerStudent>;
 }
 
+/**
+ * Earns until the student has an outfit piece beyond the base set, since a
+ * play can earn only a sticker. Returns the pieces earned, in order.
+ */
+async function earnOutfit(
+  locker: LockerPort,
+  earn: () => Promise<void>,
+): Promise<string[]> {
+  for (let tries = 0; tries < 5; tries++) {
+    await earn();
+    const { owned } = await locker.current();
+    const earned = owned.filter(
+      (id) => !(baseSet as readonly string[]).includes(id),
+    );
+    if (earned.length > 0) return earned;
+  }
+  throw new Error("No outfit piece earned");
+}
+
 // Outfit pieces outside the base set: no new student owns them.
 const notOwned = { top: "top-02", hat: "hat-30" } as const;
 
@@ -379,9 +398,11 @@ export function lockerPortContract(name: string, harness: LockerHarness) {
 
     it("gives a new student no stickers, nothing new and nothing on their locker", async () => {
       const { locker } = await harness.newStudent();
-      const { stickers, unseen, placements } = await locker.current();
+      const { stickers, unseen, newInWardrobe, placements } =
+        await locker.current();
       expect(stickers).toEqual([]);
       expect(unseen).toEqual([]);
+      expect(newInWardrobe).toEqual([]);
       expect(placements).toEqual([]);
     });
 
@@ -403,6 +424,34 @@ export function lockerPortContract(name: string, harness: LockerHarness) {
       expect((await locker.current()).unseen).toEqual(before.unseen);
       await locker.markSeen(before.unseen);
       expect(await locker.current()).toEqual({ ...before, unseen: [] });
+    });
+
+    it("keeps earned outfit pieces new in the wardrobe, and only those, until the student sees them there", async () => {
+      const { locker, earn } = await harness.newStudent();
+      const pieces = await earnOutfit(locker, earn);
+      const before = await locker.current();
+      expect(before.newInWardrobe).toEqual(pieces);
+      for (const id of before.newInWardrobe)
+        expect(rewardKind(id)).toBe("outfit");
+
+      await locker.markSeen(before.unseen);
+      expect((await locker.current()).newInWardrobe).toEqual(pieces);
+
+      const [first = "", ...rest] = pieces;
+      await locker.markSeenInWardrobe([first]);
+      expect((await locker.current()).newInWardrobe).toEqual(rest);
+      await locker.markSeenInWardrobe(pieces);
+      const after = await locker.current();
+      expect(after.newInWardrobe).toEqual([]);
+      expect(after.owned).toEqual(before.owned);
+    });
+
+    it("keeps pieces seen in the wardrobe new in the locker until they're revealed", async () => {
+      const { locker, earn } = await harness.newStudent();
+      await earnOutfit(locker, earn);
+      const before = await locker.current();
+      await locker.markSeenInWardrobe(before.newInWardrobe);
+      expect(await locker.current()).toEqual({ ...before, newInWardrobe: [] });
     });
 
     it("gives the student a recognition sticker, new until they've seen it", async () => {

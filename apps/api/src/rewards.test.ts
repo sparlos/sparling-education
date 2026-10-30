@@ -25,6 +25,13 @@ function markSeen(headers: Headers | undefined, rewards: string[]) {
   return client.locker.seen.$post({ json: { rewards } }, { headers });
 }
 
+function markSeenInWardrobe(headers: Headers | undefined, rewards: string[]) {
+  return client.locker["wardrobe-seen"].$post(
+    { json: { rewards } },
+    { headers },
+  );
+}
+
 /** A student in a new class: their headers, and who and where they play. */
 async function student() {
   const room = await createClass(await teacher());
@@ -235,5 +242,61 @@ describe("what's new", () => {
   it("needs a signed-in student", async () => {
     expect((await markSeen(undefined, [])).status).toBe(401);
     expect((await markSeen(await teacher(), [])).status).toBe(403);
+  });
+});
+
+describe("what's new in the wardrobe", () => {
+  /** The outfit pieces among the first `n` rewards granted. */
+  const outfitIn = (n: number) =>
+    catalogue.slice(0, n).filter((id) => rewardKind(id) === "outfit");
+
+  it("marks every outfit piece granted as new in the wardrobe, and no sticker", async () => {
+    const { headers, who } = await student();
+    await play(headers, who, earning(3));
+    const locker = await lockerOf(headers);
+    expect(outfitIn(3).length).toBeGreaterThan(0);
+    expect(locker.newInWardrobe).toEqual(outfitIn(3));
+  });
+
+  it("keeps a piece new in the wardrobe after it's been revealed", async () => {
+    const { headers, who } = await student();
+    await play(headers, who, earning(3));
+    await markSeen(headers, (await lockerOf(headers)).unseen);
+    expect((await lockerOf(headers)).newInWardrobe).toEqual(outfitIn(3));
+  });
+
+  it("stops a piece being new once the student has seen it in the wardrobe, and only that piece", async () => {
+    const { headers, who } = await student();
+    await play(headers, who, earning(3));
+    const [first = "", ...rest] = (await lockerOf(headers)).newInWardrobe;
+    expect(rest.length).toBeGreaterThan(0);
+
+    const res = await markSeenInWardrobe(headers, [first, "not-a-reward"]);
+    expect(res.status).toBe(204);
+    const after = await lockerOf(headers);
+    expect(after.newInWardrobe).toEqual(rest);
+    expect(after.owned).toContain(first);
+  });
+
+  it("keeps a piece seen in the wardrobe new in the locker until it's revealed", async () => {
+    const { headers, who } = await student();
+    await play(headers, who, earning(3));
+    const before = await lockerOf(headers);
+    await markSeenInWardrobe(headers, before.newInWardrobe);
+    expect((await lockerOf(headers)).unseen).toEqual(before.unseen);
+  });
+
+  it("keeps each student's wardrobe their own", async () => {
+    const one = await student();
+    const other = await student();
+    await play(one.headers, one.who, earning(3));
+    await play(other.headers, other.who, earning(3));
+    await markSeenInWardrobe(other.headers, outfitIn(3));
+    expect((await lockerOf(one.headers)).newInWardrobe).toEqual(outfitIn(3));
+  });
+
+  it("needs a signed-in student", async () => {
+    expect((await markSeenInWardrobe(undefined, [])).status).toBe(401);
+    expect((await markSeenInWardrobe(await teacher(), [])).status).toBe(403);
   });
 });

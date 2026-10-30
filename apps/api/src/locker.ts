@@ -32,7 +32,7 @@ export async function studentLocker(
   const [rewards, recognitions, placements] = await Promise.all([
     db.reward.findMany({
       where: { studentId },
-      select: { item: true, seenAt: true },
+      select: { item: true, seenAt: true, wardrobeSeenAt: true },
     }),
     db.recognition.findMany({
       where: { studentId },
@@ -49,6 +49,9 @@ export async function studentLocker(
   const unseen = new Set(
     rewards.filter((r) => r.seenAt === null).map((r) => r.item),
   );
+  const newInWardrobe = new Set(
+    rewards.filter((r) => r.wardrobeSeenAt === null).map((r) => r.item),
+  );
   const known = recognitions.filter(
     (r): r is { trait: RecognitionTrait; seenAt: Date | null } =>
       (recognitionTraits as readonly string[]).includes(r.trait),
@@ -64,10 +67,12 @@ export async function studentLocker(
     ...recognised,
   ];
   const mine = new Set(stickers);
+  const outfit = items.filter((id) => rewardKind(id) === "outfit");
   return {
-    owned: [...baseSet, ...items.filter((id) => rewardKind(id) === "outfit")],
+    owned: [...baseSet, ...outfit],
     stickers,
     unseen: [...items.filter((id) => unseen.has(id)), ...recognitionUnseen],
+    newInWardrobe: outfit.filter((id) => newInWardrobe.has(id)),
     // A sticker whose trait was taken out of the configuration isn't shown.
     placements: placements.filter((p) => mine.has(p.sticker)),
   };
@@ -140,6 +145,21 @@ export async function markSeen(
       data: { seenAt: new Date() },
     }),
   ]);
+}
+
+/**
+ * The student has opened the wardrobe slot holding these outfit pieces, so
+ * they're no longer new there. Separate from seeing them revealed.
+ */
+export async function markSeenInWardrobe(
+  db: Db,
+  studentId: string,
+  items: readonly string[],
+): Promise<void> {
+  await db.reward.updateMany({
+    where: { studentId, item: { in: [...items] }, wardrobeSeenAt: null },
+    data: { wardrobeSeenAt: new Date() },
+  });
 }
 
 const day = 24 * 60 * 60 * 1000;

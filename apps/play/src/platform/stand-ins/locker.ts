@@ -32,6 +32,8 @@ const placementsKey = "kindling.stand-in.placements";
 interface StandInReward {
   item: string;
   seen: boolean;
+  /** Seen in the wardrobe; missing (from before it was kept) counts as seen. */
+  wardrobeSeen?: boolean;
 }
 
 export function standInLocker(storage: KeyValueStore | null): LockerPort {
@@ -62,6 +64,10 @@ export function standInLocker(storage: KeyValueStore | null): LockerPort {
             .filter((r) => !r.seen)
             .map((r) => recognitionSticker(r.trait)),
         ],
+        newInWardrobe: rewards
+          .filter((r) => r.wardrobeSeen === false)
+          .map((r) => r.item)
+          .filter((id) => rewardKind(id) === "outfit"),
         placements: standInPlacements(storage).filter((p) =>
           mine.has(p.sticker),
         ),
@@ -90,6 +96,15 @@ export function standInLocker(storage: KeyValueStore | null): LockerPort {
         recognitionKey,
         standInRecognition(storage).map((r) =>
           traits.has(r.trait) ? { ...r, seen: true } : r,
+        ),
+      );
+    },
+    async markSeenInWardrobe(items) {
+      const mine = new Set(items);
+      writeRewards(
+        storage,
+        standInRewards(storage).map((r) =>
+          mine.has(r.item) ? { ...r, wardrobeSeen: true } : r,
         ),
       );
     },
@@ -148,18 +163,24 @@ function standInPlacements(storage: KeyValueStore | null): Placement[] {
 
 /**
  * Rewards the stand-in student owns beyond the base set, as earlier plays
- * would have granted them: already seen, unless `seen` is false.
+ * would have granted them: already seen, unless `seen` is false, and seen
+ * in the wardrobe as well unless `wardrobeSeen` is false.
  */
 export function standInGrant(
   storage: KeyValueStore | null,
   items: readonly string[],
-  { seen = true }: { seen?: boolean } = {},
+  {
+    seen = true,
+    wardrobeSeen = seen,
+  }: { seen?: boolean; wardrobeSeen?: boolean } = {},
 ): void {
   const rewards = standInRewards(storage);
   const have = new Set(rewards.map((r) => r.item));
   writeRewards(storage, [
     ...rewards,
-    ...items.filter((item) => !have.has(item)).map((item) => ({ item, seen })),
+    ...items
+      .filter((item) => !have.has(item))
+      .map((item) => ({ item, seen, wardrobeSeen })),
   ]);
 }
 

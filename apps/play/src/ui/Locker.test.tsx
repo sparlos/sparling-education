@@ -529,6 +529,129 @@ describe("the wardrobe", () => {
   });
 });
 
+describe("what's new in the wardrobe", () => {
+  // Revealed in the locker already, but not seen in the wardrobe.
+  const newPieces = (storage: KeyValueStore) =>
+    standInGrant(storage, ["top-02", "hat-30", catalogue[0] ?? ""], {
+      seen: true,
+      wardrobeSeen: false,
+    });
+
+  // Names match exactly, so "Hats" is the slot and never "Hats 30".
+  const slotButton = (name: string) => screen.getByRole("button", { name });
+
+  const stillNew = async (storage: KeyValueStore) =>
+    (await standInLocker(storage).current()).newInWardrobe;
+
+  it("stars each slot with a new piece in it until the student opens it", async () => {
+    const { user } = setUp({ path: "/play/wardrobe", beforeRender: newPieces });
+    // The wardrobe opens on Tops, so its new piece is already in view.
+    expect(await screen.findByRole("button", { name: "Tops" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    expect(slotButton("Hats, new")).toBeInTheDocument();
+    for (const name of ["Skin", "Hair", "Pants and shorts", "Shoes"])
+      expect(slotButton(name)).toBeInTheDocument();
+
+    await user.click(slotButton("Hats, new"));
+    expect(slotButton("Hats")).toHaveAttribute("aria-pressed", "true");
+    await user.click(slotButton("Shoes"));
+    expect(slotButton("Hats")).toBeInTheDocument();
+  });
+
+  it("stars a new piece while its slot is open, and not on the next visit", async () => {
+    const { storage, user } = setUp({
+      path: "/play/wardrobe",
+      beforeRender: newPieces,
+    });
+    const tops = within(await screen.findByRole("list", { name: "Tops" }));
+    expect(
+      tops.getByRole("button", { name: "Tops 2, new" }),
+    ).toBeInTheDocument();
+    expect(tops.getByRole("button", { name: "Tops 1" })).toBeInTheDocument();
+
+    await user.click(slotButton("Hats, new"));
+    const hats = within(screen.getByRole("list", { name: "Hats" }));
+    expect(
+      hats.getByRole("button", { name: "Hats 30, new" }),
+    ).toBeInTheDocument();
+    // Still starred on going back to it, this visit.
+    await user.click(slotButton("Tops"));
+    await user.click(slotButton("Hats"));
+    expect(
+      within(screen.getByRole("list", { name: "Hats" })).getByRole("button", {
+        name: "Hats 30, new",
+      }),
+    ).toBeInTheDocument();
+    // Seen, though neither was worn.
+    await waitFor(async () => expect(await stillNew(storage)).toEqual([]));
+    await user.click(screen.getByRole("button", { name: "Go to your locker" }));
+
+    cleanup();
+    setUp({ path: "/play/wardrobe", storage });
+    expect(
+      await within(
+        await screen.findByRole("list", { name: "Tops" }),
+      ).findByRole("button", { name: "Tops 2" }),
+    ).toBeInTheDocument();
+    expect(slotButton("Hats")).toBeInTheDocument();
+  });
+
+  it("takes a new piece's star away once the student puts it on", async () => {
+    const { user } = setUp({ path: "/play/wardrobe", beforeRender: newPieces });
+    await user.click(
+      await screen.findByRole("button", { name: "Tops 2, new" }),
+    );
+    expect(screen.getByRole("button", { name: "Tops 2" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    // Taking it off again doesn't bring the star back.
+    await user.click(screen.getByRole("button", { name: "Tops 1" }));
+    expect(screen.getByRole("button", { name: "Tops 2" })).toBeInTheDocument();
+    // Other new pieces keep theirs.
+    await user.click(slotButton("Hats, new"));
+    expect(
+      screen.getByRole("button", { name: "Hats 30, new" }),
+    ).toBeInTheDocument();
+  });
+
+  it("keeps a slot's star across a reload until the student opens it", async () => {
+    const { storage } = setUp({
+      path: "/play/wardrobe",
+      beforeRender: newPieces,
+    });
+    await screen.findByRole("list", { name: "Tops" });
+    await waitFor(async () =>
+      expect(await stillNew(storage)).toEqual(["hat-30"]),
+    );
+
+    cleanup();
+    setUp({ path: "/play/wardrobe", storage });
+    await screen.findByRole("list", { name: "Tops" });
+    expect(slotButton("Hats, new")).toBeInTheDocument();
+  });
+
+  it("marks nothing seen when nothing in the wardrobe is new", async () => {
+    const storage = memoryStorage();
+    standInGrant(storage, ["hat-30"]);
+    const markSeenInWardrobe = vi.fn(async () => {});
+    const { user } = setUp({
+      path: "/play/wardrobe",
+      storage,
+      lockerPort: { ...standInLocker(storage), markSeenInWardrobe },
+    });
+    await user.click(await screen.findByRole("button", { name: "Hats" }));
+    expect(
+      within(screen.getByRole("list", { name: "Hats" })).getByRole("button", {
+        name: "Hats 30",
+      }),
+    ).toBeInTheDocument();
+    expect(markSeenInWardrobe).not.toHaveBeenCalled();
+  });
+});
+
 describe("the shell's recorded lines", () => {
   it("plays a line's recording when it has one, and speaks names with the browser", async () => {
     const played: string[] = [];

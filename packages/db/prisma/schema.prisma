@@ -183,17 +183,20 @@ model PlayRecord {
 // from @repo/rewards' catalogue. Granted when a play ends, up to a weekly cap
 // (the API's scoring module), and kept once granted, whatever arrives later.
 model Reward {
-  studentId String    @db.Uuid
-  student   Account   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  studentId      String    @db.Uuid
+  student        Account   @relation(fields: [studentId], references: [id], onDelete: Cascade)
   // A reward ID from the catalogue.
-  item      String
+  item           String
   // The play whose end granted it.
-  play      String
+  play           String
   // The Monday of the week it counts toward the cap in, in school time.
-  week      DateTime  @db.Date
-  grantedAt DateTime  @default(now())
+  week           DateTime  @db.Date
+  grantedAt      DateTime  @default(now())
   // When the student saw it revealed in their locker; null while it's new.
-  seenAt    DateTime?
+  seenAt         DateTime?
+  // When the student opened its slot in the wardrobe; null while it's new
+  // there. Only outfit pieces are ever marked.
+  wardrobeSeenAt DateTime?
 
   @@id([studentId, item])
   @@index([studentId, week])
@@ -215,6 +218,9 @@ model Recognition {
   awardedAt DateTime
   // When the student saw it revealed in their locker; null while it's new.
   seenAt    DateTime?
+  // When the student opened its slot in the wardrobe; null while it's new
+  // there. Only outfit pieces are ever marked.
+  wardrobeSeenAt DateTime?
 
   @@id([studentId, classId, trait, term])
   @@index([classId, term])

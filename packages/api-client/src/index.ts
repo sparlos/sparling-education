@@ -19,6 +19,7 @@ export {
   hasPlayed,
   joinClass,
   markRewardsSeen,
+  markSeenInWardrobe,
   markWalkthroughSeen,
   pickGrade,
   placeStickers,

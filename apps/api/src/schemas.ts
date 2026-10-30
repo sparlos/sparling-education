@@ -255,6 +255,10 @@ export const LockerSchema = z
       description:
         "Rewards (outfit pieces or stickers) the student hasn't seen revealed yet, in the order they were granted, then the recognition stickers for recognition they haven't seen",
     }),
+    newInWardrobe: z.array(z.string()).openapi({
+      description:
+        "Outfit pieces they were granted but haven't seen in the wardrobe yet, in the order they were granted: new until they open the piece's slot there, whether or not they've seen it revealed",
+    }),
     placements: z.array(PlacementSchema).openapi({
       description:
         "The stickers the student put on their locker, and where, the one underneath first",

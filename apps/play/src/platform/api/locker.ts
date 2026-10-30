@@ -2,6 +2,7 @@
 import {
   getLocker,
   markRewardsSeen,
+  markSeenInWardrobe,
   placeStickers,
   wearLook,
 } from "@repo/api-client";
@@ -27,6 +28,10 @@ export function apiLocker(): LockerPort {
     async markSeen(rewards) {
       const res = await markRewardsSeen({ rewards: [...rewards] });
       if (res.status !== 204) throw unexpected("seen", res.status);
+    },
+    async markSeenInWardrobe(items) {
+      const res = await markSeenInWardrobe({ rewards: [...items] });
+      if (res.status !== 204) throw unexpected("wardrobe seen", res.status);
     },
     async place(placements) {
       const res = await placeStickers({ placements: [...placements] });

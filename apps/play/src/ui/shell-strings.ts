@@ -58,6 +58,8 @@ export const shellStrings = {
     "slot-bottom": "Pants and shorts",
     "slot-shoes": "Shoes",
     "slot-hat": "Hats",
+    // Added to the name of a wardrobe button with something new in it.
+    "is-new": "new",
     "no-hat": "No hat",
     "avatar-done": "Done",
     "saving-avatar": "Saving your avatar…",

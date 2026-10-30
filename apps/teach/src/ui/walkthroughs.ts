@@ -53,7 +53,7 @@ export const welcome: Walkthrough = {
       target: at("classes"),
       position: "bottom-start",
       title: "Your classes",
-      body: "Switch between your classes here. The demo class has pretend students who have already played, so you can try everything. To make your own class, click New class.",
+      body: "Switch between your classes here. The demo class has pretend students who have already played, so you can try everything.",
     },
     {
       screen: "dashboard",
@@ -72,7 +72,7 @@ export const welcome: Walkthrough = {
       screen: "dashboard",
       target: at("misconceptions"),
       title: "Misconceptions showing up",
-      body: "A wrong answer often comes from a wrong idea about the math. Here are the wrong ideas your students have, the most common first. Open one to see which students have it. Then you can reteach them as a group.",
+      body: "A wrong answer often comes from a wrong idea about the math. Here are the wrong ideas your students have. Open one to see which students have it.",
     },
     {
       screen: "dashboard",
