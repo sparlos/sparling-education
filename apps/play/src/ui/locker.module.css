@@ -1,0 +1,377 @@
+/* The locker: a header, the locker filling the room left, and the tray of
+   stickers below it. The page never scrolls (global.css), so it all fits. */
+.locker {
+  box-sizing: border-box;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-sm);
+  padding: var(--mantine-spacing-md) var(--mantine-spacing-lg);
+  background-color: var(--k-surface-page);
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--mantine-spacing-md);
+}
+
+.title {
+  flex: 1;
+}
+
+/* The space the locker fits in, which sizes it. */
+.room {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  container-type: size;
+}
+
+/* The open door's room on the left, then the locker. As tall as fits; the
+   door is 0.6 as wide as it's tall. Closed, the door is centred. */
+.area {
+  --span: calc(1 + var(--door-room));
+  position: relative;
+  /* The open door's near edge is drawn larger, so it needs room above and below. */
+  height: min(86cqh, 100cqw / (var(--span) * var(--door-ratio)));
+  aspect-ratio: calc(var(--span) * var(--door-ratio));
+  perspective: var(--perspective);
+  transform: translateX(calc(var(--door-room) / (2 * var(--span)) * -100%));
+  transition: transform var(--swing) ease;
+}
+
+.area[data-open] {
+  transform: none;
+}
+
+.inside,
+.door {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(100% * var(--door-room) / var(--span));
+  width: calc(100% / var(--span));
+}
+
+.inside {
+  display: flex;
+  flex-direction: column;
+  padding: 6% 6% 0;
+  box-sizing: border-box;
+}
+
+/* Slot art fills its box, behind what's on it. */
+.inside > svg,
+.face > svg,
+.small > svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* A shelf's keepsakes stand on its bottom edge, in fixed places. */
+.shelf {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: end;
+  justify-items: center;
+  border-bottom: 0.5rem solid var(--tone-edge);
+}
+
+/* The locker's floor is the last shelf. */
+.shelf:last-child {
+  border-bottom: 0;
+}
+
+.keepsake {
+  width: 60%;
+  max-height: 90%;
+  aspect-ratio: 1;
+  padding: 0;
+  border: 0;
+  background: none;
+  border-radius: 50%;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.keepsake svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.keepsake:focus-visible {
+  outline: 0.25rem solid var(--k-focus);
+  outline-offset: 0.125rem;
+}
+
+/* A new keepsake's moment, when the door opens: it pops with a gold ring. */
+.keepsake[data-celebrating] {
+  transform-origin: bottom center;
+  animation: found var(--moment) var(--k-ease-springy);
+}
+
+@keyframes found {
+  0% {
+    transform: scale(0.3);
+    box-shadow: 0 0 0 0 var(--k-sparkle);
+  }
+
+  40% {
+    transform: scale(1.35);
+    box-shadow: 0 0 0 0.6rem var(--k-sparkle);
+  }
+
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 1.5rem transparent;
+  }
+}
+
+/* The door turns on its hinge, its left edge, and stops at an angle. */
+.door {
+  transform-origin: left center;
+  transform-style: preserve-3d;
+  transition: transform var(--swing) ease;
+}
+
+.area[data-open] .door {
+  transform: rotateY(calc(-1 * var(--open-angle)));
+}
+
+.face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+}
+
+/* The inside of the door is the front's back. */
+.face[data-surface="inside"] {
+  transform: rotateY(180deg);
+}
+
+.face[data-holding] {
+  outline: 0.25rem dashed var(--k-focus);
+  outline-offset: 0.125rem;
+}
+
+/* A sticker, centred on its spot at its tilt: a fifth of the door's width. */
+.placed {
+  position: absolute;
+  width: calc(100% * var(--sticker-share, 0.2));
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  background: none;
+  transform: translate(-50%, -50%) rotate(var(--tilt));
+  filter: drop-shadow(0 2px 2px rgb(0 0 0 / 0.3));
+}
+
+.placed svg,
+.dragging svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* A swipe that starts on a sticker drags it. */
+button.placed,
+.loose {
+  cursor: grab;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.loose {
+  display: grid;
+  place-items: center;
+  width: 4.5rem;
+  height: 4.5rem;
+  padding: 0;
+  border: 0;
+  border-radius: var(--mantine-radius-lg);
+  background-color: var(--k-surface-raised);
+}
+
+.placed:focus-visible,
+.loose:focus-visible,
+.target:focus-visible,
+.handle:focus-visible {
+  outline: 0.25rem solid var(--k-focus);
+  outline-offset: 0.125rem;
+}
+
+/* The sticker in hand: lifted, with a ring round it. */
+.placed[data-held],
+.loose[data-held] {
+  border-radius: 50%;
+  outline: 0.25rem solid var(--k-focus);
+  outline-offset: 0.125rem;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .placed[data-held] {
+    transform: translate(-50%, -50%) rotate(var(--tilt)) scale(1.1);
+  }
+
+  .loose[data-held] {
+    transform: scale(1.1);
+  }
+}
+
+/* Covers the face while a sticker is in hand: tap where it goes. */
+.target {
+  position: absolute;
+  inset: 0;
+  z-index: 999;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: copy;
+}
+
+/* The handle: a big target on the door's free edge, over every sticker. */
+.handle {
+  position: absolute;
+  top: 40%;
+  right: 0;
+  z-index: 1000;
+  width: 3.5rem;
+  height: 20%;
+  min-height: 5.5rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.face[data-surface="inside"] .handle {
+  right: auto;
+  left: 0;
+}
+
+/* The bar drawn on the handle. */
+.handle::before {
+  content: "";
+  position: absolute;
+  inset: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  background-color: var(--k-surface-raised);
+  box-shadow: inset 0 -0.25rem 0 var(--k-border-strong);
+}
+
+.handle:active::before {
+  box-shadow: inset 0 0.125rem 0 var(--k-border-strong);
+}
+
+.tray {
+  flex: none;
+  min-height: 5.75rem;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: var(--mantine-spacing-md);
+  padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
+  border: 2px dashed var(--k-border);
+  border-radius: var(--mantine-radius-lg);
+  background-color: var(--k-surface-sunken);
+}
+
+.tray[data-holding] {
+  border-color: var(--k-focus);
+}
+
+.stickers {
+  flex: 1;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--mantine-spacing-xs);
+}
+
+.back {
+  margin-left: auto;
+}
+
+/* A sticker being dragged, under the finger. */
+.dragging {
+  position: fixed;
+  z-index: 2000;
+  transform: translate(-50%, -50%) rotate(-6deg) scale(1.1);
+  pointer-events: none;
+  line-height: 0;
+}
+
+/* The small locker on home: a big target, glowing gold while there's
+   something new in it or a sticker to stick on. */
+.small {
+  position: relative;
+  display: block;
+  flex-shrink: 0;
+  width: 4.5rem;
+  aspect-ratio: 0.6;
+  border-radius: 0.375rem;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.small:focus-visible {
+  outline: 0.25rem solid var(--k-focus);
+  outline-offset: 0.25rem;
+}
+
+.small .placed {
+  pointer-events: none;
+}
+
+.small[data-glow] {
+  animation: glow 1.6s ease-in-out infinite;
+}
+
+@keyframes glow {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 4px var(--k-sparkle),
+      0 0 18px 6px var(--k-sparkle);
+  }
+
+  50% {
+    box-shadow:
+      0 0 0 2px var(--k-sparkle),
+      0 0 6px 2px var(--k-sparkle);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .small[data-glow] {
+    animation: none;
+    box-shadow:
+      0 0 0 4px var(--k-sparkle),
+      0 0 18px 6px var(--k-sparkle);
+  }
+
+  .keepsake[data-celebrating] {
+    animation: none;
+    box-shadow: 0 0 0 0.5rem var(--k-sparkle);
+  }
+
+  .area,
+  .door {
+    transition: none;
+  }
+}

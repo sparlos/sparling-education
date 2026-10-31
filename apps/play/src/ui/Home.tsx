@@ -1,6 +1,6 @@
 // The student's side of the shell outside games: home (after designing
-// their avatar, the first time), with any new rewards revealed and their
-// stickers to stick on their locker, the wardrobe, joining a class by its join
+// their avatar, the first time), with any new rewards revealed and a small
+// picture of their locker, the wardrobe, the locker, joining a class by its join
 // link (and picking a grade in a split class), and sign-in. Every
 // label is also spoken, so a Grade 3 student can use it without reading.
 import { Portrait } from "@repo/avatar/portrait";
@@ -36,8 +36,8 @@ import type { AppProps } from "./App.tsx";
 import classes from "./app.module.css";
 import styles from "./home.module.css";
 import { HomeCardPicture } from "./home-art.tsx";
+import { Locker, SmallLocker } from "./Locker.tsx";
 import { Reveal } from "./Reveal.tsx";
-import { Stickers } from "./Stickers.tsx";
 import {
   gameLine,
   Message,
@@ -227,8 +227,6 @@ function Home({
   const unseen =
     contents === "loading" || contents === null ? [] : contents.unseen;
   const revealing = unseen.length > 0 && !revealed;
-  const stickers =
-    contents === "loading" || contents === null ? [] : contents.stickers;
   // New rewards are said first; home's own line once they're put away.
   const settled = contents !== "loading" && !revealing;
   // Each class the student plays in, with the games of it this shell hosts.
@@ -287,6 +285,10 @@ function Home({
               <Icon name="avatar" size={24} />
             </span>
           </a>
+          <SmallLocker
+            base={base}
+            home={contents === "loading" ? null : contents}
+          />
           <Text size="xl" className={styles.instruction}>
             {shellT(line)}
           </Text>
@@ -343,15 +345,6 @@ function Home({
             </ClassColourScope>
           );
         })}
-        {stickers.length > 0 && contents !== "loading" && contents !== null && (
-          <Stickers
-            stickers={stickers}
-            placements={contents.placements}
-            platform={platform}
-            voice={voice}
-            hear={hear}
-          />
-        )}
       </main>
       {revealing && (
         <Reveal
@@ -500,6 +493,31 @@ export function WardrobePage(props: AppProps) {
       onDone={() => navigate(base)}
       onBack={() => navigate(base)}
       onError={() => setState({ kind: "error" })}
+    />
+  );
+}
+
+/** The locker: the student decorates it, then goes back home. */
+export function LockerPage(props: AppProps) {
+  const [state] = useStudent(props);
+  if (state.kind !== "ready") return <NotReady state={state} {...props} />;
+  return <LockerOpening {...props} student={state.student} />;
+}
+
+function LockerOpening(props: AppProps & { student: Student }) {
+  const { platform, base, navigate } = props;
+  const contents = useHomeContents(platform);
+  if (contents === "loading")
+    return <Message text={shellT("opening-locker")} busy />;
+  if (contents === null) return <TryAgain {...props} />;
+  return (
+    <Locker
+      student={props.student}
+      home={contents}
+      platform={platform}
+      speak={props.speak}
+      timing={props.lockerTiming}
+      onHome={() => navigate(base)}
     />
   );
 }

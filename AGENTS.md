@@ -47,15 +47,13 @@ The API's tests run against an ephemeral Postgres. See `docs/agents/testing.md` 
 Agents always run in a Linux (arm64) sandbox with the repo mounted from the founder's Mac. `node_modules` is the Mac's, so anything with a native binary (Vite, Vitest, Biome, rolldown, esbuild, lightningcss) fails here, e.g. `Cannot find native binding` or the tour dying with `kill ESRCH` when its dev server can't start.
 
 - **Never run `pnpm install` in the repo itself:** it would swap the Mac's native binaries for Linux ones. Ask the founder to run it on the host when dependencies change.
-- **Edit in the repo, run in a scratch copy.** Sync the source into the scratchpad without `node_modules`, install there once, and run tests, type checks, Biome, `pnpm tour` and `pnpm mutate` in the copy:
+- **Edit in the repo, run in a scratch copy.** Use `scripts/scratch.sh`. The copy lives at `~/scratch/edtech/repo`, outside the repo, and stays warm between sessions, so don't delete it when you finish. The script re-syncs source (never `node_modules`, `.git`, caches or the voice Python env) and only installs when `pnpm-lock.yaml` changed.
 
   ```bash
-  rsync -a --delete --exclude node_modules --exclude .git --exclude .turbo --exclude dist --exclude .next --exclude .venv ./ <scratchpad>/repo/
-  (cd <scratchpad>/repo && pnpm install --frozen-lockfile --store-dir <scratchpad>/store)
+  scripts/scratch.sh                      # sync, print the copy's path
+  scripts/scratch.sh pnpm --filter @repo/api test   # sync, then run a command in the copy
   ```
 
-  Re-run the rsync after each edit; the excludes keep the copy's own `node_modules` from being deleted, and leave out the web app's build cache and the voice package's Python environment (about 1 GB together; the sandbox disk is small). If dependencies changed, install without `--frozen-lockfile` and copy back only `pnpm-lock.yaml`; never copy anything else back.
-
-    Make sure that after you are done with the scratch copy you've created, clear it completely. eventually, it will bloat the sandbox (which has 20 GB of working room), and will not allow additional scratch copies to be made. If you run into a space problem with creating a scratch copy, make sure to check for existing, old scratch copies that can be deleted first - that's your best bet.
+  Re-run it after each edit. Run tests, type checks, Biome, `pnpm tour` and `pnpm mutate` this way. If dependencies changed, install in the copy without `--frozen-lockfile` and copy back only `pnpm-lock.yaml`; never copy anything else back. If the sandbox disk is short on space, delete old throwaway files in `~/scratch/edtech` first, and use `scripts/scratch.sh --clean` as a last resort.
 
 - **If the shell starts failing, stop and tell the founder.** When every Bash command fails with no output, or file edits are refused because a path's symlink resolution changed (often after the working directory shows as `(deleted)`), the founder ran a `pnpm` command on the Mac, which swapped the mounted directories out from under the sandbox. Don't retry or work around it. Tell the founder to restart the Docker sandbox, resume this session, and tell you to continue where you got cut off. Say exactly what you were in the middle of, so you can pick it up from there.

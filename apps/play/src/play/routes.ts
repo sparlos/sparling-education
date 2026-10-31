@@ -18,6 +18,8 @@ export type Route =
   | { kind: "sign-in" }
   /** The wardrobe, from home: /play/wardrobe. */
   | { kind: "wardrobe" }
+  /** The student's locker, from home: /play/locker. */
+  | { kind: "locker" }
   /** The class join link: /play/join/<code>. */
   | { kind: "join"; joinCode: string }
   | { kind: "game"; link: GameLink };
@@ -33,6 +35,7 @@ export function parseRoute(url: URL, base: string): Route | null {
   const path = url.pathname.slice(base.length).replace(/\/$/, "");
   if (path === "sign-in") return { kind: "sign-in" };
   if (path === "wardrobe") return { kind: "wardrobe" };
+  if (path === "locker") return { kind: "locker" };
   const [first, joinCode, ...rest] = path.split("/");
   if (first === "join")
     return joinCode && joinCodePattern.test(joinCode) && rest.length === 0
@@ -55,11 +58,16 @@ export function parseGameLink(url: URL, base: string): GameLink | null {
 }
 
 // The shell's own pages under its base, which no game slug can be.
-const shellPages = ["sign-in", "wardrobe"];
+const shellPages = ["sign-in", "wardrobe", "locker"];
 
 /** The wardrobe's path, e.g. "/play/wardrobe". */
 export function wardrobePath(base: string) {
   return `${base}wardrobe`;
+}
+
+/** The locker's path, e.g. "/play/locker". */
+export function lockerPath(base: string) {
+  return `${base}locker`;
 }
 
 /** Home, naming the play the student is back from, so it can reveal what the play earned. */

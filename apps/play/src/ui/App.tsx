@@ -46,9 +46,11 @@ import {
   GradePick,
   HomePage,
   JoinPage,
+  LockerPage,
   SignInPage,
   WardrobePage,
 } from "./Home.tsx";
+import type { LockerTiming } from "./Locker.tsx";
 import {
   Message,
   noRecordings,
@@ -80,6 +82,8 @@ export interface AppProps {
   speak?: VoiceOptions["speak"];
   /** How long ending a play waits for attempts to send before leaving anyway. */
   finishTimeoutMs?: number;
+  /** How long the locker's door swings and a new keepsake's moment lasts, for tests. */
+  lockerTiming?: LockerTiming;
   /** Batching and retry timings, for tests. */
   outboxTiming?: Pick<OutboxOptions, "batchDelayMs" | "retryDelaysMs">;
 }
@@ -139,6 +143,8 @@ function RoutedScreen(props: AppProps) {
       return <SignInPage {...props} />;
     case "wardrobe":
       return <WardrobePage {...props} />;
+    case "locker":
+      return <LockerPage {...props} />;
     case "game":
       return <GamePage {...props} />;
     case undefined:

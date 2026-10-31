@@ -15,8 +15,8 @@ import type { AvatarLook } from "../platform/ports.ts";
 import type { VoiceOptions } from "../play/voice.ts";
 import classes from "./app.module.css";
 import styles from "./home.module.css";
-import { recognitionLines } from "./Stickers.tsx";
 import { shellT, useShellVoice } from "./shared.tsx";
+import { recognitionLines } from "./sticker-lines.ts";
 
 export function Reveal({
   rewards,
