@@ -1,0 +1,6 @@
+# The generated images are exported without a file extension, so Cloudflare
+# needs telling they are PNGs. Social sites skip a share image without it.
+/opengraph-image
+  Content-Type: image/png
+/apple-icon
+  Content-Type: image/png

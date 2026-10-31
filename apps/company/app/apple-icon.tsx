@@ -6,6 +6,8 @@ import { literata } from "../share/literata";
 
 export const size = { width: 180, height: 180 };
 export const contentType = "image/png";
+// Drawn once at build time; the site is plain files with no server.
+export const dynamic = "force-static";
 
 export default async function AppleIcon() {
   return new ImageResponse(

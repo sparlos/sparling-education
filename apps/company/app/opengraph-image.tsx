@@ -9,6 +9,8 @@ import { literata } from "../share/literata";
 export const alt = site.shareImage.alt;
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
+// Drawn once at build time; the site is plain files with no server.
+export const dynamic = "force-static";
 
 export default async function OpengraphImage() {
   return new ImageResponse(
