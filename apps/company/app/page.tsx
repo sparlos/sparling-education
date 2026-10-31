@@ -2,6 +2,7 @@ import { color, palette } from "@repo/tokens";
 import { Wordmark } from "@repo/ui/marketing/wordmark";
 import Image from "next/image";
 import type { CSSProperties } from "react";
+import { Backdrop } from "../components/backdrop";
 import { HopLine } from "../components/hop-line";
 import { Monogram } from "../components/monogram";
 import { Ornament } from "../components/ornament";
@@ -46,6 +47,11 @@ export default function Home() {
 
       <main id="main">
         <section className={styles.hero} aria-labelledby="hero-title">
+          <Backdrop
+            pattern="squaredPaper"
+            start="load"
+            className={styles.backdrop}
+          />
           <h1 id="hero-title" className={styles.heroTitle}>
             {hero.title}
           </h1>
@@ -62,6 +68,11 @@ export default function Home() {
           style={productColours}
           aria-labelledby="product-title"
         >
+          <Backdrop
+            pattern="numberLines"
+            start="view"
+            className={styles.backdrop}
+          />
           <div className={styles.product}>
             <figure className={`${styles.screenshot} ${styles.reveal}`}>
               <Image
@@ -96,6 +107,11 @@ export default function Home() {
           className={styles.principles}
           aria-labelledby="principles-title"
         >
+          <Backdrop
+            pattern="ruledPaper"
+            start="view"
+            className={styles.backdrop}
+          />
           <h2 id="principles-title" className={styles.sectionTitle}>
             {principles.title}
           </h2>
@@ -113,6 +129,11 @@ export default function Home() {
         </section>
 
         <section className={styles.about} aria-labelledby="about-title">
+          <Backdrop
+            pattern="compassCircles"
+            start="view"
+            className={styles.backdrop}
+          />
           <h2 id="about-title" className={styles.visuallyHidden}>
             {about.title}
           </h2>
@@ -138,6 +159,11 @@ export default function Home() {
           className={styles.contact}
           aria-labelledby="contact-title"
         >
+          <Backdrop
+            pattern="crossHatching"
+            start="view"
+            className={styles.backdrop}
+          />
           <h2 id="contact-title" className={styles.visuallyHidden}>
             {contact.title}
           </h2>

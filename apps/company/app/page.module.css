@@ -53,12 +53,30 @@
   border-bottom: 3px solid var(--brass);
 }
 
+/* Each section has a faint engraving behind it (see Backdrop). */
+.hero,
+.productBand,
+.principles,
+.about,
+.contact {
+  position: relative;
+  isolation: isolate;
+}
+
+.backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+}
+
 /* ---------- Masthead ---------- */
 
 .masthead {
   max-width: var(--content);
   margin-inline: auto;
-  padding: 1.5rem var(--gutter) 0;
+  padding: clamp(2.25rem, 5vw, 3rem) var(--gutter) 0;
   text-align: center;
 }
 
@@ -84,6 +102,23 @@
   margin-inline: auto;
   padding: clamp(2.25rem, 5vw, 3rem) var(--gutter) clamp(3.5rem, 8vw, 5rem);
   text-align: center;
+}
+
+/* Behind the hero, a little warm light drifts across the squared paper,
+   slow enough to go unnoticed. */
+.hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      circle closest-side,
+      color-mix(in srgb, var(--brass) 8%, transparent),
+      transparent
+    )
+    35% 35% / 70% 80% no-repeat;
 }
 
 .heroTitle {
@@ -123,6 +158,11 @@
     ),
     var(--product-deep);
   color: var(--k-ink-inverse);
+  --backdrop-line: var(--product-line);
+  --backdrop-line-strength: 0.2;
+  --backdrop-accent: var(--k-sparkle);
+  --backdrop-accent-strength: 0.22;
+  --backdrop-focus: 50% 50%;
 }
 
 .product {
@@ -224,6 +264,7 @@
 /* ---------- Principles ---------- */
 
 .principles {
+  --backdrop-focus: 50% 35%;
   max-width: var(--content);
   margin-inline: auto;
   padding: clamp(4rem, 9vw, 5.5rem) var(--gutter) 0;
@@ -274,6 +315,7 @@
 /* ---------- About ---------- */
 
 .about {
+  --backdrop-focus: 50% 10%;
   max-width: 45rem;
   margin-inline: auto;
   padding: clamp(4.5rem, 10vw, 6.5rem) var(--gutter) clamp(4rem, 9vw, 6rem);
@@ -337,6 +379,12 @@
   margin-inline: auto;
   padding-inline: var(--gutter);
   text-align: center;
+}
+
+.contact {
+  --backdrop-line: var(--ink);
+  --backdrop-line-strength: 0.06;
+  --backdrop-focus: 50% 60%;
 }
 
 .contactLead {
@@ -419,6 +467,10 @@
     animation-delay: 360ms;
   }
 
+  .hero::after {
+    animation: drift 48s var(--ease-in-out) infinite alternate;
+  }
+
   /* Later sections rise in as they scroll into view, where the browser can
      tie animation to scroll. Elsewhere they're simply there. */
   @supports (animation-timeline: view()) {
@@ -448,5 +500,11 @@
   from {
     opacity: 0;
     transform: scaleX(0);
+  }
+}
+
+@keyframes drift {
+  to {
+    background-position: 65% 50%;
   }
 }

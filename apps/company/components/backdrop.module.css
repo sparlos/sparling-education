@@ -1,0 +1,46 @@
+/* Hairlines, all faint and fading out from a focal point. Colours, strength
+   and the focal point come from the surroundings (--backdrop-*), so the same
+   engraving can sit on paper or on the product's band. */
+
+.backdrop {
+  display: block;
+  pointer-events: none;
+  mask-image: radial-gradient(
+    ellipse 60% 55% at var(--backdrop-focus, 50% 40%),
+    black,
+    transparent 100%
+  );
+}
+
+.line {
+  fill: none;
+  stroke: var(--backdrop-line, var(--rule));
+  stroke-width: 1.1;
+  opacity: var(--backdrop-line-strength, 0.45);
+}
+
+.line[data-accent] {
+  stroke: var(--backdrop-accent, var(--brass));
+  opacity: var(--backdrop-accent-strength, 0.14);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .backdrop[data-start="load"] .line,
+  .backdrop[data-motion="playing"] .line {
+    stroke-dasharray: 1;
+    animation-name: draw;
+    animation-timing-function: var(--ease-out);
+    animation-fill-mode: both;
+  }
+
+  .backdrop[data-motion="waiting"] .line {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+  }
+}
+
+@keyframes draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+}
