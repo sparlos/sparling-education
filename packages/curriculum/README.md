@@ -7,6 +7,7 @@ Ontario curriculum data in two layers ([ADR 0001](../../docs/adr/0001-two-layer-
 The official text of each curriculum, imported from the Ontario Digital Curriculum Platform (DCP): every specific expectation with its code, wording and elaborations (examples, key concepts, sample tasks). It's © King's Printer for Ontario and we hold no licence to reproduce it commercially, so:
 
 - **Agents and humans read it while designing games. Apps never import it, and its text never appears in the product.** The package's `exports` don't include it.
+- **Quote it freely to the founder.** When an agent describes expectations to the founder or the team, it gives the official wording verbatim, not a paraphrase. The rule is only about what users see or hear.
 - Start from `reference/<edition>/index.md`, which lists every expectation ID by grade and strand and names the file holding its text. Load only the strand files you need: one strand for one grade is up to ~95 KB.
 - `reference/<edition>.json` is the same data in machine-readable form, for tests and scripts.
 - Never write curriculum from memory. If a subject isn't here, ask a human to import it.

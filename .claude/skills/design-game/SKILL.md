@@ -19,7 +19,7 @@ Done when you can state the game's concept and grade range. If the human hasn't 
 
 Open `packages/curriculum/reference/<edition>/index.md`, find the strand files for the grade range, and read them in full: the expectations, then their key concepts, examples and sample tasks. The sample tasks are the richest source of mechanics and **misconceptions**.
 
-The reference layer is the only source for codes and wording. If the subject or edition you need isn't there, stop and run `add-curriculum` with the human, naming the curriculum and grades.
+The reference layer is the only source for codes and wording. When you show expectations to the human, quote their official wording verbatim; only the product must never contain it. If the subject or edition you need isn't there, stop and run `add-curriculum` with the human, naming the curriculum and grades.
 
 Then check what existing games already evidence: search `games/*/SPEC.md` for each candidate expectation ID and read the Mechanic and Tiers sections of every game that uses one. Overlap is fine when the mechanic differs; raise it with the human while grilling, especially the same expectation with the same kind of task.
 
@@ -27,23 +27,23 @@ Done when you have, for each grade in range, the expectation IDs the concept cov
 
 ## 3. Find the fun: prototypes
 
-1. **Ask what's fun.** Ask the human for one or two games, of any kind, that they or kids genuinely enjoy, and what hooks them. Ask one question at a time.
+1. **Ask what's fun.** Open with your own recommendation of one or two genres that fit the concept, and why, then ask the human for games, of any kind, that they or kids genuinely enjoy, and what hooks them. Ask one question at a time.
 2. **Propose two or three different mechanics** for the concept. Each one must be grounded:
-   - it targets expectation codes you read in full in step 2, and only those each task genuinely evidences: an attempt names one expectation, so check every grade's tasks need nothing beyond its tier's expectations (Hop Code over-claimed two, and its Grade 4 budget silently needed equivalence),
+   - it targets expectation codes you read in full in step 2, and only those each task genuinely evidences: an attempt names one expectation (so a miss lands only on the expectation the task tests, and the teacher's grid stays readable), so check every grade's tasks need nothing beyond its tier's expectations (Hop Code over-claimed two, and its Grade 4 budget silently needed equivalence),
    - it should make at least one real misconception visibly fail,
    - it borrows what's fun from the games named in item 1,
    - it draws on a curriculum sample task where one fits.
 
    Make the mechanics genuinely different from each other, not three skins on one idea. Don't reuse a rejected concept: Plank Bridge (cutting planks to exact fractional lengths to fill gaps in a bridge) was rejected, and its code and spec deleted.
 3. **Build each one in the prototype lab** (read `apps/play/src/lab/README.md` first, and copy the shape of `lab/clothesline/`): `apps/play/src/lab/<slug>/index.tsx`, played at `/play/lab/<slug>` in dev. Each exports `meta` (title, pitch, expectation codes, misconceptions, sample task, why it might be fun) and a rough component. Keep it to hours: no tests, no strings table, no art beyond shapes, no attempts. `pnpm --filter play test` must pass: the lab's grounding test checks every code against the reference layer.
-4. **Check it in a browser yourself first.** Play each prototype in headless Chrome (Playwright's `chrome-headless-shell` is in `~/.cache/ms-playwright/`, and `playwright-core` installs into a scratch folder), so the human never plays something broken. Check it fits a 1366 × 650 viewport with no scrolling, at every grade.
+4. **Check it in a browser yourself first.** Play each prototype in headless Chrome (Playwright's `chrome-headless-shell` is in `~/.cache/ms-playwright/`, and `playwright-core` installs into a scratch folder), so the human never plays something broken. Check it fits a 1366 × 650 viewport with no scrolling, at every grade. Then look for a way to solve a task without the concept (Ten Machine's first cut let a student type the whole number into the ones chute): close it in the prototype, or raise it with the human.
 5. **The human plays them on a real touchscreen if possible**, then says what they liked and disliked. Iterate, combine or throw away prototypes until they pick one, or stop if none is fun.
 
 Done when the human has played the prototypes and picked one, and you've recorded why it's fun (and what they rejected and why) for the spec's "Why it's fun" section.
 
 ## 4. Grill the design
 
-Invoke the `mattpocock-skills:grilling` skill and work through these with the human. Bring your pedagogy knowledge and the sample tasks; the human makes each call.
+Invoke the `mattpocock-skills:grilling` skill and work through these with the human, one question at a time (this overrides the grilling skill's rounds). Write each question as AGENTS.md's User-facing content asks: plain words, with codes and IDs last. Bring your pedagogy knowledge and the sample tasks; the human makes each call.
 
 - **Start from the chosen prototype.** Everything below refines the mechanic the human picked. If grilling changes the core mechanic, prototype again rather than approving a design nobody has played.
 - **The mechanic is the lesson.** What does the student physically do (tap, drag, cut, sort, place) such that getting better at it *is* getting better at the concept? When a wrong idea is applied, what visibly fails, so the student sees *why*? Reject any design where the concept sits in a question in front of the game.
@@ -51,7 +51,7 @@ Invoke the `mattpocock-skills:grilling` skill and work through these with the hu
 - **Misconceptions.** Each one the mechanic can surface, named by the wrong idea (e.g. `bigger-denominator-bigger`), with how it shows up in play and which expectations it belongs to.
 - **Attempts.** What one task is, when an attempt is recorded, what counts as success, and how a retry of the same task is recognised. If the student can try things freely (run and watch), separate exploring from mistakes: a probe goes as an `exploring` attempt, which never counts. Every try is an attempt, so a teacher can follow a task try by try. Say what the teacher reads for each task (`asked`) and each kind of try (`detail`): one short line each, from the rules' state, with fractions written `a/b` (mixed `1 3/4`), one row per form in the template's table.
 - **Effort.** How the game invites a retry after a mistake: the hint, the replay, the second chance. The contract's `assisted` values (`hint`, `demonstration`, `guided`) are options, not a required ladder: use only the rungs that make sense for this mechanic.
-- **Avatar.** Portrait only, or also a character in the game, and what it does.
+- **Avatar.** Portrait only, or also a character in the game, and what it does. Expressions come from the contract's set (`@repo/avatar`); one it lacks is a change for every game.
 - **Touch and reading.** Every interaction works by touch at the target sizes in DESIGN.md's Chromebook budgets. Every instruction is a caption and a voice line from the same string. For Grades 1–3, a student never has to read to play, and at any grade never has to hear: demonstrations and visual feedback must carry the meaning without either.
 - **Renderer.** React + SVG/DOM unless the mechanic needs something it can't do; justify any exception.
 - **Teacher card.** When to use the game alongside instruction, and how each misconception reads in results.
@@ -70,7 +70,7 @@ Done when the tests pass and the spec is consistent:
 - every misconception names a visible failure in the mechanic and expectations of a tier,
 - every student-facing string is listed, with its ID,
 - every string decision works with the game contract as it is (Plank Bridge's "amount as its own string" needed a contract change nobody had checked),
-- every amount the game speaks, differences after a miss included, falls within its string families.
+- every amount the game speaks or shows, differences after a miss and what any plan the game accepts can produce included, fits its string families and its display.
 
 ## 6. Get approval
 
