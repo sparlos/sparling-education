@@ -19,7 +19,7 @@ export const parents = {
     primaryAction: { label: "Get updates", href: "#updates" },
     secondaryAction: { label: "How rewards work", href: "#rewards" },
     image: {
-      alt: "A child's home screen in the game, decorated with stickers and outfits they earned by practising",
+      alt: "A child's locker in the game, open, with stickers they earned by practising on its door and something from each game they played on its shelves",
       src: "/screens/student-locker.jpg",
     },
   },

@@ -73,7 +73,7 @@ export const home = {
         title: "Rewards are earned, never bought",
         body: "Kids earn outfits and stickers by trying, trying again and getting better. There's no store, no prize boxes and no ads.",
         image: {
-          alt: "A student's home screen in the game, decorated with stickers they earned by practising",
+          alt: "A student's locker in the game, open, with stickers they earned by practising on its door and something from each game they played on its shelves",
           src: "/screens/student-locker.jpg",
         },
         tone: "parent",

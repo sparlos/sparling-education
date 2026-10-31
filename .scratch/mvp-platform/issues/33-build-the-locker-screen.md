@@ -37,5 +37,5 @@
 - **The founder needs to:**
   - run `pnpm generate` if ticket 32's API changes aren't generated yet. The repo's `check-types` fails until then.
   - run `pnpm voice` for the new and changed shell lines, then listen and commit. New: `locker-how`, `open-locker`, `close-locker`, `locker-door`, `locker-door-inside`, `locker-shelves`, `keepsake-from`, `keepsake-from-a-game`, `new-keepsake`, `new-keepsake-from-a-game` and `opening-locker`. Changed: `place-sticker` ("Tap the door to stick it there."). `stickers-how` is gone, so its recording can be deleted. `check-voice` fails until then.
-  - retake `apps/web/public/screens/student-locker.jpg` and update its alt text in `apps/web/content/home.tsx` and `parents.tsx`.
+- **Marketing screenshot (done by the agent, at the founder's request):** `apps/web/public/screens/student-locker.jpg` is retaken from the stand-ins: the open locker at 1024×768 at 2×, with seven stickers on the inside of the door, three keepsakes and three stickers in the tray. Its alt text in `apps/web/content/home.tsx` and `parents.tsx` now describes the locker.
 

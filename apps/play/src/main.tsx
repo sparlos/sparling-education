@@ -21,6 +21,7 @@ import {
 } from "./platform/stand-ins/memberships.ts";
 import { StandInSignInScreen } from "./platform/stand-ins/SignInScreen.tsx";
 import { newId } from "./play/ids.ts";
+import { useBrowserRoute } from "./play/router.ts";
 import { isLabUrl } from "./play/routes.ts";
 import { browserStorage } from "./play/storage.ts";
 import { App } from "./ui/App.tsx";
@@ -35,14 +36,13 @@ const root = document.getElementById("root");
 if (!root) throw new Error("Missing #root");
 
 const base = import.meta.env.BASE_URL;
-const url = new URL(window.location.href);
 const storage = browserStorage();
-const navigate = (to: string) => window.location.assign(to);
 
 const standIn = import.meta.env.VITE_PLAY_PLATFORM === "stand-in";
 const standInClassGames = standInGames(Object.keys(games));
 // Add ?stand-in-offline to a game link to watch attempts wait and retry.
-const offline = () => url.searchParams.has("stand-in-offline");
+const offline = () =>
+  new URL(window.location.href).searchParams.has("stand-in-offline");
 
 const platform = standIn
   ? createStandInPlatform({ storage, base, games: standInClassGames, offline })
@@ -53,34 +53,50 @@ const platform = standIn
       googleClientId: import.meta.env.VITE_GOOGLE_CLIENT_ID,
     });
 
+/**
+ * The page showing. Moving between the shell's pages stays in this page, so
+ * sound the student has allowed keeps playing; each page starts afresh, as
+ * after a load.
+ */
+function Shell() {
+  const { url, visit, navigate } = useBrowserRoute(base);
+  if (Lab && isLabUrl(url, base))
+    return (
+      <Suspense key={visit}>
+        <Lab url={url} base={base} storage={storage} navigate={navigate} />
+      </Suspense>
+    );
+  if (standIn && url.pathname === `${base}${standInSignInPath}`)
+    return (
+      <StandInSignInScreen
+        key={visit}
+        url={url}
+        storage={storage}
+        navigate={navigate}
+        newId={newId}
+        classes={standInClasses(standInClassGames)}
+      />
+    );
+  return (
+    <App
+      key={visit}
+      url={url}
+      base={base}
+      platform={platform}
+      games={games}
+      storage={storage}
+      navigate={navigate}
+      newId={newId}
+      shellLines={shellLines}
+      titleLines={titleLines}
+    />
+  );
+}
+
 createRoot(root).render(
   <StrictMode>
     <UIProvider>
-      {Lab && isLabUrl(url, base) ? (
-        <Suspense>
-          <Lab url={url} base={base} storage={storage} navigate={navigate} />
-        </Suspense>
-      ) : standIn && url.pathname === `${base}${standInSignInPath}` ? (
-        <StandInSignInScreen
-          url={url}
-          storage={storage}
-          navigate={navigate}
-          newId={newId}
-          classes={standInClasses(standInClassGames)}
-        />
-      ) : (
-        <App
-          url={url}
-          base={base}
-          platform={platform}
-          games={games}
-          storage={storage}
-          navigate={navigate}
-          newId={newId}
-          shellLines={shellLines}
-          titleLines={titleLines}
-        />
-      )}
+      <Shell />
     </UIProvider>
   </StrictMode>,
 );
