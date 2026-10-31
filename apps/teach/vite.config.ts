@@ -1,10 +1,18 @@
+import { brandName } from "@repo/tokens";
 import react from "@vitejs/plugin-react";
+import type { Plugin } from "vite";
 import { defineConfig } from "vitest/config";
+
+/** Puts the product's name into index.html, so it's set in one place. */
+const brandNameInHtml: Plugin = {
+  name: "brand-name",
+  transformIndexHtml: (html) => html.replaceAll("%BRAND_NAME%", brandName),
+};
 
 export default defineConfig({
   // Served at /teach/ on the same domain as the play shell and the API; see README.md.
   base: "/teach/",
-  plugins: [react()],
+  plugins: [react(), brandNameInHtml],
   server: {
     host: true,
     // The API's session cookie only works same-origin, so development reaches

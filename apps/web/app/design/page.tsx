@@ -1,4 +1,5 @@
 import {
+  brandName,
   color,
   fontSize,
   headingSize,
@@ -15,7 +16,7 @@ import { Container } from "@repo/ui/container";
 import { Icon } from "@repo/ui/icon";
 import { ComparisonTable } from "@repo/ui/marketing/comparison-table";
 import { CtaBand } from "@repo/ui/marketing/cta-band";
-import { Blob, Ember, Sparkle } from "@repo/ui/marketing/decor";
+import { Glint, Shard, Sparkle } from "@repo/ui/marketing/decor";
 import { EmailCapture } from "@repo/ui/marketing/email-capture";
 import { Faq } from "@repo/ui/marketing/faq";
 import { FeatureGrid, PillarRow } from "@repo/ui/marketing/feature-grid";
@@ -81,7 +82,7 @@ export default function DesignPage() {
   return (
     <>
       <Container>
-        <Block title="Kindling design system">
+        <Block title={`${brandName} design system`}>
           <Wordmark size="lg" />
           <Text c="muted">
             Tokens live in @repo/tokens, components in @repo/ui. Contrast ratios
@@ -266,10 +267,10 @@ export default function DesignPage() {
                 <Text c="muted">Tinted with the audience tone.</Text>
               </Stack>
             </Card>
-            <Card variant="soft" tone="student">
+            <Card variant="soft" tone="parent">
               <Stack gap="xs">
                 <Title order={3} size="h4">
-                  Soft student card
+                  Soft parent card
                 </Title>
                 <Text c="muted">Tinted with the audience tone.</Text>
               </Stack>
@@ -291,13 +292,13 @@ export default function DesignPage() {
           </SimpleGrid>
           <div className={classes.row} style={{ position: "relative" }}>
             <span style={{ position: "relative", width: 120, height: 120 }}>
-              <Blob size={120} color="brand" opacity={0.3} />
+              <Shard size={120} color="brand" opacity={0.6} />
             </span>
             <span style={{ position: "relative", width: 40, height: 40 }}>
               <Sparkle size={40} />
             </span>
             <span style={{ position: "relative", width: 32, height: 32 }}>
-              <Ember size={32} />
+              <Glint size={32} />
             </span>
           </div>
         </Block>
@@ -367,8 +368,8 @@ export default function DesignPage() {
       <Section>
         <Stack gap="xl">
           <PilotCta action={demoSubmit} />
-          <CtaBand tone="student" layout="stacked" title="Stacked CTA band">
-            <Button tone="student" size="lg">
+          <CtaBand tone="parent" layout="stacked" title="Stacked CTA band">
+            <Button tone="parent" size="lg">
               Student action
             </Button>
           </CtaBand>

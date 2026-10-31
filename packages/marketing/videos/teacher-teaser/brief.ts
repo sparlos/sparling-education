@@ -1,6 +1,7 @@
 // Teacher teaser: ~35 seconds for teachers (social, email, the educators
 // page). Sells "the mechanic is the lesson" through Fraction Hop, then what
 // the teacher gets, then the free pilot. Copy follows apps/web/content.
+import { brandName } from "@repo/tokens";
 import { defineBrief, landscape } from "../../src/brief.ts";
 
 const hopLabels = {
@@ -83,7 +84,7 @@ arrange([1, intro], [${bars - 2}, main], [1, ending])
     },
     {
       id: "meet",
-      vo: "Meet Kindling!",
+      vo: `Meet ${brandName}!`,
       transition: "zoom",
       lightLeak: true,
       minSeconds: 3,
@@ -166,11 +167,11 @@ arrange([1, intro], [${bars - 2}, main], [1, ending])
     },
     {
       id: "cta",
-      vo: "Kindling is free for teachers, always. Join the pilot today!",
+      vo: `${brandName} is free for teachers, always. Join the pilot today!`,
       transition: "iris",
       scene: {
         kind: "end-card",
-        headline: "Bring Kindling to your class",
+        headline: `Bring ${brandName} to your class`,
         note: "Free for teachers. Always.",
         cta: "Join the teacher pilot",
       },

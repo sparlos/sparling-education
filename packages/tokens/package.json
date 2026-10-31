@@ -6,7 +6,8 @@
   "exports": {
     ".": "./src/index.ts",
     "./color": "./src/color.ts",
-    "./custom-media.css": "./src/generated/custom-media.css"
+    "./custom-media.css": "./src/generated/custom-media.css",
+    "./mark": "./src/mark.ts"
   },
   "scripts": {
     "generate": "node scripts/generate-css.ts",

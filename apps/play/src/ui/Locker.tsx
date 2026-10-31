@@ -542,7 +542,7 @@ export function JoinPage(props: AppProps & { joinCode: string }) {
 
 // Where the student was headed when they were sent to sign in. Kept on the
 // device, since the trip through Google can't carry it.
-const nextKey = "kindling.sign-in.next";
+const nextKey = "sign-in.next";
 
 /**
  * Google sign-in, on the real platform. Google brings the student back here

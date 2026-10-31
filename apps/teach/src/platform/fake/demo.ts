@@ -3,6 +3,7 @@
 // them from patterns of tries, with the same shape: 24 students across
 // Grades 3–5, some getting there, some not yet, and misconceptions several
 // of them share.
+import { defaultClassColour } from "@repo/tokens";
 import type { Try } from "../contract.ts";
 import type { NewClass } from "../ports.ts";
 import type { FakeStudentSeed } from "./teacher.ts";
@@ -10,8 +11,8 @@ import type { FakeStudentSeed } from "./teacher.ts";
 export const fakeDemoDraft: NewClass = {
   name: "Demo class",
   grades: [3, 4, 5],
-  // The API's: the brand's, the first a teacher sees.
-  colour: "teal",
+  // The API's: the one closest to the brand, the first a teacher sees.
+  colour: defaultClassColour,
 };
 
 const right: Try[] = [{ succeeded: true }];

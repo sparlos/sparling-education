@@ -1,5 +1,5 @@
-// Kindling's curriculum data: the product layer. Expectation IDs and
-// Kindling's own descriptions, for game manifests, results, the teacher view
+// The platform's curriculum data: the product layer. Expectation IDs and
+// The platform's own descriptions, for game manifests, results, the teacher view
 // and quick assess. The official text lives in ../reference/ for agents and
 // humans designing games, and is deliberately not exported.
 // See docs/adr/0001-two-layer-curriculum-package.md.
@@ -21,7 +21,7 @@ export interface Expectation {
   strand: string;
   /** e.g. "B1.5" */
   code: string;
-  /** Kindling's own words; never the ministry's. */
+  /** our own words; never the ministry's. */
   description: string;
   /** Its official page on the DCP, where teachers read the ministry's wording. */
   link: string;

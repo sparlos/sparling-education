@@ -3,6 +3,7 @@
 // report cards, with screenshots and a recording from screens/. It shares the brand frame
 // with the teacher teaser, and its opening text, but not its music. Copy follows
 // apps/web/content/educators.tsx and the app's own walkthroughs.
+import { brandName } from "@repo/tokens";
 import { defineBrief, landscape } from "../../src/brief.ts";
 
 export default defineBrief({
@@ -10,6 +11,8 @@ export default defineBrief({
   audience: "Ontario Grades 1–8 teachers",
   tone: "educator",
   format: landscape,
+  // The educators page's hero plays it; its poster is the class at a glance.
+  web: { posterBeat: "class" },
   // The games' narrator, at natural speed (the games slow it for students).
   voice: { name: "narrator", speed: 1 },
   music: {
@@ -69,7 +72,7 @@ arrange([1, intro], [${bars - 2}, main], [1, ending])
     },
     {
       id: "class",
-      vo: "Then you open Kindling, and see your whole class at a glance.",
+      vo: `Then you open ${brandName}, and see your whole class at a glance.`,
       transition: "zoom",
       lightLeak: true,
       tail: 0.8,
@@ -134,7 +137,7 @@ arrange([1, intro], [${bars - 2}, main], [1, ending])
     },
     {
       id: "cta",
-      vo: "Kindling, where play becomes proof. Join the teacher pilot today!",
+      vo: `${brandName}, where play becomes proof. Join the teacher pilot today!`,
       transition: "iris",
       scene: {
         kind: "end-card",

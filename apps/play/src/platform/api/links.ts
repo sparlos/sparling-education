@@ -1,4 +1,4 @@
-// The links port on Kindling's shared domain.
+// The links port on the platform's shared domain.
 import { lockerPath } from "../../play/routes.ts";
 import type { LinksPort } from "../ports.ts";
 

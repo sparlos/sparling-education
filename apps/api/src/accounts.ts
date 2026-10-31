@@ -11,7 +11,7 @@ export type Role = Account["role"];
 const sessionLifetimeMs = 30 * 24 * 60 * 60 * 1000;
 
 export const sessionCookie = {
-  name: "kindling_session",
+  name: "session",
   maxAgeSeconds: sessionLifetimeMs / 1000,
 };
 
@@ -104,7 +104,7 @@ export async function endSession(db: Db, token: string | undefined) {
  */
 export function sameOriginPath(returnTo: string | undefined, fallback: string) {
   if (!returnTo?.startsWith("/")) return fallback;
-  const origin = "https://kindling.invalid";
+  const origin = "https://app.invalid";
   const url = new URL(returnTo, origin);
   const path = `${url.pathname}${url.search}${url.hash}`;
   // "//host" would be read as another site's address.

@@ -103,14 +103,14 @@ describe("stand-in session", () => {
 
   it("is signed out when storage holds something that isn't a student", async () => {
     const storage = memoryStorage();
-    storage.setItem("kindling.stand-in.student", '{"id":3}');
+    storage.setItem("stand-in.student", '{"id":3}');
     expect(await standInSession(storage).current()).toBeNull();
   });
 
   it("is signed out when the stored student's look isn't a valid look", async () => {
     const storage = memoryStorage();
     storage.setItem(
-      "kindling.stand-in.student",
+      "stand-in.student",
       JSON.stringify({ ...newStudent(), look: { color: "red" } }),
     );
     expect(await standInSession(storage).current()).toBeNull();

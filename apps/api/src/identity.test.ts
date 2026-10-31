@@ -2,7 +2,7 @@ import { createLocalJWKSet, exportJWK, generateKeyPair, SignJWT } from "jose";
 import { describe, expect, it, vi } from "vitest";
 import { googleIdentityVerifier, identityFrom } from "./identity.ts";
 
-const clientId = "kindling.apps.googleusercontent.com";
+const clientId = "test-client.apps.googleusercontent.com";
 
 // Stands in for Google's published signing keys.
 const google = await generateKeyPair("RS256");
@@ -35,7 +35,7 @@ function token({
 }
 
 describe("Google identity verifier", () => {
-  it("accepts a token Google issued to Kindling", async () => {
+  it("accepts a token Google issued to this app", async () => {
     expect(await verifier.verify(await token())).toMatchObject({
       sub: "1234",
       given_name: "Ada",

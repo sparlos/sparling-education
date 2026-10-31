@@ -4,7 +4,7 @@
 import { evolvePath } from "@remotion/paths";
 import { AbsoluteFill, useCurrentFrame, useVideoConfig } from "remotion";
 import { useBeat, usePop, useRamp } from "../beat.tsx";
-import { color, fonts, palette, toneOf } from "../brand.tsx";
+import { color, fonts, toneOf } from "../brand.tsx";
 import type { Scene } from "../brief.ts";
 
 type Props = Extract<Scene, { kind: "kinetic" }>;
@@ -71,7 +71,7 @@ export function Kinetic({ lines, eyebrow }: Props) {
             display: "flex",
             gap: size * 0.24,
             fontFamily: fonts.heading,
-            fontWeight: 900,
+            fontWeight: 800,
             fontSize: size,
             lineHeight: 1.08,
             letterSpacing: -size * 0.025,
@@ -140,7 +140,7 @@ function PopWord({
           <path
             d={underline}
             fill="none"
-            stroke={palette.sunshine[4]}
+            stroke={color.sparkle}
             strokeWidth={9}
             strokeLinecap="round"
             strokeDasharray={evolved.strokeDasharray}

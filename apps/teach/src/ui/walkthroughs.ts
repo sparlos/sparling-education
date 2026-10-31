@@ -1,10 +1,11 @@
 // The teacher app's walkthroughs: guides through the real controls on a
 // screen, one spotlit step at a time. The welcome walkthrough starts by
-// itself on a new teacher's first dashboard and shows what Kindling does in a
+// itself on a new teacher's first dashboard and shows what the app does in a
 // nutshell, across screens. Each other screen's walkthrough starts by itself
 // the first time the teacher opens that screen, once they're past the
 // welcome. Each is remembered on the server once finished or skipped, and
 // can be replayed from Help. (Never "tour": that's a game's playthrough.)
+import { brandName } from "@repo/tokens";
 import type { WalkthroughStep } from "@repo/ui/walkthrough";
 
 /** The screens walkthroughs run on, by what's on them. */
@@ -44,7 +45,7 @@ export const welcome: Walkthrough = {
   steps: [
     {
       screen: "dashboard",
-      title: "Welcome to Kindling",
+      title: `Welcome to ${brandName}`,
       body: "Your students play short math games. Each answer they give shows you what they understand. You can use that to plan lessons and write report cards. Here's a quick look around.",
     },
     {

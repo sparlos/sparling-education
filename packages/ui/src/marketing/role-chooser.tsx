@@ -10,7 +10,7 @@ interface RoleChooserProps {
   roles: RoleCardProps[];
 }
 
-/** "I'm a teacher / parent / student" cards, right under the home hero. */
+/** "I'm a teacher / parent" cards, right under the home hero, centred. */
 export function RoleChooser({ title, lead, roles }: RoleChooserProps) {
   return (
     <Section
@@ -18,13 +18,15 @@ export function RoleChooser({ title, lead, roles }: RoleChooserProps) {
       surface="raised"
       heading={{ id: "role-chooser", title, lead }}
     >
-      <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="xl">
-        {roles.map((role, index) => (
-          <Reveal key={role.href} index={index} fill>
-            <RoleCard {...role} />
-          </Reveal>
-        ))}
-      </SimpleGrid>
+      <div style={{ maxWidth: "52rem", marginInline: "auto" }}>
+        <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="xl">
+          {roles.map((role, index) => (
+            <Reveal key={role.href} index={index} fill>
+              <RoleCard {...role} />
+            </Reveal>
+          ))}
+        </SimpleGrid>
+      </div>
     </Section>
   );
 }

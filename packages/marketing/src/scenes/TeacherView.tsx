@@ -66,7 +66,7 @@ export function TeacherView({
           <div
             style={{
               fontFamily: fonts.heading,
-              fontWeight: 900,
+              fontWeight: 800,
               fontSize: unit * 1.6,
               color: color.ink.default,
               margin: `${unit * 0.2}px 0 ${unit}px`,
@@ -103,12 +103,12 @@ export function TeacherView({
               height: unit * 2.4,
               borderRadius: radius.round,
               background: palette.sunshine[4],
-              color: palette.ink[9],
+              color: palette.slate[9],
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               fontFamily: fonts.heading,
-              fontWeight: 900,
+              fontWeight: 800,
               fontSize: unit * 1.6,
               marginBottom: unit * 0.8,
             }}
@@ -118,7 +118,7 @@ export function TeacherView({
           <div
             style={{
               fontFamily: fonts.heading,
-              fontWeight: 900,
+              fontWeight: 800,
               fontSize: unit * 1.3,
               lineHeight: 1.15,
             }}
@@ -189,7 +189,7 @@ function Row({
           flex: 1,
           height: unit * 0.6,
           borderRadius: radius.round,
-          background: palette.sand[2],
+          background: palette.slate[2],
           overflow: "hidden",
         }}
       >

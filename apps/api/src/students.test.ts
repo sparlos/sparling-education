@@ -64,7 +64,7 @@ describe("student sign-in", () => {
   it("holds the session in the same HTTP-only, same-site cookie as the teacher app", async () => {
     const res = await postStudentSignIn(google.credentialFor());
     const [cookie] = res.headers.getSetCookie();
-    expect(cookie).toMatch(/^kindling_session=[^;]+/);
+    expect(cookie).toMatch(/^session=[^;]+/);
     expect(cookie).toContain("HttpOnly");
     expect(cookie).toContain("SameSite=Lax");
     expect(cookie).toContain("Path=/");
@@ -106,7 +106,7 @@ describe("student sign-in", () => {
 describe("the session", () => {
   it("is null when signed out", async () => {
     expect(await sessionOf()).toBeNull();
-    expect(await sessionOf({ cookie: "kindling_session=made-up" })).toBeNull();
+    expect(await sessionOf({ cookie: "session=made-up" })).toBeNull();
   });
 
   it("gives a new student an opaque ID, no look until they design one, and no classes", async () => {
@@ -127,7 +127,7 @@ describe("joining a class", () => {
     const membership = {
       classId: room.id,
       className: "Room 12",
-      classColour: "teal",
+      classColour: "indigo",
       grades: [4],
       grade: 4,
       games: [fractionHop],

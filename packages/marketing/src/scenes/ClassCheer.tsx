@@ -14,7 +14,7 @@ type Props = Extract<Scene, { kind: "class" }>;
 
 const sparkColors = [
   palette.sunshine[4],
-  palette.ember[5],
+  palette.violet[5],
   palette.sky[4],
   palette.leaf[4],
   palette.berry[4],

@@ -1,4 +1,4 @@
-import { classColours } from "@repo/tokens";
+import { classColours, newClassColourOrder } from "@repo/tokens";
 import { describe, expect, it } from "vitest";
 import {
   client,
@@ -41,7 +41,8 @@ function setColour(headers: Headers, classId: string, colour: string) {
   );
 }
 
-const slugs = classColours.map((c) => c.slug);
+// In the order new classes get them, from the default on.
+const slugs = newClassColourOrder.map((c) => c.slug);
 
 describe("a class's colour", () => {
   it("is the one the teacher picked", async () => {
@@ -79,16 +80,16 @@ describe("a class's colour", () => {
   it("changes, and every read of the class shows the new one", async () => {
     const headers = await teacher();
     const made = await created(headers);
-    const res = await setColour(headers, made.id, "indigo");
+    const res = await setColour(headers, made.id, "violet");
     expect(res.status).toBe(200);
-    expect(await res.json()).toMatchObject({ id: made.id, colour: "indigo" });
+    expect(await res.json()).toMatchObject({ id: made.id, colour: "violet" });
     const one = await client.classes[":classId"].$get(
       { param: { classId: made.id } },
       { headers },
     );
-    expect(await one.json()).toMatchObject({ colour: "indigo" });
+    expect(await one.json()).toMatchObject({ colour: "violet" });
     const all = await client.classes.$get(undefined, { headers });
-    expect(await all.json()).toMatchObject([{ colour: "indigo" }]);
+    expect(await all.json()).toMatchObject([{ colour: "violet" }]);
   });
 
   it("can be changed only by the class's own teacher", async () => {

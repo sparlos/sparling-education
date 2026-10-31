@@ -1,4 +1,4 @@
-// Kindling's schema. This is the only place schema changes are made:
+// The platform's schema. This is the only place schema changes are made:
 // edit this file, then run `pnpm --filter @repo/db migrate` to add a migration.
 
 generator client {
@@ -10,14 +10,14 @@ datasource db {
   provider = "postgresql"
 }
 
-// Who someone is to Kindling. Fixed when their account is made, by where they
+// Who someone is to the platform. Fixed when their account is made, by where they
 // first signed in: the teacher app makes a teacher, a class or game link a student.
 enum Role {
   teacher
   student
 }
 
-// One Google account. Kindling keeps only Google's opaque subject ID, the
+// One Google account. The platform keeps only Google's opaque subject ID, the
 // first name and the last initial: never the email, the full surname or a photo.
 model Account {
   id            String       @id @default(uuid()) @db.Uuid
@@ -83,7 +83,7 @@ model Class {
   grades      Int[]
   joinCode    String       @unique
   // The slugs of hosted games the teacher turned off. Every other hosted game
-  // is on, so a game Kindling starts hosting is on in every class.
+  // is on, so a game the platform starts hosting is on in every class.
   gamesOff    String[]     @default([])
   // The demo class every new teacher gets: simulated students, with results
   // already in. Its students are made for it (`Account.demoClassId`).

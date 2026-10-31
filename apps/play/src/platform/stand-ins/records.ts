@@ -6,7 +6,7 @@ import { type KeyValueStore, readJson, writeJson } from "../../play/storage.ts";
 import type { PlayRecord, PlayRecordsPort } from "../ports.ts";
 
 /** The games each student has played, by student ID: `{ [student]: slug[] }`. */
-export const standInPlayedKey = "kindling.stand-in.played";
+export const standInPlayedKey = "stand-in.played";
 
 export interface StandInRecords extends PlayRecordsPort {
   /** Everything stored so far, in arrival order. */

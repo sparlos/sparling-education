@@ -1,5 +1,6 @@
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import type { Db } from "@repo/db";
+import { brandName } from "@repo/tokens";
 import { Scalar } from "@scalar/hono-api-reference";
 import type { Context } from "hono";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
@@ -83,7 +84,7 @@ import { markWalkthroughSeen, seenWalkthroughs } from "./walkthroughs.ts";
 
 export const openApiConfig = {
   openapi: "3.1.0",
-  info: { title: "Kindling API", version: "0.0.0" },
+  info: { title: `${brandName} API`, version: "0.0.0" },
 };
 
 // Where student sign-in sends the browser back to. The play shell remembers
@@ -116,7 +117,7 @@ const signInRoute = createRoute({
   operationId: "signIn",
   summary: "Sign in with a Google ID token",
   description:
-    "Verifies the token, makes the account if it's new, and starts a session in an HTTP-only cookie. Kindling keeps only Google's subject ID, the first name and the last initial. A teacher's first sign-in gives them their demo class.",
+    "Verifies the token, makes the account if it's new, and starts a session in an HTTP-only cookie. The platform keeps only Google's subject ID, the first name and the last initial. A teacher's first sign-in gives them their demo class.",
   request: {
     body: { content: { "application/json": { schema: SignInSchema } } },
   },
@@ -126,7 +127,7 @@ const signInRoute = createRoute({
       content: { "application/json": { schema: SignedInSchema } },
     },
     401: {
-      description: "The token isn't a valid Google sign-in for Kindling",
+      description: "The token isn't a valid Google sign-in for this app",
       content: { "application/json": { schema: ErrorSchema } },
     },
   },
@@ -444,7 +445,7 @@ const createClassRoute = createRoute({
   operationId: "createClass",
   summary: "Make a class for the signed-in teacher",
   description:
-    "The class gets a join code, and every game Kindling hosts starts on.",
+    "The class gets a join code, and every game the platform hosts starts on.",
   request: {
     body: { content: { "application/json": { schema: NewClassSchema } } },
   },
@@ -498,7 +499,7 @@ const gameSwitchRoute = createRoute({
     ...teacherOnly,
     404: {
       description:
-        "No class of this teacher's has that ID, or Kindling doesn't host that game",
+        "No class of this teacher's has that ID, or the platform doesn't host that game",
       content: { "application/json": { schema: ErrorSchema } },
     },
   },

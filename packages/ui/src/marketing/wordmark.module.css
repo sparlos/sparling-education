@@ -1,12 +1,12 @@
 .root {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.4em;
   color: var(--k-ink);
   text-decoration: none;
   font-family: var(--k-font-heading-stack);
   font-weight: 800;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.025em;
   line-height: 1;
 }
 
@@ -22,8 +22,34 @@
   font-size: 2.25rem;
 }
 
+/* With a byline, the gem lines up with the name, not the pair. */
+.root[data-byline] {
+  align-items: flex-start;
+}
+
 .mark {
   flex-shrink: 0;
-  width: 1.15em;
-  height: 1.15em;
+  /* The gem's height matches the name's caps; the sparkle pokes above. */
+  height: 1.12em;
+  width: auto;
+  aspect-ratio: 126 / 123;
+  margin-top: -0.2em;
+}
+
+.text {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 0.3em;
+}
+
+.byline {
+  font-family: var(--k-font-body-stack);
+  font-weight: 500;
+  font-size: max(0.4em, 0.8125rem);
+  letter-spacing: 0.01em;
+  color: var(--k-ink-muted);
+}
+
+.root[data-inverse] .byline {
+  color: var(--k-ink-inverse-muted);
 }

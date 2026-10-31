@@ -41,7 +41,7 @@ export function Video({ id, tone, timeline, hasMix }: VideoProps) {
     toneOf(tone).soft,
     palette.sunshine[1],
     palette.sky[1],
-    palette.ember[1],
+    palette.violet[1],
     palette.leaf[1],
   ];
   return (

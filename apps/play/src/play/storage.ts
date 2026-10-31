@@ -14,7 +14,7 @@ export interface KeyValueStore {
 export function browserStorage(): KeyValueStore | null {
   try {
     const storage = window.localStorage;
-    const probe = "kindling.probe";
+    const probe = "storage.probe";
     storage.setItem(probe, probe);
     storage.removeItem(probe);
     return {

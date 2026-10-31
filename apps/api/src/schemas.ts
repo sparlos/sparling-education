@@ -113,7 +113,7 @@ export const ClassSchema = z
       example: "/play/join/K7QM4XRT",
     }),
     games: z.array(ClassGameSchema).openapi({
-      description: "Every game Kindling hosts, and whether it's on",
+      description: "Every game the platform hosts, and whether it's on",
     }),
   })
   .openapi("Class");
@@ -462,7 +462,7 @@ export const DashboardExpectationSchema = z
     code: z.string().openapi({ example: "B1.6" }),
     description: z
       .string()
-      .openapi({ description: "Kindling's own words; never the ministry's" }),
+      .openapi({ description: "Our own words; never the ministry's" }),
     link: z.url().openapi({
       description:
         "Its official page on the Ontario Digital Curriculum Platform, where the ministry's wording is",

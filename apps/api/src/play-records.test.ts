@@ -160,7 +160,7 @@ describe("play records that will never be accepted", () => {
   });
 
   it.each([
-    ["a game Kindling doesn't host", { game: "sample" }],
+    ["a game the platform doesn't host", { game: "sample" }],
     ["a version the game never had", { gameVersion: 99 }],
     ["a tier the game doesn't have", { tier: "g8" }],
     [
@@ -336,7 +336,7 @@ describe("whether a student has played a game", () => {
 
   it("hasn't, when they've only played a different game", async () => {
     const who = await student();
-    // Kindling hosts one game so far, so another game's play is seeded.
+    // The platform hosts one game so far, so another game's play is seeded.
     const [record] = playOf(who, right(1), { ending: null });
     if (!record) throw new Error("No record");
     await db.playRecord.create({

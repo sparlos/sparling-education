@@ -100,7 +100,7 @@ function setUp({
   render(
     <UIProvider>
       <App
-        url={new URL(path, "https://kindling.test")}
+        url={new URL(path, "https://app.test")}
         base="/play/"
         platform={{
           name: "test",
@@ -256,7 +256,7 @@ describe("the locker", () => {
       session: { current: () => Promise.reject(new Error("offline")) },
     });
     await user.click(await screen.findByRole("button", { name: "Try again" }));
-    expect(navigate).toHaveBeenCalledWith("https://kindling.test/play/");
+    expect(navigate).toHaveBeenCalledWith("https://app.test/play/");
   });
 
   it("tells a teacher, aloud, that it's for students", async () => {
@@ -663,10 +663,10 @@ describe("the shell's recorded lines", () => {
       return Promise.resolve();
     });
     const { spoken, user } = setUp({
-      shellLines: { "pick-game": "https://kindling.test/pick-game.mp3" },
+      shellLines: { "pick-game": "https://app.test/pick-game.mp3" },
     });
     await waitFor(() =>
-      expect(played).toEqual(["https://kindling.test/pick-game.mp3"]),
+      expect(played).toEqual(["https://app.test/pick-game.mp3"]),
     );
     await user.click(
       await screen.findByRole("button", { name: "Hear it: Fraction Hop" }),
@@ -687,13 +687,13 @@ describe("game titles", () => {
     });
     const { spoken, user } = setUp({
       titleLines: {
-        "fraction-hop": "https://kindling.test/fraction-hop-title.mp3",
+        "fraction-hop": "https://app.test/fraction-hop-title.mp3",
       },
     });
     await user.click(
       await screen.findByRole("button", { name: "Hear it: Fraction Hop" }),
     );
-    expect(played).toEqual(["https://kindling.test/fraction-hop-title.mp3"]);
+    expect(played).toEqual(["https://app.test/fraction-hop-title.mp3"]);
     await user.click(
       screen.getByRole("button", { name: "Hear it: Shell Check" }),
     );
@@ -845,22 +845,19 @@ describe("sign-in", () => {
       SignInButton: button,
     });
     await screen.findByRole("button", { name: "Sign in with Google" });
-    expect(storage.getItem("kindling.sign-in.next")).toBe(
-      '"/play/join/K7QM4XRT"',
-    );
+    expect(storage.getItem("sign-in.next")).toBe('"/play/join/K7QM4XRT"');
   });
 
   it("goes on to the remembered page once Google brings the student back, then forgets it", async () => {
     const { navigate, storage } = setUp({
       path: "/play/sign-in",
       SignInButton: button,
-      beforeRender: (s) =>
-        s.setItem("kindling.sign-in.next", '"/play/join/K7QM4XRT"'),
+      beforeRender: (s) => s.setItem("sign-in.next", '"/play/join/K7QM4XRT"'),
     });
     await waitFor(() =>
       expect(navigate).toHaveBeenCalledWith("/play/join/K7QM4XRT"),
     );
-    expect(storage.keys()).not.toContain("kindling.sign-in.next");
+    expect(storage.keys()).not.toContain("sign-in.next");
   });
 
   it("opens the locker when nothing was remembered", async () => {

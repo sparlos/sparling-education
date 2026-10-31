@@ -15,7 +15,7 @@ Use this for layout, fit, touch-target sizes and anything else jsdom can't measu
 1. Start the app's dev server in the scratch copy on its in-memory platform, at a port nothing else uses:
    - play shell: `VITE_PLAY_PLATFORM=stand-in pnpm exec vite --port 3013 --strictPort --host 127.0.0.1`
    - teacher app: `VITE_TEACH_PLATFORM=fake pnpm exec vite --port 3014 --strictPort --host 127.0.0.1`
-2. Write a throwaway script under the scratch copy's `packages/game-kit/scripts/`, so `playwright-core` resolves. Launch with `executablePath` set to that `chrome-headless-shell`. Seed state the way the tour does: `page.addInitScript` writes the play shell's stand-in student to `localStorage` (`kindling.stand-in.student`).
+2. Write a throwaway script under the scratch copy's `packages/game-kit/scripts/`, so `playwright-core` resolves. Launch with `executablePath` set to that `chrome-headless-shell`. Seed state the way the tour does: `page.addInitScript` writes the play shell's stand-in student to `localStorage` (`stand-in.student`).
 3. Screenshot at 1366×768 (the reference Chromebook) and 360×640. Then **Read the PNGs** to look at them. Measure targets with `getBoundingClientRect`: 48 px minimum, 64 px for Grades 1–2.
 4. Stop the server, and delete the script.
 

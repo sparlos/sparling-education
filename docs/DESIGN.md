@@ -1,31 +1,40 @@
-# Kindling design
+# Platform design
 
-What Kindling is, the principles that settle disagreements about it, and what the MVP contains. Terms in **bold** are defined in [GLOSSARY.md](./GLOSSARY.md).
+What the platform is, the principles that settle disagreements about it, and what the MVP contains. Terms in **bold** are defined in [GLOSSARY.md](./GLOSSARY.md).
 
-## What Kindling is
+## What the platform is
 
-Kindling is a web-based learning game for Ontario classrooms, Grades 1–8. It has three parts:
+The platform is a web-based learning game for Ontario classrooms, Grades 1–8. It has three parts:
 
-- **Games**, where the concept being taught is the core mechanic. In Fraction Hop you plan a route of fraction hops along a number line, then watch your avatar run it; when the wrong idea fails, the splash shows exactly which hop was wrong. Games are the heart of Kindling.
+- **Games**, where the concept being taught is the core mechanic. In Fraction Hop you plan a route of fraction hops along a number line, then watch your avatar run it; when the wrong idea fails, the splash shows exactly which hop was wrong. Games are the heart of the platform.
 - A student's **locker**: their own 2D home screen, with their **avatar**, wardrobe, **stickers** and the games their teacher has turned on. Every game returns there, with any new **rewards** revealed.
 - A teacher's **dashboard**: the class's **results** by curriculum expectation, the **misconceptions** showing up in the class, and **quick assess** for report cards.
 
 A shared 3D **class world** (a **hub** with **portals** into games, and a **house** for every student) is the design intent for later, not the MVP ([ADR 0003](./adr/0003-mvp-ships-without-the-class-world.md)).
 
-Kindling is a **supplemental resource**. A teacher teaches the concept, shares the games that reinforce it, and uses the results as assessment evidence at the end of term. It doesn't own the unit, set deadlines or expect to replace instruction. For students it's a reward activity; for teachers it's that, plus evidence for report cards.
+The platform is a **supplemental resource**. A teacher teaches the concept, shares the games that reinforce it, and uses the results as assessment evidence at the end of term. It doesn't own the unit, set deadlines or expect to replace instruction. For students it's a reward activity; for teachers it's that, plus evidence for report cards.
 
-The tagline says that in four words: _Where play becomes proof._ It's Kindling's line across the site, videos and anything else that speaks for the whole platform.
+The tagline says that in four words: _Where play becomes proof._ It's the platform's line across the site, videos and anything else that speaks for the whole platform.
 
 Free for teachers. Students and parents never pay.
+
+## Brand
+
+The product's name isn't chosen yet. Everywhere a user reads or hears it, the code uses `brandName` from `@repo/tokens`, which says "Placeholder" for now; [RENAME.md](./RENAME.md) lists everything else a rename touches. The logo is a faceted violet gem with a gold sparkle on its top-right corner, beside the name, with "by Sparling Education" under it where it's big enough to read. `@repo/brand` generates the logo files.
+
+- **Colours.** Violet (`#6D45FF`) for buttons, links and the educator audience; deep indigo (`#1B1259`) for text and dark bands; a lavender-white page (`#F7F5FF`); neutrals tinted toward indigo. Every text and fill pairing passes WCAG AA, checked by `packages/tokens/src/contrast.test.ts`.
+- **Gold is for sparkle, not meaning.** The sparkle's gold (`#F6B93B`) is never text. In the apps it appears only in the logo, because amber on teacher screens means a misconception. On the marketing site it's free to use: the parent audience, sparkles and decoration.
+- **Type.** Plus Jakarta Sans throughout, ExtraBold for headings and the wordmark.
+- **Decoration.** Faceted crystal shards, small gem glints and gold sparkles. Decorative shapes are hidden from screen readers and hold still for reduced motion.
 
 ## Guiding principles
 
 Ranked: when two conflict, the higher one wins.
 
 1. **The mechanic is the lesson.** Getting better at the game has to mean getting better at the concept. No quiz questions in front of a game.
-2. **Supplemental, not a replacement.** Kindling reinforces and evidences what the teacher teaches. No deadlines, no due dates, no assumption it owns the unit.
-3. **Teachers have no time.** Every teacher task takes the fewest steps possible, and every screen makes sense at a glance without training. Kindling picks sensible defaults rather than asking, and shows the one thing worth acting on before the detail behind it.
-4. **Kindling provides evidence; the teacher makes the judgement.** Results say what they contribute to (curriculum expectations, Learning Skills) but never assign a level or a rating.
+2. **Supplemental, not a replacement.** The platform reinforces and evidences what the teacher teaches. No deadlines, no due dates, no assumption it owns the unit.
+3. **Teachers have no time.** Every teacher task takes the fewest steps possible, and every screen makes sense at a glance without training. The platform picks sensible defaults rather than asking, and shows the one thing worth acting on before the detail behind it.
+4. **The platform provides evidence; the teacher makes the judgement.** Results say what they contribute to (curriculum expectations, Learning Skills) but never assign a level or a rating.
 5. **Rewards follow effort, never money or luck.** No store, ads, loot boxes or upsells. Rewards measure effort; results measure understanding; students never see a score.
 6. **Fair whatever is happening at home.** Home play is never an advantage. No streaks, daily rewards or limited-time items.
 7. **Safe by default.** Minimal student data, real names seen only by responsible adults, and students never type free text other students can see.
@@ -36,7 +45,7 @@ Ranked: when two conflict, the higher one wins.
 
 ### Students and identity
 
-- Students and teachers sign in with Google. From a student's Google account Kindling keeps only their **real name** (first name and last initial), never their email, full surname or photo.
+- Students and teachers sign in with Google. From a student's Google account the platform keeps only their **real name** (first name and last initial), never their email, full surname or photo.
 - The real name is shown only to the student's teacher (and later, parent).
 - The role comes from the way in: signing in through the teacher app makes a teacher; signing in through a class join link or game link makes a student. One Google account has one role.
 - A student designs their avatar before anything else, the first time they sign in. It's the same avatar in the locker and in every game.
@@ -80,24 +89,24 @@ Ranked: when two conflict, the higher one wins.
 - Sign in with Google, create a class with its name and grade or grades. `/teach/` opens the class the teacher last had open; the class switcher (with "New class" at its end) is the one way between classes. **Share** on the dashboard has the class join link and the game links to copy, with each game's on/off switch beside its link. **Manage class** is about the class's students (change a student's grade, remove a student), plus its **class colour**, which is also picked when the class is made.
 - **The dashboard** opens on the class by expectation: students against the curriculum expectations the class's games evidence, each cell describing that student's understanding (or "no evidence yet"), with the misconceptions showing up in the class listed above it. A cell drills into that student's page with that expectation open, showing its bands and plays, newest first, then into individual plays. Rows and column headers stay short (the full description of an expectation is on the student's page), and recognising a student is done from the students not recognised yet this term, or the student's page. A student's page is their quick assess, with recognition on screen only.
 - **Quick assess**: the class's screen, and each student's own page, summarising results for report-card writing and optimised for printing from the browser. On screen, the class's screen goes through one student at a time, beside the class's names, which a search box filters. It states which expectations and Learning Skills each piece of evidence contributes to, and leaves the level and rating for the teacher.
-- Every new teacher gets a **demo class** of simulated students with results already in, explorable as a student too, and deletable in one step. A **welcome walkthrough** on the teacher's first dashboard shows what Kindling does in a nutshell (share a game link, spot misconceptions, view quick assess, and the rest of what's on screen), and each other screen has a short walkthrough of its own the first time it's opened. Each is shown once, skippable at every step, and can be replayed from Help.
+- Every new teacher gets a **demo class** of simulated students with results already in, explorable as a student too, and deletable in one step. A **welcome walkthrough** on the teacher's first dashboard shows what the platform does in a nutshell (share a game link, spot misconceptions, view quick assess, and the rest of what's on screen), and each other screen has a short walkthrough of its own the first time it's opened. Each is shown once, skippable at every step, and can be replayed from Help.
 
 ### Later: the class world
 
 The design intent beyond the MVP, kept so it's built on the same foundations:
 
-- A **hub** designed by Kindling, with **portals** into games and multiplayer presence. Students communicate only through preset phrases and emotes, and are known to classmates by a **nickname** built from curated word lists, which a teacher can re-roll.
+- A **hub** designed by the platform, with **portals** into games and multiplayer presence. Students communicate only through preset phrases and emotes, and are known to classmates by a **nickname** built from curated word lists, which a teacher can re-roll.
 - A **house** for every student, decorated with furniture earned as rewards. Only the owner can change it. A classmate enters only on an **invite**, which is valid only while the owner is home, lasts one **visit**, and only goes to classmates. Visitors can look, emote and use preset phrases but can't touch anything, and the owner can remove a visitor at any time. A teacher can view any house without an invite.
 - The class world is one more way into games. Games and the locker never depend on it.
 
 ## How games are built
 
-- **The contract.** A game is a workspace package under `games/` that exports a manifest and a React component through `@repo/game-contract`. The play shell (`apps/play`, on the same domain as the teacher app and the marketing site) owns sign-in, tier choice, loading, voice playback, the API and the trip back to the locker. A game only receives props and emits **attempts**; Kindling computes understanding and effort from them ([ADR 0002](./adr/0002-games-emit-attempts-platform-scores.md)).
+- **The contract.** A game is a workspace package under `games/` that exports a manifest and a React component through `@repo/game-contract`. The play shell (`apps/play`, on the same domain as the teacher app and the marketing site) owns sign-in, tier choice, loading, voice playback, the API and the trip back to the locker. A game only receives props and emits **attempts**; the platform computes understanding and effort from them ([ADR 0002](./adr/0002-games-emit-attempts-platform-scores.md)).
 - **Continuity.** One session across the locker and games. Leaving a game returns the student to their locker, with any rewards revealed on arrival. Shared tokens and transitions. Every game shows the **avatar**, at least as a reacting portrait drawn in 2D from the same avatar data the locker uses.
 - **Touch first.** Pointer events, so touch, pen and mouse behave the same. React + SVG/DOM by default; PixiJS or PlayCanvas only when a game spec justifies it.
 - **Words and voice.** Every string a student sees or hears is localised by ID (English now, ready for French). Every instruction is shown as text and has a voice line generated at build time, with browser speech as the fallback, so a game works in a loud classroom or with the volume off. For Grades 1–3, playing never requires reading, and no grade requires sound: demonstrations and visual feedback carry the meaning on their own.
 - **Art.** Agents draw SVG within a 2D style kit an illustrator designs. Games refer to art by named slot, so a real asset replaces a slot without code changes.
-- **Curriculum.** `@repo/curriculum` holds the official text for designing games and Kindling's own descriptions for the product ([ADR 0001](./adr/0001-two-layer-curriculum-package.md)).
+- **Curriculum.** `@repo/curriculum` holds the official text for designing games and our own descriptions for the product ([ADR 0001](./adr/0001-two-layer-curriculum-package.md)).
 - **Evidence over time.** Attempts record the game version, tier, and expectation with its curriculum edition. A change to what a tier evidences bumps the game version.
 - **Testing.** Game rules (task generation, checking an attempt, detecting misconceptions) are plain TypeScript with unit tests. A harness plays each game through simulated touch against a fake shell.
 - **Chromebook budgets.** Reference device: a 4 GB Celeron N4020 / MediaTek MT8183 Chromebook, approximated in CI with 4× CPU throttling and Fast 3G. Per game: at most 250 KB of gzipped JavaScript beyond the shell, at most 2 MB to start one tier (art and audio included), at least 30 fps while dragging (60 fps target), touch response within 100 ms. Touch targets at least 48 px, 64 px for Grades 1–2.

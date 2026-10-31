@@ -17,7 +17,6 @@ export const site = {
   nav: [
     { label: "For educators", href: "/educators", tone: "educator" },
     { label: "For parents", href: "/parents", tone: "parent" },
-    { label: "For students", href: "/students", tone: "student" },
   ] satisfies NavLink[],
   navCta: { label: "Join the pilot", href: "/educators#pilot" },
   footer: {
@@ -25,11 +24,10 @@ export const site = {
       "A learning game for Grades 1–8 where the skill is how you win. Free for teachers, never paid for by kids.",
     columns: [
       {
-        title: "Kindling for",
+        title: `${brandName} for`,
         links: [
           { label: "Educators", href: "/educators" },
           { label: "Parents", href: "/parents" },
-          { label: "Students", href: "/students" },
         ],
       },
       {

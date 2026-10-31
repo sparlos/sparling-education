@@ -1,4 +1,4 @@
-// The teacher port over Kindling's API, through the generated client.
+// The teacher port over the platform's API, through the generated client.
 import {
   type Class as ApiClass,
   createClass,
@@ -34,7 +34,7 @@ import {
 } from "../ports.ts";
 
 export function apiTeacherPort(options: {
-  /** The site the API's link paths are on, e.g. "https://kindling.ca". */
+  /** The site the API's link paths are on, e.g. "https://example.ca". */
   origin: string;
 }): TeacherPort {
   /** The API's class, with its link paths made into URLs to share. */

@@ -4,7 +4,7 @@ import type { DashboardExpectation } from "../platform/ports.ts";
 
 /**
  * "Grade 4 · B1.6", linked to its official page on the curriculum site, in a
- * new tab: the ministry's wording, one tap away, without Kindling copying it.
+ * new tab: the ministry's wording, one tap away, without the platform copying it.
  * Not previewed in a frame: the site won't load in one (it signs in with MSAL,
  * which stalls inside an iframe).
  */

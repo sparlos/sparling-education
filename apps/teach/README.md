@@ -1,6 +1,6 @@
 # Teacher app
 
-Kindling for teachers, served at `/teach/` on the same domain as the play shell (`/play/`) and the API. Teachers sign in with their school Google account; signing in here is what makes an account a teacher's. A student account that signs in here gets a plain "this is for teachers" screen.
+The teacher app, served at `/teach/` on the same domain as the play shell (`/play/`) and the API. Teachers sign in with their school Google account; signing in here is what makes an account a teacher's. A student account that signs in here gets a plain "this is for teachers" screen.
 
 ## Running it
 
@@ -11,13 +11,13 @@ VITE_TEACH_PLATFORM=fake pnpm --filter teach dev   # without the API or Google
 pnpm --filter teach test                    # needs Docker, for the contract suite
 ```
 
-Real sign-in needs a Google OAuth client (Google Cloud console → Credentials → OAuth client ID, type "Web application") with `http://localhost:3004` as an authorised JavaScript origin. Copy `apps/api/.env.example` and `apps/teach/.env.example` to `.env.local` next to them, and put its client ID in both. Without it, the API rejects every sign-in. Kindling only needs the client ID: the client secret is for exchanging authorisation codes, which this sign-in doesn't do, so don't put it anywhere.
+Real sign-in needs a Google OAuth client (Google Cloud console → Credentials → OAuth client ID, type "Web application") with `http://localhost:3004` as an authorised JavaScript origin. Copy `apps/api/.env.example` and `apps/teach/.env.example` to `.env.local` next to them, and put its client ID in both. Without it, the API rejects every sign-in. The platform only needs the client ID: the client secret is for exchanging authorisation codes, which this sign-in doesn't do, so don't put it anywhere.
 
 In development the app reaches the API through Vite's proxy at `/api`, so the session cookie is same-origin, as it is on the shared domain in production. It also proxies `/play` to the play shell's dev server (port 3003), so the class join link and game links it copies open there; run the play shell too (`pnpm dev` does).
 
 ## Layout
 
-- `src/platform/ports.ts`: the teacher port, the only way the app talks to the rest of Kindling.
+- `src/platform/ports.ts`: the teacher port, the only way the app talks to the rest of the platform.
 - `src/platform/contract.ts`: the port's contract suite. It runs against the in-memory fake (`fake/`) and the API adapter (`api/`) over the in-process API and the test Postgres, so the fake can't drift from the API.
 - `src/platform/api/google-button.tsx`: Google's sign-in button. It hands Google's ID token to the port; the API verifies it.
 - `src/ui/`: the screens, built from `@repo/ui`. `NewClass.tsx` makes a class; `Share.tsx` is the dashboard's panel with the class join link, the game links and each game's switch; `StudentScreen.tsx` is a student's quick assess, with their plays opened on screen. `App.test.tsx` renders the app over the fake platform, at a URL, with a memory history.

@@ -1,4 +1,5 @@
 import { expectation } from "@repo/curriculum";
+import { brandName } from "@repo/tokens";
 import { UIProvider } from "@repo/ui/provider";
 import { createMemoryHistory } from "@tanstack/react-router";
 import { act, cleanup, render, screen, within } from "@testing-library/react";
@@ -105,13 +106,15 @@ describe("the teacher app", () => {
     expect(await signInButton()).toBeInTheDocument();
   });
 
-  it("offers to try again, not sign-in, when Kindling can't be reached", async () => {
+  it("offers to try again, not sign-in, when the app can't be reached", async () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
     let offline = true;
     const user = renderApp({ offline: () => offline });
 
     expect(
-      await screen.findByRole("heading", { name: "Kindling can't be reached" }),
+      await screen.findByRole("heading", {
+        name: `${brandName} can't be reached`,
+      }),
     ).toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: "Sign in with Google" }),
@@ -193,7 +196,7 @@ describe("opening the app", () => {
   });
 
   it("opens the first class when the last one is gone", async () => {
-    localStorage.setItem("kindling.teach.last-class", "no-such-class");
+    localStorage.setItem("teach.last-class", "no-such-class");
     const { user } = openAt("/teach/", rooms);
     await user.click(await signInButton());
     expect(await heading("Room 12")).toBeInTheDocument();
@@ -1916,7 +1919,7 @@ describe("the demo class", () => {
     await user.click(screen.getByRole("button", { name: "View as a student" }));
     expect(open).toHaveBeenCalledWith("", "_blank");
     await vi.waitFor(() =>
-      expect(tab.location.href).toBe("https://kindling.test/play/"),
+      expect(tab.location.href).toBe("https://app.test/play/"),
     );
     open.mockRestore();
   });
@@ -1977,7 +1980,7 @@ describe("walkthroughs", () => {
 
   it("welcomes a new teacher on their first dashboard, and goes through it step by step", async () => {
     const user = await newTeacher();
-    const welcome = await step("Welcome to Kindling");
+    const welcome = await step(`Welcome to ${brandName}`);
     expect(welcome).toHaveTextContent("1 of 9");
     // Nothing to go back to yet; the way out is always there.
     expect(within(welcome).queryByRole("button", { name: "Back" })).toBeNull();
@@ -2017,7 +2020,7 @@ describe("walkthroughs", () => {
 
   it("is shown once per teacher: finished, it doesn't come back, on any browser", async () => {
     const user = await newTeacher();
-    await step("Welcome to Kindling");
+    await step(`Welcome to ${brandName}`);
     for (let i = 0; i < 8; i++) await next(user);
     await user.click(await screen.findByRole("button", { name: "Done" }));
     await gone();
@@ -2028,7 +2031,7 @@ describe("walkthroughs", () => {
 
   it("can be skipped from any step, and skipping is remembered too", async () => {
     const user = await newTeacher();
-    await step("Welcome to Kindling");
+    await step(`Welcome to ${brandName}`);
     await next(user);
     await user.click(
       within(await step("Your classes")).getByRole("button", { name: "Skip" }),
@@ -2041,7 +2044,7 @@ describe("walkthroughs", () => {
 
   it("closes with Escape, as skipped", async () => {
     const user = await newTeacher();
-    await step("Welcome to Kindling");
+    await step(`Welcome to ${brandName}`);
     await user.keyboard("{Escape}");
     await gone();
     await signOutAndIn(user);
@@ -2063,7 +2066,7 @@ describe("walkthroughs", () => {
     await user.click(
       await screen.findByRole("menuitem", { name: "Show me around" }),
     );
-    await step("Welcome to Kindling");
+    await step(`Welcome to ${brandName}`);
     expect(
       screen.getByRole("heading", { level: 1, name: "Demo class" }),
     ).toBeInTheDocument();
@@ -2101,7 +2104,7 @@ describe("walkthroughs", () => {
     await user.click(
       await screen.findByRole("menuitem", { name: "Show me around" }),
     );
-    await step("Welcome to Kindling");
+    await step(`Welcome to ${brandName}`);
     await next(user);
     await next(user);
     // A real class has Share, so the step points at it.
@@ -2117,7 +2120,7 @@ describe("walkthroughs", () => {
   it("starts each screen's own walkthrough the first time, once past the welcome", async () => {
     const user = await newTeacher();
     await user.click(
-      within(await step("Welcome to Kindling")).getByRole("button", {
+      within(await step(`Welcome to ${brandName}`)).getByRole("button", {
         name: "Skip",
       }),
     );
@@ -2177,7 +2180,7 @@ describe("walkthroughs", () => {
       demoClass: true,
       walkthroughsSeen: [],
     }).user.click(await signInButton());
-    await step("Welcome to Kindling");
+    await step(`Welcome to ${brandName}`);
     expect(
       screen.queryByRole("dialog", { name: "A student's page" }),
     ).toBeNull();
@@ -2198,18 +2201,18 @@ describe("class colours", () => {
   it("starts a new class on a colour the teacher's other classes haven't got", async () => {
     const user = await signInAsNewTeacher();
     expect(
-      within(colourPicker()).getByRole("radio", { name: "Teal" }),
+      within(colourPicker()).getByRole("radio", { name: "Indigo" }),
     ).toBeChecked();
     await createClass(user, "Room 12", ["Grade 4"]);
-    expect(colourShown()).toBe("teal");
+    expect(colourShown()).toBe("indigo");
 
     await user.click(screen.getByRole("link", { name: "New class" }));
     await screen.findByRole("heading", { name: "New class" });
     expect(
-      within(colourPicker()).getByRole("radio", { name: "Green" }),
+      within(colourPicker()).getByRole("radio", { name: "Blue" }),
     ).toBeChecked();
     expect(
-      within(colourPicker()).getByRole("radio", { name: "Teal" }),
+      within(colourPicker()).getByRole("radio", { name: "Indigo" }),
     ).not.toBeChecked();
   });
 
@@ -2218,10 +2221,10 @@ describe("class colours", () => {
     const radios = within(colourPicker()).getAllByRole("radio");
     expect(radios).toHaveLength(12);
     await user.click(
-      within(colourPicker()).getByRole("radio", { name: "Indigo" }),
+      within(colourPicker()).getByRole("radio", { name: "Violet" }),
     );
     await createClass(user, "Room 12", ["Grade 4"]);
-    expect(colourShown()).toBe("indigo");
+    expect(colourShown()).toBe("violet");
   });
 
   it("changes from Manage class, and the dashboard and switcher show it at once", async () => {
@@ -2265,14 +2268,14 @@ describe("class colours", () => {
     ).toHaveAccessibleDescription("Class colour: Amber");
     expect(
       within(switcher).getByRole("link", { name: "Demo class" }),
-    ).toHaveAccessibleDescription("Class colour: Teal");
+    ).toHaveAccessibleDescription("Class colour: Indigo");
   });
 
-  it("shows the demo class in teal", async () => {
+  it("shows the demo class in indigo", async () => {
     const user = renderApp({ demoClass: true });
     await user.click(await signInButton());
     await screen.findByRole("heading", { level: 1, name: "Demo class" });
-    expect(colourShown()).toBe("teal");
+    expect(colourShown()).toBe("indigo");
   });
 
   it("keys the grid's shades, and leaves no evidence yet uncoloured", async () => {

@@ -30,7 +30,7 @@ export interface OutboxOptions {
   retryDelaysMs?: readonly number[];
 }
 
-const prefix = "kindling.play.outbox.";
+const prefix = "play.outbox.";
 
 /** One outbox per play, so two tabs never overwrite each other's records. */
 export function outboxKey(student: string, play: string): string {

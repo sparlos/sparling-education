@@ -58,7 +58,7 @@ async function onlyResult(teacher: Headers, classId: string) {
 }
 
 describe("the dashboard", () => {
-  it("lists the expectations the class's games evidence at its grades, in Kindling's words", async () => {
+  it("lists the expectations the class's games evidence at its grades, in our own words", async () => {
     const headers = await teacher();
     const cls = await createClass(headers, [5, 4]);
     expect(await dashboardOf(headers, cls.id)).toEqual({

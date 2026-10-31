@@ -31,7 +31,7 @@ Before calling front-end work done, or before reaching for any browser: see `doc
 
 Everything a user reads or hears: screen text, walkthroughs, emails, and voice lines in games and the play shell.
 
-- **No internal language.** Glossary terms are for the code and its docs. Words a user sees or hears must make sense to someone who has no idea how Kindling works or how it identifies things, unless the UI explains the term somewhere they'll see it. Say "each time Ben played a game", not "Ben's plays".
+- **No internal language.** Glossary terms are for the code and its docs. Words a user sees or hears must make sense to someone who has no idea how the platform works or how it identifies things, unless the UI explains the term somewhere they'll see it. Say "each time Ben played a game", not "Ben's plays".
 - **Easy to read on the first pass.** Use natural, short sentences. Unpack noun-heavy phrases, and spell out how things connect.
 
 ### Voice lines

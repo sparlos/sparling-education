@@ -58,7 +58,7 @@
   width: 0.5rem;
   height: 0.5rem;
   border-radius: 999px;
-  background-color: var(--k-student-fill);
+  background-color: var(--k-sparkle);
   pointer-events: none;
 }
 

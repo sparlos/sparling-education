@@ -1,4 +1,4 @@
-// STAND-IN platform: what the play shell runs on without Kindling's API, for
+// STAND-IN platform: what the play shell runs on without the platform's API, for
 // development (VITE_PLAY_PLATFORM=stand-in) and the shell's own tests. Every
 // part of it is a stand-in; see ../README.md for what replaces each one.
 import type { KeyValueStore } from "../../play/storage.ts";

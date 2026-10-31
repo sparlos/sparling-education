@@ -2,7 +2,7 @@
 // against the in-memory fake (fake/fake.test.ts) and the API adapter over
 // the in-process API and the test Postgres (api/api.test.ts), so the fake
 // can't drift from the API.
-import { classColours } from "@repo/tokens";
+import { classColours, newClassColourOrder } from "@repo/tokens";
 import { describe, expect, it } from "vitest";
 import {
   type Class,
@@ -204,7 +204,7 @@ export function teacherPortContract(
 
     it("gives a class the colour picked, or else the first its teacher's other classes haven't got", async () => {
       const { port } = await signedInTeacher();
-      const [first, second, third] = classColours.map((c) => c.slug);
+      const [first, second, third] = newClassColourOrder.map((c) => c.slug);
       expect(
         (await port.createClass({ name: "A", grades: [3], colour: second }))
           .colour,
@@ -222,15 +222,15 @@ export function teacherPortContract(
       for (const { slug } of classColours)
         await port.createClass({ name: slug, grades: [3], colour: slug });
       expect((await port.createClass({ name: "Z", grades: [3] })).colour).toBe(
-        classColours[0]?.slug,
+        newClassColourOrder[0]?.slug,
       );
     });
 
     it("changes a class's colour, for every read of it, and only for its teacher", async () => {
       const { port, credentialFor } = await signedInTeacher();
       const made = await port.createClass({ name: "Room 12", grades: [4] });
-      const changed = await port.setClassColour(made.id, "indigo");
-      expect(changed).toEqual({ ...made, colour: "indigo" });
+      const changed = await port.setClassColour(made.id, "violet");
+      expect(changed).toEqual({ ...made, colour: "violet" });
       expect(await port.class(made.id)).toEqual(changed);
       expect(await port.classes()).toEqual([changed]);
       await expect(
@@ -1091,7 +1091,7 @@ export function recognitionContract(
 
 /**
  * The demo class. `make` gives a harness whose teachers get a demo class at
- * their first sign-in, as Kindling's do.
+ * their first sign-in, as the platform's do.
  */
 export function demoClassContract(
   name: string,
@@ -1121,11 +1121,11 @@ export function demoClassContract(
           demo: true,
         }),
       ]);
-      // Teal, so the teacher's first class of their own takes the next colour.
-      expect(classes[0]?.colour).toBe("teal");
+      // Indigo, and it doesn't count: the first class of their own is indigo too.
+      expect(classes[0]?.colour).toBe("indigo");
       expect(
         (await port.createClass({ name: "Room 12", grades: [4] })).colour,
-      ).toBe("green");
+      ).toBe("indigo");
       const students = await port.students(classes[0]?.id ?? "");
       expect(students).toHaveLength(24);
       expect(new Set(students.map((s) => s.grade))).toEqual(new Set([3, 4, 5]));
@@ -1182,7 +1182,7 @@ export function demoClassContract(
       const students = await port.students((await demoOf(port)).id);
       const view = await port.viewDemoAsStudent();
       expect(students.map((s) => s.id)).toContain(view.student.id);
-      expect(view.link).toBe("https://kindling.test/play/");
+      expect(view.link).toBe("https://app.test/play/");
     });
 
     it("can't be viewed as a student once deleted", async () => {

@@ -6,7 +6,7 @@ declare module "*.module.css" {
 }
 
 interface ImportMetaEnv {
-  /** Kindling's Google OAuth client ID, for the student sign-in button. */
+  /** The platform's Google OAuth client ID, for the student sign-in button. */
   readonly VITE_GOOGLE_CLIENT_ID?: string;
   /** "stand-in" runs the shell on the stand-ins, without the API or Google. */
   readonly VITE_PLAY_PLATFORM?: string;

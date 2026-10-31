@@ -1,5 +1,5 @@
 // A sticker drawn in 2D. PLACEHOLDER art: each art slot is a plain shape in a
-// Kindling colour, cut out with a white border, until the illustrator's style
+// The platform colour, cut out with a white border, until the illustrator's style
 // kit draws the real stickers. Real art replaces `placeholders` slot by slot;
 // sticker IDs and the slots they name stay the same.
 //

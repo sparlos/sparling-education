@@ -10,7 +10,7 @@ export function Loader({ label, size = "lg" }: LoaderProps) {
   return (
     <MantineLoader
       type="dots"
-      color="ember"
+      color="var(--k-brand-fill)"
       size={size}
       role="progressbar"
       aria-label={label}

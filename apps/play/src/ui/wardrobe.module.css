@@ -111,8 +111,9 @@
   width: 1.5rem;
   height: 1.5rem;
   border-radius: 50%;
-  background-color: var(--tone-fill);
-  color: var(--tone-on-fill);
+  /* The logo's sparkle gold, with ink on it. */
+  background-color: var(--k-sparkle);
+  color: var(--k-ink);
   box-shadow: 0 0 0 0.125rem var(--k-surface-raised);
   pointer-events: none;
 }

@@ -1,13 +1,13 @@
 # Product
 
-Kindling itself: the terms every part of the product shares, whatever app or package implements them.
+The platform itself: the terms every part of the product shares, whatever app or package implements them.
 
 ## Language
 
 ### People
 
 **Real name**:
-A student's first name and last initial (e.g. "Maya R."), taken from their sign-in. Shown only to adults responsible for the student (their teacher and parent), never in the class world. Kindling never keeps a student's email or full surname.
+A student's first name and last initial (e.g. "Maya R."), taken from their sign-in. Shown only to adults responsible for the student (their teacher and parent), never in the class world. The platform never keeps a student's email or full surname.
 _Avoid_: Full name, display name
 
 **Nickname**:
@@ -41,7 +41,7 @@ A guide through the teacher app's real controls, one at a time: each is spotlit 
 _Avoid_: Tour (that's the automated playthrough of a game), onboarding, tutorial
 
 **Welcome walkthrough**:
-The walkthrough a new teacher gets on their first dashboard: what Kindling does in a nutshell, across the dashboard and quick assess (the classes, sharing a game link, the misconceptions showing up, the grid, quick assess, viewing the demo class as a student, Help). The other screens each have a short walkthrough of their own, which starts the first time the teacher opens that screen after the welcome.
+The walkthrough a new teacher gets on their first dashboard: what the platform does in a nutshell, across the dashboard and quick assess (the classes, sharing a game link, the misconceptions showing up, the grid, quick assess, viewing the demo class as a student, Help). The other screens each have a short walkthrough of their own, which starts the first time the teacher opens that screen after the welcome.
 _Avoid_: Tour, onboarding, tutorial
 
 ### Locker
@@ -79,7 +79,7 @@ _Avoid_: Hangout, playdate
 ### Learning
 
 **Game**:
-A self-contained curriculum activity where the concept being taught is the core mechanic. The heart of Kindling. A game teaches one concept across a range of grades (e.g. fractions, Grades 3–8) and can be played on its own, without the class world. A teacher turns games on or off for their class.
+A self-contained curriculum activity where the concept being taught is the core mechanic. The heart of the platform. A game teaches one concept across a range of grades (e.g. fractions, Grades 3–8) and can be played on its own, without the class world. A teacher turns games on or off for their class.
 _Avoid_: Quiz, activity, minigame, level, unit
 
 **Game spec**:
@@ -99,7 +99,7 @@ The record of a student's play of a game, always including the tier it was playe
 _Avoid_: Score, grade, mark
 
 **Attempt**:
-One try at one task within a game: which curriculum expectation it evidences, whether it succeeded, and which misconception it revealed, if any. It can also carry, for teachers, what the task asked and what the student did on this try, in the game's own short text. An exploring try (a probe, e.g. a test run before committing) is an attempt that never counts: teachers see it as "Explored", and scoring and effort ignore it. Games record attempts; Kindling turns a play's attempts into its result.
+One try at one task within a game: which curriculum expectation it evidences, whether it succeeded, and which misconception it revealed, if any. It can also carry, for teachers, what the task asked and what the student did on this try, in the game's own short text. An exploring try (a probe, e.g. a test run before committing) is an attempt that never counts: teachers see it as "Explored", and scoring and effort ignore it. Games record attempts; the platform turns a play's attempts into its result.
 _Avoid_: Answer, response, question, event (unqualified)
 
 **Simulator**:

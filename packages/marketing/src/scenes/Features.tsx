@@ -9,7 +9,7 @@ import type { FeatureIcon, Scene } from "../brief.ts";
 
 type Props = Extract<Scene, { kind: "features" }>;
 
-const ink = palette.ink[9];
+const ink = palette.slate[9];
 const iconStroke = {
   fill: "none",
   stroke: ink,
@@ -28,7 +28,7 @@ const icons: Record<FeatureIcon, ReactNode> = {
         height="48"
         rx="6"
         {...iconStroke}
-        fill={palette.sand[0]}
+        fill={"#FFFFFF"}
       />
       <path
         d="M20 22 l4 4 l8 -8 M20 38 l4 4 l8 -8 M38 24 h6 M38 40 h6"
@@ -47,7 +47,11 @@ const icons: Record<FeatureIcon, ReactNode> = {
         {...iconStroke}
         fill={palette.sky[1]}
       />
-      <path d="M6 48 h52 l-4 6 h-44 z" {...iconStroke} fill={palette.ink[2]} />
+      <path
+        d="M6 48 h52 l-4 6 h-44 z"
+        {...iconStroke}
+        fill={palette.slate[2]}
+      />
     </>
   ),
   classroom: (
@@ -84,7 +88,7 @@ const icons: Record<FeatureIcon, ReactNode> = {
         height="40"
         rx="2"
         {...iconStroke}
-        fill={palette.ember[3]}
+        fill={palette.violet[3]}
       />
     </>
   ),
@@ -124,7 +128,7 @@ export function Features({ title, items }: Props) {
       <div
         style={{
           fontFamily: fonts.heading,
-          fontWeight: 900,
+          fontWeight: 800,
           fontSize: unit * 2.4,
           color: color.ink.default,
           opacity: titleIn,

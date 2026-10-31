@@ -1,4 +1,4 @@
-// Scoring: what a student's stored play records show. Every rule Kindling
+// Scoring: what a student's stored play records show. Every rule the platform
 // scores by lives here, so rules change without touching games or the
 // records they've already sent (ADR 0002). The rules are provisional until
 // the pilot's data settles them (docs/DESIGN.md, open questions).

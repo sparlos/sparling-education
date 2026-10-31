@@ -1,4 +1,4 @@
-/* Site-wide defaults for Kindling. Loaded once by UIProvider. */
+/* Site-wide defaults. Loaded once by UIProvider. */
 
 /* `data-tone` re-points the `--tone-*` variables at an audience, the brand, a
    fixed meaning, or `accent` (the class colour in scope), so any component
@@ -39,15 +39,6 @@
   --tone-edge: var(--k-parent-edge);
   --tone-soft: var(--k-parent-soft);
   --tone-text: var(--k-parent-text);
-}
-
-[data-tone="student"] {
-  --tone-fill: var(--k-student-fill);
-  --tone-fill-hover: var(--k-student-fill-hover);
-  --tone-on-fill: var(--k-student-on-fill);
-  --tone-edge: var(--k-student-edge);
-  --tone-soft: var(--k-student-soft);
-  --tone-text: var(--k-student-text);
 }
 
 [data-tone="accent"] {

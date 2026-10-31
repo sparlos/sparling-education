@@ -30,7 +30,7 @@ export interface LabProps {
 }
 
 export const grades = [1, 2, 3, 4, 5, 6, 7, 8] as const;
-const gradeKey = "kindling.lab.grade";
+const gradeKey = "lab.grade";
 const defaultGrade = 3;
 
 /** The grades a prototype's expectations belong to, lowest first. */
@@ -99,7 +99,7 @@ function LabList({ base, prototypes, storage }: LabProps) {
                 <Button
                   key={g}
                   variant={g === grade ? "primary" : "secondary"}
-                  tone="student"
+                  tone="brand"
                   onClick={() => pick(g)}
                 >
                   {`Grade ${g}`}
@@ -185,7 +185,7 @@ function PrototypeCards({
               <div>
                 <Button
                   href={`${base}lab/${slug}`}
-                  tone="student"
+                  tone="brand"
                   leftSection={<Icon name="play" size={20} />}
                 >
                   {`Play ${meta.title}`}

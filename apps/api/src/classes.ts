@@ -58,8 +58,9 @@ export async function createClass(
   teacherId: string,
   { name, grades, colour }: NewClass,
 ): Promise<Class> {
+  // The demo class doesn't count, so a first class gets the default colour.
   const others = await db.class.findMany({
-    where: { teacherId },
+    where: { teacherId, demo: false },
     select: { colour: true },
   });
   const data = {
@@ -84,7 +85,7 @@ export async function createClass(
 /**
  * Turns one of the class's games on or off. Students see only the games that
  * are on; a game link for one that's off says so. Null when the class isn't
- * one of this teacher's or Kindling doesn't host the game.
+ * one of this teacher's or the platform doesn't host the game.
  */
 export async function setGameOn(
   db: Db,

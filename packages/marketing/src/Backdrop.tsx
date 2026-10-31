@@ -1,18 +1,18 @@
-// The paper every scene sits on: the site's warm sand, a faint dot grid and
+// The paper every scene sits on: the site's lavender, a faint dot grid and
 // a few soft tone-tinted blobs drifting on noise, so nothing is ever static.
 import { noise2D } from "@remotion/noise";
 import { AbsoluteFill, useCurrentFrame, useVideoConfig } from "remotion";
 import { color, palette } from "./brand.tsx";
 
 export function Backdrop({
-  tint = palette.ember[1],
+  tint = palette.violet[1],
   accent = palette.sunshine[1],
   dark,
   seed = 1,
 }: {
   tint?: string;
   accent?: string;
-  /** Ink background instead of sand. */
+  /** Ink background instead of the light paper. */
   dark?: boolean;
   seed?: number;
 }) {
@@ -24,7 +24,7 @@ export function Backdrop({
     { c: accent, x: 0.88, y: 0.8, r: 0.48 },
     { c: tint, x: 0.82, y: 0.12, r: 0.24 },
   ];
-  const dot = dark ? palette.ink[8] : palette.sand[3];
+  const dot = dark ? palette.slate[8] : palette.slate[2];
   return (
     <AbsoluteFill
       style={{

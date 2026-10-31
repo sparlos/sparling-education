@@ -1,5 +1,6 @@
 // The shell end to end, through the real stand-in platform and the
 // shell-check game: what a student can do, and what records come out.
+import { brandName } from "@repo/tokens";
 import { UIProvider } from "@repo/ui/provider";
 import {
   act,
@@ -118,7 +119,7 @@ function setUp({
   render(
     <UIProvider>
       <App
-        url={new URL(path, "https://kindling.test")}
+        url={new URL(path, "https://app.test")}
         base="/play/"
         platform={{
           name: "test",
@@ -239,7 +240,7 @@ describe("opening a game", () => {
     await user.click(screen.getByRole("button", { name: "Done" }));
     await waitFor(() =>
       expect(navigate).toHaveBeenCalledWith(
-        "https://kindling.test/play/shell-check?class=class-1",
+        "https://app.test/play/shell-check?class=class-1",
       ),
     );
     expect(standInStudent(storage)?.look).toMatchObject({ body: "skin-03" });
@@ -309,7 +310,7 @@ describe("opening a game", () => {
     const { user, navigate } = setUp({ failSession: true });
     await user.click(await screen.findByRole("button", { name: "Try again" }));
     expect(navigate).toHaveBeenCalledWith(
-      "https://kindling.test/play/shell-check?class=class-1",
+      "https://app.test/play/shell-check?class=class-1",
     );
   });
 
@@ -501,7 +502,7 @@ describe("a teacher's game link", () => {
     );
     await waitFor(() =>
       expect(navigate).toHaveBeenCalledWith(
-        "https://kindling.test/play/shell-check?join=G34",
+        "https://app.test/play/shell-check?join=G34",
       ),
     );
     expect(spoken).toContain("Which grade are you in?");
@@ -596,7 +597,7 @@ describe("playing", () => {
 
 /** Where the student was sent, as a URL. */
 const sentTo = (navigate: ReturnType<typeof vi.fn>) =>
-  new URL(navigate.mock.calls[0]?.[0], "https://kindling.test");
+  new URL(navigate.mock.calls[0]?.[0], "https://app.test");
 
 describe("finishing", () => {
   it("returns the student to their locker, naming the play, after sending its records", async () => {
@@ -647,9 +648,7 @@ describe("finishing", () => {
     await user.click(screen.getByRole("button", { name: "Finish" }));
 
     await waitFor(() => expect(navigate).toHaveBeenCalled());
-    expect(
-      storage.keys().some((k) => k.startsWith("kindling.play.outbox.")),
-    ).toBe(true);
+    expect(storage.keys().some((k) => k.startsWith("play.outbox."))).toBe(true);
   });
 });
 
@@ -706,8 +705,7 @@ describe("leaving", () => {
 });
 
 describe("a screen too small to play on", () => {
-  const tooSmallLine =
-    "This screen is too small for Kindling. Please use a tablet or a computer.";
+  const tooSmallLine = `This screen is too small for ${brandName}. Please use a tablet or a computer.`;
 
   /** Resizes the window, as rotating or dragging its edge does. */
   function resize(width: number, height: number) {

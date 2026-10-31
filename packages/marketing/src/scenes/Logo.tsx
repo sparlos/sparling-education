@@ -1,21 +1,22 @@
-// The reveal: the flame mark bounces in, sparkles burst off it, the name
-// lands letter by letter and the tagline rises under it.
-// Cues: "Kindling" (the mark lands just before it).
+// The reveal: the gem bounces in, sparkles burst off it, the name lands
+// letter by letter and the tagline rises under it.
+// Cues: the product's name (the mark lands just before it).
 import { Star } from "@remotion/shapes";
+import { brandName } from "@repo/tokens";
 import { AbsoluteFill, useCurrentFrame, useVideoConfig } from "remotion";
 import { useBeat, usePop, useRamp } from "../beat.tsx";
-import { color, FlameMark, fonts, palette, toneOf } from "../brand.tsx";
+import { color, fonts, Mark, palette, toneOf } from "../brand.tsx";
 import type { Scene } from "../brief.ts";
 
 type Props = Extract<Scene, { kind: "logo" }>;
 
-const name = "Kindling";
+const name = brandName;
 const sparkColors = [
-  palette.sunshine[4],
-  palette.ember[5],
-  palette.sky[4],
-  palette.leaf[4],
-  palette.berry[4],
+  color.sparkle,
+  palette.violet[4],
+  color.sparkle,
+  palette.violet[2],
+  palette.violet[6],
 ];
 
 export function Logo({ tagline }: Props) {
@@ -69,14 +70,14 @@ export function Logo({ tagline }: Props) {
               opacity: frame < at ? 0 : 1,
             }}
           >
-            <FlameMark size={size} />
+            <Mark size={size} />
           </div>
         </div>
         <div
           style={{
             display: "flex",
             fontFamily: fonts.heading,
-            fontWeight: 900,
+            fontWeight: 800,
             fontSize: size * 0.95,
             letterSpacing: -size * 0.03,
             color: color.ink.default,

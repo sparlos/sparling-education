@@ -32,9 +32,7 @@ async function existingStudent(sub: string) {
 describe("signing in", () => {
   it("is signed out without a session", async () => {
     expect(await accountWith()).toBeNull();
-    expect(
-      await accountWith({ cookie: "kindling_session=made-up" }),
-    ).toBeNull();
+    expect(await accountWith({ cookie: "session=made-up" })).toBeNull();
   });
 
   it("makes a teacher of a new Google account signing in through the teacher app", async () => {
@@ -58,7 +56,7 @@ describe("signing in", () => {
   it("holds the session in an HTTP-only, same-site cookie for the whole domain", async () => {
     const { res } = await signInAsTeacher();
     const [cookie] = res.headers.getSetCookie();
-    expect(cookie).toMatch(/^kindling_session=[^;]+/);
+    expect(cookie).toMatch(/^session=[^;]+/);
     expect(cookie).toContain("HttpOnly");
     expect(cookie).toContain("SameSite=Lax");
     expect(cookie).toContain("Secure");
@@ -139,9 +137,7 @@ describe("signing out", () => {
     const { headers } = await signInAsTeacher();
     const res = await client["sign-out"].$post(undefined, { headers });
     expect(res.status).toBe(204);
-    expect(res.headers.getSetCookie()[0]).toMatch(
-      /^kindling_session=;.*Max-Age=0/,
-    );
+    expect(res.headers.getSetCookie()[0]).toMatch(/^session=;.*Max-Age=0/);
     // Even a browser that kept the cookie is signed out.
     expect(await accountWith(headers)).toBeNull();
   });

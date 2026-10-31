@@ -31,7 +31,7 @@ export function SiteFooter({
           style={{ "--footer-columns": columns.length } as CSSProperties}
         >
           <div className={classes.brand}>
-            <Wordmark href="/" inverse />
+            <Wordmark href="/" inverse byline />
             <p className={classes.tagline}>{tagline}</p>
           </div>
           {columns.map((column) => (

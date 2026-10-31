@@ -1,4 +1,4 @@
-// pnpm --filter @repo/marketing make <video> [--only voice|music|mix|render]
+// pnpm --filter @repo/marketing make <video> [--only voice|music|mix|render|web]
 //   [--force] [--stills 30,120] [--frames 0-90]
 //
 // Runs a brief (videos/<video>/brief.ts) through the pipeline:
@@ -7,6 +7,8 @@
 //   music   the Strudel bed, cut to the video's length → music.wav
 //   mix     voice + ducked music + whooshes at -14 LUFS → mix.wav
 //   render  Remotion → out/<video>.mp4
+//   web     a smaller copy and a poster for the marketing site, when the
+//           brief asks for one → apps/web/public/videos/<video>.mp4
 // With no --only, runs every step; voice is left out on machines that can't
 // run it, and its takes must already exist.
 import { parseArgs } from "node:util";
@@ -17,8 +19,9 @@ import { makeMix } from "./mix.ts";
 import { renderMusic } from "./music.ts";
 import { render } from "./render.ts";
 import { makeVoice, staleBeats } from "./voice.ts";
+import { makeWebVideo } from "./web.ts";
 
-const steps = ["voice", "music", "mix", "render"] as const;
+const steps = ["voice", "music", "mix", "render", "web"] as const;
 type Step = (typeof steps)[number];
 
 const { values, positionals } = parseArgs({
@@ -33,7 +36,7 @@ const { values, positionals } = parseArgs({
 const id = positionals[0];
 if (!id) {
   console.error(
-    "usage: pnpm --filter @repo/marketing make <video> [--only voice|music|mix|render]",
+    "usage: pnpm --filter @repo/marketing make <video> [--only voice|music|mix|render|web]",
   );
   process.exit(2);
 }
@@ -84,4 +87,7 @@ if (run("render")) {
     stills: values.stills?.split(",").map(Number),
     frames: range,
   });
+}
+if (run("web") && brief.web && !values.stills && !values.frames) {
+  makeWebVideo(brief, timeline);
 }

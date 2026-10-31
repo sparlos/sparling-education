@@ -6,8 +6,10 @@ import {
   classColours,
   color,
   customMedia,
+  defaultClassColour,
   initialTint,
   initialTints,
+  newClassColourOrder,
   nextClassColour,
   palette,
   type ToneTokens,
@@ -141,8 +143,10 @@ for (const c of classColours) {
   });
 }
 
-test("a new class gets the first colour no other class has, then they cycle", () => {
-  const slugs = classColours.map((c) => c.slug);
+test("a new class gets the first colour no other class has, from the default, then they cycle", () => {
+  const slugs = newClassColourOrder.map((c) => c.slug);
+  assert.equal(slugs[0], defaultClassColour);
+  assert.equal(slugs.length, classColours.length);
   assert.equal(nextClassColour([]), slugs[0]);
   assert.equal(nextClassColour([slugs[0] as string]), slugs[1]);
   assert.equal(nextClassColour([slugs[1] as string]), slugs[0]);
@@ -158,6 +162,14 @@ test("initials are readable on their tints, the same each time for a student", (
     Array.from({ length: 40 }, (_, i) => initialTint(`student-${i}`).fill),
   );
   assert.ok(used.size > 4, "initial tints barely vary");
+});
+
+test("the sparkle's gold stands out on dark surfaces, and is never text", () => {
+  expectContrast(color.sparkle, color.surface.inverse, UI, "sparkle/inverse");
+  // Too light for text on any light surface: keep it to shapes.
+  for (const bg of Object.values(lightSurfaces)) {
+    assert.ok(contrastRatio(color.sparkle, bg) < TEXT);
+  }
 });
 
 test("status colours are readable as text", () => {

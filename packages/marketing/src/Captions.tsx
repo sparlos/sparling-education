@@ -92,14 +92,14 @@ function CaptionPage({ page }: { page: Page }) {
       <div
         style={{
           fontFamily: fonts.heading,
-          fontWeight: 900,
+          fontWeight: 800,
           fontSize: size,
           lineHeight: 1.1,
           padding: `${size * 0.28}px ${size * 0.5}px`,
           borderRadius: size * 0.45,
           background: color.surface.inverse,
           color: color.ink.inverse,
-          boxShadow: `0 ${size * 0.12}px 0 ${palette.ink[7]}`,
+          boxShadow: `0 ${size * 0.12}px 0 ${palette.slate[7]}`,
           transform: `translateY(${(1 - pop) * size * 0.6}px) scale(${0.85 + 0.15 * pop})`,
           opacity: Math.min(1, pop * 2) * (1 - out),
           maxWidth: width * 0.8,
@@ -117,7 +117,7 @@ function CaptionPage({ page }: { page: Page }) {
               key={i}
               style={{
                 display: "inline-block",
-                color: spoken ? palette.sunshine[3] : color.ink.inverse,
+                color: spoken ? color.sparkle : color.ink.inverse,
               }}
             >
               {w.text}

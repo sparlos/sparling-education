@@ -1,4 +1,4 @@
-// STAND-IN for the locker port, for development without Kindling's API. The
+// STAND-IN for the locker port, for development without the platform's API. The
 // student owns the base set, plus rewards kept in this browser's storage: the
 // stand-in sign-in screen and tests can grant some, and every finished play
 // earns the next one in the catalogue (no effort rule, no weekly cap; the
@@ -25,9 +25,9 @@ import {
 } from "../ports.ts";
 import { standInSignIn, standInStudent } from "./session.ts";
 
-const rewardsKey = "kindling.stand-in.rewards";
-const recognitionKey = "kindling.stand-in.recognition";
-const placementsKey = "kindling.stand-in.placements";
+const rewardsKey = "stand-in.rewards";
+const recognitionKey = "stand-in.recognition";
+const placementsKey = "stand-in.placements";
 
 interface StandInReward {
   item: string;

@@ -65,7 +65,7 @@
 }
 
 .root[data-surface="inverse"] .eyebrow {
-  color: var(--k-student-fill);
+  color: var(--k-sparkle);
 }
 
 .lead {

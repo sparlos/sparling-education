@@ -1,5 +1,5 @@
 // The teacher port: everything the teacher app needs from the rest of
-// Kindling. The app only ever talks to these interfaces. They're implemented
+// The platform. The app only ever talks to these interfaces. They're implemented
 // by the in-memory fake in ./fake/ and the API adapter in ./api/, and both
 // must pass the suite in ./contract.ts.
 import type { LearningSkill } from "@repo/curriculum";
@@ -29,8 +29,9 @@ export interface NewClass {
   /** The class's grade, or grades for a split class. */
   grades: ClassGrade[];
   /**
-   * Its class colour. Without one, the first, in the set's order, that none
-   * of the teacher's other classes has (see `nextClassColour`).
+   * Its class colour. Without one, the first, from the default on, that none
+   * of the teacher's other classes has; the demo class doesn't count (see
+   * `nextClassColour`).
    */
   colour?: ClassColourSlug;
 }
@@ -52,7 +53,7 @@ export interface Class {
   joinCode: string;
   /** The class join link, as a full URL to share. */
   joinLink: string;
-  /** Every game Kindling hosts, in the order teachers see them. */
+  /** Every game the platform hosts, in the order teachers see them. */
   games: ClassGame[];
 }
 
@@ -463,7 +464,7 @@ export interface DashboardExpectation {
   grade: number;
   /** The curriculum's code, e.g. "B1.6". */
   code: string;
-  /** Kindling's own words, from the curriculum package; never the ministry's. */
+  /** our own words, from the curriculum package; never the ministry's. */
   description: string;
   /** Its official page on the DCP, where the ministry's wording is. */
   link: string;

@@ -1,7 +1,7 @@
 let baseUrl = "";
 let send: typeof fetch = (input, init) => fetch(input, init);
 
-/** Points every generated request at Kindling's API, e.g. "http://localhost:3002". */
+/** Points every generated request at the platform's API, e.g. "http://localhost:3002". */
 export function setBaseUrl(url: string) {
   baseUrl = url.replace(/\/$/, "");
 }

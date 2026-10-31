@@ -55,7 +55,7 @@ const root = createRootRouteWithContext<{
 });
 
 /** Where this browser remembers the class the teacher last opened. */
-const lastClassKey = "kindling.teach.last-class";
+const lastClassKey = "teach.last-class";
 
 function lastClass(): string | null {
   try {
@@ -87,7 +87,9 @@ function NewClassRoute({
   return (
     <NewClassScreen
       first={first}
-      colour={nextClassColour(classes.map((c) => c.colour))}
+      colour={nextClassColour(
+        classes.filter((c) => !c.demo).map((c) => c.colour),
+      )}
       onCreate={async (draft) => {
         const made = await teacher.createClass(draft);
         await router.navigate({

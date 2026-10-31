@@ -4,8 +4,9 @@ import { Container } from "../container";
 import type { LinkItem } from "../link-item";
 import { Title } from "../title";
 import type { Tone } from "../tone";
-import { Blob, DecorLayer, Ember, Sparkle } from "./decor";
+import { DecorLayer, Glint, Shard, Sparkle } from "./decor";
 import classes from "./hero.module.css";
+import { HeroVideo, type HeroVideoProps } from "./hero-video";
 import { ImageSlot, type ImageSlotImage } from "./image-slot";
 
 interface HeroProps {
@@ -16,6 +17,8 @@ interface HeroProps {
   /** Small reassurance line under the actions. */
   note?: ReactNode;
   image: ImageSlotImage;
+  /** Plays in place of the image, from its poster. */
+  video?: HeroVideoProps;
   tone?: Tone;
 }
 
@@ -27,12 +30,27 @@ export function Hero({
   secondaryAction,
   note,
   image,
+  video,
   tone = "brand",
 }: HeroProps) {
   return (
     <section className={classes.root} data-tone={tone}>
       <DecorLayer>
-        <Blob size={420} right="-140px" top="-120px" opacity={0.9} />
+        <Shard
+          size={440}
+          right="-150px"
+          top="-150px"
+          rotate={-12}
+          opacity={0.22}
+        />
+        <Shard
+          size={220}
+          left="-90px"
+          bottom="-80px"
+          rotate={24}
+          opacity={0.14}
+          hideOnMobile
+        />
         <Sparkle size={28} left="6%" top="14%" float hideOnMobile />
         <Sparkle
           size={18}
@@ -42,7 +60,7 @@ export function Hero({
           float
           hideOnMobile
         />
-        <Ember
+        <Glint
           size={16}
           left="44%"
           bottom="14%"
@@ -79,7 +97,11 @@ export function Hero({
             {note && <p className={classes.note}>{note}</p>}
           </div>
           <div className={classes.media}>
-            <ImageSlot {...image} tone={tone} ratio="4/3" shadow />
+            {video ? (
+              <HeroVideo {...video} />
+            ) : (
+              <ImageSlot {...image} tone={tone} ratio="4/3" shadow />
+            )}
           </div>
         </div>
       </Container>

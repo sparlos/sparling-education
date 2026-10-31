@@ -1,4 +1,4 @@
-// FAKE teacher port: Kindling's accounts, sessions, classes and plays kept in
+// FAKE teacher port: the platform's accounts, sessions, classes and plays kept in
 // memory. Used by the app's own tests, and by `VITE_TEACH_PLATFORM=fake` to
 // run the app without the API. Must keep passing ../contract.ts, like the API
 // adapter, which is what keeps its copies of the understanding and effort
@@ -163,7 +163,7 @@ export function fakeTeacherBackend(
     /** The time now, for which term it is. */
     now?: () => Date;
     /**
-     * Give each new teacher a demo class at their first sign-in, as Kindling
+     * Give each new teacher a demo class at their first sign-in, as the platform
      * does. Off by default, so a teacher starts with no classes.
      */
     demoClass?: boolean;
@@ -171,7 +171,7 @@ export function fakeTeacherBackend(
     walkthroughsSeen?: readonly string[];
   } = {},
 ): FakeTeacherBackend {
-  const { origin = "https://kindling.test", games = fakeGames } = options;
+  const { origin = "https://app.test", games = fakeGames } = options;
   const issued = new Map<string, GoogleAccount>();
   const accounts = new Map<string, Account>(); // by Google subject
   const classes: { teacherId: string; class: Class }[] = [];
@@ -210,7 +210,7 @@ export function fakeTeacherBackend(
   }
 
   function reachable() {
-    if (options.offline?.()) throw new Error("Can't reach Kindling (fake)");
+    if (options.offline?.()) throw new Error("Can't reach the API (fake)");
   }
 
   function signedInTeacher() {
@@ -250,7 +250,10 @@ export function fakeTeacherBackend(
       grades: [...new Set(draft.grades)].sort((a, b) => a - b),
       demo,
       colour:
-        draft.colour ?? nextClassColour(theirs.map((c) => c.class.colour)),
+        draft.colour ??
+        nextClassColour(
+          theirs.filter((c) => !c.class.demo).map((c) => c.class.colour),
+        ),
       joinCode,
       joinLink: `${origin}/play/join/${joinCode}`,
       games: games.map(({ slug, name }) => ({
@@ -949,7 +952,7 @@ function effortSkillsOf(theirs: readonly FakePlay[]): EffortSkill[] {
   });
 }
 
-/** An expectation, in Kindling's words. */
+/** An expectation, in our own words. */
 function describedExpectation(id: ExpectationId) {
   const { grade, code, description, link } = expectation(id);
   return { id, grade, code, description, link };

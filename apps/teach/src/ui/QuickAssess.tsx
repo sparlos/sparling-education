@@ -7,6 +7,7 @@
 // previous and next (or the arrow keys) to go through the class. Made to
 // print every student: the navigation goes, a student stays on one page where
 // they fit, and every page's header names the class and the date.
+import { brandName } from "@repo/tokens";
 import { Accordion } from "@repo/ui/accordion";
 import { Button } from "@repo/ui/button";
 import { Stack } from "@repo/ui/stack";
@@ -125,7 +126,7 @@ export function ClassQuickAssessScreen({
       </div>
       <Text className={classes.note}>
         What your students' games show so far. Use it with what you see in class
-        when you write report cards. Kindling never gives a level: you decide
+        when you write report cards. {brandName} never gives a level: you decide
         the grade.
       </Text>
       {!shown ? (

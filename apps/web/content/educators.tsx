@@ -1,3 +1,4 @@
+import { brandName } from "@repo/tokens";
 import type { FaqItem } from "@repo/ui/marketing/faq";
 import type { Feature } from "@repo/ui/marketing/feature-grid";
 import { TitleHighlight } from "@repo/ui/marketing/hero";
@@ -12,17 +13,23 @@ export const educators = {
   hero: {
     title: (
       <>
-        Games that teach the <TitleHighlight>expectation</TitleHighlight>, not
-        just test it
+        Games that validate <TitleHighlight>expectation</TitleHighlight>
       </>
     ),
-    lead: "Every Kindling game is mapped to Ontario curriculum expectations, and the concept is the core mechanic. Turn on the games that fit what you're teaching, share them in Google Classroom and see what each student has actually learned.",
+    lead: `Every ${brandName} game is mapped to Ontario curriculum expectations, and the concept is the core mechanic. Turn on the games that fit what you're teaching, share them in Google Classroom and see what each student has actually learned.`,
     primaryAction: { label: "Join the teacher pilot", href: "#pilot" },
     secondaryAction: { label: "Talk to us", href: "/contact" },
     note: "Free for teachers, always.",
     image: {
       alt: "The teacher dashboard: each student against curriculum expectations, with the misconceptions showing up in the class listed above",
       placeholderLabel: "Dashboard render coming soon",
+    },
+    // Local for now; point src at the hosted video (Mux, YouTube) later.
+    video: {
+      src: "/videos/teacher-grading.mp4",
+      poster: "/videos/teacher-grading-poster.jpg",
+      label: "Watch the 1-minute tour",
+      alt: "A tour of the teacher app, starting from the class dashboard",
     },
   },
   features: {
@@ -69,7 +76,7 @@ export const educators = {
   comparison: {
     eyebrow: "What makes it different",
     title: "Fewer, better games, where the mechanic is the lesson",
-    lead: "Kindling skips the quiz-with-a-game-skin approach. Each game targets a common misconception, so the wrong idea visibly fails.",
+    lead: `${brandName} skips the quiz-with-a-game-skin approach. Each game targets a common misconception, so the wrong idea visibly fails.`,
   },
   pricing: {
     eyebrow: "Pricing",
@@ -79,7 +86,7 @@ export const educators = {
       {
         name: "Teacher",
         price: "Free, always",
-        description: "Everything you need to run Kindling with your class.",
+        description: `Everything you need to run ${brandName} with your class.`,
         features: [
           "Class links for Google Classroom",
           "Turn on any game for your class",
@@ -113,7 +120,7 @@ export const educators = {
   boards: {
     eyebrow: "For schools and boards",
     title: "Built to make privacy review straightforward",
-    lead: "New classroom tools go through privacy and IT review. We're designing Kindling so that review is easy to say yes to.",
+    lead: `New classroom tools go through privacy and IT review. We're designing ${brandName} so that review is easy to say yes to.`,
     items: [
       {
         icon: "privacy",
@@ -128,7 +135,7 @@ export const educators = {
       {
         icon: "clipboard",
         title: "Evidence for reporting",
-        body: "Results show which expectations and learning skills they speak to. Kindling never assigns a level: that judgement stays with the teacher.",
+        body: `Results show which expectations and learning skills they speak to. ${brandName} never assigns a level: that judgement stays with the teacher.`,
       },
     ] satisfies Feature[],
     cta: { label: "Talk to us about your board", href: "/contact" },
@@ -137,24 +144,21 @@ export const educators = {
     title: "Questions teachers ask",
     items: [
       {
-        question: "Is Kindling really free for teachers?",
+        question: `Is ${brandName} really free for teachers?`,
         answer:
           "Yes. Class links, turning on games and basic progress are free, always. Paid licences add deeper analytics, curriculum-mapped results and more.",
       },
       {
         question: "What grades and subjects will it cover?",
-        answer:
-          "Kindling is for Grades 1–8. The first five games cover the Number strand for Grades 3–5: fractions, multiplication, place value, addition and subtraction, and division. Pilot teachers help decide what comes next.",
+        answer: `${brandName} is for Grades 1–8. The first five games cover the Number strand for Grades 3–5: fractions, multiplication, place value, addition and subtraction, and division. Pilot teachers help decide what comes next.`,
       },
       {
         question: "Will it run on our Chromebooks?",
-        answer:
-          "That's a requirement from day one. Kindling runs in the browser and is built for older Chromebooks, and a game link opens just that game.",
+        answer: `That's a requirement from day one. ${brandName} runs in the browser and is built for older Chromebooks, and a game link opens just that game.`,
       },
       {
-        question: "Is Kindling approved by my board?",
-        answer:
-          "Not yet, because Kindling is still in development. Before any classroom use, we'll go through your board's privacy and IT review, and we'll help with the paperwork.",
+        question: `Is ${brandName} approved by my board?`,
+        answer: `Not yet, because ${brandName} is still in development. Before any classroom use, we'll go through your board's privacy and IT review, and we'll help with the paperwork.`,
       },
       {
         question: "How is student data protected?",
@@ -162,9 +166,8 @@ export const educators = {
           "Students sign in with their school account, and we keep only a first name and last initial, never their email. Students never see each other's names, there's no chat, data will be hosted in Canada, and we'll delete it when you ask.",
       },
       {
-        question: "Does Kindling replace my unit?",
-        answer:
-          "No. Kindling supplements your teaching: you teach the concept, turn on the games that reinforce it, and use the results as extra evidence when you assess.",
+        question: `Does ${brandName} replace my unit?`,
+        answer: `No. ${brandName} supplements your teaching: you teach the concept, turn on the games that reinforce it, and use the results as extra evidence when you assess.`,
       },
       {
         question: "What does the pilot involve?",

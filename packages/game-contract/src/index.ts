@@ -72,7 +72,7 @@ export type StringId<M extends GameManifest> = keyof M["strings"]["en-CA"] &
 
 /**
  * One try at one task. The shell adds the student, game version, tier and
- * time before sending it, and Kindling turns a play's attempts into its result.
+ * time before sending it, and the platform turns a play's attempts into its result.
  */
 export interface Attempt<M extends GameManifest> {
   /** Identifies the task within this play, so retries of it can be recognised. */
@@ -82,7 +82,7 @@ export interface Attempt<M extends GameManifest> {
   misconception?: MisconceptionId<M>;
   /**
    * How much help the game gave on this task before the attempt, if any.
-   * Kindling's scoring decides what it means for understanding and effort.
+   * The platform's scoring decides what it means for understanding and effort.
    */
   assisted?: "hint" | "demonstration" | "guided";
   /**
@@ -115,7 +115,7 @@ export interface Attempt<M extends GameManifest> {
 /** The most characters `asked` or `detail` may have. */
 export const teacherTextMaxLength = 200;
 
-/** How a simulated student plays, for Kindling's demo class. */
+/** How a simulated student plays, for the platform's demo class. */
 export interface SimulatedStudent {
   /** How likely (0 to 1) each try at a task is right, before any help. */
   accuracy: number;
@@ -132,7 +132,7 @@ export interface SimulatedStudent {
  * Plays one whole play as a simulated student, from the game's own rules
  * (`src/rules/`, no React), and returns the attempts the game would have
  * sent, in order: every try, exploring ones included. The same seed, tier
- * and student always give the same attempts. Kindling's demo class is made
+ * and student always give the same attempts. The platform's demo class is made
  * of these, so every game provides one.
  */
 export type Simulate<M extends GameManifest> = (options: {

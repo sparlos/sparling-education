@@ -1,14 +1,14 @@
-# Kindling's local development database (`pnpm dev` starts it).
+# The platform's local development database (`pnpm dev` starts it).
 # Host port 55432 keeps it clear of any other Postgres on 5432.
-name: kindling
+name: platform
 
 services:
   postgres:
     image: postgres:17-alpine
     environment:
-      POSTGRES_USER: kindling
-      POSTGRES_PASSWORD: kindling
-      POSTGRES_DB: kindling
+      POSTGRES_USER: platform
+      POSTGRES_PASSWORD: platform
+      POSTGRES_DB: platform
     ports:
       - "55432:5432"
     volumes:
@@ -16,7 +16,7 @@ services:
     # Over TCP, so the server the image runs during first-time setup (socket only)
     # doesn't count as ready.
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U kindling -d kindling"]
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U platform -d platform"]
       interval: 1s
       timeout: 5s
       retries: 30

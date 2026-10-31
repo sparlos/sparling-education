@@ -79,7 +79,7 @@ The named art slots the game needs, each drawn first as SVG from the style kit.
 
 - Teaches: <...>
 - Grades and tiers: <...>
-- Expectations: <IDs with Kindling's descriptions>
+- Expectations: <IDs with our own descriptions>
 - The mechanic in 30 seconds: <...>
 - Misconceptions it reveals:
   - `<misconception-id>`: "<The wrong idea in one sentence, as teachers see it on the dashboard; the manifest's `description`, word for word>" Reteach: <one classroom move>

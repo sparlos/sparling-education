@@ -20,7 +20,7 @@ interface FeatureGridProps {
   tone?: Tone;
 }
 
-/** A grid of Kindling features, each with an icon, title and short body. */
+/** A grid of the platform features, each with an icon, title and short body. */
 export function FeatureGrid({
   features,
   columns = 3,

@@ -1,5 +1,5 @@
 // The composition root: the only file that knows which platform the shell
-// runs on: Kindling's API, or the stand-ins with VITE_PLAY_PLATFORM=stand-in.
+// runs on: the platform's API, or the stand-ins with VITE_PLAY_PLATFORM=stand-in.
 // See src/platform/README.md.
 // Three weights, Latin only, to keep the shell light on Chromebooks.
 import "@fontsource/plus-jakarta-sans/latin-500.css";

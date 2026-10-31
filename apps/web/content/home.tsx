@@ -1,3 +1,4 @@
+import { brandName } from "@repo/tokens";
 import type { PillarProps } from "@repo/ui/marketing/feature-grid";
 import { TitleHighlight } from "@repo/ui/marketing/hero";
 import type { RoleCardProps } from "@repo/ui/marketing/role-card";
@@ -12,9 +13,9 @@ export const home = {
     ),
     lead: (
       <>
-        In Kindling's games, kids practise the skill as <i>part</i> of the game,
-        not as a quiz bolted on top. You see the misconceptions showing up in
-        your class, and quick assess gathers the evidence for report cards.
+        In {brandName}'s games, kids practise the skill as <i>part</i> of the
+        game, not as a quiz bolted on top. You see the misconceptions showing up
+        in your class, and quick assess gathers the evidence for report cards.
       </>
     ),
     primaryAction: { label: "Join the teacher pilot", href: "#pilot" },
@@ -40,22 +41,14 @@ export const home = {
         tone: "parent",
         icon: "parent",
         title: "I'm a parent",
-        body: "See what your child will learn, and why Kindling will never ask you for money.",
+        body: `See what your child will learn, and why ${brandName} will never ask you for money.`,
         href: "/parents",
         cta: "For parents",
-      },
-      {
-        tone: "student",
-        icon: "student",
-        title: "I'm a student",
-        body: "Design your character, earn outfits and decorate your locker with stickers.",
-        href: "/students",
-        cta: "For students",
       },
     ] satisfies RoleCardProps[],
   },
   pillars: {
-    eyebrow: "Why Kindling",
+    eyebrow: `Why ${brandName}`,
     title: "Three ideas we won't compromise on",
     pillars: [
       {
@@ -94,10 +87,10 @@ export const home = {
   comparison: {
     eyebrow: "What makes it different",
     title: "Not another quiz with a game skin",
-    lead: "Kindling is built around one rule: getting better at the game has to mean getting better at the concept.",
+    lead: `${brandName} is built around one rule: getting better at the game has to mean getting better at the concept.`,
   },
   promise: {
     title: "Students and parents never pay. Not once.",
-    body: "Kindling is paid for by teachers who want deeper tools and by school boards. Kids get the whole game, and every item is earned by playing and learning.",
+    body: `${brandName} is paid for by teachers who want deeper tools and by school boards. Kids get the whole game, and every item is earned by playing and learning.`,
   },
 };

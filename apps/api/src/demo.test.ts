@@ -100,16 +100,16 @@ async function playsOf(headers: Headers, classId: string, studentId: string) {
 }
 
 describe("the demo class", () => {
-  it("is teal, so a teacher's first class of their own takes the next colour", async () => {
+  it("is indigo, and doesn't stop a teacher's first class of their own being indigo too", async () => {
     const headers = await signIn();
     const [demo] = await classesOf(headers);
-    expect(demo?.colour).toBe("teal");
+    expect(demo?.colour).toBe("indigo");
     const res = await client.classes.$post(
       { json: { name: "Room 12", grades: [4] } },
       { headers },
     );
     expect(res.status).toBe(201);
-    expect(await res.json()).toMatchObject({ colour: "green" });
+    expect(await res.json()).toMatchObject({ colour: "indigo" });
   });
 
   it("is given at a teacher's first sign-in, labelled, with 24 students across Grades 3–5", async () => {

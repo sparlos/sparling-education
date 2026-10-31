@@ -1,5 +1,5 @@
 // A simulated student playing one play, through the same rules the screen
-// uses (the game contract's `Simulate`): Kindling's demo class is made of
+// uses (the game contract's `Simulate`): the platform's demo class is made of
 // these plays. Each task: maybe a probe first, then runs until the goal is
 // found. A right run takes the shortest route. A wrong one follows a
 // misconception the student holds where the course lets it show, or is an

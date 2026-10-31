@@ -52,14 +52,14 @@ export function EndCard({ headline, note, cta, url }: Props) {
       }}
     >
       <div style={{ transform: `scale(${mark})` }}>
-        <Wordmark size={unit * 2.6} />
+        <Wordmark size={unit * 2.6} byline />
       </div>
       <div
         style={{
           maxWidth: width * 0.8,
           textAlign: "center",
           fontFamily: fonts.heading,
-          fontWeight: 900,
+          fontWeight: 800,
           fontSize: unit * 3,
           lineHeight: 1.08,
           letterSpacing: -unit * 0.06,
@@ -92,7 +92,7 @@ export function EndCard({ headline, note, cta, url }: Props) {
             background: tone.fill,
             color: tone.onFill,
             fontFamily: fonts.heading,
-            fontWeight: 900,
+            fontWeight: 800,
             fontSize: unit * 1.5,
             padding: `${unit * 0.6}px ${unit * 1.6}px`,
             borderRadius: radius.lg,
@@ -116,8 +116,8 @@ export function EndCard({ headline, note, cta, url }: Props) {
         >
           <path
             d="M6 3 L6 25 L12 19 L16 28 L20 26 L16 17 L24 17 Z"
-            fill={palette.sand[0]}
-            stroke={palette.ink[9]}
+            fill={"#FFFFFF"}
+            stroke={palette.slate[9]}
             strokeWidth={2}
             strokeLinejoin="round"
           />

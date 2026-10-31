@@ -1,4 +1,4 @@
-// STAND-IN for the memberships port, for development without Kindling's
+// STAND-IN for the memberships port, for development without the platform's
 // API. Joining adds the class to the stand-in student kept in this browser's
 // storage. Any join code names a stand-in class (see `standInClasses`). The
 // real adapter is ../api/memberships.ts; see ../README.md.

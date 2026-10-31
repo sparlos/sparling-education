@@ -1,6 +1,6 @@
 ---
 name: polish-game
-description: Give a Kindling game that already plays well its visual polish pass (layout, motion, feedback moments), with the founder looking at each change. Use after the founder has accepted a game as playable, in a fresh session.
+description: Give a game that already plays well its visual polish pass (layout, motion, feedback moments), with the founder looking at each change. Use after the founder has accepted a game as playable, in a fresh session.
 ---
 
 # Polish a game

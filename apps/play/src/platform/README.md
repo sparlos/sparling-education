@@ -1,13 +1,13 @@
 # The platform seam
 
-The play shell needs six things from the rest of Kindling. It reaches each one only through a port in [`ports.ts`](./ports.ts):
+The play shell needs six things from the rest of the platform. It reaches each one only through a port in [`ports.ts`](./ports.ts):
 
 | Port | What it does | Real adapter (`api/`) | Stand-in (`stand-ins/`) |
 | --- | --- | --- | --- |
 | `SessionPort` | Who is signed in: their ID, locale, avatar look, and the classes they're in with their grade in each | `GET /session` | A pretend student picked on the stand-in sign-in screen, kept in this browser's localStorage |
 | `MembershipsPort` | Joining a class by its join code, and picking a grade in a split class | `POST /memberships`, `PUT /memberships/{classId}/grade` | Adds stand-in classes to the stored student. Any join code names one: `G4` is Grade 4, `G45` a Grade 4/5 split, a code with no digits Grades 3–5, a code starting with `X` no class |
 | `LockerPort` | The outfit pieces and stickers the student owns, the rewards and recognition they haven't seen yet, where their stickers are on the locker, and dressing their avatar (designing it the first time, then the wardrobe) | `GET /locker`, `PUT /locker/look`, `POST /locker/seen`, `PUT /locker/stickers` | Owns the base set, plus rewards granted with `standInGrant` or earned with `standInEarn` (each finished play earns the next one, with no effort rule or cap) and recognition given with `standInRecognise`, and sticker placements, all kept in localStorage; the look is kept on the stored student |
-| `PlayRecordsPort` | Stores each play's records: its attempts, then how it ended; and whether the student has played a game before | `POST /play-records`, `GET /games/{slug}/played` | Kept in memory and logged to the console; the games each student has played are kept in localStorage (`kindling.stand-in.played`), so a reload knows a returning student |
+| `PlayRecordsPort` | Stores each play's records: its attempts, then how it ended; and whether the student has played a game before | `POST /play-records`, `GET /games/{slug}/played` | Kept in memory and logged to the console; the games each student has played are kept in localStorage (`stand-in.played`), so a reload knows a returning student |
 | `LinksPort.signIn` | The sign-in page, returning to where the student was headed | `/play/sign-in`: Google's button in redirect mode | `/play/__stand-in/sign-in` |
 | `LinksPort.locker` | Where every game returns the student, naming the play | The locker, `/play/?play=<play>` | The same |
 
@@ -19,7 +19,7 @@ The contract suites in [`contract.ts`](./contract.ts) run against both: `stand-i
 
 Students sign in with Google's button in **redirect mode**, not the pop-up the teacher app uses, since school Chromebooks may block pop-ups:
 
-1. `links.signIn(returnTo)` opens `/play/sign-in?next=<returnTo>`. The page keeps `next` in localStorage (`kindling.sign-in.next`), since the trip through Google can't carry it, and shows Google's button.
+1. `links.signIn(returnTo)` opens `/play/sign-in?next=<returnTo>`. The page keeps `next` in localStorage (`sign-in.next`), since the trip through Google can't carry it, and shows Google's button.
 2. Google posts the ID token, with its `g_csrf_token` double-submit field, to the API's `POST /sign-in/student` (Google's `login_uri`). The API checks the field against Google's `g_csrf_token` cookie, verifies the token, makes a student if the account is new, starts the session and answers 303 to `/play/sign-in` (or `/play/sign-in?failed`).
 3. Signed in now, `/play/sign-in` sends the student on to the remembered page, only ever a page of the shell, or the locker.
 

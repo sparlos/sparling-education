@@ -70,7 +70,7 @@ export const theme = createTheme({
     // Mantine draws borders and muted UI from `gray`; tint it toward ink.
     gray: palette.slate,
   },
-  primaryColor: "jade",
+  primaryColor: "violet",
   primaryShade: 6,
   autoContrast: true,
   white: "#FFFFFF",
@@ -192,6 +192,7 @@ export const cssVariablesResolver: CSSVariablesResolver = () => {
     "--k-focus": color.focus,
     "--k-focus-halo": color.focusHalo,
     "--k-scrim": color.scrim,
+    "--k-sparkle": color.sparkle,
     "--k-success": color.status.success,
     "--k-success-soft": color.status.successSoft,
     "--k-info": color.status.info,
@@ -200,11 +201,14 @@ export const cssVariablesResolver: CSSVariablesResolver = () => {
     ...toneVariables("neutral", color.neutral),
     ...toneVariables("educator", color.audience.educator),
     ...toneVariables("parent", color.audience.parent),
-    ...toneVariables("student", color.audience.student),
     ...toneVariables("misconception", color.meaning.misconception),
     ...toneVariables("recognition", color.meaning.recognition),
-    // Outside any class colour scope, the accent is the brand's.
-    ...classColourVariables(classColour(defaultClassColour)),
+    // Outside any class colour scope, the accent is the brand's, over the
+    // default class colour's results ramp.
+    ...classColourVariables({
+      ...classColour(defaultClassColour),
+      tone: color.brand,
+    }),
   };
   return {
     variables: {

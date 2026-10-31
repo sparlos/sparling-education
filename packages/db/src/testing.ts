@@ -8,7 +8,7 @@ import { PostgreSqlContainer } from "@testcontainers/postgresql";
 import pg from "pg";
 import { createDb, type Db } from "./index.ts";
 
-const templateDatabase = "kindling_template";
+const templateDatabase = "test_template";
 
 export interface TestPostgres {
   /** Connection URL of the migrated template database. */

@@ -9,7 +9,7 @@ import {
 } from "jose";
 
 /**
- * The claims of a verified Google ID token that Kindling reads, plus the ones
+ * The claims of a verified Google ID token that the platform reads, plus the ones
  * it must never keep. Only `identityFrom` looks at them.
  */
 export interface GoogleClaims {
@@ -23,11 +23,11 @@ export interface GoogleClaims {
 }
 
 export interface IdentityVerifier {
-  /** The claims of a Google ID token, or null when it isn't a valid one for Kindling. */
+  /** The claims of a Google ID token, or null when it isn't a valid one for the platform. */
   verify(credential: string): Promise<GoogleClaims | null>;
 }
 
-/** Everything Kindling keeps about a Google account. */
+/** Everything the platform keeps about a Google account. */
 export interface Identity {
   /** Google's opaque, stable ID for the account. */
   subject: string;
@@ -48,7 +48,7 @@ const googleIssuers = ["https://accounts.google.com", "accounts.google.com"];
 const googleKeys = new URL("https://www.googleapis.com/oauth2/v3/certs");
 
 /**
- * Verifies ID tokens from Google sign-in for Kindling's OAuth client: signed
+ * Verifies ID tokens from Google sign-in for the platform's OAuth client: signed
  * by Google, issued to `clientId`, and unexpired. `keys` replaces Google's
  * published keys, for tests.
  */

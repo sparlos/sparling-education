@@ -1,9 +1,9 @@
 // The platform contract: everything the play shell needs from the rest of
-// Kindling (sign-in, the student's classes and grades, joining a class, their
+// The platform (sign-in, the student's classes and grades, joining a class, their
 // locker and avatar, somewhere to send each play's attempts and how it ended, and links into
 // other apps). The shell only ever talks to these interfaces. They're
 // implemented by the stand-ins in ./stand-ins/ and the adapters over
-// Kindling's API in ./api/, and each one must pass the suites in
+// The platform's API in ./api/, and each one must pass the suites in
 // ./contract.ts. See ./README.md.
 import type { AvatarLook } from "@repo/avatar";
 import type { ExpectationId } from "@repo/curriculum";

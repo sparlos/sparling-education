@@ -1,5 +1,5 @@
 // The demo class. Every new teacher gets one at their first sign-in, so
-// Kindling has something to show before any of their students plays. Its
+// The platform has something to show before any of their students plays. Its
 // students are simulated: each hosted game's simulator plays their plays
 // from the game's own rules, and the plays are stored like any others, so
 // results, effort and rewards come from the same scoring as real ones. It's
@@ -13,6 +13,7 @@ import type { AvatarLook } from "@repo/avatar";
 import { baseSet, itemsIn } from "@repo/avatar/parts";
 import type { Db, DbTransaction } from "@repo/db";
 import type { RecognitionTrait } from "@repo/rewards";
+import { defaultClassColour } from "@repo/tokens";
 import { startViewingAs } from "./accounts.ts";
 import { newJoinCode } from "./classes.ts";
 import { byName } from "./dashboard.ts";
@@ -23,8 +24,8 @@ import type { DemoView, PlayRecord } from "./schemas.ts";
 import { termOf, weekOf } from "./scoring.ts";
 
 export const demoClassName = "Demo class";
-/** Its class colour: the brand's, the first a teacher sees. */
-export const demoClassColour = "teal";
+/** Its class colour: the one closest to the brand, the first a teacher sees. */
+export const demoClassColour = defaultClassColour;
 const demoGrades = [3, 4, 5];
 
 /** Where viewing as a demo student opens the play shell: their locker. */

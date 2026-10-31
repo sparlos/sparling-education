@@ -1,4 +1,4 @@
-// Screenshots and recordings of Kindling's own apps, for the "screen" scene.
+// Screenshots and recordings of the platform's own apps, for the "screen" scene.
 // They live in screens/<app>/ and are captured from the app running on its
 // in-memory platform at 1440 px wide (docs/agents/frontend-testing.md):
 // screenshots at 2× pixel density, recordings with Playwright's recordVideo.
@@ -39,8 +39,8 @@ export const screens = {
     height: 3852,
   },
   /**
-   * Fraction Hop in the play shell: a Grade 4 student's plan of 1 + three
-   * 1/5 hops, Play pressed a second in, then the hops land on 8/5.
+   * Fraction Hop in the play shell: a Grade 4 student's plan of two 1 hops
+   * and a 1/4 hop, Play pressed a second in, then the hops land on 9/4.
    */
   "play-fraction-hop": {
     src: playFractionHopStart,

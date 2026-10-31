@@ -1,4 +1,4 @@
-// The locker port over Kindling's API, through the generated client.
+// The locker port over the platform's API, through the generated client.
 import {
   getLocker,
   markRewardsSeen,

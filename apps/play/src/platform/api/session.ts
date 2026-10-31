@@ -1,4 +1,4 @@
-// The session port over Kindling's API, through the generated client.
+// The session port over the platform's API, through the generated client.
 import { getSession } from "@repo/api-client";
 import { parseLook } from "@repo/avatar";
 import { NotAStudent, type SessionPort } from "../ports.ts";

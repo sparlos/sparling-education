@@ -1,3 +1,4 @@
+import { brandName } from "@repo/tokens";
 import type { ComparisonRow } from "@repo/ui/marketing/comparison-table";
 import type { PromiseItem } from "@repo/ui/marketing/promise-band";
 import type { Step } from "@repo/ui/marketing/steps";
@@ -48,7 +49,6 @@ export const comparisonShort: ComparisonRow[] = [
 
 export const comparisonFull: ComparisonRow[] = Object.values(comparison.rows);
 
-/** The first three are the ones the students page shows. */
 export const promiseItems: PromiseItem[] = [
   { icon: "no-money", label: "No store" },
   { icon: "ban", label: "No ads" },
@@ -89,5 +89,5 @@ export const pilotForm = {
 
 export const pilotCta = {
   title: "Join the teacher pilot",
-  lead: "We're looking for Ontario teachers to try the first five Kindling games, for Grades 3–5 math, and help shape what comes next. Pilot teachers get every paid feature free.",
+  lead: `We're looking for Ontario teachers to try the first five ${brandName} games, for Grades 3–5 math, and help shape what comes next. Pilot teachers get every paid feature free.`,
 };

@@ -10,7 +10,7 @@ The MVP is five games across the Number strand (Grades 3–5) and the platform a
 ## Consequences
 
 - `apps/hubworld` and the 3D export of `@repo/avatar` are deleted. The last commit that has them is tagged `world-poc`, so the prototype is one checkout away. The PlayCanvas skills stay installed for later.
-- `hubworld-api` becomes Kindling's core API, `api` (and its client `api-client`), with multiplayer presence removed.
+- `hubworld-api` becomes the platform's core API, `api` (and its client `api-client`), with multiplayer presence removed.
 - The locker replaces the hub as where students arrive and where every game returns them. Rewards are outfit pieces and stickers instead of furniture; recognition is an exclusive sticker.
 - Nicknames, preset phrases and emotes only existed for the world, so they go with it; the glossary keeps the terms for later.
 - The marketing site stops promising the class world, houses, visits, portals and the parent view, and leads with the games, misconceptions and quick assess, with one "coming next" line for the world and the parent view.

@@ -1,24 +1,33 @@
-// Kindling's look in video: the site's tokens (warm sand paper, ink, ember,
-// Nunito), its 3D "press" edge, and the flame wordmark. Every scene builds on
-// these, so every video carries the brand.
-import { loadFont as loadHeading } from "@remotion/google-fonts/Nunito";
-import { loadFont as loadBody } from "@remotion/google-fonts/NunitoSans";
-import { color, font, palette, press } from "@repo/tokens";
-import type { CSSProperties } from "react";
+// The brand in video: the site's tokens (lavender paper, indigo ink, violet,
+// Plus Jakarta Sans), its 3D "press" edge, and the gem logo. Every scene
+// builds on these, so every video carries the brand.
+import { loadFont } from "@remotion/google-fonts/PlusJakartaSans";
+import {
+  brandByline,
+  brandName,
+  color,
+  font,
+  palette,
+  press,
+} from "@repo/tokens";
+import {
+  gemFacets,
+  gemOutline,
+  markBox,
+  sparkleGapStroke,
+  sparkleOutline,
+} from "@repo/tokens/mark";
+import { type CSSProperties, useId } from "react";
 import type { Tone } from "./brief.ts";
 
-export const headingFont = loadHeading("normal", {
-  weights: ["700", "800", "900"],
-  subsets: ["latin"],
-}).fontFamily;
-export const bodyFont = loadBody("normal", {
-  weights: ["400", "600", "700", "800"],
+const family = loadFont("normal", {
+  weights: ["500", "700", "800"],
   subsets: ["latin"],
 }).fontFamily;
 
 export const fonts = {
-  heading: `${headingFont}, ${font.heading.fallback}`,
-  body: `${bodyFont}, ${font.body.fallback}`,
+  heading: `${family}, ${font.heading.fallback}`,
+  body: `${family}, ${font.body.fallback}`,
 };
 
 export { color, palette };
@@ -44,53 +53,94 @@ export function pressStyle(
   };
 }
 
-/** The flame mark from the site's wordmark. */
-export function FlameMark({
-  size,
-  tone = "brand",
-}: {
-  size: number;
-  tone?: Tone;
-}) {
+/** The gem with its sparkle, `size` px tall (sparkle included). */
+export function Mark({ size }: { size: number }) {
+  const id = useId();
   return (
-    <svg width={size} height={size} viewBox="0 0 32 32" aria-hidden="true">
-      <rect width="32" height="32" rx="9" fill={toneOf(tone).fill} />
-      <path
-        d="M16.4 6.5c.6 3.2-1.1 5-2.8 6.8-1.6 1.7-3.1 3.4-3.1 6.2 0 3.6 2.6 6 5.6 6s5.5-2.3 5.5-5.8c0-2.4-1.2-4-2.3-5.3-.2 1.6-.9 2.7-2 3.1.6-3.4.2-7.5-.9-11z"
-        fill="#FFF4EC"
-      />
-      <path
-        d="M16.1 25.5c-1.6 0-2.8-1.2-2.8-2.8 0-1.7 1.3-2.6 2.4-3.9.2 1 .8 1.6 1.6 1.8.3-.4.5-.9.5-1.4.8.9 1.2 1.9 1.2 3 0 1.9-1.3 3.3-2.9 3.3z"
-        fill={color.audience.student.fill}
-      />
+    <svg
+      height={size}
+      width={(size * markBox.width) / markBox.height}
+      viewBox={`${markBox.x} ${markBox.y} ${markBox.width} ${markBox.height}`}
+      aria-hidden="true"
+    >
+      <mask
+        id={`${id}-cut`}
+        maskUnits="userSpaceOnUse"
+        x="-10"
+        y="-40"
+        width="160"
+        height="150"
+      >
+        <path d={gemOutline} fill="#fff" />
+        <path
+          d={sparkleOutline}
+          fill="#000"
+          stroke="#000"
+          strokeWidth={sparkleGapStroke}
+          strokeLinejoin="round"
+        />
+      </mask>
+      <clipPath id={`${id}-clip`}>
+        <path d={gemOutline} />
+      </clipPath>
+      <g mask={`url(#${id}-cut)`}>
+        <g clipPath={`url(#${id}-clip)`}>
+          {gemFacets.map((facet) => (
+            <path key={facet.name} d={facet.d} fill={facet.fill} />
+          ))}
+        </g>
+      </g>
+      <path d={sparkleOutline} fill={color.sparkle} />
     </svg>
   );
 }
 
-/** Flame mark plus "Kindling", as on the site's header. */
+/** The gem plus the product name, as on the site's header. */
 export function Wordmark({
   size,
   inverse,
+  byline,
 }: {
-  /** Cap height of the name, in px. */
+  /** Font size of the name, in px. */
   size: number;
   inverse?: boolean;
+  /** Adds "by Sparling Education" under the name. */
+  byline?: boolean;
 }) {
   return (
     <div
       style={{
         display: "flex",
-        alignItems: "center",
-        gap: size * 0.35,
+        alignItems: byline ? "flex-start" : "center",
+        gap: size * 0.4,
         fontFamily: fonts.heading,
-        fontWeight: 900,
+        fontWeight: 800,
         fontSize: size,
-        letterSpacing: -size * 0.02,
+        lineHeight: 1,
+        letterSpacing: -size * 0.025,
         color: inverse ? color.ink.inverse : color.ink.default,
       }}
     >
-      <FlameMark size={size * 1.15} />
-      <span>Kindling</span>
+      <div style={{ marginTop: -size * 0.2 }}>
+        <Mark size={size * 1.12} />
+      </div>
+      <div
+        style={{ display: "flex", flexDirection: "column", gap: size * 0.3 }}
+      >
+        <span>{brandName}</span>
+        {byline && (
+          <span
+            style={{
+              fontWeight: 500,
+              fontSize: size * 0.4,
+              letterSpacing: size * 0.004,
+              color: inverse ? color.ink.inverseMuted : color.ink.muted,
+            }}
+          >
+            {brandByline}
+          </span>
+        )}
+      </div>
     </div>
   );
 }

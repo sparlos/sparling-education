@@ -5,7 +5,7 @@ interface AnchorProps {
   children: ReactNode;
   href: string;
   className?: string;
-  /** Opens in a new tab, for a page outside Kindling. */
+  /** Opens in a new tab, for a page outside the platform. */
   newTab?: boolean;
   /** Marks it for a walkthrough step to point at. */
   "data-walkthrough"?: string;

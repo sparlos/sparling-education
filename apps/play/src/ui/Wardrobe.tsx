@@ -262,7 +262,7 @@ function withNew(label: string, isNew: boolean) {
 /** A small star at a button's top right, for something new in it. */
 function NewStar() {
   return (
-    <span className={styles.newStar} data-tone="student" aria-hidden>
+    <span className={styles.newStar} aria-hidden>
       <Icon name="star" size={16} />
     </span>
   );

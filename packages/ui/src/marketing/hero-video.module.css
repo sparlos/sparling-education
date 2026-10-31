@@ -1,0 +1,87 @@
+.root {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: var(--mantine-radius-xl);
+  background-color: var(--k-surface-inverse);
+  border: 2px solid color-mix(in srgb, var(--tone-edge) 18%, transparent);
+  box-shadow: var(--mantine-shadow-lg);
+}
+
+.video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.start {
+  position: absolute;
+  inset: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+/* The poster dims slightly so the button reads over any frame. */
+.start::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    color-mix(in srgb, var(--k-surface-inverse) 45%, transparent),
+    transparent 55%
+  );
+}
+
+.play {
+  position: absolute;
+  z-index: 1;
+  left: 50%;
+  bottom: var(--mantine-spacing-lg);
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.5rem 1.25rem 0.5rem 0.5rem;
+  border-radius: 999px;
+  background-color: var(--k-surface-raised);
+  color: var(--k-ink);
+  font-family: var(--k-font-heading-stack);
+  font-size: var(--mantine-font-size-md);
+  font-weight: 800;
+  white-space: nowrap;
+  box-shadow: var(--mantine-shadow-md);
+  transition: transform var(--k-duration-fast) var(--k-ease-standard);
+}
+
+.icon {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background-color: var(--tone-fill);
+  color: var(--tone-on-fill);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .start:hover .play {
+    transform: translateX(-50%) scale(1.04);
+  }
+}
+
+.start:focus-visible {
+  outline: none;
+}
+
+.start:focus-visible .play {
+  outline: 3px solid var(--k-focus);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 3px var(--k-focus-halo);
+}

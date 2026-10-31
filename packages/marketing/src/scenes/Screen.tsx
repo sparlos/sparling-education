@@ -1,4 +1,4 @@
-// A screenshot of one of Kindling's apps in a browser window: the window
+// A screenshot of one of the platform's apps in a browser window: the window
 // rises in showing the top of the page, then the camera glides to one part
 // and lights it up while the rest dims. A recording plays from its first
 // frame instead, its key moment landing on the cue.
@@ -142,7 +142,7 @@ export function Screen({ screen, label, focus, cue }: Props) {
               alignItems: "center",
               gap: unit * 0.4,
               paddingLeft: unit * 0.8,
-              background: palette.sand[1],
+              background: palette.slate[1],
               borderBottom: `2px solid ${color.border.subtle}`,
             }}
           >

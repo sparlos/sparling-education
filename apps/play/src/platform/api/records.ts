@@ -1,4 +1,4 @@
-// The play-records port over Kindling's API, through the generated client.
+// The play-records port over the platform's API, through the generated client.
 import { hasPlayed, sendPlayRecords } from "@repo/api-client";
 import type { PlayRecordsPort } from "../ports.ts";
 import { unexpected } from "./unexpected.ts";

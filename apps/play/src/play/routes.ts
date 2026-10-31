@@ -78,7 +78,7 @@ export function lockerGamePath(base: string, slug: string, classId: string) {
  */
 export function shellPath(path: unknown, base: string): string | null {
   if (typeof path !== "string" || !path.startsWith(base)) return null;
-  const origin = "https://kindling.invalid";
+  const origin = "https://app.invalid";
   const url = new URL(path, origin);
   if (url.origin !== origin || !url.pathname.startsWith(base)) return null;
   return url.pathname + url.search;

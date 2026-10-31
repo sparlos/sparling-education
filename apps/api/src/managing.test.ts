@@ -112,7 +112,7 @@ describe("turning a game off and on", () => {
     ]);
   });
 
-  it("is only for the class's teacher, and only for a game Kindling hosts", async () => {
+  it("is only for the class's teacher, and only for a game the platform hosts", async () => {
     const headers = await teacher();
     const cls = await createClass(headers);
     expect(

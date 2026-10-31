@@ -1,11 +1,11 @@
+import { brandName } from "@repo/tokens";
 import type { IconName } from "@repo/ui/icon";
 import type { Tone } from "@repo/ui/tone";
 
 export const contact = {
   meta: {
     title: "Contact",
-    description:
-      "Get in touch with Kindling: teachers, principals, boards and parents welcome.",
+    description: `Get in touch with ${brandName}: teachers, principals, boards and parents welcome.`,
   },
   title: "Talk to us",
   lead: "Whether you're a teacher, a principal, a school board or a parent, we'd love to hear from you.",
@@ -15,7 +15,7 @@ export const contact = {
       icon: "teacher",
       tone: "educator",
       title: "Teachers",
-      body: "Want to help shape Kindling? Join the teacher pilot.",
+      body: `Want to help shape ${brandName}? Join the teacher pilot.`,
       action: { label: "Join the pilot", href: "/educators#pilot" },
     },
     {
@@ -28,7 +28,7 @@ export const contact = {
       icon: "parent",
       tone: "parent",
       title: "Parents",
-      body: "Want to know when Kindling is ready? Sign up for updates.",
+      body: `Want to know when ${brandName} is ready? Sign up for updates.`,
       action: { label: "Get updates", href: "/parents#updates" },
     },
   ] satisfies {

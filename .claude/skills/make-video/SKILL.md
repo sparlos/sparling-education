@@ -1,6 +1,6 @@
 ---
 name: make-video
-description: Make a Kindling marketing video (teaser, promo, explainer, social clip) for any audience and anything Kindling offers, with voice-over, captions, music and Kindling's branding. Use when asked for a video, or to change one in packages/marketing.
+description: Make a marketing video (teaser, promo, explainer, social clip) for any audience and anything the platform offers, with voice-over, captions, music and the brand. Use when asked for a video, or to change one in packages/marketing.
 ---
 
 # Make a video
@@ -14,7 +14,7 @@ The brief is the single source of truth. Every line the voice says is the captio
 Settle with the founder, one question at a time, only what the request leaves open:
 
 - **Showcase**: which games or features (a game's `SPEC.md` and `src/strings.ts` say what it really does).
-- **Audience**: teachers, parents, students or boards. It picks the tone (`educator`, `parent`, `student`, or `brand`) and the copy source: `apps/web/content/<audience>.tsx`.
+- **Audience**: teachers, parents, students or boards. It picks the tone (`educator`, `parent`, or `brand`) and the copy source: `apps/web/content/<audience>.tsx`.
 - **Length and format**: seconds (about 2.8 spoken words a second, plus scene breathing room) and `landscape` or `vertical`.
 - **Call to action**, and any URL.
 - **Voice and energy**: an `@repo/voice` voice (default the games' narrator) and its speed, and the music's tempo and mood.
@@ -25,7 +25,7 @@ Done when every parameter is set and none was guessed.
 
 Write `videos/<id>/brief.ts` and register it in `videos/index.ts`. Use `videos/teacher-teaser/brief.ts` as the model.
 
-- Copy comes from the site and `docs/DESIGN.md`: claims Kindling actually makes, in its words. Rewards are earned, never bought, and there are no scores or streaks. Use Canadian spelling.
+- Copy comes from the site and `docs/DESIGN.md`: claims the platform actually makes, in its words. Rewards are earned, never bought, and there are no scores or streaks. Use Canadian spelling.
 - Each beat is one line and one scene. Pick scenes from the `Scene` union in `src/brief.ts`. Each scene file's header names its **cue** words (for example "play" in `fraction-hop`), so put those words in the line.
 - Need a scene that doesn't exist? Add its props to `Scene` and its component to `src/scenes/index.tsx`, following `.claude/rules/ui.md`: tokens only, the press edge only on clickable things, all copy through props.
 

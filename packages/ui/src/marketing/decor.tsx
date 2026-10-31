@@ -2,14 +2,14 @@ import type { CSSProperties, ReactNode } from "react";
 import { cx } from "../cx";
 import classes from "./decor.module.css";
 
-/** Decorative colours: an audience/brand tone or a fixed accent. */
+/** Decorative colours: an audience/brand tone or the sparkle's gold. */
 type DecorColor =
   | "tone"
   | "tone-soft"
   | "brand"
   | "educator"
   | "parent"
-  | "student";
+  | "sparkle";
 
 const fills: Record<DecorColor, string> = {
   tone: "var(--tone-fill)",
@@ -17,7 +17,7 @@ const fills: Record<DecorColor, string> = {
   brand: "var(--k-brand-fill)",
   educator: "var(--k-educator-fill)",
   parent: "var(--k-parent-fill)",
-  student: "var(--k-student-fill)",
+  sparkle: "var(--k-sparkle)",
 };
 
 interface ShapeProps {
@@ -64,8 +64,29 @@ export function DecorLayer({ children }: { children: ReactNode }) {
   );
 }
 
-/** Soft organic blob. */
-export function Blob(props: ShapeProps) {
+/**
+ * Light and shade laid over a crystal's base colour, facet by facet, so one
+ * fill reads as a faceted gem in any tone.
+ */
+const facetShades = [
+  "rgba(255, 255, 255, 0.45)",
+  "rgba(255, 255, 255, 0.2)",
+  "rgba(27, 18, 89, 0.12)",
+  "rgba(27, 18, 89, 0.22)",
+  "rgba(255, 255, 255, 0.3)",
+];
+
+/** A large faceted crystal shard, best bleeding off a band's edge. */
+export function Shard(props: ShapeProps) {
+  // An irregular five-sided crystal, cut into facets that meet off-centre.
+  const rim = [
+    [18, 118],
+    [92, 8],
+    [184, 52],
+    [158, 192],
+    [36, 178],
+  ] as const;
+  const core = [104, 96] as const;
   return (
     <svg
       aria-hidden="true"
@@ -73,16 +94,34 @@ export function Blob(props: ShapeProps) {
       style={shapeStyle(props)}
       viewBox="0 0 200 200"
     >
-      <path
-        fill={fills[props.color ?? "tone-soft"]}
-        d="M43.6,-58.7C55.4,-50.3,62.6,-35.4,67.6,-19.6C72.6,-3.8,75.5,12.9,70.2,26.6C64.9,40.3,51.4,51,36.5,58.8C21.6,66.6,5.3,71.5,-11.6,70.8C-28.5,70.1,-46,63.8,-57.6,51.6C-69.2,39.4,-74.9,21.2,-74.4,3.6C-73.9,-14,-67.1,-31,-55.6,-39.6C-44.1,-48.2,-27.9,-48.4,-13.1,-56.1C1.7,-63.8,31.8,-67.1,43.6,-58.7Z"
-        transform="translate(100 100)"
-      />
+      <g fill={fills[props.color ?? "tone"]}>
+        {rim.map((point, i) => {
+          const next = rim[(i + 1) % rim.length] ?? rim[0];
+          return (
+            <path
+              // biome-ignore lint/suspicious/noArrayIndexKey: fixed geometry
+              key={i}
+              d={`M${core.join(",")}L${point.join(",")}L${next.join(",")}Z`}
+            />
+          );
+        })}
+      </g>
+      {rim.map((point, i) => {
+        const next = rim[(i + 1) % rim.length] ?? rim[0];
+        return (
+          <path
+            // biome-ignore lint/suspicious/noArrayIndexKey: fixed geometry
+            key={i}
+            d={`M${core.join(",")}L${point.join(",")}L${next.join(",")}Z`}
+            fill={facetShades[i]}
+          />
+        );
+      })}
     </svg>
   );
 }
 
-/** Four-point sparkle. */
+/** Four-point sparkle, in the logo's gold by default. */
 export function Sparkle(props: ShapeProps) {
   return (
     <svg
@@ -92,15 +131,15 @@ export function Sparkle(props: ShapeProps) {
       viewBox="0 0 24 24"
     >
       <path
-        fill={fills[props.color ?? "student"]}
+        fill={fills[props.color ?? "sparkle"]}
         d="M12 0c.9 6.3 5.1 10.6 12 12-6.9 1.4-11.1 5.7-12 12-.9-6.3-5.1-10.6-12-12C6.9 10.6 11.1 6.3 12 0z"
       />
     </svg>
   );
 }
 
-/** Small rising ember: a rounded diamond. */
-export function Ember(props: ShapeProps) {
+/** A small glint: a gem facet, lit on one side. */
+export function Glint(props: ShapeProps) {
   return (
     <svg
       aria-hidden="true"
@@ -108,15 +147,9 @@ export function Ember(props: ShapeProps) {
       style={shapeStyle(props)}
       viewBox="0 0 24 24"
     >
-      <rect
-        x="5"
-        y="5"
-        width="14"
-        height="14"
-        rx="4"
-        transform="rotate(45 12 12)"
-        fill={fills[props.color ?? "brand"]}
-      />
+      <path d="M12 2 22 12 12 22 2 12Z" fill={fills[props.color ?? "brand"]} />
+      <path d="M12 2 22 12 12 12Z" fill="rgba(255, 255, 255, 0.45)" />
+      <path d="M2 12 12 12 12 22Z" fill="rgba(27, 18, 89, 0.18)" />
     </svg>
   );
 }

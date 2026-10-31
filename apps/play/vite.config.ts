@@ -1,14 +1,22 @@
 import { fileURLToPath } from "node:url";
+import { brandName } from "@repo/tokens";
 import { voiceLines } from "@repo/voice/vite";
 import react from "@vitejs/plugin-react";
+import type { Plugin } from "vite";
 import { defineConfig } from "vitest/config";
+
+/** Puts the product's name into index.html, so it's set in one place. */
+const brandNameInHtml: Plugin = {
+  name: "brand-name",
+  transformIndexHtml: (html) => html.replaceAll("%BRAND_NAME%", brandName),
+};
 
 const repoRoot = fileURLToPath(new URL("../..", import.meta.url));
 
 export default defineConfig({
   // Served at /play/ on the same domain as the class world; see README.md.
   base: "/play/",
-  plugins: [react(), voiceLines({ root: repoRoot })],
+  plugins: [react(), brandNameInHtml, voiceLines({ root: repoRoot })],
   build: {
     // Avatar art stays as files, fetched as it's drawn, rather than inlined
     // into the bundle: one avatar is a handful of its hundreds of layers.

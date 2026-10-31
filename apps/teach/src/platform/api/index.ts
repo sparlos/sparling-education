@@ -1,4 +1,4 @@
-// The real platform: Kindling's API on this domain, and Google sign-in.
+// The real platform: the platform's API on this domain, and Google sign-in.
 import { setBaseUrl } from "@repo/api-client";
 import type { Platform } from "../ports.ts";
 import { googleSignInButton } from "./google-button.tsx";

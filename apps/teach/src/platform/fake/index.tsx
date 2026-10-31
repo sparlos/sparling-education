@@ -10,7 +10,7 @@ export interface FakePlatformOptions {
   google?: GoogleAccount;
   /** The account is already a student's. */
   student?: boolean;
-  /** The sign-in button hands over a credential Kindling rejects. */
+  /** The sign-in button hands over a credential the platform rejects. */
   rejectSignIn?: boolean;
   /** While true, every call fails, as it would offline. */
   offline?: () => boolean;
@@ -22,7 +22,7 @@ export interface FakePlatformOptions {
   otherTeachersClasses?: NewClass[];
   /** The time it is now, for which term it is. The real time by default. */
   now?: Date;
-  /** Give the teacher a demo class at their first sign-in, as Kindling does. */
+  /** Give the teacher a demo class at their first sign-in, as the platform does. */
   demoClass?: boolean;
   /** The walkthroughs the teacher has already seen. None, as for a new teacher, by default. */
   walkthroughsSeen?: readonly string[];

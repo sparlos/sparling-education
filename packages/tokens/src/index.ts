@@ -1,10 +1,17 @@
-// Kindling design tokens: the single source of truth for colour, type,
+// Design tokens: the single source of truth for colour, type,
 // spacing, shape and motion. Plain values only, so the marketing site
 // (via the Mantine theme in @repo/ui) and the game (PlayCanvas) share them.
 //
 // Pixel values are numbers; consumers convert to rem or world units.
 
-export const brandName = "Kindling";
+/**
+ * The product's name, everywhere a user reads or hears it. A stand-in until
+ * the real name is chosen: docs/RENAME.md lists what else changes with it.
+ */
+export const brandName = "Placeholder";
+
+/** Who makes the product, shown under the full logo. */
+export const brandByline = "by Sparling Education";
 
 /** A 10-step scale, 0 = lightest, 9 = darkest. */
 export type Scale = readonly [
@@ -125,20 +132,33 @@ export const palette = {
     "#13466D",
     "#0E334F",
   ],
-  /** Cool neutrals for page surfaces, text and UI chrome. */
+  /** Indigo-tinted neutrals for page surfaces, text and UI chrome. */
   slate: [
-    "#F4F5FA",
-    "#ECEEF5",
-    "#D7DAE6",
-    "#B4B8CA",
-    "#8E92A8",
-    "#73778F",
-    "#60647E",
-    "#4B4F6B",
-    "#33364F",
-    "#1B1D33",
+    "#F7F5FF",
+    "#EEEBFA",
+    "#DCD7F0",
+    "#BCB5D9",
+    "#9890BC",
+    "#7A72A2",
+    "#655D90",
+    "#4F467C",
+    "#342B68",
+    "#1B1259",
   ],
-  /** Brand teal. */
+  /** Brand violet: buttons, links and the gem. */
+  violet: [
+    "#F3EFFF",
+    "#E7DFFE",
+    "#D3C5FF",
+    "#B9A3FF",
+    "#9C7FFF",
+    "#8461FF",
+    "#6D45FF",
+    "#5A33E6",
+    "#4524BF",
+    "#2E1886",
+  ],
+  /** Teal, the first class colour. */
   jade: [
     "#E3F4EF",
     "#C4E9DE",
@@ -171,7 +191,7 @@ export interface ToneTokens {
   text: string;
 }
 
-const { leaf, sky, slate, jade } = palette;
+const { leaf, sky, slate, jade, violet } = palette;
 
 /** One step of a results ramp: a cell's fill, and the text on it. */
 export interface ResultStep {
@@ -368,14 +388,17 @@ export const classColours = [
 
 export type ClassColourSlug = (typeof classColours)[number]["slug"];
 
-/** The class colour screens outside any class, and new classes, fall back to. */
-export const defaultClassColour: ClassColourSlug = "teal";
+/**
+ * The class colour closest to the brand: the demo class's, a teacher's first
+ * class's, and the fallback for screens outside any class.
+ */
+export const defaultClassColour: ClassColourSlug = "indigo";
 
-/** The class colour with this slug, or the default for one Kindling doesn't have. */
+/** The class colour with this slug, or the default for an unknown one. */
 export function classColour(slug: string): ClassColour {
   return (
     classColours.find((c) => c.slug === slug) ??
-    (classColours[0] as ClassColour)
+    (classColours.find((c) => c.slug === defaultClassColour) as ClassColour)
   );
 }
 
@@ -383,16 +406,26 @@ export function isClassColour(slug: string): slug is ClassColourSlug {
   return classColours.some((c) => c.slug === slug);
 }
 
+/** The class colours in the order new classes get them: from the default on, wrapping round. */
+export const newClassColourOrder = (() => {
+  const start = classColours.findIndex((c) => c.slug === defaultClassColour);
+  return [...classColours.slice(start), ...classColours.slice(0, start)];
+})();
+
 /**
- * The colour a new class gets by default: the first, in the set's order,
- * that none of the teacher's other classes has. Once all are used, they're
- * given out again in turn.
+ * The colour a new class gets by default: the first, starting from the
+ * default and wrapping round the set, that none of the teacher's other
+ * classes has. Once all are used, they're given out again in turn. The demo
+ * class doesn't count, so a teacher's first class is the default colour too.
  */
 export function nextClassColour(used: readonly string[]): ClassColourSlug {
-  const unused = classColours.find((c) => !used.includes(c.slug));
+  const unused = newClassColourOrder.find((c) => !used.includes(c.slug));
   if (unused) return unused.slug;
   const known = used.filter(isClassColour);
-  return classColours[known.length % classColours.length]?.slug ?? "teal";
+  return (
+    newClassColourOrder[known.length % newClassColourOrder.length]?.slug ??
+    defaultClassColour
+  );
 }
 
 /**
@@ -415,8 +448,6 @@ export function initialTint(id: string): (typeof initialTints)[number] {
   for (const char of id) hash = (hash * 31 + (char.codePointAt(0) ?? 0)) >>> 0;
   return initialTints[hash % initialTints.length] ?? initialTints[0];
 }
-
-const teal = classColour("teal").tone;
 
 export const color = {
   surface: {
@@ -454,9 +485,22 @@ export const color = {
    */
   focusHalo: "#FFFFFF",
   /** Dims the page behind something that needs the eye, like a walkthrough's spotlight. */
-  scrim: "rgba(27, 29, 51, 0.6)",
-  /** Kindling's own colour: teal, the first class colour. */
-  brand: teal,
+  scrim: "rgba(27, 18, 89, 0.6)",
+  /** The brand's own colour: violet. */
+  brand: {
+    fill: violet[6],
+    fillHover: violet[7],
+    onFill: "#FFFFFF",
+    edge: violet[9],
+    soft: violet[0],
+    text: violet[7],
+  },
+  /**
+   * The gold of the logo's sparkle. Never text: it fails contrast on light
+   * surfaces. In the apps it appears only in the logo, since amber there
+   * means a misconception; the marketing site uses it freely.
+   */
+  sparkle: "#F6B93B",
   /** White, ink-edged secondary tone. */
   neutral: {
     fill: "#FFFFFF",
@@ -467,9 +511,24 @@ export const color = {
     text: slate[9],
   },
   audience: {
-    educator: teal,
-    parent: classColour("violet").tone,
-    student: classColour("amber").tone,
+    /** Teachers are the main audience, so their pages wear the brand. */
+    educator: {
+      fill: violet[6],
+      fillHover: violet[7],
+      onFill: "#FFFFFF",
+      edge: violet[9],
+      soft: violet[0],
+      text: violet[7],
+    },
+    /** The sparkle's gold, as a fill under dark text. */
+    parent: {
+      fill: "#F6B93B",
+      fillHover: "#EBAA25",
+      onFill: slate[9],
+      edge: "#8A5A00",
+      soft: "#FEF3DC",
+      text: "#7A4E00",
+    },
   },
   /** Fixed meanings, the same in every class. */
   meaning: {
@@ -580,12 +639,12 @@ export const radius = {
 
 /** Soft shadows, tinted toward ink rather than grey. `card` lifts cards off the page, with no border. */
 export const shadow = {
-  xs: "0 1px 2px rgba(27, 29, 51, 0.06)",
-  sm: "0 1px 2px rgba(27, 29, 51, 0.06), 0 2px 6px rgba(27, 29, 51, 0.06)",
-  card: "0 1px 2px rgba(27, 29, 51, 0.06), 0 8px 24px rgba(27, 29, 51, 0.06)",
-  md: "0 2px 4px rgba(27, 29, 51, 0.05), 0 8px 20px rgba(27, 29, 51, 0.08)",
-  lg: "0 4px 8px rgba(27, 29, 51, 0.05), 0 16px 40px rgba(27, 29, 51, 0.10)",
-  xl: "0 8px 16px rgba(27, 29, 51, 0.06), 0 28px 64px rgba(27, 29, 51, 0.14)",
+  xs: "0 1px 2px rgba(27, 18, 89, 0.06)",
+  sm: "0 1px 2px rgba(27, 18, 89, 0.06), 0 2px 6px rgba(27, 18, 89, 0.06)",
+  card: "0 1px 2px rgba(27, 18, 89, 0.06), 0 8px 24px rgba(27, 18, 89, 0.06)",
+  md: "0 2px 4px rgba(27, 18, 89, 0.05), 0 8px 20px rgba(27, 18, 89, 0.08)",
+  lg: "0 4px 8px rgba(27, 18, 89, 0.05), 0 16px 40px rgba(27, 18, 89, 0.10)",
+  xl: "0 8px 16px rgba(27, 18, 89, 0.06), 0 28px 64px rgba(27, 18, 89, 0.14)",
 } as const;
 
 /**

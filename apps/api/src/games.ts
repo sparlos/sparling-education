@@ -1,4 +1,4 @@
-// The games Kindling hosts, by the slug in their game link. Keep this in step
+// The games the platform hosts, by the slug in their game link. Keep this in step
 // with the play shell's registry (apps/play/src/games.ts), leaving out its
 // dev-only games. Each game's name is its manifest's `title` string, so it's
 // written once and voiced with the game's other lines. Each game's simulator
@@ -28,7 +28,7 @@ export interface HostedGame {
 }
 
 /**
- * A game, with its simulator typed to its own manifest. Kindling only ever
+ * A game, with its simulator typed to its own manifest. The platform only ever
  * asks a simulator for one of its own manifest's tiers.
  */
 const hosted = <M extends GameManifest>(manifest: M, simulate: Simulate<M>) =>
@@ -50,7 +50,7 @@ export const hostedGames: readonly HostedGame[] = games.map((game) => ({
   ...game,
 }));
 
-/** The game's manifest at that version, or undefined when Kindling never hosted it. */
+/** The game's manifest at that version, or undefined when the platform never hosted it. */
 export function manifestAt(
   slug: string,
   version: number,
@@ -60,7 +60,7 @@ export function manifestAt(
   );
 }
 
-/** The game's name, or its slug when Kindling no longer hosts it. */
+/** The game's name, or its slug when the platform no longer hosts it. */
 export function gameName(slug: string): string {
   return hostedGames.find((g) => g.slug === slug)?.name ?? slug;
 }

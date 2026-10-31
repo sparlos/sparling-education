@@ -1,4 +1,4 @@
-// Product layer for the Ontario Mathematics curriculum (2020): Kindling's own
+// Product layer for the Ontario Mathematics curriculum (2020): the platform's own
 // description of each expectation a game evidences, keyed by expectation ID,
 // with a link to its official page on the DCP.
 //

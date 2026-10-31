@@ -1,11 +1,11 @@
 ---
 name: review-game
-description: Review a built Kindling game against the design principles, its game spec and the Chromebook budgets, and report each check with evidence. Use after build-game, after a change to a built game, or before a game ships.
+description: Review a built game against the design principles, its game spec and the Chromebook budgets, and report each check with evidence. Use after build-game, after a change to a built game, or before a game ships.
 ---
 
 # Review a game
 
-You check one built game (`games/<slug>`) against Kindling's principles and its **game spec**, and report each check as pass, fail or unmeasured, with evidence. Terms in bold are defined in `docs/GLOSSARY.md`. Run it in a fresh session where you can: a reviewer who built the game shares its blind spots.
+You check one built game (`games/<slug>`) against the platform's principles and its **game spec**, and report each check as pass, fail or unmeasured, with evidence. Terms in bold are defined in `docs/GLOSSARY.md`. Run it in a fresh session where you can: a reviewer who built the game shares its blind spots.
 
 You find and report; you fix only what the human approves. A finding is a defect the code shows, not a design you'd have chosen: the spec's pedagogy and fun calls are the founder's, already made.
 

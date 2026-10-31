@@ -227,7 +227,7 @@ function rgb(hex: string): RGB {
 }
 
 /**
- * Kindling's palette as ramps, for outfit colours beyond the sheet's own.
+ * The platform's palette as ramps, for outfit colours beyond the sheet's own.
  * Each base keeps ink outlines at 3:1.
  */
 export const paletteRamps = {

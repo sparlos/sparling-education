@@ -6,7 +6,7 @@ import { Reveal } from "./reveal";
 import { Wordmark } from "./wordmark";
 
 /**
- * One promise, phrased positively ("Kids never see a store"). Kindling keeps
+ * One promise, phrased positively ("Kids never see a store"). The platform keeps
  * it; `typical` says, factually and generally, how typical learning games
  * fall short. Competitors are never named on the site.
  */
@@ -36,7 +36,7 @@ function Verdict({ yes, children }: { yes: boolean; children: ReactNode }) {
 }
 
 /**
- * Kindling vs typical learning games, row by row. Two columns: the Kindling
+ * The platform vs typical learning games, row by row. Two columns: the the platform
  * column states the promise, the other says how typical games fall short.
  * The same table narrows to fit phones, so it never scrolls sideways.
  */

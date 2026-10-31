@@ -59,7 +59,7 @@ function LowPolyScene({ alt }: { alt: string }) {
       role="img"
       aria-label={alt}
     >
-      <circle cx="318" cy="70" r="30" fill="var(--k-student-fill)" />
+      <circle cx="318" cy="70" r="30" fill="var(--k-sparkle)" />
       <polygon
         points="0,190 70,130 140,175 210,110 290,165 400,120 400,300 0,300"
         fill="var(--tone-fill)"

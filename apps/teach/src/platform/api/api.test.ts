@@ -72,7 +72,7 @@ function harness(demoClass = false): TeacherPortHarness {
     });
 
   return {
-    port: apiTeacherPort({ origin: "https://kindling.test" }),
+    port: apiTeacherPort({ origin: "https://app.test" }),
     credentialFor,
     // Seeded directly: the teacher port never makes students.
     addStudent: async ({ subject, firstName, lastName }) => {

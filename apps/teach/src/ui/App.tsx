@@ -1,3 +1,4 @@
+import { brandName } from "@repo/tokens";
 import { Button } from "@repo/ui/button";
 import { Loader } from "@repo/ui/loader";
 import { Wordmark } from "@repo/ui/marketing/wordmark";
@@ -88,7 +89,7 @@ export function App({ platform, history }: AppProps) {
       return (
         <Centered>
           <Title order={1} size="h2">
-            Kindling can't be reached
+            {brandName} can't be reached
           </Title>
           <Text>Check your connection, then try again.</Text>
           <Button tone="educator" onClick={load}>
@@ -99,9 +100,9 @@ export function App({ platform, history }: AppProps) {
     case "signed-out":
       return (
         <Centered>
-          <Wordmark size="lg" />
+          <Wordmark size="lg" byline />
           <Title order={1} size="h2">
-            Sign in to Kindling for teachers
+            Sign in to {brandName} for teachers
           </Title>
           <Text>Use your school Google account.</Text>
           {screen.busy ? (
@@ -128,7 +129,7 @@ export function App({ platform, history }: AppProps) {
             This is for teachers
           </Title>
           <Text>
-            You're signed in with a student account. To use Kindling for
+            You're signed in with a student account. To use {brandName} for
             teachers, sign out and sign in with your teacher account.
           </Text>
           <Button variant="secondary" onClick={signOut}>

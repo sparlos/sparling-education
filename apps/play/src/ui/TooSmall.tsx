@@ -1,5 +1,5 @@
 // The block over a screen too small to play on, like a phone upright or
-// sideways. Kindling is for iPads, Chromebooks, laptops and desktops.
+// sideways. The platform is for iPads, Chromebooks, laptops and desktops.
 import { Icon } from "@repo/ui/icon";
 import { IconButton } from "@repo/ui/icon-button";
 import { Stack } from "@repo/ui/stack";

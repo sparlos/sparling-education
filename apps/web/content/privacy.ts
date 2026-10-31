@@ -1,11 +1,11 @@
+import { brandName } from "@repo/tokens";
 export const privacy = {
   meta: {
     title: "Privacy",
-    description:
-      "The privacy commitments Kindling is being built around: no student emails, names seen only by teachers, no chat, data hosted in Canada.",
+    description: `The privacy commitments ${brandName} is being built around: no student emails, names seen only by teachers, no chat, data hosted in Canada.`,
   },
-  title: "Privacy at Kindling",
-  lead: "Kindling is still in development. This page describes the commitments we're building around. We'll publish a full privacy policy before any student uses Kindling.",
+  title: `Privacy at ${brandName}`,
+  lead: `${brandName} is still in development. This page describes the commitments we're building around. We'll publish a full privacy policy before any student uses ${brandName}.`,
   sections: [
     {
       title: "What we'll collect from students",
@@ -21,7 +21,7 @@ export const privacy = {
     },
     {
       title: "No ads, and no selling data",
-      body: "Kindling will never show ads, and we will never sell or share student data for marketing.",
+      body: `${brandName} will never show ads, and we will never sell or share student data for marketing.`,
     },
     {
       title: "Clear deletion",
@@ -29,7 +29,7 @@ export const privacy = {
     },
     {
       title: "This website",
-      body: "Our signup forms ask only for what we need: an email address and, for teachers, the grade you teach. We use it to contact you about Kindling and nothing else. Students are never asked for information on this site.",
+      body: `Our signup forms ask only for what we need: an email address and, for teachers, the grade you teach. We use it to contact you about ${brandName} and nothing else. Students are never asked for information on this site.`,
     },
   ],
   contact: "Questions about privacy? We'd love to hear them.",

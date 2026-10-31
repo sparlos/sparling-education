@@ -1,6 +1,6 @@
 # @repo/marketing
 
-Kindling's marketing videos, built in Remotion from a **brief**: one file per
+The marketing videos, built in Remotion from a **brief**: one file per
 video (`videos/<id>/brief.ts`) saying who it's for, every voice-over line,
 the scene that shows each line, the voice and the music. The `make-video`
 skill (`.claude/skills/make-video`) walks an agent through writing one.

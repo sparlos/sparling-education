@@ -8,7 +8,7 @@
 import type { Audience } from "@repo/tokens";
 import type { ScreenName } from "./screens.ts";
 
-/** Which accent a video wears. "brand" is Kindling's ember. */
+/** Which accent a video wears. "brand" is the platform's ember. */
 export type Tone = Audience | "brand";
 
 export interface Format {
@@ -83,7 +83,7 @@ export type Scene =
     }
   | {
       kind: "screen";
-      /** A screenshot or recording of one of Kindling's apps (src/screens.ts). */
+      /** A screenshot or recording of one of the platform's apps (src/screens.ts). */
       screen: ScreenName;
       /** Small label above the window, e.g. "A student's page". */
       label: string;
@@ -184,6 +184,11 @@ export interface Brief {
   };
   /** Mix levels, in LUFS and dB. Defaults in scripts/mix.ts. */
   mix?: Partial<MixLevels>;
+  /**
+   * Puts a web copy on the marketing site (apps/web/public/videos/), with a
+   * poster taken from this beat once its voice has started.
+   */
+  web?: { posterBeat: string };
   beats: Beat[];
 }
 

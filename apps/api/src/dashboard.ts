@@ -168,7 +168,7 @@ export const unscored = {
   receivedAt: true,
 } as const;
 
-/** An expectation, in Kindling's words (ADR 0001). */
+/** An expectation, in our own words (ADR 0001). */
 export function describedExpectation(id: ExpectationId) {
   const { grade, code, description, link } = expectation(id);
   return { id, grade, code, description, link };

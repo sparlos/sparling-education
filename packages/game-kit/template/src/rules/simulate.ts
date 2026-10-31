@@ -1,5 +1,5 @@
 // A simulated student playing one play, through the same rules the screen
-// uses (the game contract's `Simulate`): Kindling's demo class is made of
+// uses (the game contract's `Simulate`): the platform's demo class is made of
 // these plays. Each tap is right as often as the student's accuracy says,
 // and always once the hint is in. The hint comes by itself here, so
 // `helpRate` doesn't come into it. A wrong tap here can only be the

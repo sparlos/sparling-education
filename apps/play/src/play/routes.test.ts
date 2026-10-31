@@ -7,7 +7,7 @@ import {
   shellPath,
 } from "./routes.ts";
 
-const at = (path: string) => new URL(path, "https://kindling.example");
+const at = (path: string) => new URL(path, "https://app.example");
 
 describe("parseGameLink", () => {
   it("reads a game link opened directly", () => {

@@ -1,4 +1,4 @@
-// The thing Kindling isn't: a plain quiz card that gets "game costume"
+// The thing the platform isn't: a plain quiz card that gets "game costume"
 // stickers slapped on it, then a stamp slams across it.
 // Cues: the stamp lands on the line's last word.
 
@@ -16,10 +16,10 @@ import type { Scene } from "../brief.ts";
 type Props = Extract<Scene, { kind: "not-a-quiz" }>;
 
 const stickerSpots = [
-  { x: -0.1, y: -0.12, r: -14, c: palette.sunshine[4], t: palette.ink[9] },
-  { x: 0.78, y: -0.16, r: 10, c: palette.berry[5], t: palette.sand[0] },
-  { x: 0.86, y: 0.7, r: -8, c: palette.sky[5], t: palette.sand[0] },
-  { x: -0.14, y: 0.78, r: 12, c: palette.leaf[5], t: palette.sand[0] },
+  { x: -0.1, y: -0.12, r: -14, c: palette.sunshine[4], t: palette.slate[9] },
+  { x: 0.78, y: -0.16, r: 10, c: palette.berry[5], t: "#FFFFFF" },
+  { x: 0.86, y: 0.7, r: -8, c: palette.sky[5], t: "#FFFFFF" },
+  { x: -0.14, y: 0.78, r: 12, c: palette.leaf[5], t: "#FFFFFF" },
 ];
 
 export function NotAQuiz({
@@ -153,13 +153,13 @@ export function NotAQuiz({
           <div
             style={{
               fontFamily: fonts.heading,
-              fontWeight: 900,
+              fontWeight: 800,
               fontSize: unit * 3,
               color: color.brand.fill,
               border: `${unit * 0.35}px solid ${color.brand.fill}`,
               borderRadius: radius.lg,
               padding: `${unit * 0.2}px ${unit * 0.9}px`,
-              background: `${palette.sand[0]}E6`,
+              background: "#FFFFFFE6",
               textTransform: "uppercase",
               letterSpacing: unit * 0.08,
               whiteSpace: "nowrap",
@@ -200,7 +200,7 @@ function Sticker({
         background: spot.c,
         color: spot.t,
         fontFamily: fonts.heading,
-        fontWeight: 900,
+        fontWeight: 800,
         fontSize: unit * 1.1,
         padding: `${unit * 0.35}px ${unit * 0.8}px`,
         borderRadius: radius.round,

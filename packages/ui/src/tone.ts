@@ -12,7 +12,6 @@ export const tones: readonly Tone[] = [
   "accent",
   "educator",
   "parent",
-  "student",
   "misconception",
   "recognition",
 ];

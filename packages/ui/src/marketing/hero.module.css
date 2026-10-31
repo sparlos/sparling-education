@@ -76,15 +76,11 @@
   -webkit-box-decoration-break: clone;
   background-image: linear-gradient(
     transparent 62%,
-    color-mix(in srgb, var(--k-student-fill) 70%, transparent) 62%,
-    color-mix(in srgb, var(--k-student-fill) 70%, transparent) 90%,
+    color-mix(in srgb, var(--k-sparkle) 70%, transparent) 62%,
+    color-mix(in srgb, var(--k-sparkle) 70%, transparent) 90%,
     transparent 90%
   );
   padding-inline: 0.05em;
-}
-
-[data-tone="student"] .highlight {
-  color: var(--k-ink);
 }
 
 /* Entrance: copy rises in sequence, the image pops in, the swash draws.

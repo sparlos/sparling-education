@@ -16,7 +16,7 @@ export async function studentSession(
   });
   return {
     id: student.id,
-    // Kindling is English-only until French is added.
+    // The platform is English-only until French is added.
     locale: "en-CA",
     // Null until they design their avatar. A look that's no longer valid
     // (an item withdrawn) is asked for again.

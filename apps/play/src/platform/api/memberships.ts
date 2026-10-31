@@ -1,4 +1,4 @@
-// The memberships port over Kindling's API, through the generated client.
+// The memberships port over the platform's API, through the generated client.
 import { joinClass, pickGrade } from "@repo/api-client";
 import { type MembershipsPort, NoSuchClass } from "../ports.ts";
 import { unexpected } from "./unexpected.ts";

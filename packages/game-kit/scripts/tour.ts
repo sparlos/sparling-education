@@ -142,11 +142,11 @@ try {
           // The stand-in's record of the games each student has played.
           if (!firstPlay)
             localStorage.setItem(
-              "kindling.stand-in.played",
+              "stand-in.played",
               JSON.stringify({ tour: [slug] }),
             );
           localStorage.setItem(
-            "kindling.stand-in.student",
+            "stand-in.student",
             JSON.stringify({
               id: "tour",
               locale: "en-CA",
@@ -227,12 +227,12 @@ try {
         await page.goto(`${base}/${slug}`);
         const start = page.getByRole("button", { name: "Start" });
         const missing = page.getByText("We couldn't find that game.");
-        // Real sign-in: the server runs on Kindling's API, not the stand-ins.
+        // Real sign-in: the server runs on the platform's API, not the stand-ins.
         const signIn = page.getByText(/^(Sign in to play|Signing in isn't)/);
         await start.or(missing).or(signIn).waitFor({ timeout: 30_000 });
         if (await signIn.isVisible())
           throw new Error(
-            `the dev server at ${base} runs on Kindling's API, so the tour's stand-in student isn't signed in. Stop it (the tour starts its own), or run one with VITE_PLAY_PLATFORM=stand-in.`,
+            `the dev server at ${base} runs on the platform's API, so the tour's stand-in student isn't signed in. Stop it (the tour starts its own), or run one with VITE_PLAY_PLATFORM=stand-in.`,
           );
         if (await missing.isVisible())
           throw new Error(

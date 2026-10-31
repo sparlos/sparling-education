@@ -6,15 +6,15 @@ const w = (text: string, start: number, end: number) => ({ text, start, end });
 
 test("keeps the caption's own spelling and punctuation", () => {
   const { words } = mapWords(
-    "Meet Kindling!",
-    [w("meet", 0.1, 0.4), w("kindling", 0.45, 1.0)],
+    "Meet Juniper!",
+    [w("meet", 0.1, 0.4), w("juniper", 0.45, 1.0)],
     1100,
   );
   assert.deepEqual(
     words.map((x) => [x.text, x.startMs, x.endMs]),
     [
       ["Meet", 100, 450],
-      ["Kindling!", 450, 1000],
+      ["Juniper!", 450, 1000],
     ],
   );
 });
@@ -40,8 +40,8 @@ test("spreads unmatched caption words across their gap", () => {
 
 test("counts the caption words it matched", () => {
   const { matched } = mapWords(
-    "Meet Kindling, today!",
-    [w("meet", 0, 0.2), w("kindling", 0.3, 0.8)],
+    "Meet Juniper, today!",
+    [w("meet", 0, 0.2), w("juniper", 0.3, 0.8)],
     1000,
   );
   assert.equal(matched, 2);

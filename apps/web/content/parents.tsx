@@ -1,3 +1,4 @@
+import { brandName } from "@repo/tokens";
 import type { FaqItem } from "@repo/ui/marketing/faq";
 import type { Feature } from "@repo/ui/marketing/feature-grid";
 import { TitleHighlight } from "@repo/ui/marketing/hero";
@@ -14,7 +15,7 @@ export const parents = {
         A learning game with <TitleHighlight>nothing to buy</TitleHighlight>
       </>
     ),
-    lead: "Kindling is a game your child plays with their class at school. Everything in it is earned by learning, so you will never be asked for money.",
+    lead: `${brandName} is a game your child plays with their class at school. Everything in it is earned by learning, so you will never be asked for money.`,
     primaryAction: { label: "Get updates", href: "#updates" },
     secondaryAction: { label: "How rewards work", href: "#rewards" },
     image: {
@@ -25,7 +26,7 @@ export const parents = {
   features: {
     eyebrow: "What your child gets",
     title: "Learning they can be proud of",
-    lead: "Kindling is built so that kids feel like they belong, without anyone spending a cent.",
+    lead: `${brandName} is built so that kids feel like they belong, without anyone spending a cent.`,
     items: [
       {
         icon: "puzzle",
@@ -61,12 +62,12 @@ export const parents = {
   },
   promise: {
     title: "You will never be asked to pay",
-    body: "Some learning games sell memberships to kids and their families. Kindling never will. Teachers and school boards pay for extra tools, and your child gets everything.",
+    body: `Some learning games sell memberships to kids and their families. ${brandName} never will. Teachers and school boards pay for extra tools, and your child gets everything.`,
   },
   comparison: {
     eyebrow: "How it's different",
-    title: "What you won't find in Kindling",
-    lead: "Many games for kids are designed to keep them spending or coming back. Kindling is designed to help them learn.",
+    title: `What you won't find in ${brandName}`,
+    lead: `Many games for kids are designed to keep them spending or coming back. ${brandName} is designed to help them learn.`,
   },
   home: {
     eyebrow: "At home",
@@ -80,7 +81,7 @@ export const parents = {
       {
         icon: "clock",
         title: "No streaks or daily rewards",
-        body: "Kindling won't pull your child back with streaks, timers or limited-time items.",
+        body: `${brandName} won't pull your child back with streaks, timers or limited-time items.`,
       },
       {
         icon: "clipboard",
@@ -93,7 +94,7 @@ export const parents = {
     title: "Questions parents ask",
     items: [
       {
-        question: "Does Kindling cost anything for families?",
+        question: `Does ${brandName} cost anything for families?`,
         answer:
           "No, never. There's no store, no membership and no ads. Every item in the game is earned by playing and learning.",
       },
@@ -108,19 +109,17 @@ export const parents = {
           "Yes, on any computer with a web browser. At home they can replay games and dress up their character. New rewards have a weekly limit kids reach in class, so kids without a device at home aren't left behind.",
       },
       {
-        question: "How can my child's class start using Kindling?",
-        answer:
-          "Share this website with their teacher. Teachers choose Kindling for their class, and it's free for them.",
+        question: `How can my child's class start using ${brandName}?`,
+        answer: `Share this website with their teacher. Teachers choose ${brandName} for their class, and it's free for them.`,
       },
       {
         question: "When can we try it?",
-        answer:
-          "Kindling is still in development. Sign up for updates and we'll let you know when it's ready.",
+        answer: `${brandName} is still in development. Sign up for updates and we'll let you know when it's ready.`,
       },
     ] satisfies FaqItem[],
   },
   updates: {
-    title: "Get updates about Kindling",
+    title: `Get updates about ${brandName}`,
     lead: "A short note when there's news. No spam, and we never share your email.",
     form: {
       label: "Your email",

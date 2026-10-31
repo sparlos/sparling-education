@@ -1,4 +1,4 @@
-// STAND-IN for the session port, for development without Kindling's API.
+// STAND-IN for the session port, for development without the platform's API.
 // The "signed-in student" is whoever was picked on the stand-in sign-in
 // screen, kept in this browser's storage with the classes they've joined.
 // The real adapter is ../api/session.ts; see ../README.md.
@@ -12,7 +12,7 @@ import {
 } from "../../play/storage.ts";
 import type { Membership, SessionPort, Student } from "../ports.ts";
 
-const key = "kindling.stand-in.student";
+const key = "stand-in.student";
 
 export function standInSession(storage: KeyValueStore | null): SessionPort {
   return {

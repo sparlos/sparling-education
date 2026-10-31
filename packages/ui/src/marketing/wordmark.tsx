@@ -1,4 +1,13 @@
-import { brandName } from "@repo/tokens";
+import { brandByline, brandName } from "@repo/tokens";
+import {
+  gemFacets,
+  gemOutline,
+  gemSeams,
+  markBox,
+  sparkleGapStroke,
+  sparkleOutline,
+} from "@repo/tokens/mark";
+import { useId } from "react";
 import classes from "./wordmark.module.css";
 
 interface WordmarkProps {
@@ -7,20 +16,31 @@ interface WordmarkProps {
   size?: "md" | "lg";
   /** For dark backgrounds. */
   inverse?: boolean;
+  /** Adds "by Sparling Education" under the name. Only where it's readable. */
+  byline?: boolean;
 }
 
-/** Placeholder logo: a flame mark plus the product name. */
-export function Wordmark({ href, size = "md", inverse }: WordmarkProps) {
+/** The logo: the gem mark beside the product name. */
+export function Wordmark({
+  href,
+  size = "md",
+  inverse,
+  byline,
+}: WordmarkProps) {
   const content = (
     <>
-      <FlameMark />
-      <span>{brandName}</span>
+      <Mark />
+      <span className={classes.text}>
+        <span className={classes.name}>{brandName}</span>
+        {byline && <span className={classes.byline}>{brandByline}</span>}
+      </span>
     </>
   );
   const shared = {
     className: classes.root,
     "data-size": size,
     "data-inverse": inverse || undefined,
+    "data-byline": byline || undefined,
   };
   return href ? (
     <a href={href} aria-label={`${brandName} home`} {...shared}>
@@ -31,18 +51,57 @@ export function Wordmark({ href, size = "md", inverse }: WordmarkProps) {
   );
 }
 
-function FlameMark() {
+/** The gem with its sparkle, on its own. */
+export function Mark({ mono }: { mono?: boolean }) {
+  const id = useId();
+  const sparkleFill = mono ? "currentColor" : "var(--k-sparkle)";
   return (
-    <svg className={classes.mark} viewBox="0 0 32 32" aria-hidden="true">
-      <rect width="32" height="32" rx="9" fill="var(--k-brand-fill)" />
-      <path
-        d="M16.4 6.5c.6 3.2-1.1 5-2.8 6.8-1.6 1.7-3.1 3.4-3.1 6.2 0 3.6 2.6 6 5.6 6s5.5-2.3 5.5-5.8c0-2.4-1.2-4-2.3-5.3-.2 1.6-.9 2.7-2 3.1.6-3.4.2-7.5-.9-11z"
-        fill="#FFF4EC"
-      />
-      <path
-        d="M16.1 25.5c-1.6 0-2.8-1.2-2.8-2.8 0-1.7 1.3-2.6 2.4-3.9.2 1 .8 1.6 1.6 1.8.3-.4.5-.9.5-1.4.8.9 1.2 1.9 1.2 3 0 1.9-1.3 3.3-2.9 3.3z"
-        fill="var(--k-student-fill)"
-      />
+    <svg
+      className={classes.mark}
+      viewBox={`${markBox.x} ${markBox.y} ${markBox.width} ${markBox.height}`}
+      aria-hidden="true"
+    >
+      <mask
+        id={`${id}-cut`}
+        maskUnits="userSpaceOnUse"
+        x="-10"
+        y="-40"
+        width="160"
+        height="150"
+      >
+        <path d={gemOutline} fill="#fff" />
+        {mono && (
+          <path
+            d={gemSeams}
+            fill="none"
+            stroke="#000"
+            strokeWidth="3"
+            strokeLinejoin="round"
+          />
+        )}
+        <path
+          d={sparkleOutline}
+          fill="#000"
+          stroke="#000"
+          strokeWidth={sparkleGapStroke}
+          strokeLinejoin="round"
+        />
+      </mask>
+      <clipPath id={`${id}-clip`}>
+        <path d={gemOutline} />
+      </clipPath>
+      <g mask={`url(#${id}-cut)`}>
+        {mono ? (
+          <path d={gemOutline} fill="currentColor" />
+        ) : (
+          <g clipPath={`url(#${id}-clip)`}>
+            {gemFacets.map((facet) => (
+              <path key={facet.name} d={facet.d} fill={facet.fill} />
+            ))}
+          </g>
+        )}
+      </g>
+      <path d={sparkleOutline} fill={sparkleFill} />
     </svg>
   );
 }

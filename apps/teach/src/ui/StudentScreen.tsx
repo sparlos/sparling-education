@@ -4,6 +4,7 @@
 // screen, each expectation opens on its bands and plays, newest first, and
 // the student can be recognised. Counts only, never a level: the grade is the
 // teacher's.
+import { brandName } from "@repo/tokens";
 import { Button } from "@repo/ui/button";
 import { InitialCircle } from "@repo/ui/initial-circle";
 import { Stack } from "@repo/ui/stack";
@@ -123,7 +124,7 @@ export function StudentScreen({
         </Button>
       </div>
       <Text className={classes.note}>
-        {`What ${student.firstName}'s games show so far. Use it with what you see in class. Kindling never gives a level: you decide the grade.`}
+        {`What ${student.firstName}'s games show so far. Use it with what you see in class. ${brandName} never gives a level: you decide the grade.`}
       </Text>
       <StudentBlock
         assessed={assessed}

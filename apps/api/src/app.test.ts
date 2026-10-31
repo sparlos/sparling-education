@@ -1,4 +1,5 @@
 import { createDb } from "@repo/db";
+import { brandName } from "@repo/tokens";
 import { testClient } from "hono/testing";
 import { describe, expect, it } from "vitest";
 import { app, client, db, google } from "../test/client.ts";
@@ -12,7 +13,7 @@ describe("api", () => {
   });
 
   it("reports when it can't reach its database", async () => {
-    const db = createDb("postgresql://kindling:kindling@localhost:1/kindling");
+    const db = createDb("postgresql://platform:platform@localhost:1/platform");
     const res = await testClient(
       createApp({ db, identity: google.verifier }),
     ).health.$get();
@@ -28,7 +29,7 @@ describe("api", () => {
       info: { title: string };
       paths: Record<string, { get: { operationId: string } }>;
     };
-    expect(doc.info.title).toBe("Kindling API");
+    expect(doc.info.title).toBe(`${brandName} API`);
     expect(doc.paths["/health"]?.get.operationId).toBe("getHealth");
   });
 

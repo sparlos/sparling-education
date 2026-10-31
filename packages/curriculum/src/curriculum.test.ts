@@ -5,7 +5,7 @@ import type { ReferenceCurriculum } from "../scripts/reference.ts";
 import { expectation, expectationIds, parseExpectationId } from "./index.ts";
 
 // Descriptions sharing this many consecutive words with the official text are
-// probably edited copies of it, not Kindling's own words.
+// probably edited copies of it, not our own words.
 const COPIED_RUN = 6;
 
 const references = new Map<
@@ -55,7 +55,7 @@ test("every product-layer expectation exists in the reference layer", () => {
   }
 });
 
-test("descriptions are Kindling's own words", () => {
+test("descriptions are our own words", () => {
   for (const id of expectationIds) {
     const { edition, description } = expectation(id);
     assert.ok(description.trim(), `${id} has no description`);
