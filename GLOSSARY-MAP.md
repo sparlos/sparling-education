@@ -6,3 +6,4 @@ The platform is a web-based learning game for Grades 1–8 built around games wh
 
 - [Product](./docs/GLOSSARY.md): terms shared across the whole product (games, classes, rewards)
 - [Marketing site](./apps/web/GLOSSARY.md): the public site that explains the product to teachers, boards and parents
+- [Company site](./apps/company/GLOSSARY.md): the one-page site for Sparling Education, the company that makes the product

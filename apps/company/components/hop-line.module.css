@@ -1,0 +1,90 @@
+/* Engraved line art. Colours come from the surroundings (--hop-*), so it can
+   sit on paper or on the product's band. Animations are set up while
+   "waiting", held at their first frame, and released on "playing". */
+
+.hopLine {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.axis,
+.tick {
+  stroke: var(--hop-line, var(--ink));
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
+
+.tick:not([data-whole]) {
+  stroke-width: 1;
+  opacity: 0.6;
+}
+
+.label {
+  font-family: var(--font-serif);
+  font-size: 18px;
+  fill: var(--hop-label, var(--ink-soft));
+}
+
+.hop {
+  fill: none;
+  stroke: var(--hop-accent, var(--brass));
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.landing circle {
+  fill: var(--hop-accent, var(--brass));
+}
+
+.goal {
+  font-style: italic;
+  fill: var(--hop-label, var(--ink));
+}
+
+.moving .axis {
+  stroke-dasharray: 1;
+  animation: draw 700ms var(--ease-out) 150ms both;
+}
+
+.moving .tick,
+.moving .label {
+  animation: appear 400ms var(--ease-out) both;
+}
+
+.moving .label {
+  animation-delay: 700ms;
+}
+
+.moving .hop {
+  stroke-dasharray: 1;
+  animation: draw 520ms var(--ease-in-out) both;
+}
+
+.moving .landing {
+  animation: land 480ms var(--ease-spring) 2.2s both;
+}
+
+.moving[data-motion="waiting"] * {
+  animation-play-state: paused;
+}
+
+@keyframes draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+}
+
+@keyframes appear {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes land {
+  from {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+}

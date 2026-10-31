@@ -1,0 +1,452 @@
+/* A printed prospectus: centred masthead, brass rules, one serif throughout.
+   The engravings (hop line, principle icons, ornament) are drawn in the same
+   ink and brass. Motion is quiet and print-like: the hero sets itself on
+   load, and later sections rise into place as they scroll in. All of it is
+   skipped under reduced motion. */
+
+/* ---------- Shared ---------- */
+
+.skip {
+  position: absolute;
+  left: 1rem;
+  top: -4rem;
+  z-index: 10;
+  padding: 0.75rem 1rem;
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.skip:focus {
+  top: 1rem;
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.sectionTitle {
+  font-size: clamp(2rem, 4vw, 2.5rem);
+  text-align: center;
+}
+
+/* A short brass rule under a centred title. */
+.sectionTitle::after {
+  content: "";
+  display: block;
+  width: 4rem;
+  margin: 1.25rem auto 0;
+  border-top: 1px solid var(--brass);
+  transform-origin: center;
+}
+
+/* The thin-and-thick double rule that closes the page. */
+.contact::before {
+  content: "";
+  display: block;
+  height: 7px;
+  border-top: 1px solid var(--brass);
+  border-bottom: 3px solid var(--brass);
+}
+
+/* ---------- Masthead ---------- */
+
+.masthead {
+  max-width: var(--content);
+  margin-inline: auto;
+  padding: 1.5rem var(--gutter) 0;
+  text-align: center;
+}
+
+.home {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.875rem;
+  text-decoration: none;
+}
+
+.companyName {
+  font-size: 1.25rem;
+  font-variant-caps: all-small-caps;
+  letter-spacing: 0.22em;
+  line-height: 1;
+}
+
+/* ---------- Hero ---------- */
+
+.hero {
+  max-width: 52rem;
+  margin-inline: auto;
+  padding: clamp(2.25rem, 5vw, 3rem) var(--gutter) clamp(3.5rem, 8vw, 5rem);
+  text-align: center;
+}
+
+.heroTitle {
+  font-size: clamp(2.5rem, 6.5vw, 4rem);
+  line-height: 1.08;
+}
+
+.lead {
+  max-width: 34rem;
+  margin: 1.75rem auto 0;
+  font-size: clamp(1.125rem, 1.6vw, 1.25rem);
+  color: var(--ink-soft);
+}
+
+.heroLink {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin-top: 1.5rem;
+  font-size: 1.1875rem;
+  font-style: italic;
+}
+
+.heroFigure {
+  max-width: 30rem;
+  margin: clamp(2.5rem, 6vw, 3.5rem) auto 0;
+}
+
+/* ---------- Product ---------- */
+
+.productBand {
+  background:
+    radial-gradient(
+      ellipse 70% 90% at 20% 40%,
+      var(--product-mid),
+      transparent 70%
+    ),
+    var(--product-deep);
+  color: var(--k-ink-inverse);
+}
+
+.product {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: clamp(2rem, 5vw, 3rem);
+  align-items: center;
+  max-width: var(--content);
+  margin-inline: auto;
+  padding: clamp(3rem, 8vw, 4.5rem) var(--gutter);
+}
+
+.screenshot {
+  display: grid;
+  gap: 0.625rem;
+  margin: 0;
+}
+
+.screenshot img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--product-line);
+  box-shadow:
+    0 2px 4px rgb(0 0 0 / 0.15),
+    0 24px 48px -16px rgb(0 0 0 / 0.5);
+  transition:
+    transform 400ms var(--ease-out),
+    box-shadow 400ms var(--ease-out);
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .screenshot:hover img {
+    transform: translateY(-4px);
+    box-shadow:
+      0 4px 8px rgb(0 0 0 / 0.15),
+      0 32px 56px -16px rgb(0 0 0 / 0.55);
+  }
+}
+
+.productFigure {
+  max-width: 24rem;
+  margin: 1.5rem auto 0;
+}
+
+.screenshot figcaption {
+  font-size: 0.875rem;
+  font-style: italic;
+  color: var(--product-soft);
+}
+
+.productText {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1.125rem;
+  font-size: 1.1875rem;
+}
+
+.productText h2 {
+  margin-bottom: 0.25rem;
+}
+
+.facts {
+  font-size: 0.9375rem;
+  font-style: italic;
+  color: var(--product-soft);
+}
+
+.productButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+  min-height: 48px;
+  padding-inline: 1.375rem;
+  background: var(--k-ink-inverse);
+  color: var(--product-deep);
+  font-weight: 600;
+  text-decoration: none;
+  transition: background-color 150ms ease;
+}
+
+.productButton:hover {
+  background: var(--product-soft);
+}
+
+.arrow {
+  transition: transform 200ms var(--ease-out);
+}
+
+.productButton:hover .arrow {
+  transform: translateX(4px);
+}
+
+.productButton:focus-visible {
+  outline-color: var(--k-ink-inverse);
+}
+
+/* ---------- Principles ---------- */
+
+.principles {
+  max-width: var(--content);
+  margin-inline: auto;
+  padding: clamp(4rem, 9vw, 5.5rem) var(--gutter) 0;
+}
+
+.columns {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  margin-top: 2.5rem;
+  color: var(--ink-soft);
+}
+
+.principle {
+  padding-inline: 1.75rem;
+}
+
+.principle + .principle {
+  border-inline-start: 1px solid var(--rule);
+}
+
+.principle:first-child {
+  padding-inline-start: 0;
+}
+
+.principle:last-child {
+  padding-inline-end: 0;
+}
+
+.principle > svg {
+  margin-bottom: 1rem;
+}
+
+/* Run-in heads: the title starts the paragraph, in italic. */
+.principle h3,
+.principle p {
+  display: inline;
+}
+
+.principle h3 {
+  font-size: inherit;
+  font-style: italic;
+  font-weight: 500;
+  line-height: inherit;
+  letter-spacing: 0;
+  color: var(--ink);
+}
+
+/* ---------- About ---------- */
+
+.about {
+  max-width: 45rem;
+  margin-inline: auto;
+  padding: clamp(4.5rem, 10vw, 6.5rem) var(--gutter) clamp(4rem, 9vw, 6rem);
+  text-align: center;
+}
+
+.ornament {
+  display: block;
+  margin: 0 auto 2.25rem;
+}
+
+.aboutLead {
+  font-size: clamp(1.375rem, 2.6vw, 1.625rem);
+  line-height: 1.45;
+}
+
+.aboutBody {
+  margin-top: 1.125rem;
+  color: var(--ink-soft);
+}
+
+.byline {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.875rem;
+  margin-top: 2rem;
+}
+
+/* The photo is slightly rotated with white corners, so it's zoomed a little
+   towards the face to keep them outside the circle. */
+.portrait {
+  display: block;
+  width: 6rem;
+  height: 6rem;
+  overflow: hidden;
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 3px var(--paper),
+    0 0 0 4px var(--brass),
+    0 12px 24px -12px rgb(20 33 61 / 0.45);
+}
+
+.portrait img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  scale: 1.2;
+  transform-origin: 55% 35%;
+}
+
+.signature {
+  font-style: italic;
+}
+
+/* ---------- Contact and footer ---------- */
+
+.contact,
+.footer {
+  max-width: var(--content);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+  text-align: center;
+}
+
+.contactLead {
+  margin-top: 3.5rem;
+  font-size: 1.1875rem;
+  color: var(--ink-soft);
+}
+
+.email {
+  display: inline-block;
+  margin-top: 0.75rem;
+  padding-block: 0.25rem;
+  font-size: clamp(1.5rem, 5vw, 2.5rem);
+  overflow-wrap: anywhere;
+}
+
+.footer {
+  padding-block: 3.5rem 2.5rem;
+  font-size: 0.9375rem;
+  color: var(--ink-muted);
+}
+
+.footerLinks {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0 1.75rem;
+}
+
+.footerLinks a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--ink-soft);
+}
+
+/* ---------- Narrow screens ---------- */
+
+@media (--k-md-down) {
+  .product {
+    grid-template-columns: 1fr;
+  }
+
+  .columns {
+    grid-template-columns: 1fr;
+  }
+
+  .principle,
+  .principle:first-child,
+  .principle:last-child {
+    padding: 1.5rem 0;
+  }
+
+  .principle + .principle {
+    border-inline-start: 0;
+    border-top: 1px solid var(--rule);
+  }
+}
+
+/* ---------- Motion ---------- */
+
+@media (prefers-reduced-motion: no-preference) {
+  /* The hero sets itself, top to bottom, on load. */
+  .masthead,
+  .heroTitle,
+  .lead,
+  .heroLink {
+    animation: rise 800ms var(--ease-out) backwards;
+  }
+
+  .heroTitle {
+    animation-delay: 120ms;
+  }
+
+  .lead {
+    animation-delay: 240ms;
+  }
+
+  .heroLink {
+    animation-delay: 360ms;
+  }
+
+  /* Later sections rise in as they scroll into view, where the browser can
+     tie animation to scroll. Elsewhere they're simply there. */
+  @supports (animation-timeline: view()) {
+    .reveal {
+      animation: rise linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 70%;
+    }
+
+    .sectionTitle::after,
+    .ornament {
+      animation: unfurl linear both;
+      animation-timeline: view();
+      animation-range: entry 20% entry 90%;
+    }
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(1.5rem);
+  }
+}
+
+@keyframes unfurl {
+  from {
+    opacity: 0;
+    transform: scaleX(0);
+  }
+}

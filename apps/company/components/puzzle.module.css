@@ -1,0 +1,114 @@
+/* Engraved in ink, with brass accents. Without motion, it's simply assembled. */
+
+.puzzle {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.outline {
+  fill: var(--paper);
+  stroke: var(--ink);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+
+.glyph {
+  fill: none;
+  stroke: var(--ink-soft);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.brass {
+  stroke: var(--brass);
+  stroke-width: 2;
+}
+
+.brassFill {
+  fill: var(--brass);
+  stroke: none;
+}
+
+.letters {
+  font-family: var(--font-serif);
+  font-size: 34px;
+  fill: var(--ink);
+  stroke: none;
+}
+
+.rule {
+  fill: none;
+  stroke: var(--brass);
+  stroke-width: 1;
+}
+
+/* Each piece arrives from its own side, slightly turned. */
+.piece[data-piece="0"] {
+  --from: -36px 14px;
+  --turn: -8deg;
+  --delay: 0ms;
+}
+
+.piece[data-piece="1"] {
+  --from: -10px -26px;
+  --turn: 5deg;
+  --delay: 110ms;
+}
+
+.piece[data-piece="2"] {
+  --from: 12px 24px;
+  --turn: -4deg;
+  --delay: 220ms;
+}
+
+.piece[data-piece="3"] {
+  --from: 38px -12px;
+  --turn: 9deg;
+  --delay: 330ms;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .piece {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: assemble 1100ms var(--ease-out) calc(250ms + var(--delay)) both;
+  }
+
+  .glyph {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: emerge 600ms var(--ease-spring) calc(1150ms + var(--delay)) both;
+  }
+
+  .rule {
+    stroke-dasharray: 1;
+    animation: draw 700ms var(--ease-in-out) 1700ms both;
+  }
+}
+
+@keyframes assemble {
+  from {
+    opacity: 0;
+    translate: var(--from);
+    rotate: var(--turn);
+  }
+  60% {
+    opacity: 1;
+  }
+}
+
+@keyframes emerge {
+  from {
+    opacity: 0;
+    scale: 0.6;
+  }
+}
+
+@keyframes draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+}

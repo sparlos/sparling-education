@@ -45,7 +45,7 @@ The name is spoken in the play shell and in the videos, and recordings don't fol
 ## 7. Outside the repo
 
 - [ ] The Google OAuth consent screen's app name and logo (Google Cloud console → APIs & Services → OAuth consent screen). Students and teachers see it at sign-in.
-- [ ] The domain, and the contact address (`contactEmail` in `apps/web/content/site.ts` is still `hello@example.com`).
+- [ ] The domain, and the contact address (`contactEmail` in `apps/web/content/site.ts` is still `hello@example.com`). The company site's product and privacy links read `NEXT_PUBLIC_PRODUCT_SITE_URL` (see `apps/company/README.md`).
 - [ ] Social accounts, the video host, and anything else published under the old name.
 
 ## 8. Docs and agent notes
