@@ -36,7 +36,7 @@ export const parents = {
       {
         icon: "sparkles",
         title: "A space that shows their effort",
-        body: "Your child has their own home screen in the game, called their locker. They decorate it with the outfits and stickers they earn by practising, so it shows how hard they've worked.",
+        body: "Your child has their own locker in the game. They decorate it with stickers they earn by practising, and dress their character in outfits they earn the same way, so it shows how hard they've worked.",
       },
       {
         icon: "chart",

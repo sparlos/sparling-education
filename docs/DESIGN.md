@@ -7,7 +7,7 @@ What the platform is, the principles that settle disagreements about it, and wha
 The platform is a web-based learning game for Ontario classrooms, Grades 1–8. It has three parts:
 
 - **Games**, where the concept being taught is the core mechanic. In Fraction Hop you plan a route of fraction hops along a number line, then watch your avatar run it; when the wrong idea fails, the splash shows exactly which hop was wrong. Games are the heart of the platform.
-- A student's **locker**: their own 2D home screen, with their **avatar**, wardrobe, **stickers** and the games their teacher has turned on. Every game returns there, with any new **rewards** revealed.
+- A student's **home**: their own 2D screen, with their **avatar** and wardrobe, their **locker** and the games their teacher has turned on. Every game returns there, with any new **rewards** revealed. The locker opens from home; the student decorates its door, outside and in, with **stickers**, and its inside holds a **keepsake** for each game they've played.
 - A teacher's **dashboard**: the class's **results** by curriculum expectation, the **misconceptions** showing up in the class, and **quick assess** for report cards.
 
 A shared 3D **class world** (a **hub** with **portals** into games, and a **house** for every student) is the design intent for later, not the MVP ([ADR 0003](./adr/0003-mvp-ships-without-the-class-world.md)).
@@ -38,7 +38,7 @@ Ranked: when two conflict, the higher one wins.
 5. **Rewards follow effort, never money or luck.** No store, ads, loot boxes or upsells. Rewards measure effort; results measure understanding; students never see a score.
 6. **Fair whatever is happening at home.** Home play is never an advantage. No streaks, daily rewards or limited-time items.
 7. **Safe by default.** Minimal student data, real names seen only by responsible adults, and students never type free text other students can see.
-8. **Games stand alone.** Every game works from a link. The locker, and later the class world, are ways into games, never requirements for them.
+8. **Games stand alone.** Every game works from a link. Home, and later the class world, are ways into games, never requirements for them.
 9. **Runs on the classroom's worst Chromebook.** A requirement from day one, not an optimisation pass.
 
 ## Core concepts
@@ -48,19 +48,19 @@ Ranked: when two conflict, the higher one wins.
 - Students and teachers sign in with Google. From a student's Google account the platform keeps only their **real name** (first name and last initial), never their email, full surname or photo.
 - The real name is shown only to the student's teacher (and later, parent).
 - The role comes from the way in: signing in through the teacher app makes a teacher; signing in through a class join link or game link makes a student. One Google account has one role.
-- A student designs their avatar before anything else, the first time they sign in. It's the same avatar in the locker and in every game.
+- A student designs their avatar before anything else, the first time they sign in. It's the same avatar at home and in every game.
 
 ### Getting in
 
-- A **class join link** carries the class's join code; one click (plus Google sign-in) puts a student in the class and lands them in their locker.
-- A **game link** opens one game for one class. Teachers drop these into Google Classroom. Opening one joins the student to that class if they aren't in it yet, then opens the game. A signed-out student lands on sign-in, then goes straight to the game. Results from a game link count exactly as if the game were opened from the locker.
-- A student in several classes sees the games of all of them in their locker, and each play counts for the class whose link or locker entry opened it.
+- A **class join link** carries the class's join code; one click (plus Google sign-in) puts a student in the class and lands them in their home.
+- A **game link** opens one game for one class. Teachers drop these into Google Classroom. Opening one joins the student to that class if they aren't in it yet, then opens the game. A signed-out student lands on sign-in, then goes straight to the game. Results from a game link count exactly as if the game were opened from home.
+- A student in several classes sees the games of all of them in their home, and each play counts for the class whose link or game card on home opened it.
 
 ### Games, tiers and results
 
 - A **game** teaches one concept across a range of grades, split into **tiers**: one grade's worth of content each.
 - A student's grade comes from their class. In a single-grade class it's set on joining; in a split-grade class the student taps their grade once on joining, and the teacher can change it.
-- Every game is turned on in a new class. A teacher can turn a game off or back on, and only games that are on appear in the locker.
+- Every game is turned on in a new class. A teacher can turn a game off or back on, and only games that are on appear at home.
 - A student plays the tier for their grade.
 - Every play produces a **result** recording:
   - the tier it was played at,
@@ -70,17 +70,18 @@ Ranked: when two conflict, the higher one wins.
 
 **Design intent (beyond MVP): adaptive tiers.** A student starts at their grade's tier and moves up or down based on their results, within bounds the teacher can see. Because every result records its tier, assessment evidence stays honest about the level it was earned at. MVP ships fixed grade tiers so the move can be designed against real pilot data.
 
-### The locker
+### Home and the locker
 
-- The locker is a student's own home screen: their avatar and wardrobe, their stickers, and the games their teacher has turned on.
-- Every game returns the student to their locker, with any rewards earned in that play revealed there. The locker also shows what's new since the student last looked.
+- Home is a student's own screen: their avatar (which opens the wardrobe), a small picture of their locker, and the games their teacher has turned on.
+- The locker is its own screen, opened from that picture. Its handle opens and closes the door. Stickers go on the front or the inside of the door, each one once; they move but don't rotate or resize, and get a small tilt when placed. The rest of the inside is fixed: a keepsake for each game the student has played, which never reflects how well they did.
+- Every game returns the student home, with any rewards earned in that play revealed there. Home also shows what's new since the student last looked; the small locker glows while there's a new keepsake or a sticker to place.
 - Only the student sees or changes their locker. Nobody visits it, and in the MVP teachers don't view it.
 - A Grade 3 student can use it without reading: every label is also spoken.
 
 ### Rewards and recognition
 
 - **Rewards** (outfit pieces and stickers) come only from effort, never from understanding, money or chance. A struggling student who keeps at it earns as much as one who aces it.
-- Outfit pieces change how the avatar looks everywhere; stickers are placed on the locker and moved around.
+- Outfit pieces change how the avatar looks everywhere; stickers are placed on the locker's door and moved around.
 - Rewards can be earned anywhere, up to a **weekly cap** a typical student reaches in class time alone. Home play still produces results teachers can see; it just can't buy an advantage, and there's no reason to log in daily. Reaching the cap is never shown to the student as a limit.
 - **Recognition** is an exclusive sticker, one design per character trait, that only a teacher can award (kindness, perseverance, leadership…). It stands out from earned stickers and doesn't count toward the cap. The dashboard highlights students who haven't been recognised yet this term.
 
@@ -97,12 +98,12 @@ The design intent beyond the MVP, kept so it's built on the same foundations:
 
 - A **hub** designed by the platform, with **portals** into games and multiplayer presence. Students communicate only through preset phrases and emotes, and are known to classmates by a **nickname** built from curated word lists, which a teacher can re-roll.
 - A **house** for every student, decorated with furniture earned as rewards. Only the owner can change it. A classmate enters only on an **invite**, which is valid only while the owner is home, lasts one **visit**, and only goes to classmates. Visitors can look, emote and use preset phrases but can't touch anything, and the owner can remove a visitor at any time. A teacher can view any house without an invite.
-- The class world is one more way into games. Games and the locker never depend on it.
+- The class world is one more way into games. Games, home and the locker never depend on it.
 
 ## How games are built
 
-- **The contract.** A game is a workspace package under `games/` that exports a manifest and a React component through `@repo/game-contract`. The play shell (`apps/play`, on the same domain as the teacher app and the marketing site) owns sign-in, tier choice, loading, voice playback, the API and the trip back to the locker. A game only receives props and emits **attempts**; the platform computes understanding and effort from them ([ADR 0002](./adr/0002-games-emit-attempts-platform-scores.md)).
-- **Continuity.** One session across the locker and games. Leaving a game returns the student to their locker, with any rewards revealed on arrival. Shared tokens and transitions. Every game shows the **avatar**, at least as a reacting portrait drawn in 2D from the same avatar data the locker uses.
+- **The contract.** A game is a workspace package under `games/` that exports a manifest and a React component through `@repo/game-contract`. The play shell (`apps/play`, on the same domain as the teacher app and the marketing site) owns sign-in, tier choice, loading, voice playback, the API and the trip back home. A game only receives props and emits **attempts**; the platform computes understanding and effort from them ([ADR 0002](./adr/0002-games-emit-attempts-platform-scores.md)).
+- **Continuity.** One session across home and games. Leaving a game returns the student home, with any rewards revealed on arrival. Shared tokens and transitions. Every game shows the **avatar**, at least as a reacting portrait drawn in 2D from the same avatar data home uses.
 - **Touch first.** Pointer events, so touch, pen and mouse behave the same. React + SVG/DOM by default; PixiJS or PlayCanvas only when a game spec justifies it.
 - **Words and voice.** Every string a student sees or hears is localised by ID (English now, ready for French). Every instruction is shown as text and has a voice line generated at build time, with browser speech as the fallback, so a game works in a loud classroom or with the volume off. For Grades 1–3, playing never requires reading, and no grade requires sound: demonstrations and visual feedback carry the meaning on their own.
 - **Art.** Agents draw SVG within a 2D style kit an illustrator designs. Games refer to art by named slot, so a real asset replaces a slot without code changes.
@@ -114,7 +115,7 @@ The design intent beyond the MVP, kept so it's built on the same foundations:
 
 ## Student loop
 
-Open the class join link (or a game link) and sign in with Google → design an avatar → tap your grade, if your class has more than one → arrive in your locker → pick a game (or open a game link) → play the tier for your grade → return to the locker with rewards from effort revealed → change your outfit and place your stickers.
+Open the class join link (or a game link) and sign in with Google → design an avatar → tap your grade, if your class has more than one → arrive home → pick a game (or open a game link) → play the tier for your grade → return home with rewards from effort revealed → change your outfit and decorate your locker.
 
 ## Teacher loop
 
@@ -132,7 +133,7 @@ The MVP is a complete strand of games and the teacher evidence around them, with
 - Google sign-in for students and teachers, the sign-in redirect, class join links and game links (which join their class)
 - Real names kept as first name and last initial only
 - Teacher creates a class with its grade or grades; every game starts on and can be turned off; grades come from the class, with a one-time pick in split-grade classes that the teacher can change
-- Avatar design and the locker: wardrobe, stickers, the class's games, and rewards revealed on return from a game
+- Avatar design, home and the locker: wardrobe, stickers, keepsakes, the class's games, and rewards revealed on return from a game
 - Rewards (outfit pieces and stickers) from effort with a weekly cap
 - Teacher recognition, as an exclusive sticker per trait, and the not-yet-recognised list
 - The teacher dashboard: the students-by-expectation grid, the misconception strip, drill-down from cell to evidence to play, and the student page with effort by Learning Skill
@@ -167,7 +168,7 @@ The pilot's data decides these. Until then each ships as one named, provisional 
 
 ## Relationship to the existing code
 
-- `apps/play` is the play shell. It hosts every game at its game link and runs on stand-ins for sign-in, play records and links today, behind its platform ports (`SessionPort`, `PlayRecordsPort`, `LinksPort`). It gains the locker, a locker port, and real adapters over the core API; `LinksPort.hub` becomes a link back to the locker.
+- `apps/play` is the play shell. It hosts every game at its game link and runs on stand-ins for sign-in, play records and links today, behind its platform ports (`SessionPort`, `PlayRecordsPort`, `LinksPort`). It gains home and the locker, a locker port, and real adapters over the core API; `LinksPort.hub` becomes a link back home.
 - `games/fraction-hop` is the first game, built through `design-game` and `build-game`. `@repo/game-kit` holds the logic extracted from it for the next games.
 - `apps/play/src/lab` is the dev-only prototype lab where `design-game` plays candidate mechanics before a game spec is written. The multiplication game's prototype is picked there.
 - `apps/hubworld-api` becomes the core API, `apps/api` (with its client `packages/api-client`), with multiplayer presence removed. It computes results, effort and rewards in one scoring module.

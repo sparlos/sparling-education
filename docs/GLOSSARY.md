@@ -21,11 +21,11 @@ _Avoid_: Character, player, skin
 ### Classes
 
 **Class join link**:
-A link that carries a class's join code so a student can join that class in one step, landing in their locker.
+A link that carries a class's join code so a student can join that class in one step, landing in their home.
 _Avoid_: Invite link
 
 **Game link**:
-A direct link to one game for one class, usually shared by a teacher in a class stream. A full entry point for students: opening it joins the student to that class if they aren't in it yet, and their results go to that class exactly as if the game were opened from their locker.
+A direct link to one game for one class, usually shared by a teacher in a class stream. A full entry point for students: opening it joins the student to that class if they aren't in it yet, and their results go to that class exactly as if the game were opened from their home.
 _Avoid_: Deep link, assignment link
 
 **Class colour**:
@@ -44,11 +44,19 @@ _Avoid_: Tour (that's the automated playthrough of a game), onboarding, tutorial
 The walkthrough a new teacher gets on their first dashboard: what the platform does in a nutshell, across the dashboard and quick assess (the classes, sharing a game link, the misconceptions showing up, the grid, quick assess, viewing the demo class as a student, Help). The other screens each have a short walkthrough of their own, which starts the first time the teacher opens that screen after the welcome.
 _Avoid_: Tour, onboarding, tutorial
 
-### Locker
+### Home
+
+**Home**:
+A student's own screen, outside any class world: their avatar and wardrobe, their locker, the games their teacher has turned on, and where every game returns them, with any new rewards revealed.
+_Avoid_: Locker (for the whole screen), dashboard, hub, profile
 
 **Locker**:
-A student's own home screen, outside any class world: their avatar and wardrobe, the games their teacher has turned on, and where every game returns them, with any new rewards revealed. A student can decorate it. Nobody visits it.
-_Avoid_: Home, dashboard, hub, profile
+A student's own locker, which opens from their home. They decorate the front and the inside of its door with stickers; the rest of the inside holds their keepsakes. Nobody visits it.
+_Avoid_: Home (for the locker itself), sticker board
+
+**Keepsake**:
+A fixed object inside a student's locker, one for each game they've played. It records where they've been, never how well they did. Not a reward: playing a game gives it, whatever the effort, and the student can't move or remove it.
+_Avoid_: Trophy, achievement, badge
 
 ### Class world
 
@@ -133,7 +141,7 @@ An item an avatar wears: a top, bottom, shoes or a hat. Every student owns a **b
 _Avoid_: Clothing item, skin, cosmetic
 
 **Wardrobe**:
-Where a student changes their avatar's look, opened from their avatar in the locker. It offers every skin tone and hairstyle, and only the outfit pieces they own.
+Where a student changes their avatar's look, opened from their avatar in their home. It offers every skin tone and hairstyle, and only the outfit pieces they own.
 _Avoid_: Closet, customiser
 
 **Sticker**:

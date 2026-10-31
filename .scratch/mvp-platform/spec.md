@@ -14,7 +14,7 @@ The founder has re-scoped the MVP: five games across the Number strand, real sig
 
 Kindling ships as five games plus the platform around them, with no class world.
 
-- **Students** sign in with Google through a **class join link** or a **game link** (which joins them to its class). They land in their **locker**, a 2D home screen with their **avatar**, wardrobe, **stickers** and the class's games. Every game returns them to the locker, with any new **rewards** revealed. Rewards are outfit pieces and stickers, earned from **effort** up to a weekly cap. **Recognition** is an exclusive sticker a teacher awards for a character trait.
+- **Students** sign in with Google through a **class join link** or a **game link** (which joins them to its class). They land in their **home**, a 2D screen with their **avatar** and wardrobe, their **locker** and the class's games. Every game returns them home, with any new **rewards** revealed. The locker opens from home: students decorate its door, outside and in, with **stickers**, and its inside holds a **keepsake** for each game they've played. Rewards are outfit pieces and stickers, earned from **effort** up to a weekly cap. **Recognition** is an exclusive sticker a teacher awards for a character trait.
 - **Teachers** sign in with Google at the teacher app, create a class (choosing its grade or grades), and share links. Every game starts turned on. Every new teacher also gets a **demo class** of simulated students with results already in, deletable in one step. A three-step **welcome walkthrough** shows sharing a game link, spotting misconceptions, and viewing **quick assess**.
 - **The dashboard** opens on the class by expectation: students against curriculum expectations, with the misconceptions showing up in the class above it. A teacher drills from a cell into that student's evidence for that expectation, then into individual plays. A student's page shows effort by Learning Skill, recognition and their own quick assess.
 - **Quick assess** is a screen, optimised for printing, that states which expectations and Learning Skills each piece of evidence contributes to and never assigns a level or rating.
@@ -35,18 +35,19 @@ The five games are fractions (Fraction Hop, built), multiplication (the lab winn
 7. As a student whose session has ended, I want to be sent to sign-in and then straight back to where I was going, so that I don't lose my place.
 8. As a student, I want a clear "try again" when Kindling can't be reached, rather than being sent to sign-in, so that I'm not confused about whether I'm signed in.
 
-### Student: the locker
+### Student: home and the locker
 
-9. As a student, I want to arrive in my locker after joining or signing in, so that I always know where I am.
-10. As a student, I want my locker to show every game my teacher has turned on, so that I can pick one to play.
-11. As a student, I want to come back to my locker when a game ends, with any rewards I earned revealed there, so that finishing a game feels good.
+9. As a student, I want to arrive in my home after joining or signing in, so that I always know where I am.
+10. As a student, I want my home to show every game my teacher has turned on, so that I can pick one to play.
+11. As a student, I want to come back home when a game ends, with any rewards I earned revealed there, so that finishing a game feels good.
 12. As a student, I want to change my avatar's outfit from the outfit pieces I own, so that my character looks how I want in every game.
-13. As a student, I want to place my stickers on my locker and move them around, so that my locker is mine.
-14. As a student, I want a recognition sticker from my teacher to stand out from the stickers I earned, so that I know my teacher gave it to me.
+13. As a student, I want to place my stickers on the front and the inside of my locker's door and move them around, so that my locker is mine.
+13a. As a student, I want my locker to hold something from each game I've played, so that it shows where I've been.
+14. As a student, I want a recognition sticker from my teacher to look different from the stickers I earned, so that I know my teacher gave it to me.
 15. As a student, I want to see what's new since I last looked, so that I notice rewards and recognition I haven't seen.
 16. As a student, I never want to see a score, points or a grade for my play, so that the games feel like play, not a test.
-17. As a Grade 3 student, I want the locker to work without reading, with every label also spoken, so that I can use it on my own.
-18. As a student on an old Chromebook, I want the locker to load fast and respond to touch straight away, so that I get to games quickly.
+17. As a Grade 3 student, I want home and the locker to work without reading, with every label also spoken, so that I can use it on my own.
+18. As a student on an old Chromebook, I want home and the locker to load fast and respond to touch straight away, so that I get to games quickly.
 19. As a student, I want my locker to be private, so that nobody else can see or change it.
 
 ### Student: rewards
@@ -116,7 +117,7 @@ The five games are fractions (Fraction Hop, built), multiplication (the lab winn
 
 - **Core API.** `hubworld-api` is renamed `api` (and its client `api-client`). Multiplayer presence (the world store, event bus, WebSocket route and player schemas) is removed. The API keeps its pattern: Hono with `@hono/zod-openapi`, zod schemas, a generated OpenAPI document, and an orval-generated client.
 - **Database package.** A new `packages/db` owns the Prisma schema, migrations and the generated Prisma client, on PostgreSQL. It's the only place schema changes are made. Its `dev` task starts a Postgres container in Docker on a non-standard host port (e.g. 55432) and applies migrations, so `pnpm dev` brings the database up with the rest. Read the installed Turborepo docs before wiring the task (see AGENTS.md).
-- **Three front ends on one domain**, sharing one session cookie: the marketing site at `/`, the play shell (games and the locker) at `/play`, and a new **teacher app** `apps/teach` at `/teach` (Vite, React, Mantine through `@repo/ui`, like the play shell). The API is served under the same domain. Teacher code never ships in the play shell's bundle, which stays under the Chromebook budgets.
+- **Three front ends on one domain**, sharing one session cookie: the marketing site at `/`, the play shell (games, home and the locker) at `/play`, and a new **teacher app** `apps/teach` at `/teach` (Vite, React, Mantine through `@repo/ui`, like the play shell). The API is served under the same domain. Teacher code never ships in the play shell's bundle, which stays under the Chromebook budgets.
 - **The world is removed**: `apps/hubworld` and the 3D export of `@repo/avatar` are deleted, after tagging the last commit that has them `world-poc`. The PlayCanvas skills stay installed for later.
 
 ### Identity and sessions
@@ -130,9 +131,9 @@ The five games are fractions (Fraction Hop, built), multiplication (the lab winn
 
 - A **class** has a name, one teacher, one or more grades (3–5 for the MVP), a join code, and which games are on. Every game is on in a new class.
 - A **membership** joins a student to a class and holds their grade in that class. Single-grade class: the grade is set on joining. Split-grade class: the student picks from the class's grades once on joining, and the teacher can change it.
-- A **class join link** carries the join code and lands the student in their locker. A **game link** is a game's link for one class (it carries the join code). Opening one joins the student to that class if they aren't in it, then opens the game, and its results go to that class.
-- A student in several classes gets the games of all of them in their locker, and each play records which class it was played for. That's the class whose link or locker entry opened it.
-- The play shell's game link drops its portal parameter. `LinksPort.hub({ portal, play })` becomes a link to the locker that reveals the rewards earned by `play`.
+- A **class join link** carries the join code and lands the student in their home. A **game link** is a game's link for one class (it carries the join code). Opening one joins the student to that class if they aren't in it, then opens the game, and its results go to that class.
+- A student in several classes gets the games of all of them in their home, and each play records which class it was played for. That's the class whose link or game card on home opened it.
+- The play shell's game link drops its portal parameter. `LinksPort.hub({ portal, play })` becomes a link home that reveals the rewards earned by `play`.
 
 ### Results, effort and rewards
 
@@ -144,7 +145,8 @@ The five games are fractions (Fraction Hop, built), multiplication (the lab winn
   - Rewards are granted from effort, up to a weekly cap kept as configuration. Its size is an open question. Reaching the cap is never shown to the student as a limit.
   - The recognition traits and the term dates (for "not yet recognised this term") are configuration. The provisional traits are kindness, perseverance and leadership, and the provisional terms are September–January and February–June.
 - **Rewards are items from a catalogue**: outfit pieces (which map onto the avatar look the play shell already passes to games) and stickers. Recognition is one exclusive sticker per trait, and it doesn't count toward the cap. Grants are never random. The art uses named placeholder slots until the illustrator's style kit replaces them.
-- **Locker state**: owned items, the outfit worn, sticker placements on the locker, and what's new since the student last looked.
+- **Locker state**: owned items, the outfit worn, sticker placements (on the front or the inside of the locker's door, with a tilt set when placed), keepsakes, and what's new since the student last looked.
+- **Keepsakes** are one fixed object per game a student has played, inside the locker. They're not rewards: they never reflect how well the student did, and don't count toward the cap. A new keepsake, or a sticker not yet placed, makes the small locker on home glow; a new keepsake gets its own moment when the door opens.
 
 ### Teacher app
 
@@ -152,7 +154,7 @@ The five games are fractions (Fraction Hop, built), multiplication (the lab winn
 - **Drill-down:** a cell opens that student's evidence for that expectation (games, tiers, misconceptions, change over time). A play opens its attempts in order. A row opens the **student page**, which shows effort by Learning Skill (from the curriculum package's Learning Skills), recognition and their quick assess.
 - **Quick assess** is a dashboard screen for a class or a student. It's built from the curriculum package's product layer only (ADR 0001), and it has a print stylesheet: no navigation, no row split across pages, legible in greyscale, with page headers naming the class or student and the date.
 - **Welcome walkthrough**: three steps on the demo class (share a game link, the misconception strip, quick assess). It's shown once per teacher, skippable, and can be replayed from help.
-- **Demo class**: created at a teacher's first sign-in, with about 24 simulated students across Grades 3–5 and results generated deterministically from each game's manifest, including clear misconception patterns. "View as a student" opens the locker as one demo student. Deleting it removes it and everything in it in one step.
+- **Demo class**: created at a teacher's first sign-in, with about 24 simulated students across Grades 3–5 and results generated deterministically from each game's manifest, including clear misconception patterns. "View as a student" opens home as one demo student. Deleting it removes it and everything in it in one step.
 
 ### Front-end seams
 
@@ -162,7 +164,7 @@ The five games are fractions (Fraction Hop, built), multiplication (the lab winn
 ### Docs and marketing
 
 - `docs/DESIGN.md` is updated to match: the MVP list, the new principle 3 ("Teachers have no time"), principle 7 reworded to "Games stand alone", the student and teacher loops, the open questions, and the "relationship to existing code" section.
-- The marketing site drops the class world, houses, visits, portals and the parent view from its claims, and leads with the games, misconceptions and quick assess. Students get the locker, outfits and stickers. The comparison table's world row is replaced. One "coming next" line mentions the class world and the parent view. The placeholder world renders become locker and dashboard images.
+- The marketing site drops the class world, houses, visits, portals and the parent view from its claims, and leads with the games, misconceptions and quick assess. Students get their home, a locker to decorate, outfits and stickers. The comparison table's world row is replaced. One "coming next" line mentions the class world and the parent view. The placeholder world renders become home, locker and dashboard images.
 
 ## Testing Decisions
 
@@ -175,7 +177,7 @@ The five games are fractions (Fraction Hop, built), multiplication (the lab winn
   - The scoring rules are tested by posting play records and reading results back, not as a unit.
   - The API's tests move from `node --test` to Vitest. The sandbox has a Docker daemon, so these run in the scratch copy.
 - **Front ends: the rendered app against fake ports**, following the play shell's existing end-to-end test that renders the shell over stand-ins and asserts what a student can do and which records come out.
-  - The locker and its reveal are tested this way in the play shell.
+  - Home, the locker and the reveal are tested this way in the play shell.
   - The teacher app's flows are tested the same way over the in-memory teacher port: walkthrough, class creation, links, grid, drill-down, recognition, quick assess and deleting the demo class.
 - **Contract suites tie the two seams together.** The existing platform contract suites run against the stand-ins today. New suites for the locker port and the teacher port are added, and every suite also runs against the real adapters wired to the in-process API (over the test Postgres), so fakes can't drift from the API.
 - The print stylesheet is checked by hand (print preview of a class and a student quick assess) before the pilot. It's not unit tested.
