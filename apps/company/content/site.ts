@@ -7,6 +7,11 @@ export const companyName = "Sparling Education";
 
 export const contactEmail = "hello@sparlingeducation.ca";
 
+/** Where this site is published, for links shared on social media and search. Set per deploy. */
+export const siteUrl = (
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://sparlingeducation.ca"
+).replace(/\/$/, "");
+
 /** The product's own marketing site (apps/web). Set per deploy. */
 export const productSiteUrl = (
   process.env.NEXT_PUBLIC_PRODUCT_SITE_URL ?? "http://localhost:3000/educators"
@@ -15,6 +20,12 @@ export const productSiteUrl = (
 export const site = {
   title: `${companyName}: learning games for Canadian classrooms`,
   description: `${companyName} makes learning games for Grades 1 to 8, built from the Ontario curriculum. Our first product is ${brandName}.`,
+
+  /** The picture shown when a link to the site is shared. */
+  shareImage: {
+    alt: `${companyName}: games that teach the lesson by the way they play.`,
+    tagline: "Learning games for Canadian classrooms",
+  },
 
   masthead: {
     skipLink: "Skip to content",
