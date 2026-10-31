@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { Container } from "../container";
 import { Title } from "../title";
 import type { Tone } from "../tone";
+import { Ambient } from "./ambient";
 import { Reveal } from "./reveal";
 import classes from "./section.module.css";
 
@@ -14,7 +15,10 @@ interface SectionProps {
   /** Narrow the content to a readable text column. */
   prose?: boolean;
   id?: string;
-  /** Decorative shapes rendered behind the content. */
+  /**
+   * Decorative shapes rendered behind the content. Sections with a heading
+   * get a few drifting sparkles by default; pass `null` for none.
+   */
   decoration?: ReactNode;
   /** Rendered above the content; its `id` labels the section. */
   heading?: SectionHeadingProps;
@@ -40,7 +44,15 @@ export function Section({
       data-spacing={spacing}
       aria-labelledby={heading?.id}
     >
-      {decoration}
+      {decoration === undefined && heading?.id ? (
+        <Ambient
+          seed={heading.id}
+          surface={surface}
+          compact={spacing === "compact"}
+        />
+      ) : (
+        decoration
+      )}
       <div className={classes.inner}>
         <Container size={prose ? "prose" : "page"}>
           {heading && <SectionHeading {...heading} />}

@@ -42,6 +42,7 @@ export function Hero({
           top="-150px"
           rotate={-12}
           opacity={0.22}
+          spin
         />
         <Shard
           size={220}
@@ -58,6 +59,7 @@ export function Hero({
           top="10%"
           color="tone"
           float
+          delay={2.4}
           hideOnMobile
         />
         <Glint
@@ -66,6 +68,7 @@ export function Hero({
           bottom="14%"
           opacity={0.6}
           float
+          delay={4.1}
           hideOnMobile
         />
       </DecorLayer>

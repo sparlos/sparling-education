@@ -23,9 +23,23 @@ export function PromiseBand({ title, body, items }: PromiseBandProps) {
     <div className={classes.panel}>
       <DecorLayer>
         <Glint size={18} left="8%" top="22%" float />
-        <Glint size={12} left="5%" bottom="14%" opacity={0.7} float />
-        <Sparkle size={22} right="9%" top="18%" float />
-        <Glint size={14} right="5%" bottom="12%" color="sparkle" float />
+        <Glint
+          size={12}
+          left="5%"
+          bottom="14%"
+          opacity={0.7}
+          float
+          delay={2.2}
+        />
+        <Sparkle size={22} right="9%" top="18%" float delay={1.1} />
+        <Glint
+          size={14}
+          right="5%"
+          bottom="12%"
+          color="sparkle"
+          float
+          delay={3.6}
+        />
       </DecorLayer>
       <div className={classes.content}>
         <Title order={2} size="h2" c="inverse">

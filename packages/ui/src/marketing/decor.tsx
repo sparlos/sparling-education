@@ -30,8 +30,16 @@ interface ShapeProps {
   right?: string;
   bottom?: string;
   rotate?: number;
+  /** Bob and twinkle in place. */
   float?: boolean;
+  /** Wander slowly on a loose loop. */
+  drift?: boolean;
+  /** Turn very slowly, for big shards. */
+  spin?: boolean;
+  /** Seconds into its motion it starts, so neighbours don't move in step. */
+  delay?: number;
   hideOnMobile?: boolean;
+  hideOnTablet?: boolean;
 }
 
 function shapeStyle(p: ShapeProps): CSSProperties {
@@ -44,6 +52,7 @@ function shapeStyle(p: ShapeProps): CSSProperties {
     bottom: p.bottom,
     opacity: p.opacity,
     rotate: p.rotate ? `${p.rotate}deg` : undefined,
+    animationDelay: p.delay ? `${-p.delay}s` : undefined,
   };
 }
 
@@ -51,7 +60,10 @@ function shapeClass(p: ShapeProps) {
   return cx(
     classes.shape,
     p.float && classes.float,
+    p.drift && classes.drift,
+    p.spin && classes.spin,
     p.hideOnMobile && classes.hideMobile,
+    p.hideOnTablet && classes.hideTablet,
   );
 }
 

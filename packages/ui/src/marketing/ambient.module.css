@@ -1,0 +1,33 @@
+.layer {
+  --ambient-top: var(--k-space-section);
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.layer[data-compact] {
+  --ambient-top: var(--k-space-section-compact);
+}
+
+/* Each bit fills the layer so its shape's position resolves against the
+   section; the wrapper carries the entrance, the shape its own motion. */
+.bit {
+  position: absolute;
+  inset: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .layer[data-motion="waiting"] .bit {
+    opacity: 0;
+    translate: 0 24px;
+  }
+
+  .layer[data-motion="shown"] .bit {
+    transition:
+      opacity 600ms var(--k-ease-standard),
+      translate 700ms var(--k-ease-springy);
+    transition-delay: calc(var(--i) * 140ms + 200ms);
+  }
+}

@@ -11,12 +11,24 @@
   display: block;
 }
 
-/* Floating shapes drift and gently twinkle; still for reduced motion. */
+/* Floating shapes drift and gently twinkle; still for reduced motion. A
+   shape's `delay` offsets its place in each loop, so neighbours don't move in
+   step. */
 @media (prefers-reduced-motion: no-preference) {
   .float {
     animation:
       float 6s var(--k-ease-standard) infinite alternate,
       twinkle 3.2s ease-in-out infinite;
+  }
+
+  .drift {
+    animation:
+      drift 18s ease-in-out infinite,
+      twinkle 4.6s ease-in-out infinite;
+  }
+
+  .spin {
+    animation: spin 90s linear infinite;
   }
 }
 
@@ -32,6 +44,35 @@
 @keyframes twinkle {
   50% {
     scale: 1.15;
+  }
+}
+
+/* A lazy, uneven loop: never quite the same path out as back. */
+@keyframes drift {
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  30% {
+    transform: translate(10px, -14px) rotate(14deg);
+  }
+  55% {
+    transform: translate(-4px, -22px) rotate(-6deg);
+  }
+  80% {
+    transform: translate(-10px, -8px) rotate(8deg);
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (--k-md-down) {
+  .hideTablet {
+    display: none;
   }
 }
 
