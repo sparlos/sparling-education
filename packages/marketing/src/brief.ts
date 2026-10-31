@@ -6,6 +6,7 @@
 // Plain TypeScript, no JSX: Node loads briefs directly.
 
 import type { Audience } from "@repo/tokens";
+import type { ScreenName } from "./screens.ts";
 
 /** Which accent a video wears. "brand" is Kindling's ember. */
 export type Tone = Audience | "brand";
@@ -81,6 +82,17 @@ export type Scene =
       insight: { title: string; body: string };
     }
   | {
+      kind: "screen";
+      /** A screenshot or recording of one of Kindling's apps (src/screens.ts). */
+      screen: ScreenName;
+      /** Small label above the window, e.g. "A student's page". */
+      label: string;
+      /** The part the camera moves to and lights up. None: it stays put. */
+      focus?: Rect;
+      /** The word in the line that moves the camera, or that a recording's key moment lands on. */
+      cue: string;
+    }
+  | {
       kind: "features";
       title: string;
       items: { icon: FeatureIcon; label: string }[];
@@ -95,6 +107,13 @@ export type Scene =
     };
 
 export type SceneKind = Scene["kind"];
+/** A box on an image, as fractions of its width and height. */
+export interface Rect {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
 export type StudentStatus = "got-it" | "practising" | "stuck";
 export type FeatureIcon = "curriculum" | "chromebook" | "classroom" | "chart";
 

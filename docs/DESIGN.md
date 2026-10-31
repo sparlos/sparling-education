@@ -14,6 +14,8 @@ A shared 3D **class world** (a **hub** with **portals** into games, and a **hous
 
 Kindling is a **supplemental resource**. A teacher teaches the concept, shares the games that reinforce it, and uses the results as assessment evidence at the end of term. It doesn't own the unit, set deadlines or expect to replace instruction. For students it's a reward activity; for teachers it's that, plus evidence for report cards.
 
+The tagline says that in four words: _Where play becomes proof._ It's Kindling's line across the site, videos and anything else that speaks for the whole platform.
+
 Free for teachers. Students and parents never pay.
 
 ## Guiding principles

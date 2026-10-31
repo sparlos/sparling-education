@@ -9,6 +9,7 @@ import { FractionHop } from "./FractionHop.tsx";
 import { Kinetic } from "./Kinetic.tsx";
 import { Logo } from "./Logo.tsx";
 import { NotAQuiz } from "./NotAQuiz.tsx";
+import { Screen } from "./Screen.tsx";
 import { TeacherView } from "./TeacherView.tsx";
 
 export const scenes: {
@@ -20,6 +21,7 @@ export const scenes: {
   logo: Logo,
   "fraction-hop": FractionHop,
   "teacher-view": TeacherView,
+  screen: Screen,
   features: Features,
   "end-card": EndCard,
 };
