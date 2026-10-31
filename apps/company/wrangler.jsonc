@@ -1,0 +1,7 @@
+{
+  "name": "sparling-education",
+  "compatibility_date": "2026-10-15",
+  // The static export from `next build`. With this file present, wrangler
+  // uploads these files instead of setting up a Next.js adapter with npm.
+  "assets": { "directory": "./out" }
+}
