@@ -22,7 +22,10 @@ describe("a simulated play", () => {
         const attempts = simulate({
           seed,
           tier,
-          student: { ...student, misconceptions: ["bigger-denominator-bigger"] },
+          student: {
+            ...student,
+            misconceptions: ["bigger-denominator-bigger"],
+          },
         });
         for (const a of attempts)
           expect(attemptProblem(manifest, tier, a)).toBeNull();

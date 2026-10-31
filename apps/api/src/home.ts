@@ -25,10 +25,7 @@ import { effortOf, rewardsEarned, weekOf } from "./scoring.ts";
  * outfit pieces and stickers, and recognition from any of their teachers
  * adds that trait's sticker, once however often they're recognised for it.
  */
-export async function studentHome(
-  db: Db,
-  studentId: string,
-): Promise<Home> {
+export async function studentHome(db: Db, studentId: string): Promise<Home> {
   const [rewards, recognitions, placements] = await Promise.all([
     db.reward.findMany({
       where: { studentId },

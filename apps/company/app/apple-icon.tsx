@@ -27,7 +27,9 @@ export default async function AppleIcon() {
       }}
     >
       SE
-      <div style={{ width: 68, height: 6, marginTop: 8, background: c.brass }} />
+      <div
+        style={{ width: 68, height: 6, marginTop: 8, background: c.brass }}
+      />
     </div>,
     { ...size, fonts: [await literata(500)] },
   );

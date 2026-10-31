@@ -26,10 +26,7 @@ function markSeen(headers: Headers | undefined, rewards: string[]) {
 }
 
 function markSeenInWardrobe(headers: Headers | undefined, rewards: string[]) {
-  return client.home["wardrobe-seen"].$post(
-    { json: { rewards } },
-    { headers },
-  );
+  return client.home["wardrobe-seen"].$post({ json: { rewards } }, { headers });
 }
 
 /** A student in a new class: their headers, and who and where they play. */

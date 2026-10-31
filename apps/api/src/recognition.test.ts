@@ -258,13 +258,11 @@ describe("recognition and rewards", () => {
     for (let i = 0; i < records.length; i += 25)
       await sendRecords(student.headers, records.slice(i, i + 25));
     const home = await homeOf(student.headers);
-    const granted = home.unseen.filter(
-      (id) => !id.startsWith("recognition-"),
-    );
+    const granted = home.unseen.filter((id) => !id.startsWith("recognition-"));
     expect(granted).toHaveLength(rewardRule.weeklyCap);
-    expect(
-      home.stickers.filter((id) => id.startsWith("recognition-")),
-    ).toEqual(["recognition-kindness", "recognition-perseverance"]);
+    expect(home.stickers.filter((id) => id.startsWith("recognition-"))).toEqual(
+      ["recognition-kindness", "recognition-perseverance"],
+    );
   });
 });
 
