@@ -1,9 +1,11 @@
 // The home port over the platform's API, through the generated client.
 import {
   getHome,
+  markKeepsakesSeen,
   markRewardsSeen,
   markSeenInWardrobe,
-  placeStickers,
+  placeSticker,
+  takeOffSticker,
   wearLook,
 } from "@repo/api-client";
 import { parseLook } from "@repo/avatar";
@@ -33,11 +35,19 @@ export function apiHome(): HomePort {
       const res = await markSeenInWardrobe({ rewards: [...items] });
       if (res.status !== 204) throw unexpected("wardrobe seen", res.status);
     },
-    async place(placements) {
-      const res = await placeStickers({ placements: [...placements] });
+    async place(sticker, spot) {
+      const res = await placeSticker(sticker, spot);
       if (res.status === 400) throw new NotOwned();
-      if (res.status !== 200) throw unexpected("place stickers", res.status);
-      return res.data.placements;
+      if (res.status !== 200) throw unexpected("place sticker", res.status);
+      return res.data;
+    },
+    async takeOff(sticker) {
+      const res = await takeOffSticker(sticker);
+      if (res.status !== 204) throw unexpected("take off sticker", res.status);
+    },
+    async markKeepsakesSeen(games) {
+      const res = await markKeepsakesSeen({ games: [...games] });
+      if (res.status !== 204) throw unexpected("keepsakes seen", res.status);
     },
   };
 }

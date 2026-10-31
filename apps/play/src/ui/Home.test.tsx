@@ -939,8 +939,20 @@ describe("stickers on the locker", () => {
   const owning = (storage: KeyValueStore) =>
     standInGrant(storage, [first, second]);
 
+  /** Where the stickers on the front of the locker are, the one underneath first. */
   async function placed(storage: KeyValueStore) {
-    return (await standInHome(storage).current()).placements;
+    return (await standInHome(storage).current()).placements
+      .filter((p) => p.surface === "front")
+      .map(({ sticker, x, y }) => ({ sticker, x, y }));
+  }
+
+  /** Sticks stickers on the front of the stand-in student's locker, in order. */
+  function stickOn(
+    storage: KeyValueStore,
+    stickers: { sticker: string; x: number; y: number }[],
+  ) {
+    for (const { sticker, x, y } of stickers)
+      void standInHome(storage).place(sticker, { surface: "front", x, y });
   }
 
   it("sticks a sticker where the student taps, saying what to do", async () => {
@@ -972,7 +984,7 @@ describe("stickers on the locker", () => {
     const { storage } = setUp({
       beforeRender: (storage) => {
         owning(storage);
-        void standInHome(storage).place([{ sticker: second, x: 0.5, y: 0.4 }]);
+        stickOn(storage, [{ sticker: second, x: 0.5, y: 0.4 }]);
       },
     });
     const board = await lockerBoard();
@@ -989,7 +1001,7 @@ describe("stickers on the locker", () => {
     const { spoken, storage, user } = setUp({
       beforeRender: (storage) => {
         owning(storage);
-        void standInHome(storage).place([
+        stickOn(storage, [
           { sticker: first, x: 0.5, y: 0.5 },
           { sticker: second, x: 0.6, y: 0.5 },
         ]);
@@ -1037,7 +1049,7 @@ describe("stickers on the locker", () => {
     const { storage, user } = setUp({
       beforeRender: (storage) => {
         owning(storage);
-        void standInHome(storage).place([{ sticker: first, x: 0.5, y: 0.5 }]);
+        stickOn(storage, [{ sticker: first, x: 0.5, y: 0.5 }]);
       },
     });
     const board = await lockerBoard();
@@ -1186,7 +1198,13 @@ describe("recognition from a teacher", () => {
     });
     await waitFor(async () =>
       expect((await standInHome(storage).current()).placements).toEqual([
-        { sticker: "recognition-kindness", x: 0.5, y: 0.5 },
+        {
+          sticker: "recognition-kindness",
+          surface: "front",
+          x: 0.5,
+          y: 0.5,
+          tilt: expect.any(Number),
+        },
       ]),
     );
   });

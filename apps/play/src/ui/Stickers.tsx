@@ -81,26 +81,36 @@ export function Stickers({
   const dragged = useRef(false);
   // Saves run one after another, so the last change is the one kept.
   const saving = useRef<Promise<unknown>>(Promise.resolve());
-  const lastSaved = useRef(saved);
+  const saves = useRef(0);
 
   const owned = new Set(stickers);
-  const shown = placements.filter((p) => owned.has(p.sticker));
-  const onLocker = new Set(shown.map((p) => p.sticker));
+  // This panel is the front of the locker's door; ticket 33 adds the inside.
+  const shown = placements.filter(
+    (p) => owned.has(p.sticker) && p.surface === "front",
+  );
+  const onLocker = new Set(placements.map((p) => p.sticker));
   const inTray = stickers.filter((s) => !onLocker.has(s));
 
-  const save = (next: Placement[]) => {
+  const save = (next: Placement[], send: () => Promise<unknown>) => {
     setPlacements(next);
+    const id = ++saves.current;
     saving.current = saving.current.then(() =>
-      platform.home.place(next).then(
-        (placed) => {
-          lastSaved.current = placed;
-        },
-        (error: unknown) => {
-          // Back to what's saved: the locker shows what it really holds.
-          console.error("[play] Couldn't save the stickers", error);
-          setPlacements(lastSaved.current);
-        },
-      ),
+      send()
+        .then(
+          () => platform.home.current(),
+          (error: unknown) => {
+            console.error("[play] Couldn't save the stickers", error);
+            return platform.home.current();
+          },
+        )
+        .then(
+          // What's saved, with its tilts, once no later change is on its way.
+          (home) => {
+            if (id === saves.current) setPlacements(home.placements);
+          },
+          (error: unknown) =>
+            console.error("[play] Couldn't load the stickers", error),
+        ),
     );
   };
 
@@ -139,14 +149,26 @@ export function Stickers({
   const put = (sticker: string, spot: { x: number; y: number }) => {
     voice.stop();
     setHeld(null);
+    const was = placements.find((p) => p.sticker === sticker);
+    const placed = { sticker, surface: "front" as const, ...spot };
     // On top of the others: last in the list.
-    save([...shown.filter((p) => p.sticker !== sticker), { sticker, ...spot }]);
+    save(
+      [
+        ...placements.filter((p) => p.sticker !== sticker),
+        { ...placed, tilt: was?.tilt ?? 0 },
+      ],
+      () => platform.home.place(sticker, placed),
+    );
   };
 
   const putBack = (sticker: string) => {
     voice.stop();
     setHeld(null);
-    if (onLocker.has(sticker)) save(shown.filter((p) => p.sticker !== sticker));
+    if (onLocker.has(sticker))
+      save(
+        placements.filter((p) => p.sticker !== sticker),
+        () => platform.home.takeOff(sticker),
+      );
   };
 
   // Pressing a sticker: a tap picks it up, a drag carries it.

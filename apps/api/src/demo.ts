@@ -12,7 +12,12 @@ import { randomUUID } from "node:crypto";
 import type { AvatarLook } from "@repo/avatar";
 import { baseSet, itemsIn } from "@repo/avatar/parts";
 import type { Db, DbTransaction } from "@repo/db";
-import type { RecognitionTrait } from "@repo/rewards";
+import {
+  type RecognitionTrait,
+  randomStickerTilt,
+  recognitionSticker,
+  rewardKind,
+} from "@repo/rewards";
 import { defaultClassColour } from "@repo/tokens";
 import { startViewingAs } from "./accounts.ts";
 import { newJoinCode } from "./classes.ts";
@@ -235,6 +240,80 @@ async function makeDemoClass(
       };
     }),
   });
+
+  // A keepsake for each game they've played, all seen but Amara's newest,
+  // so viewing as her shows a new one when her locker opens.
+  const keepsakes = students.flatMap((s) => {
+    const first = new Map<string, number>();
+    for (const r of records)
+      if (r.student === s.id)
+        first.set(r.game, Math.min(first.get(r.game) ?? +now, +new Date(r.at)));
+    const games = [...first].sort(([, a], [, b]) => a - b);
+    return games.map(([game, at], g) => ({
+      studentId: s.id,
+      game,
+      firstPlayedAt: new Date(at),
+      seenAt:
+        s.firstName === "Amara" && g === games.length - 1 ? null : new Date(at),
+    }));
+  });
+  await tx.keepsake.createMany({ data: keepsakes });
+
+  // The stickers they've seen are on their lockers, a few days apart; new
+  // ones are still in their trays.
+  const [seenRewards, seenRecognition] = await Promise.all([
+    tx.reward.findMany({
+      where: {
+        studentId: { in: students.map((s) => s.id) },
+        seenAt: { not: null },
+      },
+      select: { studentId: true, item: true },
+      orderBy: [{ week: "asc" }, { item: "asc" }],
+    }),
+    tx.recognition.findMany({
+      where: {
+        classId: demo.id,
+        seenAt: { not: null },
+      },
+      select: { studentId: true, trait: true },
+      orderBy: { awardedAt: "asc" },
+    }),
+  ]);
+  await tx.stickerPlacement.createMany({
+    data: students.flatMap((s) => {
+      const stickers = new Set([
+        ...seenRewards
+          .filter(
+            (r) => r.studentId === s.id && rewardKind(r.item) === "sticker",
+          )
+          .map((r) => r.item),
+        ...seenRecognition
+          .filter((r) => r.studentId === s.id)
+          .map((r) => recognitionSticker(r.trait as RecognitionTrait)),
+      ]);
+      const next = numbersFrom(seedOf(`${s.firstName} stickers`));
+      return [...stickers].map((sticker, k) => ({
+        studentId: s.id,
+        sticker,
+        surface: next() < 0.6 ? ("front" as const) : ("inside" as const),
+        x: 0.15 + next() * 0.7,
+        y: 0.15 + next() * 0.7,
+        tilt: randomStickerTilt(next),
+        placedAt: new Date(+now - (stickers.size - k) * 3 * day),
+      }));
+    }),
+  });
+}
+
+/** Numbers from 0 to 1, the same ones from the same seed: mulberry32. */
+function numbersFrom(seed: number): () => number {
+  let a = seed;
+  return () => {
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
 }
 
 /** How many plays of each game a demo student has: three to five. */

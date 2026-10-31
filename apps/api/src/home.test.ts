@@ -44,6 +44,8 @@ describe("home", () => {
       unseen: [],
       newInWardrobe: [],
       placements: [],
+      keepsakes: [],
+      newKeepsakes: [],
     });
   });
 

@@ -4,12 +4,13 @@
 // with a harness that can set up and read back what the implementation stores.
 import { type AvatarLook, defaultLook } from "@repo/avatar";
 import { baseSet, isItem, outfitSlots } from "@repo/avatar/parts";
-import { isReward, isSticker, rewardKind } from "@repo/rewards";
+import { isReward, isSticker, maxStickerTilt, rewardKind } from "@repo/rewards";
 import type { ClassColourSlug } from "@repo/tokens";
 import { describe, expect, it } from "vitest";
 import {
   type AttemptRecord,
   type HomePort,
+  lockerGlows,
   type MembershipsPort,
   NoSuchClass,
   NotOwned,
@@ -396,14 +397,22 @@ export function homePortContract(name: string, harness: HomeHarness) {
       },
     );
 
-    it("gives a new student no stickers, nothing new and nothing on their locker", async () => {
+    it("gives a new student no stickers, nothing new and nothing in their locker", async () => {
       const { home } = await harness.newStudent();
-      const { stickers, unseen, newInWardrobe, placements } =
-        await home.current();
+      const {
+        stickers,
+        unseen,
+        newInWardrobe,
+        placements,
+        keepsakes,
+        newKeepsakes,
+      } = await home.current();
       expect(stickers).toEqual([]);
       expect(unseen).toEqual([]);
       expect(newInWardrobe).toEqual([]);
       expect(placements).toEqual([]);
+      expect(keepsakes).toEqual([]);
+      expect(newKeepsakes).toEqual([]);
     });
 
     it("reveals what a play earned as new, and the student owns it", async () => {
@@ -464,36 +473,101 @@ export function homePortContract(name: string, harness: HomeHarness) {
       expect(await home.current()).toEqual({ ...before, unseen: [] });
     });
 
-    it("puts stickers where the student placed them, then moves and takes them off", async () => {
+    it("puts a sticker on the surface and at the spot the student chose, with a small tilt", async () => {
+      const { home, recognise } = await harness.newStudent();
+      await recognise();
+      const sticker = "recognition-kindness";
+      const spot = { surface: "inside", x: 0.25, y: 0.75 } as const;
+      const placed = await home.place(sticker, spot);
+      expect(placed).toEqual({ sticker, ...spot, tilt: expect.any(Number) });
+      expect(Math.abs(placed.tilt)).toBeLessThanOrEqual(maxStickerTilt);
+      expect((await home.current()).placements).toEqual([placed]);
+    });
+
+    it("moves a sticker, keeping its tilt and putting it on top, then takes it off", async () => {
       const { home, earn, recognise } = await harness.newStudent();
       await earn();
       await recognise();
       const { stickers } = await home.current();
       const [earned = ""] = stickers.filter((id) => isReward(id));
       expect(isSticker(earned)).toBe(true);
-      const placed = [
-        { sticker: earned, x: 0.25, y: 0.75 },
-        { sticker: "recognition-kindness", x: 0.5, y: 0.5 },
-      ];
-      expect(await home.place(placed)).toEqual(placed);
-      expect((await home.current()).placements).toEqual(placed);
-      const moved = [{ sticker: "recognition-kindness", x: 1, y: 0 }];
-      await home.place(moved);
-      expect((await home.current()).placements).toEqual(moved);
-      await home.place([]);
-      expect((await home.current()).placements).toEqual([]);
+      const first = await home.place(earned, {
+        surface: "front",
+        x: 0.25,
+        y: 0.75,
+      });
+      const other = await home.place("recognition-kindness", {
+        surface: "front",
+        x: 0.5,
+        y: 0.5,
+      });
+      const moved = await home.place(earned, {
+        surface: "inside",
+        x: 1,
+        y: 0,
+      });
+      expect(moved).toEqual({ ...first, surface: "inside", x: 1, y: 0 });
+      expect((await home.current()).placements).toEqual([other, moved]);
+      await home.takeOff(earned);
+      expect((await home.current()).placements).toEqual([other]);
+      await home.takeOff(earned);
+      expect((await home.current()).placements).toEqual([other]);
     });
 
     it("refuses a sticker the student doesn't own, keeping their locker", async () => {
       const { home, recognise } = await harness.newStudent();
       await recognise();
-      const placed = [{ sticker: "recognition-kindness", x: 0.5, y: 0.5 }];
-      await home.place(placed);
+      const placed = await home.place("recognition-kindness", {
+        surface: "front",
+        x: 0.5,
+        y: 0.5,
+      });
       for (const sticker of ["sticker-rainbow", "recognition-leadership"])
         await expect(
-          home.place([...placed, { sticker, x: 0.1, y: 0.1 }]),
+          home.place(sticker, { surface: "front", x: 0.1, y: 0.1 }),
         ).rejects.toBeInstanceOf(NotOwned);
-      expect((await home.current()).placements).toEqual(placed);
+      expect((await home.current()).placements).toEqual([placed]);
+    });
+
+    it("refuses a sticker off the surface", async () => {
+      const { home, recognise } = await harness.newStudent();
+      await recognise();
+      await expect(
+        home.place("recognition-kindness", { surface: "front", x: 1.5, y: 0 }),
+      ).rejects.toThrow();
+      expect((await home.current()).placements).toEqual([]);
+    });
+
+    it("gives a keepsake, new, for the game a play was of, once however often it's played", async () => {
+      const { home, earn } = await harness.newStudent();
+      await earn();
+      const { keepsakes, newKeepsakes } = await home.current();
+      expect(keepsakes).toHaveLength(1);
+      expect(newKeepsakes).toEqual(keepsakes);
+      await earn();
+      expect((await home.current()).keepsakes).toEqual(keepsakes);
+    });
+
+    it("keeps a keepsake new until the student has seen it, then keeps it", async () => {
+      const { home, earn } = await harness.newStudent();
+      await earn();
+      const before = await home.current();
+      await home.markKeepsakesSeen(before.newKeepsakes);
+      expect(await home.current()).toEqual({ ...before, newKeepsakes: [] });
+    });
+
+    it("glows while there's a new keepsake or a sticker not on the locker", async () => {
+      const { home, earn } = await harness.newStudent();
+      expect(lockerGlows(await home.current())).toBe(false);
+      await earn();
+      const earned = await home.current();
+      await home.markKeepsakesSeen(earned.newKeepsakes);
+      const { stickers } = await home.current();
+      expect(stickers.length).toBeGreaterThan(0);
+      expect(lockerGlows(await home.current())).toBe(true);
+      for (const sticker of stickers)
+        await home.place(sticker, { surface: "front", x: 0.5, y: 0.5 });
+      expect(lockerGlows(await home.current())).toBe(false);
     });
   });
 }

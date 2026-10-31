@@ -224,22 +224,39 @@ export const LookSchema = z
       "An item ID for each slot of the avatar, from @repo/avatar. Outfit pieces (top, bottom, shoes, hat) must be ones the student owns.",
   });
 
-export const PlacementSchema = z
+export const SurfaceSchema = z.enum(["front", "inside"]).openapi("Surface", {
+  description:
+    "Where on the locker: the front of its door, or the inside of the door, seen when it's open",
+});
+
+export const SpotSchema = z
   .object({
-    sticker: z.string().max(100).openapi({
-      description: "A sticker the student owns, from @repo/rewards",
-      example: "sticker-star",
-    }),
+    surface: SurfaceSchema,
     x: z.number().min(0).max(1).openapi({
       description:
-        "Where the sticker's centre is, across the locker: 0 is its left edge, 1 its right",
+        "Where the sticker's centre is, across the surface: 0 is its left edge, 1 its right",
     }),
     y: z.number().min(0).max(1).openapi({
       description:
-        "Where the sticker's centre is, down the locker: 0 is its top edge, 1 its bottom",
+        "Where the sticker's centre is, down the surface: 0 is its top edge, 1 its bottom",
     }),
   })
-  .openapi("Placement");
+  .openapi("Spot");
+
+export type Spot = z.infer<typeof SpotSchema>;
+
+export const PlacementSchema = SpotSchema.extend({
+  sticker: z.string().max(100).openapi({
+    description: "A sticker the student owns, from @repo/rewards",
+    example: "sticker-star",
+  }),
+  tilt: z.number().openapi({
+    description:
+      "How far the sticker is turned, in degrees clockwise: a little either way, picked when it was put on the locker and kept when it's moved",
+  }),
+}).openapi("Placement");
+
+export type Placement = z.infer<typeof PlacementSchema>;
 
 export const HomeSchema = z
   .object({
@@ -261,29 +278,30 @@ export const HomeSchema = z
     }),
     placements: z.array(PlacementSchema).openapi({
       description:
-        "The stickers the student put on their locker, and where, the one underneath first",
+        "The stickers the student put on their locker, and where, the one underneath first. A sticker they own that isn't here is in their tray.",
+    }),
+    keepsakes: z.array(z.string()).openapi({
+      description:
+        "A keepsake in their locker for each game they've played, however it went, as game slugs, in the order first played",
+      example: ["fraction-hop"],
+    }),
+    newKeepsakes: z.array(z.string()).openapi({
+      description:
+        "Keepsakes they haven't seen yet, in the order first played: new until they open their locker's door",
     }),
   })
   .openapi("Home");
 
 export type Home = z.infer<typeof HomeSchema>;
 
-export const PlacementsSchema = z
+export const KeepsakesSeenSchema = z
   .object({
-    placements: z
-      .array(PlacementSchema)
+    games: z
+      .array(z.string().max(100))
       .max(500)
-      .refine(
-        (placements) =>
-          new Set(placements.map((p) => p.sticker)).size === placements.length,
-        { message: "Each sticker can be placed once" },
-      )
-      .openapi({
-        description:
-          "Every sticker on the locker, and where, the one underneath first. Stickers left out are taken off.",
-      }),
+      .openapi({ example: ["fraction-hop"] }),
   })
-  .openapi("Placements");
+  .openapi("KeepsakesSeen");
 
 export const SeenSchema = z
   .object({

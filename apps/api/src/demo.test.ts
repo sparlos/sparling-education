@@ -1,11 +1,12 @@
 import { randomUUID } from "node:crypto";
 import { manifest } from "@games/fraction-hop/manifest";
 import { attemptProblem } from "@repo/game-contract";
-import { recognitionSticker } from "@repo/rewards";
+import { maxStickerTilt, recognitionSticker } from "@repo/rewards";
 import { testClient } from "hono/testing";
 import { describe, expect, it } from "vitest";
 import { cookiesFrom, db, google, signInAsStudent } from "../test/client.ts";
 import { createApp } from "./app.ts";
+import { hostedGames } from "./games.ts";
 
 type Headers = { cookie: string };
 
@@ -246,6 +247,24 @@ describe("the demo class", () => {
     const home = await get(client.home.$get(undefined, { headers }));
     expect(home.stickers).toContain(recognitionSticker("kindness"));
     expect(home.unseen).toContain(recognitionSticker("kindness"));
+  });
+
+  it("fills the viewed student's locker: a keepsake for each game, the newest new, and stickers they've seen", async () => {
+    const headers = await signIn();
+    await viewAsStudent(headers);
+    const home = await get(client.home.$get(undefined, { headers }));
+    expect(home.keepsakes).toEqual(hostedGames.map((g) => g.slug));
+    expect(home.newKeepsakes).toEqual(home.keepsakes.slice(-1));
+    expect(home.placements.length).toBeGreaterThan(0);
+    for (const p of home.placements) {
+      expect(home.stickers).toContain(p.sticker);
+      expect(home.unseen).not.toContain(p.sticker);
+      expect(Math.abs(p.tilt)).toBeLessThanOrEqual(maxStickerTilt);
+    }
+    // What's new is still in the tray.
+    expect(home.unseen.filter((id) => home.stickers.includes(id))).not.toEqual(
+      [],
+    );
   });
 
   it("is the same for every teacher, apart from its IDs", async () => {

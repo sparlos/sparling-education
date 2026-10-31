@@ -4,7 +4,8 @@
 // earns the next one in the catalogue (no effort rule, no weekly cap; the
 // API's scoring module has those). Recognition from a teacher is granted
 // the same way (`standInRecognise`; no terms or classes). Their look is kept
-// on the stand-in student, and their sticker placements in storage. The real
+// on the stand-in student, and their locker (sticker placements and a
+// keepsake for each game a stored record was for) in storage. The real
 // adapter is ../api/home.ts; see ../README.md.
 import { canWear, parseLook } from "@repo/avatar";
 import { baseSet } from "@repo/avatar/parts";
@@ -12,6 +13,7 @@ import {
   isRecognitionTrait,
   nextRewards,
   type RecognitionTrait,
+  randomStickerTilt,
   recognitionSticker,
   rewardKind,
   traitOf,
@@ -22,12 +24,14 @@ import {
   NotOwned,
   type Placement,
   type PlayRecord,
+  type Spot,
 } from "../ports.ts";
 import { standInSignIn, standInStudent } from "./session.ts";
 
 const rewardsKey = "stand-in.rewards";
 const recognitionKey = "stand-in.recognition";
-const placementsKey = "stand-in.placements";
+const placementsKey = "stand-in.locker.placements";
+const keepsakesKey = "stand-in.locker.keepsakes";
 
 interface StandInReward {
   item: string;
@@ -71,6 +75,10 @@ export function standInHome(storage: KeyValueStore | null): HomePort {
         placements: standInPlacements(storage).filter((p) =>
           mine.has(p.sticker),
         ),
+        keepsakes: standInKeepsakes(storage).map((k) => k.game),
+        newKeepsakes: standInKeepsakes(storage)
+          .filter((k) => !k.seen)
+          .map((k) => k.game),
       };
     },
     async wear(value) {
@@ -108,21 +116,47 @@ export function standInHome(storage: KeyValueStore | null): HomePort {
         ),
       );
     },
-    async place(placements) {
-      const mine = new Set(stickers());
-      const placed = placements.map(({ sticker, x, y }) => ({ sticker, x, y }));
-      if (!placed.every((p) => mine.has(p.sticker))) throw new NotOwned();
-      if (new Set(placed.map((p) => p.sticker)).size !== placed.length)
-        throw new Error("Stand-in home: a sticker placed twice");
-      if (!placed.every((p) => inside(p.x) && inside(p.y)))
+    async place(sticker, spot) {
+      if (!stickers().includes(sticker)) throw new NotOwned();
+      if (!onSurface(spot))
         throw new Error("Stand-in home: a sticker off the locker");
-      writeJson(storage, placementsKey, placed);
+      const placements = standInPlacements(storage);
+      const was = placements.find((p) => p.sticker === sticker);
+      const placed: Placement = {
+        sticker,
+        surface: spot.surface,
+        x: spot.x,
+        y: spot.y,
+        tilt: was?.tilt ?? randomStickerTilt(),
+      };
+      // On top of the others: last in the list.
+      writeJson(storage, placementsKey, [
+        ...placements.filter((p) => p.sticker !== sticker),
+        placed,
+      ]);
       return placed;
+    },
+    async takeOff(sticker) {
+      writeJson(
+        storage,
+        placementsKey,
+        standInPlacements(storage).filter((p) => p.sticker !== sticker),
+      );
+    },
+    async markKeepsakesSeen(games) {
+      const seen = new Set(games);
+      writeJson(
+        storage,
+        keepsakesKey,
+        standInKeepsakes(storage).map((k) =>
+          seen.has(k.game) ? { ...k, seen: true } : k,
+        ),
+      );
     },
   };
 }
 
-const inside = (n: number) => Number.isFinite(n) && n >= 0 && n <= 1;
+const isFraction = (n: number) => Number.isFinite(n) && n >= 0 && n <= 1;
 
 /**
  * A teacher recognising the stand-in student for `trait`, giving them its
@@ -151,12 +185,50 @@ function standInRecognition(
     : [];
 }
 
+const onSurface = (spot: Spot) =>
+  (spot?.surface === "front" || spot?.surface === "inside") &&
+  isFraction(spot.x) &&
+  isFraction(spot.y);
+
 function standInPlacements(storage: KeyValueStore | null): Placement[] {
   const placed = readJson(storage, placementsKey);
   return Array.isArray(placed)
     ? placed.filter(
         (p): p is Placement =>
-          typeof p?.sticker === "string" && inside(p?.x) && inside(p?.y),
+          typeof p?.sticker === "string" &&
+          onSurface(p) &&
+          Number.isFinite(p?.tilt),
+      )
+    : [];
+}
+
+/**
+ * Keepsakes for these games the stand-in student hasn't got one for yet, as
+ * playing them would have given: new, unless `seen` is true.
+ */
+export function standInGiveKeepsakes(
+  storage: KeyValueStore | null,
+  games: readonly string[],
+  { seen = false }: { seen?: boolean } = {},
+): void {
+  const have = standInKeepsakes(storage);
+  const known = new Set(have.map((k) => k.game));
+  writeJson(storage, keepsakesKey, [
+    ...have,
+    ...[...new Set(games)]
+      .filter((game) => !known.has(game))
+      .map((game) => ({ game, seen })),
+  ]);
+}
+
+function standInKeepsakes(
+  storage: KeyValueStore | null,
+): { game: string; seen: boolean }[] {
+  const kept = readJson(storage, keepsakesKey);
+  return Array.isArray(kept)
+    ? kept.filter(
+        (k): k is { game: string; seen: boolean } =>
+          typeof k?.game === "string" && typeof k?.seen === "boolean",
       )
     : [];
 }
@@ -184,11 +256,18 @@ export function standInGrant(
   ]);
 }
 
-/** Grants the next reward, unseen, for each finished play among newly stored records. */
+/**
+ * What newly stored records give: a keepsake for each game they're for,
+ * and the next reward, unseen, for each finished play.
+ */
 export function standInEarn(
   storage: KeyValueStore | null,
   stored: readonly PlayRecord[],
 ): void {
+  standInGiveKeepsakes(
+    storage,
+    stored.map((r) => r.game),
+  );
   for (const record of stored) {
     if (record.kind !== "end" || record.ending !== "finished") continue;
     const owned = standInRewards(storage).map((r) => r.item);

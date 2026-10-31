@@ -175,3 +175,15 @@ export function traitOf(id: string): RecognitionTrait | undefined {
 export function isSticker(id: string): boolean {
   return stickersById.has(id) || traitOf(id) !== undefined;
 }
+
+/**
+ * How far a sticker on a locker can be turned either way, in degrees. Each
+ * one gets a tilt within this when it's put on the locker, which the
+ * student doesn't choose.
+ */
+export const maxStickerTilt = 8;
+
+/** A tilt for a sticker just put on a locker: a little either way, at random. */
+export function randomStickerTilt(random: () => number = Math.random): number {
+  return Math.round((random() * 2 - 1) * maxStickerTilt * 10) / 10;
+}

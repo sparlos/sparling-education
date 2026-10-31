@@ -6,7 +6,7 @@ The play shell needs six things from the rest of the platform. It reaches each o
 | --- | --- | --- | --- |
 | `SessionPort` | Who is signed in: their ID, locale, avatar look, and the classes they're in with their grade in each | `GET /session` | A pretend student picked on the stand-in sign-in screen, kept in this browser's localStorage |
 | `MembershipsPort` | Joining a class by its join code, and picking a grade in a split class | `POST /memberships`, `PUT /memberships/{classId}/grade` | Adds stand-in classes to the stored student. Any join code names one: `G4` is Grade 4, `G45` a Grade 4/5 split, a code with no digits Grades 3–5, a code starting with `X` no class |
-| `HomePort` | The outfit pieces and stickers the student owns, the rewards and recognition they haven't seen yet, where their stickers are on the locker, and dressing their avatar (designing it the first time, then the wardrobe) | `GET /home`, `PUT /home/look`, `POST /home/seen`, `POST /home/wardrobe-seen`, `PUT /locker/stickers` | Owns the base set, plus rewards granted with `standInGrant` or earned with `standInEarn` (each finished play earns the next one, with no effort rule or cap) and recognition given with `standInRecognise`, and sticker placements, all kept in localStorage; the look is kept on the stored student |
+| `HomePort` | The outfit pieces and stickers the student owns, the rewards and recognition they haven't seen yet, their locker (where their stickers are, and a keepsake for each game they've played), and dressing their avatar (designing it the first time, then the wardrobe) | `GET /home`, `PUT /home/look`, `POST /home/seen`, `POST /home/wardrobe-seen`, `PUT` and `DELETE /locker/stickers/{sticker}`, `POST /locker/keepsakes/seen` | Owns the base set, plus rewards granted with `standInGrant` or earned with `standInEarn` (each finished play earns the next one, with no effort rule or cap) and recognition given with `standInRecognise`, and the locker (sticker placements, and a keepsake for each game a stored record was for, or given with `standInGiveKeepsakes`), all kept in localStorage; the look is kept on the stored student |
 | `PlayRecordsPort` | Stores each play's records: its attempts, then how it ended; and whether the student has played a game before | `POST /play-records`, `GET /games/{slug}/played` | Kept in memory and logged to the console; the games each student has played are kept in localStorage (`stand-in.played`), so a reload knows a returning student |
 | `LinksPort.signIn` | The sign-in page, returning to where the student was headed | `/play/sign-in`: Google's button in redirect mode | `/play/__stand-in/sign-in` |
 | `LinksPort.home` | Where every game returns the student, naming the play | Home, `/play/?play=<play>` | The same |
@@ -54,19 +54,28 @@ A game opens for one class, and that class's grade picks the tier, and every pla
 - **A teacher's game link**, `/play/<slug>?join=<code>`, is for the class with that join code. Signed out, the student goes to sign-in and comes back to the link. The shell joins them to the class (`POST /memberships`, which finds them if they're already in it), has them pick their grade first in a split class, then opens the game. A join code no class has, or a class with the game turned off, gets a spoken message and a way home.
 - **Home's links**, `/play/<slug>?class=<id>`, are for that class, or else the first the student joined that has the game on and their grade set.
 
-### `GET /home` → `Home`, `PUT /home/look` with `AvatarLook` → `AvatarLook`, `POST /home/seen` with `{ rewards: string[] }` → 204, `PUT /locker/stickers` with `{ placements }` → `{ placements }`
+### `GET /home` → `Home`, `PUT /home/look` with `AvatarLook` → `AvatarLook`, `POST /home/seen` with `{ rewards: string[] }` → 204, `PUT /locker/stickers/{sticker}` with `{ surface, x, y }` → `Placement`, `DELETE /locker/stickers/{sticker}` → 204, `POST /locker/keepsakes/seen` with `{ games: string[] }` → 204
 
 ```ts
 {
   owned: string[];    // outfit item IDs: the base set (`baseSet` in @repo/avatar/parts) and rewards
   stickers: string[]; // sticker IDs from @repo/rewards: earned ones in the order granted, then recognition stickers
   unseen: string[];   // rewards, then recognition stickers, not yet revealed
-  placements: { sticker: string; x: number; y: number }[]; // on the locker, the one underneath first; x and y are the centre, 0 to 1
+  placements: {        // on the locker, the one underneath first; an owned sticker not here is in the tray
+    sticker: string;
+    surface: "front" | "inside"; // the front of the door, or the inside of the door
+    x: number; y: number;        // the centre, 0 to 1 of the surface
+    tilt: number;                // degrees clockwise, within ±maxStickerTilt (@repo/rewards)
+  }[];
+  keepsakes: string[];    // game slugs: one for each game played, in the order first played
+  newKeepsakes: string[]; // keepsakes not yet seen
 }
 ```
 
 - Recognition from a teacher gives the student the trait's sticker (`recognition-<trait>`, drawn as a rosette by `@repo/rewards/sticker`), once however often they're recognised for it. Each time they're recognised it's new again until `/home/seen` names the sticker.
-- `PUT /locker/stickers` replaces every placement: stickers left out come off. A sticker the student doesn't own answers 400, which the adapter turns into `NotOwned`; only the signed-in student's locker changes.
+- `PUT /locker/stickers/{sticker}` puts one sticker on the locker, on top of the others. One already on it moves and keeps its tilt; one put on fresh (or again, after `DELETE` took it off) gets a new tilt, picked by the API at random. A sticker the student doesn't own answers 400, which the adapter turns into `NotOwned`, as does a spot off the surface; only the signed-in student's locker changes.
+- A keepsake is made when the first record of a play of a game arrives, however the play goes. It's not a reward and never counts toward the weekly cap. It's new until the shell names it in `/locker/keepsakes/seen`, when the student opens the locker's door.
+- The small locker on home glows while there's a new keepsake or an owned sticker that isn't placed (`lockerGlows` in `ports.ts`).
 
 - Rewards come from `@repo/rewards`' catalogue, in its order, never at random. The API grants them when a play ends, from that week's effort, up to a weekly cap (`rewardRule` in the API's scoring module). A crashed play grants nothing and takes nothing; a grant is never taken back.
 - Home reveals `unseen` whenever it opens, so rewards from a play sent late (offline) are revealed on a later visit. The student's tick posts them to `/home/seen`; until then they stay new, across reloads. Reaching the cap shows nothing.

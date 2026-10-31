@@ -25,10 +25,12 @@ import { classDashboard } from "./dashboard.ts";
 import { deleteDemoClass, giveDemoClass, viewDemoAsStudent } from "./demo.ts";
 import { studentEvidence, studentPlay } from "./drill-down.ts";
 import {
+  markKeepsakesSeen,
   markSeen,
   markSeenInWardrobe,
-  placeStickers,
+  placeSticker,
   studentHome,
+  takeOffSticker,
   wearLook,
 } from "./home.ts";
 import { type IdentityVerifier, identityFrom } from "./identity.ts";
@@ -57,10 +59,11 @@ import {
   HealthSchema,
   HomeSchema,
   JoinSchema,
+  KeepsakesSeenSchema,
   LookSchema,
   MembershipSchema,
   NewClassSchema,
-  PlacementsSchema,
+  PlacementSchema,
   PlayedSchema,
   PlayRecordBatchSchema,
   PlayRecordsStoredSchema,
@@ -72,6 +75,7 @@ import {
   SeenSchema,
   SignedInSchema,
   SignInSchema,
+  SpotSchema,
   StudentPageSchema,
   StudentSchema,
   StudentSignInSchema,
@@ -335,25 +339,60 @@ const wardrobeSeenRoute = createRoute({
   },
 });
 
-const placementsRoute = createRoute({
+const stickerParams = z.object({
+  sticker: z.string().max(100).openapi({ example: "sticker-star" }),
+});
+
+const placeStickerRoute = createRoute({
   method: "put",
-  path: "/locker/stickers",
-  operationId: "placeStickers",
-  summary: "Put the signed-in student's stickers on their locker",
+  path: "/locker/stickers/{sticker}",
+  operationId: "placeSticker",
+  summary: "Put one of the signed-in student's stickers on their locker",
   description:
-    "Every sticker on their locker, and where, replacing what was there: stickers left out are taken off. Each must be one they own. Only the student changes their own locker.",
+    "On the surface and at the spot given, on top of the other stickers. A sticker already on the locker moves there and keeps its tilt; one put on fresh gets a new tilt, picked at random. Only the student changes their own locker.",
   request: {
-    body: { content: { "application/json": { schema: PlacementsSchema } } },
+    params: stickerParams,
+    body: { content: { "application/json": { schema: SpotSchema } } },
   },
   responses: {
     200: {
-      description: "The stickers now on their locker",
-      content: { "application/json": { schema: PlacementsSchema } },
+      description: "Where the sticker is now, with its tilt",
+      content: { "application/json": { schema: PlacementSchema } },
     },
     400: {
-      description: "A sticker isn't theirs, or is placed twice",
+      description: "Not a sticker the student owns, or a spot off the surface",
       content: { "application/json": { schema: ErrorSchema } },
     },
+    ...studentOnly,
+  },
+});
+
+const takeOffStickerRoute = createRoute({
+  method: "delete",
+  path: "/locker/stickers/{sticker}",
+  operationId: "takeOffSticker",
+  summary: "Take one of the signed-in student's stickers off their locker",
+  description:
+    "It goes back to their tray. A sticker that isn't on their locker changes nothing.",
+  request: { params: stickerParams },
+  responses: {
+    204: { description: "Off the locker" },
+    ...studentOnly,
+  },
+});
+
+const keepsakesSeenRoute = createRoute({
+  method: "post",
+  path: "/locker/keepsakes/seen",
+  operationId: "markKeepsakesSeen",
+  summary: "The signed-in student has seen these keepsakes",
+  description:
+    "They opened their locker's door, so the keepsakes stop being new. Games they have no keepsake for, or whose keepsake they've already seen, are ignored.",
+  request: {
+    body: { content: { "application/json": { schema: KeepsakesSeenSchema } } },
+  },
+  responses: {
+    204: { description: "Marked as seen" },
     ...studentOnly,
   },
 });
@@ -1022,14 +1061,33 @@ export function createApp({
       await markSeenInWardrobe(db, student.id, c.req.valid("json").rewards);
       return c.body(null, 204);
     })
-    .openapi(placementsRoute, async (c) => {
+    .openapi(placeStickerRoute, async (c) => {
       const student = await studentOf(c);
       if (student === "signed-out") return c.json({ error: student }, 401);
       if (student === "not-a-student") return c.json({ error: student }, 403);
-      const { placements } = c.req.valid("json");
-      if ((await placeStickers(db, student.id, placements)) === "not-owned")
-        return c.json({ error: "not-owned" }, 400);
-      return c.json({ placements }, 200);
+      const { sticker } = c.req.valid("param");
+      const placed = await placeSticker(
+        db,
+        student.id,
+        sticker,
+        c.req.valid("json"),
+      );
+      if (placed === "not-owned") return c.json({ error: placed }, 400);
+      return c.json(placed, 200);
+    })
+    .openapi(takeOffStickerRoute, async (c) => {
+      const student = await studentOf(c);
+      if (student === "signed-out") return c.json({ error: student }, 401);
+      if (student === "not-a-student") return c.json({ error: student }, 403);
+      await takeOffSticker(db, student.id, c.req.valid("param").sticker);
+      return c.body(null, 204);
+    })
+    .openapi(keepsakesSeenRoute, async (c) => {
+      const student = await studentOf(c);
+      if (student === "signed-out") return c.json({ error: student }, 401);
+      if (student === "not-a-student") return c.json({ error: student }, 403);
+      await markKeepsakesSeen(db, student.id, c.req.valid("json").games);
+      return c.body(null, 204);
     })
     .openapi(playRecordsRoute, async (c) => {
       const student = await studentOf(c);

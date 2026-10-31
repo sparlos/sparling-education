@@ -55,6 +55,8 @@ model Account {
   recognitions  Recognition[]
   // Where a student put their stickers on their locker.
   placements    StickerPlacement[]
+  // A student's keepsakes: one for each game they've played.
+  keepsakes     Keepsake[]
 }
 
 // A signed-in browser. The cookie holds a random token; only its hash is kept.
@@ -226,18 +228,48 @@ model Recognition {
   @@index([classId, term])
 }
 
-// A sticker a student put on their locker, and where. Only the student
-// places, moves or removes their stickers.
+// The two places on a locker a sticker can go: the front of its door, or the
+// inside of the door, seen when it's open.
+enum LockerSurface {
+  front
+  inside
+}
+
+// A sticker a student put on their locker, and where. Each sticker they own
+// goes in one place at most. Only the student places, moves or removes their
+// stickers.
 model StickerPlacement {
-  studentId String  @db.Uuid
-  student   Account @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  studentId String        @db.Uuid
+  student   Account       @relation(fields: [studentId], references: [id], onDelete: Cascade)
   // A sticker the student owns: earned, or for a trait they were recognised for.
   sticker   String
-  // The sticker's centre, as fractions (0 to 1) of the locker's width and height.
+  surface   LockerSurface
+  // The sticker's centre, as fractions (0 to 1) of the surface's width and height.
   x         Float
   y         Float
-  // Stacking order, lowest first: a sticker put on later sits on top.
-  layer     Int
+  // How far it's turned, in degrees clockwise: picked at random when it's
+  // put on the locker, and kept when it's moved.
+  tilt      Float
+  // When it was last put down. Stacking order: the latest sits on top.
+  placedAt  DateTime      @default(now())
 
   @@id([studentId, sticker])
+}
+
+// One object in a student's locker for each game they've played, however it
+// went: made when the first record of a play of the game arrives, and never
+// taken away. Not a reward: effort and understanding don't come into it, and
+// it never counts toward the weekly cap.
+model Keepsake {
+  studentId     String    @db.Uuid
+  student       Account   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  // The game's slug.
+  game          String
+  // When the first record of a play of it arrived. Keepsakes stay in this
+  // order, so each keeps its place in the locker.
+  firstPlayedAt DateTime  @default(now())
+  // When the student opened their locker's door and saw it; null while it's new.
+  seenAt        DateTime?
+
+  @@id([studentId, game])
 }

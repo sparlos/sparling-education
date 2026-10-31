@@ -108,18 +108,53 @@ export interface Home {
    * whether or not they've seen it revealed. Never a sticker.
    */
   newInWardrobe: string[];
-  /** The stickers they put on their locker, and where, the one underneath first. */
+  /**
+   * The stickers they put on their locker, and where, the one underneath
+   * first. A sticker they own that isn't here is in their tray.
+   */
   placements: Placement[];
+  /**
+   * A keepsake in their locker for each game they've played, however it
+   * went, as game slugs, in the order first played, so each keeps its place.
+   */
+  keepsakes: string[];
+  /** Keepsakes they haven't seen yet: new until they open the locker's door. */
+  newKeepsakes: string[];
+}
+
+/** The two places on the locker a sticker can go. */
+export type Surface = "front" | "inside";
+
+/** Where a sticker goes on the locker. */
+export interface Spot {
+  /** The front of the locker's door, or the inside of the door. */
+  surface: Surface;
+  /** Where its centre is, across the surface: 0 is the left edge, 1 the right. */
+  x: number;
+  /** Where its centre is, down the surface: 0 is the top edge, 1 the bottom. */
+  y: number;
 }
 
 /** A sticker on the locker. */
-export interface Placement {
+export interface Placement extends Spot {
   /** A sticker ID from `@repo/rewards` that the student owns. */
   sticker: string;
-  /** Where its centre is, across the locker: 0 is the left edge, 1 the right. */
-  x: number;
-  /** Where its centre is, down the locker: 0 is the top edge, 1 the bottom. */
-  y: number;
+  /**
+   * How far it's turned, in degrees clockwise: a little either way, picked
+   * when it was put on the locker, and kept when it's moved.
+   */
+  tilt: number;
+}
+
+/**
+ * Whether the small locker on home glows: there's a new keepsake, or a
+ * sticker the student owns that isn't on their locker yet.
+ */
+export function lockerGlows(home: Home): boolean {
+  const placed = new Set(home.placements.map((p) => p.sticker));
+  return (
+    home.newKeepsakes.length > 0 || home.stickers.some((s) => !placed.has(s))
+  );
 }
 
 export interface HomePort {
@@ -142,12 +177,23 @@ export interface HomePort {
    */
   markSeenInWardrobe(items: readonly string[]): Promise<void>;
   /**
-   * Puts the student's stickers on their locker where `placements` says,
-   * the one underneath first, taking off any left out. Only the signed-in
-   * student's own locker changes. Rejects with `NotOwned` when a sticker
-   * isn't theirs.
+   * Puts one of the student's stickers on their locker at `spot`, on top of
+   * the others, and resolves with where it is now. One already on the
+   * locker moves there and keeps its tilt; one put on fresh gets a new tilt.
+   * Only the signed-in student's own locker changes. Rejects with
+   * `NotOwned` when the sticker isn't theirs.
    */
-  place(placements: readonly Placement[]): Promise<Placement[]>;
+  place(sticker: string, spot: Spot): Promise<Placement>;
+  /**
+   * Takes one of the student's stickers off their locker, back to their
+   * tray. One that isn't on it changes nothing.
+   */
+  takeOff(sticker: string): Promise<void>;
+  /**
+   * The student opened their locker's door and saw these keepsakes, so
+   * they're no longer new.
+   */
+  markKeepsakesSeen(games: readonly string[]): Promise<void>;
 }
 
 /** A teacher is signed in; the play shell is for students. */
@@ -166,7 +212,7 @@ export class NoSuchClass extends Error {
   }
 }
 
-/** The look has an outfit piece, or the placements a sticker, the student doesn't own. */
+/** The look has an outfit piece, or the sticker placed is one, the student doesn't own. */
 export class NotOwned extends Error {
   constructor() {
     super("That has something the student doesn't own");

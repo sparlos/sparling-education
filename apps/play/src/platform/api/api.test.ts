@@ -141,7 +141,7 @@ homePortContract("API home", {
         const { classId } = await inClass();
         const me = await apiSession().current();
         const common = {
-          play: "earning",
+          play: `earning-${crypto.randomUUID()}`,
           student: me?.id ?? "",
           class: classId,
           game: fractionHop.slug,

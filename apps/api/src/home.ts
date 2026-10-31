@@ -1,5 +1,6 @@
 // What a student has at home: the outfit pieces and stickers they own, the look they
-// wear, where they put their stickers, and the rewards and recognition they
+// wear, their locker (where they put their stickers, and a keepsake for each
+// game they've played), and the rewards, recognition and keepsakes they
 // haven't seen yet. Rewards are granted here when a play ends, by the reward
 // rule in scoring.ts; recognition stickers come from teachers
 // (recognition.ts).
@@ -12,12 +13,13 @@ import {
   isSticker,
   nextRewards,
   type RecognitionTrait,
+  randomStickerTilt,
   recognitionSticker,
   recognitionTraits,
   rewardKind,
   traitOf,
 } from "@repo/rewards";
-import type { Home } from "./schemas.ts";
+import type { Home, Placement, Spot } from "./schemas.ts";
 import { effortOf, rewardsEarned, weekOf } from "./scoring.ts";
 
 /**
@@ -26,7 +28,7 @@ import { effortOf, rewardsEarned, weekOf } from "./scoring.ts";
  * adds that trait's sticker, once however often they're recognised for it.
  */
 export async function studentHome(db: Db, studentId: string): Promise<Home> {
-  const [rewards, recognitions, placements] = await Promise.all([
+  const [rewards, recognitions, placements, keepsakes] = await Promise.all([
     db.reward.findMany({
       where: { studentId },
       select: { item: true, seenAt: true, wardrobeSeenAt: true },
@@ -38,8 +40,13 @@ export async function studentHome(db: Db, studentId: string): Promise<Home> {
     }),
     db.stickerPlacement.findMany({
       where: { studentId },
-      select: { sticker: true, x: true, y: true },
-      orderBy: { layer: "asc" },
+      select: { sticker: true, surface: true, x: true, y: true, tilt: true },
+      orderBy: [{ placedAt: "asc" }, { sticker: "asc" }],
+    }),
+    db.keepsake.findMany({
+      where: { studentId },
+      select: { game: true, seenAt: true },
+      orderBy: [{ firstPlayedAt: "asc" }, { game: "asc" }],
     }),
   ]);
   const items = inGrantOrder(rewards.map((r) => r.item));
@@ -72,36 +79,79 @@ export async function studentHome(db: Db, studentId: string): Promise<Home> {
     newInWardrobe: outfit.filter((id) => newInWardrobe.has(id)),
     // A sticker whose trait was taken out of the configuration isn't shown.
     placements: placements.filter((p) => mine.has(p.sticker)),
+    keepsakes: keepsakes.map((k) => k.game),
+    newKeepsakes: keepsakes.filter((k) => k.seenAt === null).map((k) => k.game),
   };
 }
 
 /**
- * Puts the student's stickers on their locker where `placements` says, the
- * one underneath first, and takes off any left out. Refused when one isn't
- * a sticker they own.
+ * Puts one of the student's stickers on their locker at `spot`, on top of
+ * the others. One already there moves, keeping its tilt; one put on again
+ * after it was taken off gets a new one. Refused when it isn't a sticker
+ * they own.
  */
-export async function placeStickers(
+export async function placeSticker(
   db: Db,
   studentId: string,
-  placements: readonly { sticker: string; x: number; y: number }[],
-): Promise<"placed" | "not-owned"> {
+  sticker: string,
+  spot: Spot,
+): Promise<Placement | "not-owned"> {
   const { stickers } = await studentHome(db, studentId);
-  const mine = new Set(stickers);
-  if (!placements.every((p) => isSticker(p.sticker) && mine.has(p.sticker)))
-    return "not-owned";
-  await db.$transaction([
-    db.stickerPlacement.deleteMany({ where: { studentId } }),
-    db.stickerPlacement.createMany({
-      data: placements.map(({ sticker, x, y }, layer) => ({
-        studentId,
-        sticker,
-        x,
-        y,
-        layer,
-      })),
-    }),
-  ]);
-  return "placed";
+  if (!isSticker(sticker) || !stickers.includes(sticker)) return "not-owned";
+  const placedAt = new Date();
+  const placed = await db.stickerPlacement.upsert({
+    where: { studentId_sticker: { studentId, sticker } },
+    create: {
+      studentId,
+      sticker,
+      ...spot,
+      tilt: randomStickerTilt(),
+      placedAt,
+    },
+    update: { ...spot, placedAt },
+    select: { sticker: true, surface: true, x: true, y: true, tilt: true },
+  });
+  return placed;
+}
+
+/** Takes one of the student's stickers off their locker, back to the tray. */
+export async function takeOffSticker(
+  db: Db,
+  studentId: string,
+  sticker: string,
+): Promise<void> {
+  await db.stickerPlacement.deleteMany({ where: { studentId, sticker } });
+}
+
+/**
+ * The student opened their locker's door and saw these keepsakes, so
+ * they're no longer new.
+ */
+export async function markKeepsakesSeen(
+  db: Db,
+  studentId: string,
+  games: readonly string[],
+): Promise<void> {
+  await db.keepsake.updateMany({
+    where: { studentId, game: { in: [...games] }, seenAt: null },
+    data: { seenAt: new Date() },
+  });
+}
+
+/**
+ * Gives the student a keepsake for each of these games they haven't got
+ * one for yet, new. Run inside the transaction that stores their plays'
+ * records.
+ */
+export async function giveKeepsakes(
+  tx: DbTransaction,
+  studentId: string,
+  games: readonly string[],
+): Promise<void> {
+  await tx.keepsake.createMany({
+    data: [...new Set(games)].map((game) => ({ studentId, game })),
+    skipDuplicates: true,
+  });
 }
 
 /**
