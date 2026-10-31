@@ -9,7 +9,7 @@ export {
   getDashboard,
   getEvidence,
   getHealth,
-  getLocker,
+  getHome,
   getPlay,
   getQuickAssess,
   getSession,

@@ -1,5 +1,5 @@
 // Pieces every screen of the shell uses: its own words, spoken, a centred
-// message, a question asked over the screen, and the way to the locker.
+// message, a question asked over the screen, and the way home.
 import { Portrait } from "@repo/avatar/portrait";
 import type { AvatarExpression } from "@repo/game-contract";
 import { Icon } from "@repo/ui/icon";
@@ -123,10 +123,10 @@ export function SpokenMessage({
   return <Message text={shellT(line)}>{children}</Message>;
 }
 
-/** The way out of a page that can't go on: to the student's locker. */
-export function ToLocker({ onClick }: { onClick(): void }) {
+/** The way out of a page that can't go on: to the student's home. */
+export function ToHome({ onClick }: { onClick(): void }) {
   return (
-    <IconButton label={shellT("to-locker")} onClick={onClick}>
+    <IconButton label={shellT("to-home")} onClick={onClick}>
       <Icon name="student" size={32} />
     </IconButton>
   );

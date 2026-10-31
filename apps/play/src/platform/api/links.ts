@@ -1,5 +1,5 @@
 // The links port on the platform's shared domain.
-import { lockerPath } from "../../play/routes.ts";
+import { homePath } from "../../play/routes.ts";
 import type { LinksPort } from "../ports.ts";
 
 /** The play shell's sign-in page, under its base path: Google sign-in. */
@@ -13,6 +13,6 @@ export function apiLinks(options: {
     signIn(returnTo) {
       return `${options.base}${signInPath}?${new URLSearchParams({ next: returnTo })}`;
     },
-    locker: (play) => lockerPath(options.base, play),
+    home: (play) => homePath(options.base, play),
   };
 }

@@ -9,7 +9,7 @@ import { afterAll, beforeEach, describe, expect, inject, it } from "vitest";
 import type { GameRegistry, HostedGame } from "../../games.ts";
 import { boot } from "../../play/boot.ts";
 import {
-  lockerPortContract,
+  homePortContract,
   playRecordsPortContract,
   sampleAttempt,
   sampleEnd,
@@ -21,8 +21,8 @@ import {
   type Platform,
   type PlayRecord,
 } from "../ports.ts";
+import { apiHome } from "./home.ts";
 import { apiLinks } from "./links.ts";
-import { apiLocker } from "./locker.ts";
 import { apiMemberships } from "./memberships.ts";
 import { apiRecords } from "./records.ts";
 import { apiSession } from "./session.ts";
@@ -110,7 +110,7 @@ sessionPortContract("API session", {
     }),
 });
 
-lockerPortContract("API locker", {
+homePortContract("API home", {
   newStudent: async () => {
     const student = browser();
     await student.signInAsStudent();
@@ -136,7 +136,7 @@ lockerPortContract("API locker", {
     };
     return {
       session: apiSession(),
-      locker: apiLocker(),
+      home: apiHome(),
       earn: async () => {
         const { classId } = await inClass();
         const me = await apiSession().current();
@@ -328,13 +328,13 @@ describe("a game link over the API", () => {
     const student = browser();
     await student.signInAsStudent();
     setFetch(student.send);
-    await apiLocker().wear(defaultLook);
+    await apiHome().wear(defaultLook);
     const records = apiRecords();
     const platform: Platform = {
       name: "api",
       session: apiSession(),
       memberships: apiMemberships(),
-      locker: apiLocker(),
+      home: apiHome(),
       records,
       links: apiLinks({ base: "/play/" }),
     };
@@ -409,8 +409,8 @@ describe("API links", () => {
     expect(url.searchParams.get("next")).toBe("/play/join/K7QM4XRT");
   });
 
-  it("sends the student back to the locker, naming the play", () => {
-    const url = new URL(links.locker("p1"), "https://k.test");
+  it("sends the student back home, naming the play", () => {
+    const url = new URL(links.home("p1"), "https://k.test");
     expect(url.pathname).toBe("/play/");
     expect(url.searchParams.get("play")).toBe("p1");
   });

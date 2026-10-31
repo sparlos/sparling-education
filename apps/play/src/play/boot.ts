@@ -48,8 +48,8 @@ export type Boot =
   | { kind: "no-such-class" }
   /** The game link's class has the game turned off. */
   | { kind: "game-off" }
-  /** No class of theirs can play it yet; the locker shows why. */
-  | { kind: "locker" }
+  /** No class of theirs can play it yet; home shows why. */
+  | { kind: "home" }
   | { kind: "not-found" }
   | { kind: "ready"; ready: ReadyPlay };
 
@@ -97,7 +97,7 @@ export async function boot(options: {
     membership = { ...joined, grade: joined.grade };
   } else {
     membership = membershipFor(student, link);
-    if (!membership) return { kind: "locker" };
+    if (!membership) return { kind: "home" };
   }
 
   let played = false;
@@ -164,7 +164,7 @@ async function join(
 }
 
 /**
- * The class to play a game for, from the locker: the one the link names, or else the first
+ * The class to play a game for, from home: the one the link names, or else the first
  * the student joined. Only a class with the game on, where the student's
  * grade is set.
  */

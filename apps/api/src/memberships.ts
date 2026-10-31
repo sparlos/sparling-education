@@ -131,7 +131,7 @@ export async function setStudentGrade(
 }
 
 /**
- * Takes the student out of the teacher's class: it leaves their locker, and
+ * Takes the student out of the teacher's class: it leaves their home, and
  * they leave the class's dashboard. Their plays for the class are kept, but
  * every teacher view reads only members' plays, so they're out of sight
  * (and back if the student joins again). False when the class isn't this

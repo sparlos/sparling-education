@@ -626,7 +626,7 @@ export const space = {
   sectionCompact: 64,
 } as const;
 
-/** Corner radius in px. `card` is a teacher card; the locker's use `lg`. */
+/** Corner radius in px. `card` is a teacher card; home's use `lg`. */
 export const radius = {
   xs: 6,
   sm: 8,

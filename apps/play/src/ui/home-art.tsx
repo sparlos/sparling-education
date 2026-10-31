@@ -1,19 +1,19 @@
-// Each game's picture on its locker card, by named slot (`locker-card`),
+// Each game's picture on its card on home, by named slot (`home-card`),
 // like other game art: real art registered under the same slot replaces the
 // placeholder without code changes. It lives in the shell, not the game, so
-// the locker never downloads a game's code. A game without its own is a
+// home never downloads a game's code. A game without its own is a
 // tinted placeholder in its class's colour.
 import { palette } from "@repo/tokens";
 import type { ReactNode } from "react";
 
 /** A 240×120 frame, centred. */
-interface LockerArt {
+interface HomeArt {
   draw(): ReactNode;
 }
 
 const stroke = palette.sunshine[8];
 
-export const lockerArt: Record<string, LockerArt> = {
+export const homeArt: Record<string, HomeArt> = {
   /** A quarter circle and a bar in thirds: simple fraction shapes. */
   "fraction-hop": {
     draw: () => (
@@ -52,12 +52,12 @@ export const lockerArt: Record<string, LockerArt> = {
   },
 };
 
-/** The picture on a game's locker card: its slot's art, or the placeholder. */
-export function LockerPicture({ slug }: { slug: string }) {
-  const art = lockerArt[slug];
+/** The picture on a game's card on home: its slot's art, or the placeholder. */
+export function HomeCardPicture({ slug }: { slug: string }) {
+  const art = homeArt[slug];
   return (
     <svg
-      data-slot="locker-card"
+      data-slot="home-card"
       data-placeholder={art ? undefined : true}
       viewBox="0 0 240 120"
       preserveAspectRatio="xMidYMid slice"

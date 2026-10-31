@@ -89,7 +89,7 @@ async function play(headers: Headers, records: ReturnType<typeof playOf>) {
 const day = (n: number) => new Date(Date.UTC(2026, 9, n, 14));
 
 describe("turning a game off and on", () => {
-  it("takes it out of the class's lockers, and puts it back", async () => {
+  it("takes it out of the class's students' homes, and puts it back", async () => {
     const headers = await teacher();
     const cls = await createClass(headers);
     const sam = await joinedStudent(cls);
@@ -260,7 +260,7 @@ describe("changing a student's grade", () => {
 });
 
 describe("removing a student", () => {
-  it("takes them out of the class's dashboard and their locker, and keeps their results out of sight", async () => {
+  it("takes them out of the class's dashboard and their home, and keeps their results out of sight", async () => {
     const headers = await teacher();
     const cls = await createClass(headers);
     const kept = await createClass(headers);
@@ -312,7 +312,7 @@ describe("removing a student", () => {
     );
     expect(opened.status).toBe(404);
 
-    // Their locker lists only the class they're still in, and the removed
+    // Their home lists only the class they're still in, and the removed
     // class takes no more of their plays.
     expect(
       (await sessionOf(sam.headers)).classes.map((c) => c.classId),

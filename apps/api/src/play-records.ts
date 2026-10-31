@@ -2,13 +2,13 @@
 // sends them. Stored as sent, once each, after checking them against the
 // student's classes and the game's manifest at the version they were made
 // under. Results are computed from them later (scoring.ts); rewards are
-// granted as plays end (locker.ts).
+// granted as plays end (home.ts).
 // The contract is in apps/play/src/platform/README.md.
 
 import type { Db, DbTransaction } from "@repo/db";
 import { attemptProblem } from "@repo/game-contract";
 import { manifestAt } from "./games.ts";
-import { grantRewards } from "./locker.ts";
+import { grantRewards } from "./home.ts";
 import type { PlayRecord } from "./schemas.ts";
 
 export type Ingested =

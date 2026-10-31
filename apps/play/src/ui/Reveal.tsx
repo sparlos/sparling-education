@@ -1,4 +1,4 @@
-// The rewards a student hasn't seen yet, revealed over their locker when they
+// The rewards a student hasn't seen yet, revealed over their home when they
 // come back from a game (or whenever they open it next, for a play sent
 // later), and any recognition from their teacher. Spoken when it appears,
 // recognition by name; the tick puts them away. Nothing is ever said about
@@ -14,7 +14,7 @@ import { useEffect, useId, useRef } from "react";
 import type { AvatarLook } from "../platform/ports.ts";
 import type { VoiceOptions } from "../play/voice.ts";
 import classes from "./app.module.css";
-import styles from "./locker.module.css";
+import styles from "./home.module.css";
 import { recognitionLines } from "./Stickers.tsx";
 import { shellT, useShellVoice } from "./shared.tsx";
 

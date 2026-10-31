@@ -16,11 +16,11 @@ function place(headers: Headers | undefined, placements: Placement[]) {
   return client.locker.stickers.$put({ json: { placements } }, { headers });
 }
 
-async function lockerOf(headers: Headers) {
-  const res = await client.locker.$get(undefined, { headers });
-  const locker = await res.json();
-  if ("error" in locker) throw new Error(locker.error);
-  return locker;
+async function homeOf(headers: Headers) {
+  const res = await client.home.$get(undefined, { headers });
+  const home = await res.json();
+  if ("error" in home) throw new Error(home.error);
+  return home;
 }
 
 /**
@@ -42,7 +42,7 @@ async function studentWithStickers() {
     for (let i = 0; i < records.length; i += 25)
       await sendRecords(headers, records.slice(i, i + 25));
   }
-  const { stickers } = await lockerOf(headers);
+  const { stickers } = await homeOf(headers);
   if (stickers.length < 2) throw new Error("Not enough stickers earned");
   const [one = "", two = ""] = stickers;
   return { headers, teacherHeaders, room, who, one, two };
@@ -51,7 +51,7 @@ async function studentWithStickers() {
 describe("placing stickers", () => {
   it("starts with nothing on the locker", async () => {
     const { headers } = await studentWithStickers();
-    expect((await lockerOf(headers)).placements).toEqual([]);
+    expect((await homeOf(headers)).placements).toEqual([]);
   });
 
   it("puts the student's stickers where they placed them, the latest on top", async () => {
@@ -63,7 +63,7 @@ describe("placing stickers", () => {
     const res = await place(headers, placements);
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ placements });
-    expect((await lockerOf(headers)).placements).toEqual(placements);
+    expect((await homeOf(headers)).placements).toEqual(placements);
   });
 
   it("moves and takes off stickers", async () => {
@@ -73,11 +73,11 @@ describe("placing stickers", () => {
       { sticker: two, x: 0.9, y: 0.9 },
     ]);
     await place(headers, [{ sticker: two, x: 0, y: 1 }]);
-    expect((await lockerOf(headers)).placements).toEqual([
+    expect((await homeOf(headers)).placements).toEqual([
       { sticker: two, x: 0, y: 1 },
     ]);
     await place(headers, []);
-    expect((await lockerOf(headers)).placements).toEqual([]);
+    expect((await homeOf(headers)).placements).toEqual([]);
   });
 
   it("places a recognition sticker the student was given", async () => {
@@ -88,7 +88,7 @@ describe("placing stickers", () => {
     );
     const placements = [{ sticker: "recognition-kindness", x: 0.5, y: 0.5 }];
     expect((await place(headers, placements)).status).toBe(200);
-    expect((await lockerOf(headers)).placements).toEqual(placements);
+    expect((await homeOf(headers)).placements).toEqual(placements);
   });
 
   it.each([
@@ -103,7 +103,7 @@ describe("placing stickers", () => {
     const res = await place(headers, [...before, { sticker, x: 0.2, y: 0.2 }]);
     expect(res.status).toBe(400);
     expect(await res.json()).toEqual({ error: "not-owned" });
-    expect((await lockerOf(headers)).placements).toEqual(before);
+    expect((await homeOf(headers)).placements).toEqual(before);
   });
 
   it("refuses a sticker placed twice, or off the locker", async () => {
@@ -119,7 +119,7 @@ describe("placing stickers", () => {
     expect(
       (await place(headers, [{ sticker: one, x: 0, y: -0.1 }])).status,
     ).toBe(400);
-    expect((await lockerOf(headers)).placements).toEqual([]);
+    expect((await homeOf(headers)).placements).toEqual([]);
   });
 
   it("changes only the signed-in student's locker", async () => {
@@ -127,7 +127,7 @@ describe("placing stickers", () => {
     const theirs = await studentWithStickers();
     await place(theirs.headers, [{ sticker: theirs.one, x: 0.5, y: 0.5 }]);
     await place(mine.headers, []);
-    expect((await lockerOf(theirs.headers)).placements).toEqual([
+    expect((await homeOf(theirs.headers)).placements).toEqual([
       { sticker: theirs.one, x: 0.5, y: 0.5 },
     ]);
   });

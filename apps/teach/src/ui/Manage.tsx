@@ -264,7 +264,7 @@ function StudentRow({
         <Card variant="soft" tone="accent">
           <Stack gap="sm" align="flex-start">
             <Text>
-              Remove {name} from {cls.name}? The class leaves their locker, and
+              Remove {name} from {cls.name}? The class leaves their home screen, and
               their results leave your views of it.
             </Text>
             <div className={classes.controls}>

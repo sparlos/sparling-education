@@ -4,7 +4,7 @@ How to show that a change to `apps/play`, `apps/teach` or a game works. Work dow
 
 ## 1. Rendered-app tests: the proof
 
-Vitest and Testing Library render the whole app over its in-memory platform (the play shell's stand-ins, the teacher app's fake port) and assert what a user sees, hears and can do. Every acceptance criterion about behaviour is proven here. The examples to copy are `apps/play/src/ui/App.test.tsx` and `Locker.test.tsx`, and `apps/teach/src/ui/App.test.tsx`.
+Vitest and Testing Library render the whole app over its in-memory platform (the play shell's stand-ins, the teacher app's fake port) and assert what a user sees, hears and can do. Every acceptance criterion about behaviour is proven here. The examples to copy are `apps/play/src/ui/App.test.tsx` and `Home.test.tsx`, and `apps/teach/src/ui/App.test.tsx`.
 
 The contract suites (`src/platform/api/api.test.ts` in each app) tie the in-memory platform to the real API over a test Postgres, so those test runs need Docker.
 

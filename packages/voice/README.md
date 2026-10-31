@@ -76,7 +76,7 @@ Two more maps come from the same plugin:
 - `virtual:voice-lines/shell`: the play shell's own lines, from
   `apps/play/src/ui/shell-strings.ts`, recorded into `apps/play/voice/`.
 - `virtual:voice-titles`: every game's `title` string (its name, required by
-  the game contract), `{ [slug]: url }`, so the locker says a game's name
+  the game contract), `{ [slug]: url }`, so home says a game's name
   without loading the game. The API's game names come from the same string,
   so renaming a game is one edit in its strings, then `pnpm voice`.
 

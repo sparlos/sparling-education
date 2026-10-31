@@ -18,7 +18,7 @@ import { startViewingAs } from "./accounts.ts";
 import { newJoinCode } from "./classes.ts";
 import { byName } from "./dashboard.ts";
 import { type HostedGame, hostedGames } from "./games.ts";
-import { grantRewards } from "./locker.ts";
+import { grantRewards } from "./home.ts";
 import { toRow } from "./play-records.ts";
 import type { DemoView, PlayRecord } from "./schemas.ts";
 import { termOf, weekOf } from "./scoring.ts";
@@ -28,8 +28,8 @@ export const demoClassName = "Demo class";
 export const demoClassColour = defaultClassColour;
 const demoGrades = [3, 4, 5];
 
-/** Where viewing as a demo student opens the play shell: their locker. */
-const lockerPath = "/play/";
+/** Where viewing as a demo student opens the play shell: their home. */
+const homePath = "/play/";
 
 interface DemoStudent {
   firstName: string;
@@ -105,7 +105,7 @@ export const demoRecognition: readonly [
   trait: RecognitionTrait,
   term: "this" | "last",
 ][] = [
-  // The student "view as a student" opens, so her locker reveals it as new.
+  // The student "view as a student" opens, so her home reveals it as new.
   ["Amara", "kindness", "this"],
   ["Dev", "perseverance", "this"],
   ["Jada", "perseverance", "this"],
@@ -387,7 +387,7 @@ export async function viewDemoAsStudent(
   const [first] = [...(demo?.demoStudents ?? [])].sort(byName);
   if (!first) return null;
   await startViewingAs(db, token, first.id);
-  return { student: first, path: lockerPath };
+  return { student: first, path: homePath };
 }
 
 /**

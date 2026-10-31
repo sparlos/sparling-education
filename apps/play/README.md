@@ -1,6 +1,6 @@
 # Play shell
 
-Hosts every game at its game link, `/play/<slug>`, and the student's locker at `/play/`, on the same domain as the teacher app and the API. It owns everything a game doesn't (see `packages/game-contract`): sign-in, joining a class (`/play/join/<code>`) and picking a grade, the locker, choosing the tier, loading, voice lines and "hear it again", and getting attempts to the platform despite flaky wifi.
+Hosts every game at its game link, `/play/<slug>`, and the student's home at `/play/`, on the same domain as the teacher app and the API. It owns everything a game doesn't (see `packages/game-contract`): sign-in, joining a class (`/play/join/<code>`) and picking a grade, home, choosing the tier, loading, voice lines and "hear it again", and getting attempts to the platform despite flaky wifi.
 
 It runs on the platform's API, or on stand-ins for development without it. See [`src/platform/README.md`](./src/platform/README.md).
 
@@ -17,13 +17,13 @@ To run without the API or Google, set `VITE_PLAY_PLATFORM=stand-in` in `.env.loc
 
 `/play/lab` is the dev-only prototype lab, for playing candidate mechanics before a game spec is written; see [`src/lab/README.md`](./src/lab/README.md).
 
-`/play/shell-check` is a dev-only game that exercises the whole contract. On the stand-ins, the first visit goes to the stand-in sign-in, where you pick a grade; `/play/join/G45` joins a split class. `/play/shell-check?join=G34` opens it the way a teacher's game link does, joining that class first. Finishing or leaving returns to the locker. Add `?stand-in-offline` to watch attempts wait on the device and retry.
+`/play/shell-check` is a dev-only game that exercises the whole contract. On the stand-ins, the first visit goes to the stand-in sign-in, where you pick a grade; `/play/join/G45` joins a split class. `/play/shell-check?join=G34` opens it the way a teacher's game link does, joining that class first. Finishing or leaving returns home. Add `?stand-in-offline` to watch attempts wait on the device and retry.
 
 ## Layout
 
 - `src/platform/`: the ports to the rest of the platform, their contract tests, and the stand-ins.
 - `src/play/`: the shell's rules as plain TypeScript (tier choice, the outbox, a play's attempts and exit, voice, game links).
-- `src/ui/`: the React screens, built from `@repo/ui`: `App.tsx` routes by URL and runs a game; `Locker.tsx` is the locker, joining and sign-in.
+- `src/ui/`: the React screens, built from `@repo/ui`: `App.tsx` routes by URL and runs a game; `Home.tsx` is home, joining and sign-in.
 - `src/lab/`: the prototype lab (dev only).
 - `src/games.ts`: the registry. A game is added here by slug once its package exists.
 - `src/main.tsx`: the composition root, and the only file that picks the platform (`VITE_PLAY_PLATFORM`).

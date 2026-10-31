@@ -177,12 +177,12 @@ export const GradePickSchema = z
   })
   .openapi("GradePick");
 
-export const LockerGameSchema = z
+export const HomeGameSchema = z
   .object({
     slug: z.string().openapi({ example: "fraction-hop" }),
     name: z.string().openapi({ example: "Fraction Hop" }),
   })
-  .openapi("LockerGame");
+  .openapi("HomeGame");
 
 export const MembershipSchema = z
   .object({
@@ -197,7 +197,7 @@ export const MembershipSchema = z
         "The student's grade in this class, which chooses their tier. Null until a student in a split class picks one",
     }),
     games: z
-      .array(LockerGameSchema)
+      .array(HomeGameSchema)
       .openapi({ description: "The class's games that are on" }),
   })
   .openapi("Membership");
@@ -241,7 +241,7 @@ export const PlacementSchema = z
   })
   .openapi("Placement");
 
-export const LockerSchema = z
+export const HomeSchema = z
   .object({
     owned: z.array(z.string()).openapi({
       description:
@@ -264,9 +264,9 @@ export const LockerSchema = z
         "The stickers the student put on their locker, and where, the one underneath first",
     }),
   })
-  .openapi("Locker");
+  .openapi("Home");
 
-export type Locker = z.infer<typeof LockerSchema>;
+export type Home = z.infer<typeof HomeSchema>;
 
 export const PlacementsSchema = z
   .object({
@@ -822,7 +822,7 @@ export const DemoViewSchema = z
     }),
     path: z.string().openapi({
       description:
-        "Where to open the play shell, as a path on this domain: their locker",
+        "Where to open the play shell, as a path on this domain: their home",
       example: "/play/",
     }),
   })

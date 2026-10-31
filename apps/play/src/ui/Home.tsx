@@ -1,6 +1,6 @@
-// The student's side of the shell outside games: the locker (after designing
+// The student's side of the shell outside games: home (after designing
 // their avatar, the first time), with any new rewards revealed and their
-// stickers to stick on it, its wardrobe, joining a class by its join
+// stickers to stick on their locker, the wardrobe, joining a class by its join
 // link (and picking a grade in a split class), and sign-in. Every
 // label is also spoken, so a Grade 3 student can use it without reading.
 import { Portrait } from "@repo/avatar/portrait";
@@ -17,7 +17,7 @@ import { useEffect, useState } from "react";
 import type { GameRegistry } from "../games.ts";
 import {
   type DressedStudent,
-  type Locker as LockerContents,
+  type Home as HomeContents,
   type Membership,
   NoSuchClass,
   NotAStudent,
@@ -25,7 +25,7 @@ import {
   type Student,
 } from "../platform/ports.ts";
 import {
-  lockerGamePath,
+  homeGamePath,
   returnPath,
   shellPath,
   wardrobePath,
@@ -34,8 +34,8 @@ import { readJson, remove, writeJson } from "../play/storage.ts";
 import type { VoiceOptions } from "../play/voice.ts";
 import type { AppProps } from "./App.tsx";
 import classes from "./app.module.css";
-import styles from "./locker.module.css";
-import { LockerPicture } from "./locker-art.tsx";
+import styles from "./home.module.css";
+import { HomeCardPicture } from "./home-art.tsx";
 import { Reveal } from "./Reveal.tsx";
 import { Stickers } from "./Stickers.tsx";
 import {
@@ -45,7 +45,7 @@ import {
   Question,
   SpokenMessage,
   shellT,
-  ToLocker,
+  ToHome,
   useShellVoice,
 } from "./shared.tsx";
 import type { ShellStringId } from "./shell-strings.ts";
@@ -97,7 +97,7 @@ function NotReady({
 }) {
   switch (state.kind) {
     case "loading":
-      return <Message text={shellT("opening-locker")} busy />;
+      return <Message text={shellT("opening-home")} busy />;
     case "error":
       return <TryAgain url={url} navigate={navigate} />;
     case "not-a-student":
@@ -125,10 +125,10 @@ function TryAgain({
 }
 
 /**
- * The locker, after the student designs their avatar, the first time, and
+ * Home, after the student designs their avatar, the first time, and
  * picks their grade in any split class that needs one.
  */
-export function LockerPage(props: AppProps) {
+export function HomePage(props: AppProps) {
   const [state, setState] = useStudent(props);
   if (state.kind !== "ready") return <NotReady state={state} {...props} />;
 
@@ -171,7 +171,7 @@ export function LockerPage(props: AppProps) {
       />
     );
   return (
-    <Locker
+    <Home
       student={dressed}
       base={props.base}
       games={props.games}
@@ -182,22 +182,22 @@ export function LockerPage(props: AppProps) {
 }
 
 /**
- * What's in the student's locker, or null when it couldn't be read: the
- * locker still opens, just without stickers or a reveal.
+ * What the student has at home, or null when it couldn't be read: home
+ * still opens, just without stickers or a reveal.
  */
-function useLockerContents(platform: Platform) {
-  const [contents, setContents] = useState<LockerContents | null | "loading">(
+function useHomeContents(platform: Platform) {
+  const [contents, setContents] = useState<HomeContents | null | "loading">(
     "loading",
   );
   useEffect(() => {
     let cancelled = false;
-    platform.locker.current().then(
+    platform.home.current().then(
       (found) => {
         if (!cancelled) setContents(found);
       },
       (error: unknown) => {
         if (cancelled) return;
-        console.error("[play] Couldn't open the locker's contents", error);
+        console.error("[play] Couldn't open what's at home", error);
         setContents(null);
       },
     );
@@ -208,7 +208,7 @@ function useLockerContents(platform: Platform) {
   return contents;
 }
 
-function Locker({
+function Home({
   student,
   base,
   games,
@@ -222,14 +222,14 @@ function Locker({
   speak?: VoiceOptions["speak"];
 }) {
   const voice = useShellVoice(student.locale, speak);
-  const contents = useLockerContents(platform);
+  const contents = useHomeContents(platform);
   const [revealed, setRevealed] = useState(false);
   const unseen =
     contents === "loading" || contents === null ? [] : contents.unseen;
   const revealing = unseen.length > 0 && !revealed;
   const stickers =
     contents === "loading" || contents === null ? [] : contents.stickers;
-  // New rewards are said first; the locker's own line once they're put away.
+  // New rewards are said first; home's own line once they're put away.
   const settled = contents !== "loading" && !revealing;
   // Each class the student plays in, with the games of it this shell hosts.
   const sections = student.classes
@@ -246,7 +246,7 @@ function Locker({
 
   const putAway = () => {
     setRevealed(true);
-    platform.locker.markSeen(unseen).catch((error: unknown) => {
+    platform.home.markSeen(unseen).catch((error: unknown) => {
       // They stay new, and are revealed again next time.
       console.error("[play] Couldn't mark rewards as seen", error);
     });
@@ -265,9 +265,9 @@ function Locker({
 
   return (
     <>
-      <main className={styles.locker} inert={revealing}>
+      <main className={styles.home} inert={revealing}>
         <VisuallyHidden>
-          <h1>{shellT("locker")}</h1>
+          <h1>{shellT("home")}</h1>
         </VisuallyHidden>
         <div className={`${styles.header} ${styles.card}`}>
           <a
@@ -323,11 +323,11 @@ function Locker({
                 {games.map((game) => (
                   <li key={game.slug} className={styles.game}>
                     <a
-                      href={lockerGamePath(base, game.slug, membership.classId)}
+                      href={homeGamePath(base, game.slug, membership.classId)}
                       className={styles.gameCard}
                     >
                       <span className={styles.picture}>
-                        <LockerPicture slug={game.slug} />
+                        <HomeCardPicture slug={game.slug} />
                       </span>
                       <span className={styles.gameName}>
                         <span className={styles.play} aria-hidden="true">
@@ -366,7 +366,7 @@ function Locker({
 }
 
 /**
- * A student in a split class taps their grade, once: from the locker, or
+ * A student in a split class taps their grade, once: from home, or
  * first thing after a game link joins them to the class. A tapped grade is
  * asked back ("Are you in Grade 4?") with a smiley for yes and a sad face
  * for no, since it can't be undone without the teacher.
@@ -486,7 +486,7 @@ export function GradePick({
 
 const gradeLine = (grade: number) => `grade-${grade}` as ShellStringId;
 
-/** The wardrobe: the student changes their avatar's look, then goes back to the locker. */
+/** The wardrobe: the student changes their avatar's look, then goes back home. */
 export function WardrobePage(props: AppProps) {
   const { base, navigate } = props;
   const [state, setState] = useStudent(props);
@@ -504,7 +504,7 @@ export function WardrobePage(props: AppProps) {
   );
 }
 
-/** The class join link: joins the class, then opens the locker. */
+/** The class join link: joins the class, then opens home. */
 export function JoinPage(props: AppProps & { joinCode: string }) {
   const { platform, joinCode, base, navigate } = props;
   const [state] = useStudent(props);
@@ -534,7 +534,7 @@ export function JoinPage(props: AppProps & { joinCode: string }) {
   if (failed === "no-such-class")
     return (
       <SpokenMessage line="no-such-class" speak={props.speak}>
-        <ToLocker onClick={() => navigate(base)} />
+        <ToHome onClick={() => navigate(base)} />
       </SpokenMessage>
     );
   return <Message text={shellT("joining")} busy />;

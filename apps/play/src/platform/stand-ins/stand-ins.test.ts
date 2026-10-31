@@ -3,20 +3,20 @@ import { catalogue } from "@repo/rewards";
 import { describe, expect, it } from "vitest";
 import { memoryStorage } from "../../test/memory-storage.ts";
 import {
-  lockerPortContract,
+  homePortContract,
   playRecordsPortContract,
   sampleAttempt,
   sampleEnd,
   sessionPortContract,
 } from "../contract.ts";
 import type { Student } from "../ports.ts";
-import { standInLinks } from "./links.ts";
 import {
   standInEarn,
   standInGrant,
-  standInLocker,
+  standInHome,
   standInRecognise,
-} from "./locker.ts";
+} from "./home.ts";
+import { standInLinks } from "./links.ts";
 import {
   type StandInClass,
   standInClasses,
@@ -68,7 +68,7 @@ sessionPortContract("Stand-in session", {
   },
 });
 
-lockerPortContract("Stand-in locker", {
+homePortContract("Stand-in home", {
   newStudent: () => {
     const storage = memoryStorage();
     standInSignIn(storage, newStudent());
@@ -77,7 +77,7 @@ lockerPortContract("Stand-in locker", {
     });
     return {
       session: standInSession(storage),
-      locker: standInLocker(storage),
+      home: standInHome(storage),
       earn: () => records.send([sampleAttempt(), sampleEnd()]),
       recognise: async () => standInRecognise(storage, "kindness"),
     };
@@ -121,15 +121,15 @@ describe("stand-in session", () => {
   });
 });
 
-describe("stand-in locker", () => {
+describe("stand-in home", () => {
   it("owns what it's granted beyond the base set, and can wear it", async () => {
     const storage = memoryStorage();
     standInSignIn(storage, newStudent());
     standInGrant(storage, ["hat-30"]);
-    const locker = standInLocker(storage);
-    expect((await locker.current()).owned).toContain("hat-30");
+    const home = standInHome(storage);
+    expect((await home.current()).owned).toContain("hat-30");
     const look = { ...defaultLook, hat: "hat-30" } as const;
-    expect(await locker.wear(look)).toEqual(look);
+    expect(await home.wear(look)).toEqual(look);
   });
 
   it("earns the next reward for each finished play, and nothing for others", async () => {
@@ -146,7 +146,7 @@ describe("stand-in locker", () => {
     ];
     await records.send(ended);
     await records.send(ended);
-    expect((await standInLocker(storage).current()).unseen).toEqual(
+    expect((await standInHome(storage).current()).unseen).toEqual(
       catalogue.slice(0, 2),
     );
   });
@@ -211,8 +211,8 @@ describe("stand-in links", () => {
     expect(url.searchParams.get("next")).toBe("/play/sample?join=G4");
   });
 
-  it("sends the student back to the locker, naming the play", () => {
-    const url = new URL(links.locker("p1"), "http://localhost");
+  it("sends the student back home, naming the play", () => {
+    const url = new URL(links.home("p1"), "http://localhost");
     expect(url.pathname).toBe("/play/");
     expect(url.searchParams.get("play")).toBe("p1");
   });

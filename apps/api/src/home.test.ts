@@ -10,12 +10,12 @@ import {
 
 type Headers = { cookie: string };
 
-function lockerOf(headers?: Headers) {
-  return client.locker.$get(undefined, { headers });
+function homeOf(headers?: Headers) {
+  return client.home.$get(undefined, { headers });
 }
 
 function wear(headers: Headers | undefined, look: AvatarLook) {
-  return client.locker.look.$put({ json: look }, { headers });
+  return client.home.look.$put({ json: look }, { headers });
 }
 
 async function lookOf(headers: Headers) {
@@ -34,9 +34,9 @@ async function teacher() {
 // Outfit pieces outside the base set, until rewards can grant them.
 const notOwned = { top: "top-02", hat: "hat-30" } as const;
 
-describe("the locker", () => {
+describe("home", () => {
   it("holds the base set for a new student", async () => {
-    const res = await lockerOf(await signInAsStudent());
+    const res = await homeOf(await signInAsStudent());
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({
       owned: [...baseSet],
@@ -48,8 +48,8 @@ describe("the locker", () => {
   });
 
   it("needs a signed-in student", async () => {
-    expect((await lockerOf()).status).toBe(401);
-    expect((await lockerOf(await teacher())).status).toBe(403);
+    expect((await homeOf()).status).toBe(401);
+    expect((await homeOf(await teacher())).status).toBe(403);
   });
 });
 
@@ -100,7 +100,7 @@ describe("dressing the avatar", () => {
 
   it("refuses a look that isn't one", async () => {
     const headers = await signInAsStudent();
-    const res = await client.locker.look.$put(
+    const res = await client.home.look.$put(
       { json: { ...defaultLook, hair: "hair-99" } as unknown as AvatarLook },
       { headers },
     );

@@ -5,7 +5,7 @@
 import { classColours, defaultClassColour } from "@repo/tokens";
 import type { KeyValueStore } from "../../play/storage.ts";
 import {
-  type LockerGame,
+  type HomeGame,
   type Membership,
   type MembershipsPort,
   NoSuchClass,
@@ -25,7 +25,7 @@ export type StandInClasses = (joinCode: string) => StandInClass | null;
  * colour is the class colour the code names (`/play/join/G4-AMBER`), or teal.
  * A code starting with X names no class.
  */
-export function standInClasses(games: readonly LockerGame[]): StandInClasses {
+export function standInClasses(games: readonly HomeGame[]): StandInClasses {
   return (joinCode) => {
     const code = joinCode.trim().toUpperCase();
     if (code.startsWith("X")) return null;
@@ -89,7 +89,7 @@ export function standInMemberships(
 }
 
 /** Names for games the stand-in only knows by slug: "fraction-hop" is "Fraction Hop". */
-export function standInGames(slugs: readonly string[]): LockerGame[] {
+export function standInGames(slugs: readonly string[]): HomeGame[] {
   return slugs.map((slug) => ({
     slug,
     name: slug

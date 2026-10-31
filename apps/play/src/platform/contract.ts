@@ -9,7 +9,7 @@ import type { ClassColourSlug } from "@repo/tokens";
 import { describe, expect, it } from "vitest";
 import {
   type AttemptRecord,
-  type LockerPort,
+  type HomePort,
   type MembershipsPort,
   NoSuchClass,
   NotOwned,
@@ -302,18 +302,18 @@ export function sessionPortContract(name: string, harness: SessionHarness) {
   });
 }
 
-export interface LockerStudent {
+export interface HomeStudent {
   session: SessionPort;
-  locker: LockerPort;
+  home: HomePort;
   /** Plays a play through to its end, with effort enough to earn a reward. */
   earn(): Promise<void>;
   /** Their teacher recognises them for kindness. */
   recognise(): Promise<void>;
 }
 
-export interface LockerHarness {
+export interface HomeHarness {
   /** Signs a new student in, who owns only the base set and has no look yet. */
-  newStudent(): LockerStudent | Promise<LockerStudent>;
+  newStudent(): HomeStudent | Promise<HomeStudent>;
 }
 
 /**
@@ -321,12 +321,12 @@ export interface LockerHarness {
  * play can earn only a sticker. Returns the pieces earned, in order.
  */
 async function earnOutfit(
-  locker: LockerPort,
+  home: HomePort,
   earn: () => Promise<void>,
 ): Promise<string[]> {
   for (let tries = 0; tries < 5; tries++) {
     await earn();
-    const { owned } = await locker.current();
+    const { owned } = await home.current();
     const earned = owned.filter(
       (id) => !(baseSet as readonly string[]).includes(id),
     );
@@ -338,12 +338,12 @@ async function earnOutfit(
 // Outfit pieces outside the base set: no new student owns them.
 const notOwned = { top: "top-02", hat: "hat-30" } as const;
 
-/** The locker: what a student owns, and dressing their avatar. */
-export function lockerPortContract(name: string, harness: LockerHarness) {
-  describe(`${name} meets the locker contract`, () => {
+/** Home: what a student owns, and dressing their avatar. */
+export function homePortContract(name: string, harness: HomeHarness) {
+  describe(`${name} meets the home contract`, () => {
     it("gives a new student the base set, and only outfit pieces", async () => {
-      const { locker } = await harness.newStudent();
-      const { owned } = await locker.current();
+      const { home } = await harness.newStudent();
+      const { owned } = await home.current();
       expect(owned).toEqual(expect.arrayContaining([...baseSet]));
       for (const id of owned)
         expect(outfitSlots.some((slot) => isItem(slot, id))).toBe(true);
@@ -351,55 +351,55 @@ export function lockerPortContract(name: string, harness: LockerHarness) {
     });
 
     it("dresses the student in the look they design, which the session returns", async () => {
-      const { session, locker } = await harness.newStudent();
+      const { session, home } = await harness.newStudent();
       const look: AvatarLook = {
         ...defaultLook,
         body: "skin-11",
         hair: "hair-40",
         hat: "hat-07",
       };
-      expect(await locker.wear(look)).toEqual(look);
+      expect(await home.wear(look)).toEqual(look);
       expect((await session.current())?.look).toEqual(look);
     });
 
     it("changes the look again from the wardrobe", async () => {
-      const { session, locker } = await harness.newStudent();
-      await locker.wear(defaultLook);
+      const { session, home } = await harness.newStudent();
+      await home.wear(defaultLook);
       const changed: AvatarLook = {
         ...defaultLook,
         top: "top-08",
         bottom: "bottom-11",
       };
-      await locker.wear(changed);
+      await home.wear(changed);
       expect((await session.current())?.look).toEqual(changed);
     });
 
     it("offers every skin tone and hairstyle", async () => {
-      const { locker } = await harness.newStudent();
+      const { home } = await harness.newStudent();
       const look: AvatarLook = {
         ...defaultLook,
         body: "skin-01",
         hair: "hair-62",
       };
-      expect(await locker.wear(look)).toEqual(look);
+      expect(await home.wear(look)).toEqual(look);
     });
 
     it.each(Object.entries(notOwned))(
       "refuses a %s the student doesn't own, keeping their look",
       async (slot, item) => {
-        const { session, locker } = await harness.newStudent();
-        await locker.wear(defaultLook);
+        const { session, home } = await harness.newStudent();
+        await home.wear(defaultLook);
         await expect(
-          locker.wear({ ...defaultLook, [slot]: item } as AvatarLook),
+          home.wear({ ...defaultLook, [slot]: item } as AvatarLook),
         ).rejects.toBeInstanceOf(NotOwned);
         expect((await session.current())?.look).toEqual(defaultLook);
       },
     );
 
     it("gives a new student no stickers, nothing new and nothing on their locker", async () => {
-      const { locker } = await harness.newStudent();
+      const { home } = await harness.newStudent();
       const { stickers, unseen, newInWardrobe, placements } =
-        await locker.current();
+        await home.current();
       expect(stickers).toEqual([]);
       expect(unseen).toEqual([]);
       expect(newInWardrobe).toEqual([]);
@@ -407,9 +407,9 @@ export function lockerPortContract(name: string, harness: LockerHarness) {
     });
 
     it("reveals what a play earned as new, and the student owns it", async () => {
-      const { locker, earn } = await harness.newStudent();
+      const { home, earn } = await harness.newStudent();
       await earn();
-      const { owned, stickers, unseen } = await locker.current();
+      const { owned, stickers, unseen } = await home.current();
       expect(unseen.length).toBeGreaterThan(0);
       for (const id of unseen) {
         expect(isReward(id)).toBe(true);
@@ -418,82 +418,82 @@ export function lockerPortContract(name: string, harness: LockerHarness) {
     });
 
     it("keeps rewards new until the student has seen them, then keeps them owned", async () => {
-      const { locker, earn } = await harness.newStudent();
+      const { home, earn } = await harness.newStudent();
       await earn();
-      const before = await locker.current();
-      expect((await locker.current()).unseen).toEqual(before.unseen);
-      await locker.markSeen(before.unseen);
-      expect(await locker.current()).toEqual({ ...before, unseen: [] });
+      const before = await home.current();
+      expect((await home.current()).unseen).toEqual(before.unseen);
+      await home.markSeen(before.unseen);
+      expect(await home.current()).toEqual({ ...before, unseen: [] });
     });
 
     it("keeps earned outfit pieces new in the wardrobe, and only those, until the student sees them there", async () => {
-      const { locker, earn } = await harness.newStudent();
-      const pieces = await earnOutfit(locker, earn);
-      const before = await locker.current();
+      const { home, earn } = await harness.newStudent();
+      const pieces = await earnOutfit(home, earn);
+      const before = await home.current();
       expect(before.newInWardrobe).toEqual(pieces);
       for (const id of before.newInWardrobe)
         expect(rewardKind(id)).toBe("outfit");
 
-      await locker.markSeen(before.unseen);
-      expect((await locker.current()).newInWardrobe).toEqual(pieces);
+      await home.markSeen(before.unseen);
+      expect((await home.current()).newInWardrobe).toEqual(pieces);
 
       const [first = "", ...rest] = pieces;
-      await locker.markSeenInWardrobe([first]);
-      expect((await locker.current()).newInWardrobe).toEqual(rest);
-      await locker.markSeenInWardrobe(pieces);
-      const after = await locker.current();
+      await home.markSeenInWardrobe([first]);
+      expect((await home.current()).newInWardrobe).toEqual(rest);
+      await home.markSeenInWardrobe(pieces);
+      const after = await home.current();
       expect(after.newInWardrobe).toEqual([]);
       expect(after.owned).toEqual(before.owned);
     });
 
-    it("keeps pieces seen in the wardrobe new in the locker until they're revealed", async () => {
-      const { locker, earn } = await harness.newStudent();
-      await earnOutfit(locker, earn);
-      const before = await locker.current();
-      await locker.markSeenInWardrobe(before.newInWardrobe);
-      expect(await locker.current()).toEqual({ ...before, newInWardrobe: [] });
+    it("keeps pieces seen in the wardrobe new at home until they're revealed", async () => {
+      const { home, earn } = await harness.newStudent();
+      await earnOutfit(home, earn);
+      const before = await home.current();
+      await home.markSeenInWardrobe(before.newInWardrobe);
+      expect(await home.current()).toEqual({ ...before, newInWardrobe: [] });
     });
 
     it("gives the student a recognition sticker, new until they've seen it", async () => {
-      const { locker, recognise } = await harness.newStudent();
+      const { home, recognise } = await harness.newStudent();
       await recognise();
-      const before = await locker.current();
+      const before = await home.current();
       expect(before.stickers).toEqual(["recognition-kindness"]);
       expect(before.unseen).toEqual(["recognition-kindness"]);
-      await locker.markSeen(before.unseen);
-      expect(await locker.current()).toEqual({ ...before, unseen: [] });
+      await home.markSeen(before.unseen);
+      expect(await home.current()).toEqual({ ...before, unseen: [] });
     });
 
     it("puts stickers where the student placed them, then moves and takes them off", async () => {
-      const { locker, earn, recognise } = await harness.newStudent();
+      const { home, earn, recognise } = await harness.newStudent();
       await earn();
       await recognise();
-      const { stickers } = await locker.current();
+      const { stickers } = await home.current();
       const [earned = ""] = stickers.filter((id) => isReward(id));
       expect(isSticker(earned)).toBe(true);
       const placed = [
         { sticker: earned, x: 0.25, y: 0.75 },
         { sticker: "recognition-kindness", x: 0.5, y: 0.5 },
       ];
-      expect(await locker.place(placed)).toEqual(placed);
-      expect((await locker.current()).placements).toEqual(placed);
+      expect(await home.place(placed)).toEqual(placed);
+      expect((await home.current()).placements).toEqual(placed);
       const moved = [{ sticker: "recognition-kindness", x: 1, y: 0 }];
-      await locker.place(moved);
-      expect((await locker.current()).placements).toEqual(moved);
-      await locker.place([]);
-      expect((await locker.current()).placements).toEqual([]);
+      await home.place(moved);
+      expect((await home.current()).placements).toEqual(moved);
+      await home.place([]);
+      expect((await home.current()).placements).toEqual([]);
     });
 
     it("refuses a sticker the student doesn't own, keeping their locker", async () => {
-      const { locker, recognise } = await harness.newStudent();
+      const { home, recognise } = await harness.newStudent();
       await recognise();
       const placed = [{ sticker: "recognition-kindness", x: 0.5, y: 0.5 }];
-      await locker.place(placed);
+      await home.place(placed);
       for (const sticker of ["sticker-rainbow", "recognition-leadership"])
         await expect(
-          locker.place([...placed, { sticker, x: 0.1, y: 0.1 }]),
+          home.place([...placed, { sticker, x: 0.1, y: 0.1 }]),
         ).rejects.toBeInstanceOf(NotOwned);
-      expect((await locker.current()).placements).toEqual(placed);
+      expect((await home.current()).placements).toEqual(placed);
     });
   });
 }

@@ -61,7 +61,7 @@ export async function discoverSources(root: string): Promise<VoiceSource[]> {
 export const shellName = "shell";
 
 /**
- * The play shell's own words (the locker, start, leaving), from
+ * The play shell's own words (home, start, leaving), from
  * `apps/play/src/ui/shell-strings.ts`. Their audio and lockfile live in
  * `apps/play/voice/`, the same layout as a game's.
  */

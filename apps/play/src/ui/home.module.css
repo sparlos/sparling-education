@@ -1,8 +1,8 @@
-/* The locker: the student's home screen, usable without reading. The shell
-   never scrolls the page (global.css), so the locker scrolls itself: full
+/* Home: the student's own screen, usable without reading. The shell
+   never scrolls the page (global.css), so home scrolls itself: full
    width, so its scrollbar is at the screen's edge, with its content in a
    720 px column. */
-.locker {
+.home {
   box-sizing: border-box;
   height: 100dvh;
   overflow-y: auto;

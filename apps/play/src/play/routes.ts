@@ -1,10 +1,10 @@
 /**
  * What a game link asks for: /play/<slug>, plus ?join=<code> on a teacher's
- * game link, or ?class=<id> from the locker.
+ * game link, or ?class=<id> from home.
  */
 export interface GameLink {
   slug: string;
-  /** The class it was opened for, from the locker, or null. */
+  /** The class it was opened for, from home, or null. */
   classId: string | null;
   /** The join code of a teacher's game link, whose class it's played for; or null. */
   joinCode: string | null;
@@ -12,11 +12,11 @@ export interface GameLink {
 
 /** A page of the shell. */
 export type Route =
-  /** The student's locker, at the shell's base path. */
-  | { kind: "locker" }
+  /** The student's home, at the shell's base path. */
+  | { kind: "home" }
   /** Google sign-in, on the real platform: /play/sign-in. */
   | { kind: "sign-in" }
-  /** The wardrobe, from the locker: /play/wardrobe. */
+  /** The wardrobe, from home: /play/wardrobe. */
   | { kind: "wardrobe" }
   /** The class join link: /play/join/<code>. */
   | { kind: "join"; joinCode: string }
@@ -28,7 +28,7 @@ const joinCodePattern = /^[A-Za-z0-9]{1,20}$/;
 /** The page a URL names, or null if it names none. `base` is the shell's base path, e.g. "/play/". */
 export function parseRoute(url: URL, base: string): Route | null {
   if (url.pathname === base || `${url.pathname}/` === base)
-    return { kind: "locker" };
+    return { kind: "home" };
   if (!url.pathname.startsWith(base)) return null;
   const path = url.pathname.slice(base.length).replace(/\/$/, "");
   if (path === "sign-in") return { kind: "sign-in" };
@@ -62,13 +62,13 @@ export function wardrobePath(base: string) {
   return `${base}wardrobe`;
 }
 
-/** The locker, naming the play the student is back from, so it can reveal what the play earned. */
-export function lockerPath(base: string, play: string) {
+/** Home, naming the play the student is back from, so it can reveal what the play earned. */
+export function homePath(base: string, play: string) {
   return `${base}?${new URLSearchParams({ play })}`;
 }
 
-/** The game link the locker opens: one game, for one of the student's classes. */
-export function lockerGamePath(base: string, slug: string, classId: string) {
+/** The game link home opens: one game, for one of the student's classes. */
+export function homeGamePath(base: string, slug: string, classId: string) {
   return `${base}${slug}?${new URLSearchParams({ class: classId })}`;
 }
 

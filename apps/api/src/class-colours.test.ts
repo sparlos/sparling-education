@@ -1,4 +1,4 @@
-import { classColours, newClassColourOrder } from "@repo/tokens";
+import { newClassColourOrder } from "@repo/tokens";
 import { describe, expect, it } from "vitest";
 import {
   client,
@@ -120,7 +120,7 @@ describe("a class's colour", () => {
     expect(await res.json()).toMatchObject({ colour: "teal" });
   });
 
-  it("goes with the class into its students' lockers", async () => {
+  it("goes with the class onto its students' homes", async () => {
     const headers = await teacher();
     const made = await created(headers, "sky");
     const student = await signInAsStudent();

@@ -240,7 +240,7 @@ try {
           );
         await start.click();
         await tour.play(context);
-        // Every play ends back in the locker, naming the play.
+        // Every play ends back home, naming the play.
         await page.waitForURL(
           (url) =>
             url.pathname === `${new URL(base).pathname}/` &&

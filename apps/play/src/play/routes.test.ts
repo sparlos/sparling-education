@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  lockerPath,
+  homePath,
   parseGameLink,
   parseRoute,
   returnPath,
@@ -30,7 +30,7 @@ describe("parseGameLink", () => {
     ).toEqual({ slug: "plank-bridge", classId: null, joinCode: null });
   });
 
-  it("reads the class the locker opened a game for", () => {
+  it("reads the class home opened a game for", () => {
     expect(
       parseGameLink(at("/play/plank-bridge?class=c1"), "/play/"),
     ).toMatchObject({ slug: "plank-bridge", classId: "c1" });
@@ -57,8 +57,8 @@ describe("returnPath", () => {
 
 describe("parseRoute", () => {
   it.each([
-    ["/play/", { kind: "locker" }],
-    ["/play", { kind: "locker" }],
+    ["/play/", { kind: "home" }],
+    ["/play", { kind: "home" }],
     ["/play/sign-in", { kind: "sign-in" }],
     ["/play/wardrobe", { kind: "wardrobe" }],
     ["/play/join/K7QM4XRT", { kind: "join", joinCode: "K7QM4XRT" }],
@@ -77,7 +77,7 @@ describe("parseRoute", () => {
         link: { slug: "fraction-hop", classId: null, joinCode: "K7QM4XRT" },
       },
     ],
-    ["/play/?play=p1", { kind: "locker" }],
+    ["/play/?play=p1", { kind: "home" }],
   ])("reads %s", (path, route) => {
     expect(parseRoute(at(path), "/play/")).toEqual(route);
   });
@@ -90,9 +90,9 @@ describe("parseRoute", () => {
   );
 });
 
-describe("lockerPath", () => {
+describe("homePath", () => {
   it("names the play the student is back from", () => {
-    expect(lockerPath("/play/", "p 1")).toBe("/play/?play=p+1");
+    expect(homePath("/play/", "p 1")).toBe("/play/?play=p+1");
   });
 });
 

@@ -18,7 +18,7 @@ import {
 } from "react";
 import type { Placement, Platform } from "../platform/ports.ts";
 import type { Voice } from "../play/voice.ts";
-import styles from "./locker.module.css";
+import styles from "./home.module.css";
 import { shellT } from "./shared.tsx";
 import type { ShellStringId } from "./shell-strings.ts";
 
@@ -91,7 +91,7 @@ export function Stickers({
   const save = (next: Placement[]) => {
     setPlacements(next);
     saving.current = saving.current.then(() =>
-      platform.locker.place(next).then(
+      platform.home.place(next).then(
         (placed) => {
           lastSaved.current = placed;
         },

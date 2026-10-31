@@ -176,7 +176,7 @@ describe("recording attempts", () => {
 
 describe("ending", () => {
   it.each(["finished", "left", "crashed"] as const)(
-    "returns the student to their locker, naming the play (%s)",
+    "returns the student home, naming the play (%s)",
     async (ending) => {
       const { play } = setUp();
       const url = new URL(await play.end(ending), "http://localhost");

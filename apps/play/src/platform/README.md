@@ -6,10 +6,10 @@ The play shell needs six things from the rest of the platform. It reaches each o
 | --- | --- | --- | --- |
 | `SessionPort` | Who is signed in: their ID, locale, avatar look, and the classes they're in with their grade in each | `GET /session` | A pretend student picked on the stand-in sign-in screen, kept in this browser's localStorage |
 | `MembershipsPort` | Joining a class by its join code, and picking a grade in a split class | `POST /memberships`, `PUT /memberships/{classId}/grade` | Adds stand-in classes to the stored student. Any join code names one: `G4` is Grade 4, `G45` a Grade 4/5 split, a code with no digits Grades 3–5, a code starting with `X` no class |
-| `LockerPort` | The outfit pieces and stickers the student owns, the rewards and recognition they haven't seen yet, where their stickers are on the locker, and dressing their avatar (designing it the first time, then the wardrobe) | `GET /locker`, `PUT /locker/look`, `POST /locker/seen`, `PUT /locker/stickers` | Owns the base set, plus rewards granted with `standInGrant` or earned with `standInEarn` (each finished play earns the next one, with no effort rule or cap) and recognition given with `standInRecognise`, and sticker placements, all kept in localStorage; the look is kept on the stored student |
+| `HomePort` | The outfit pieces and stickers the student owns, the rewards and recognition they haven't seen yet, where their stickers are on the locker, and dressing their avatar (designing it the first time, then the wardrobe) | `GET /home`, `PUT /home/look`, `POST /home/seen`, `POST /home/wardrobe-seen`, `PUT /locker/stickers` | Owns the base set, plus rewards granted with `standInGrant` or earned with `standInEarn` (each finished play earns the next one, with no effort rule or cap) and recognition given with `standInRecognise`, and sticker placements, all kept in localStorage; the look is kept on the stored student |
 | `PlayRecordsPort` | Stores each play's records: its attempts, then how it ended; and whether the student has played a game before | `POST /play-records`, `GET /games/{slug}/played` | Kept in memory and logged to the console; the games each student has played are kept in localStorage (`stand-in.played`), so a reload knows a returning student |
 | `LinksPort.signIn` | The sign-in page, returning to where the student was headed | `/play/sign-in`: Google's button in redirect mode | `/play/__stand-in/sign-in` |
-| `LinksPort.locker` | Where every game returns the student, naming the play | The locker, `/play/?play=<play>` | The same |
+| `LinksPort.home` | Where every game returns the student, naming the play | Home, `/play/?play=<play>` | The same |
 
 `src/main.tsx` is the only file that picks the platform: the real one, or the stand-ins with `VITE_PLAY_PLATFORM=stand-in` (see `apps/play/.env.example`). The shell's own tests use the stand-ins. Every stand-in opens with a `STAND-IN` header comment, and nothing outside `stand-ins/`, `src/main.tsx` and tests imports one.
 
@@ -21,7 +21,7 @@ Students sign in with Google's button in **redirect mode**, not the pop-up the t
 
 1. `links.signIn(returnTo)` opens `/play/sign-in?next=<returnTo>`. The page keeps `next` in localStorage (`sign-in.next`), since the trip through Google can't carry it, and shows Google's button.
 2. Google posts the ID token, with its `g_csrf_token` double-submit field, to the API's `POST /sign-in/student` (Google's `login_uri`). The API checks the field against Google's `g_csrf_token` cookie, verifies the token, makes a student if the account is new, starts the session and answers 303 to `/play/sign-in` (or `/play/sign-in?failed`).
-3. Signed in now, `/play/sign-in` sends the student on to the remembered page, only ever a page of the shell, or the locker.
+3. Signed in now, `/play/sign-in` sends the student on to the remembered page, only ever a page of the shell, or home.
 
 An existing account keeps its role, so a teacher signing in here gets a session as a teacher, and the shell says it's for students (`SessionPort.current` rejects with `NotAStudent`).
 
@@ -45,16 +45,16 @@ An existing account keeps its role, so a teacher signing in here gets a session 
 ```
 
 - Signed out returns `null`. It never redirects; the shell decides where the student goes.
-- A student with no look (or one that no longer parses) designs their avatar before anything else: before the locker, a grade pick or a game.
+- A student with no look (or one that no longer parses) designs their avatar before anything else: before home, a grade pick or a game.
 - A teacher's session answers 403, which the adapter turns into `NotAStudent`.
 - Any other failure rejects. The shell shows "try again" rather than sending a signed-in student to sign-in.
 
 A game opens for one class, and that class's grade picks the tier, and every play record carries the class:
 
-- **A teacher's game link**, `/play/<slug>?join=<code>`, is for the class with that join code. Signed out, the student goes to sign-in and comes back to the link. The shell joins them to the class (`POST /memberships`, which finds them if they're already in it), has them pick their grade first in a split class, then opens the game. A join code no class has, or a class with the game turned off, gets a spoken message and a way to the locker.
-- **The locker's links**, `/play/<slug>?class=<id>`, are for that class, or else the first the student joined that has the game on and their grade set.
+- **A teacher's game link**, `/play/<slug>?join=<code>`, is for the class with that join code. Signed out, the student goes to sign-in and comes back to the link. The shell joins them to the class (`POST /memberships`, which finds them if they're already in it), has them pick their grade first in a split class, then opens the game. A join code no class has, or a class with the game turned off, gets a spoken message and a way home.
+- **Home's links**, `/play/<slug>?class=<id>`, are for that class, or else the first the student joined that has the game on and their grade set.
 
-### `GET /locker` → `Locker`, `PUT /locker/look` with `AvatarLook` → `AvatarLook`, `POST /locker/seen` with `{ rewards: string[] }` → 204, `PUT /locker/stickers` with `{ placements }` → `{ placements }`
+### `GET /home` → `Home`, `PUT /home/look` with `AvatarLook` → `AvatarLook`, `POST /home/seen` with `{ rewards: string[] }` → 204, `PUT /locker/stickers` with `{ placements }` → `{ placements }`
 
 ```ts
 {
@@ -65,11 +65,11 @@ A game opens for one class, and that class's grade picks the tier, and every pla
 }
 ```
 
-- Recognition from a teacher gives the student the trait's sticker (`recognition-<trait>`, drawn as a rosette by `@repo/rewards/sticker`), once however often they're recognised for it. Each time they're recognised it's new again until `/locker/seen` names the sticker.
+- Recognition from a teacher gives the student the trait's sticker (`recognition-<trait>`, drawn as a rosette by `@repo/rewards/sticker`), once however often they're recognised for it. Each time they're recognised it's new again until `/home/seen` names the sticker.
 - `PUT /locker/stickers` replaces every placement: stickers left out come off. A sticker the student doesn't own answers 400, which the adapter turns into `NotOwned`; only the signed-in student's locker changes.
 
 - Rewards come from `@repo/rewards`' catalogue, in its order, never at random. The API grants them when a play ends, from that week's effort, up to a weekly cap (`rewardRule` in the API's scoring module). A crashed play grants nothing and takes nothing; a grant is never taken back.
-- The locker reveals `unseen` whenever it opens, so rewards from a play sent late (offline) are revealed on a later visit. The student's tick posts them to `/locker/seen`; until then they stay new, across reloads. Reaching the cap shows nothing.
+- Home reveals `unseen` whenever it opens, so rewards from a play sent late (offline) are revealed on a later visit. The student's tick posts them to `/home/seen`; until then they stay new, across reloads. Reaching the cap shows nothing.
 
 - Skin tones (`body`) and `hair` are everyone's; `top`, `bottom`, `shoes` and `hat` must be owned. A look with a piece the student doesn't own answers 400, which the adapter turns into `NotOwned`.
 - The look is stored on the student and returned by `GET /session` from then on.
@@ -132,4 +132,4 @@ plus, by `kind`:
 ### Links
 
 - `signIn(returnTo)`: see "Student sign-in" above. `returnTo` is always a path on the shared domain, and sign-in only ever returns to a page of the shell.
-- `locker(play)`: the locker, where every game returns the student however the play ended, naming the play. The reveal doesn't need it: it shows every reward not yet seen, which includes what the play earned once its end is stored.
+- `home(play)`: home, where every game returns the student however the play ended, naming the play. The reveal doesn't need it: it shows every reward not yet seen, which includes what the play earned once its end is stored.

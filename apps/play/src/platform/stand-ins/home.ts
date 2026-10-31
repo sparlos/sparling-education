@@ -1,11 +1,11 @@
-// STAND-IN for the locker port, for development without the platform's API. The
+// STAND-IN for the home port, for development without the platform's API. The
 // student owns the base set, plus rewards kept in this browser's storage: the
 // stand-in sign-in screen and tests can grant some, and every finished play
 // earns the next one in the catalogue (no effort rule, no weekly cap; the
 // API's scoring module has those). Recognition from a teacher is granted
 // the same way (`standInRecognise`; no terms or classes). Their look is kept
 // on the stand-in student, and their sticker placements in storage. The real
-// adapter is ../api/locker.ts; see ../README.md.
+// adapter is ../api/home.ts; see ../README.md.
 import { canWear, parseLook } from "@repo/avatar";
 import { baseSet } from "@repo/avatar/parts";
 import {
@@ -18,7 +18,7 @@ import {
 } from "@repo/rewards";
 import { type KeyValueStore, readJson, writeJson } from "../../play/storage.ts";
 import {
-  type LockerPort,
+  type HomePort,
   NotOwned,
   type Placement,
   type PlayRecord,
@@ -36,7 +36,7 @@ interface StandInReward {
   wardrobeSeen?: boolean;
 }
 
-export function standInLocker(storage: KeyValueStore | null): LockerPort {
+export function standInHome(storage: KeyValueStore | null): HomePort {
   const owned = () => [
     ...new Set([
       ...baseSet,
@@ -75,9 +75,9 @@ export function standInLocker(storage: KeyValueStore | null): LockerPort {
     },
     async wear(value) {
       const student = standInStudent(storage);
-      if (!student) throw new Error("Stand-in locker: signed out");
+      if (!student) throw new Error("Stand-in home: signed out");
       const look = parseLook(value);
-      if (!look) throw new Error("Stand-in locker: not a look");
+      if (!look) throw new Error("Stand-in home: not a look");
       if (!canWear(look, owned())) throw new NotOwned();
       standInSignIn(storage, { ...student, look });
       return look;
@@ -113,9 +113,9 @@ export function standInLocker(storage: KeyValueStore | null): LockerPort {
       const placed = placements.map(({ sticker, x, y }) => ({ sticker, x, y }));
       if (!placed.every((p) => mine.has(p.sticker))) throw new NotOwned();
       if (new Set(placed.map((p) => p.sticker)).size !== placed.length)
-        throw new Error("Stand-in locker: a sticker placed twice");
+        throw new Error("Stand-in home: a sticker placed twice");
       if (!placed.every((p) => inside(p.x) && inside(p.y)))
-        throw new Error("Stand-in locker: a sticker off the locker");
+        throw new Error("Stand-in home: a sticker off the locker");
       writeJson(storage, placementsKey, placed);
       return placed;
     },

@@ -14,19 +14,19 @@ import { rewardRule } from "./scoring.ts";
 type Headers = { cookie: string };
 type Who = { studentId: string; classId: string };
 
-async function lockerOf(headers: Headers) {
-  const res = await client.locker.$get(undefined, { headers });
-  const locker = await res.json();
-  if ("error" in locker) throw new Error(locker.error);
-  return locker;
+async function homeOf(headers: Headers) {
+  const res = await client.home.$get(undefined, { headers });
+  const home = await res.json();
+  if ("error" in home) throw new Error(home.error);
+  return home;
 }
 
 function markSeen(headers: Headers | undefined, rewards: string[]) {
-  return client.locker.seen.$post({ json: { rewards } }, { headers });
+  return client.home.seen.$post({ json: { rewards } }, { headers });
 }
 
 function markSeenInWardrobe(headers: Headers | undefined, rewards: string[]) {
-  return client.locker["wardrobe-seen"].$post(
+  return client.home["wardrobe-seen"].$post(
     { json: { rewards } },
     { headers },
   );
@@ -67,29 +67,29 @@ describe("rewards", () => {
   it("grants rewards from a play's effort when it ends, from the start of the catalogue", async () => {
     const { headers, who } = await student();
     await play(headers, who, earning(2));
-    const locker = await lockerOf(headers);
+    const home = await homeOf(headers);
     const granted = catalogue.slice(0, 2);
-    expect(locker.unseen).toEqual(granted);
+    expect(home.unseen).toEqual(granted);
     for (const id of granted)
-      if (rewardKind(id) === "sticker") expect(locker.stickers).toContain(id);
-      else expect(locker.owned).toContain(id);
+      if (rewardKind(id) === "sticker") expect(home.stickers).toContain(id);
+      else expect(home.owned).toContain(id);
   });
 
   it("gives a new student nothing new and no stickers", async () => {
     const { headers } = await student();
-    const locker = await lockerOf(headers);
-    expect(locker.stickers).toEqual([]);
-    expect(locker.unseen).toEqual([]);
+    const home = await homeOf(headers);
+    expect(home.stickers).toEqual([]);
+    expect(home.unseen).toEqual([]);
   });
 
   it("grants nothing until the play ends", async () => {
     const { headers, who } = await student();
     const records = await play(headers, who, earning(1), { ending: null });
-    expect((await lockerOf(headers)).unseen).toEqual([]);
+    expect((await homeOf(headers)).unseen).toEqual([]);
     const play2 = records[0]?.play ?? "";
     const end = playOf(who, [], { play: play2, at: tuesday });
     await sendRecords(headers, end);
-    expect((await lockerOf(headers)).unseen).toHaveLength(1);
+    expect((await homeOf(headers)).unseen).toHaveLength(1);
   });
 
   it("adds up effort across the week's plays", async () => {
@@ -97,10 +97,10 @@ describe("rewards", () => {
     // A play got right first time is worth its finish alone.
     for (let i = 1; i < rewardRule.effortPerReward; i++) {
       await play(headers, who, right(3), { at: tuesday });
-      expect((await lockerOf(headers)).unseen).toEqual([]);
+      expect((await homeOf(headers)).unseen).toEqual([]);
     }
     await play(headers, who, right(3), { at: tuesday });
-    expect((await lockerOf(headers)).unseen).toHaveLength(1);
+    expect((await homeOf(headers)).unseen).toHaveLength(1);
   });
 
   it("counts a play left partway for its improvements, not as finished", async () => {
@@ -108,28 +108,28 @@ describe("rewards", () => {
     await play(headers, who, improved(rewardRule.effortPerReward - 1), {
       ending: "left",
     });
-    expect((await lockerOf(headers)).unseen).toEqual([]);
+    expect((await homeOf(headers)).unseen).toEqual([]);
     await play(headers, who, improved(rewardRule.effortPerReward), {
       ending: "left",
     });
-    expect((await lockerOf(headers)).unseen).toHaveLength(1);
+    expect((await homeOf(headers)).unseen).toHaveLength(1);
   });
 
   it("grants nothing for a crashed play, and takes nothing away", async () => {
     const { headers, who } = await student();
     await play(headers, who, earning(1));
     await play(headers, who, earning(3), { ending: "crashed" });
-    expect((await lockerOf(headers)).unseen).toEqual(catalogue.slice(0, 1));
+    expect((await homeOf(headers)).unseen).toEqual(catalogue.slice(0, 1));
     // The crash didn't use up anything the next play earns.
     await play(headers, who, earning(1));
-    expect((await lockerOf(headers)).unseen).toEqual(catalogue.slice(0, 2));
+    expect((await homeOf(headers)).unseen).toEqual(catalogue.slice(0, 2));
   });
 
   it("grants a play once, however often its records are sent", async () => {
     const { headers, who } = await student();
     const records = await play(headers, who, earning(1));
     await sendRecords(headers, records);
-    expect((await lockerOf(headers)).unseen).toHaveLength(1);
+    expect((await homeOf(headers)).unseen).toHaveLength(1);
   });
 
   it("counts home and class play the same, against one cap", async () => {
@@ -141,7 +141,7 @@ describe("rewards", () => {
     );
     await play(headers, who, earning(rewardRule.weeklyCap - 1));
     await play(headers, { ...who, classId: other.id }, earning(2));
-    expect((await lockerOf(headers)).unseen).toHaveLength(rewardRule.weeklyCap);
+    expect((await homeOf(headers)).unseen).toHaveLength(rewardRule.weeklyCap);
   });
 });
 
@@ -153,7 +153,7 @@ describe("the weekly cap", () => {
     const res = await sendRecords(headers, playOf(who, earning(2)));
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ stored: expect.any(Number) });
-    expect((await lockerOf(headers)).unseen).toEqual(
+    expect((await homeOf(headers)).unseen).toEqual(
       catalogue.slice(0, rewardRule.weeklyCap),
     );
   });
@@ -164,7 +164,7 @@ describe("the weekly cap", () => {
       at: tuesday,
     });
     await play(headers, who, earning(1), { at: nextTuesday });
-    expect((await lockerOf(headers)).unseen).toHaveLength(
+    expect((await homeOf(headers)).unseen).toHaveLength(
       rewardRule.weeklyCap + 1,
     );
   });
@@ -176,12 +176,12 @@ describe("the weekly cap", () => {
     await play(headers, who, earning(1), {
       at: new Date("2026-10-26T03:30:00Z"),
     });
-    expect((await lockerOf(headers)).unseen).toHaveLength(rewardRule.weeklyCap);
+    expect((await homeOf(headers)).unseen).toHaveLength(rewardRule.weeklyCap);
     // Midnight on Monday in Toronto starts the next week.
     await play(headers, who, earning(1), {
       at: new Date("2026-10-26T04:00:30Z"),
     });
-    expect((await lockerOf(headers)).unseen).toHaveLength(
+    expect((await homeOf(headers)).unseen).toHaveLength(
       rewardRule.weeklyCap + 1,
     );
   });
@@ -193,7 +193,7 @@ describe("the weekly cap", () => {
     });
     // Played offline last week, sent this week: last week had room.
     await play(headers, who, earning(1), { at: tuesday });
-    expect((await lockerOf(headers)).unseen).toHaveLength(
+    expect((await homeOf(headers)).unseen).toHaveLength(
       rewardRule.weeklyCap + 1,
     );
   });
@@ -204,7 +204,7 @@ describe("the weekly cap", () => {
     await play(headers, who, earning(1), {
       at: new Date(+tuesday + 60 * 60 * 1000),
     });
-    expect((await lockerOf(headers)).unseen).toHaveLength(rewardRule.weeklyCap);
+    expect((await homeOf(headers)).unseen).toHaveLength(rewardRule.weeklyCap);
   });
 });
 
@@ -212,11 +212,11 @@ describe("what's new", () => {
   it("stays new until the student has seen it", async () => {
     const { headers, who } = await student();
     await play(headers, who, earning(2));
-    const { unseen } = await lockerOf(headers);
-    expect((await lockerOf(headers)).unseen).toEqual(unseen);
+    const { unseen } = await homeOf(headers);
+    expect((await homeOf(headers)).unseen).toEqual(unseen);
 
     expect((await markSeen(headers, unseen)).status).toBe(204);
-    const after = await lockerOf(headers);
+    const after = await homeOf(headers);
     expect(after.unseen).toEqual([]);
     for (const id of unseen)
       expect([...after.owned, ...after.stickers]).toContain(id);
@@ -225,18 +225,18 @@ describe("what's new", () => {
   it("marks only what the student saw", async () => {
     const { headers, who } = await student();
     await play(headers, who, earning(2));
-    const [first = "", second] = (await lockerOf(headers)).unseen;
+    const [first = "", second] = (await homeOf(headers)).unseen;
     await markSeen(headers, [first, "not-a-reward"]);
-    expect((await lockerOf(headers)).unseen).toEqual([second]);
+    expect((await homeOf(headers)).unseen).toEqual([second]);
   });
 
-  it("keeps each student's locker their own", async () => {
+  it("keeps each student's home their own", async () => {
     const one = await student();
     const other = await student();
     await play(one.headers, one.who, earning(1));
     await play(other.headers, other.who, earning(1));
     await markSeen(other.headers, catalogue.slice(0, 1));
-    expect((await lockerOf(one.headers)).unseen).toEqual(catalogue.slice(0, 1));
+    expect((await homeOf(one.headers)).unseen).toEqual(catalogue.slice(0, 1));
   });
 
   it("needs a signed-in student", async () => {
@@ -253,37 +253,37 @@ describe("what's new in the wardrobe", () => {
   it("marks every outfit piece granted as new in the wardrobe, and no sticker", async () => {
     const { headers, who } = await student();
     await play(headers, who, earning(3));
-    const locker = await lockerOf(headers);
+    const home = await homeOf(headers);
     expect(outfitIn(3).length).toBeGreaterThan(0);
-    expect(locker.newInWardrobe).toEqual(outfitIn(3));
+    expect(home.newInWardrobe).toEqual(outfitIn(3));
   });
 
   it("keeps a piece new in the wardrobe after it's been revealed", async () => {
     const { headers, who } = await student();
     await play(headers, who, earning(3));
-    await markSeen(headers, (await lockerOf(headers)).unseen);
-    expect((await lockerOf(headers)).newInWardrobe).toEqual(outfitIn(3));
+    await markSeen(headers, (await homeOf(headers)).unseen);
+    expect((await homeOf(headers)).newInWardrobe).toEqual(outfitIn(3));
   });
 
   it("stops a piece being new once the student has seen it in the wardrobe, and only that piece", async () => {
     const { headers, who } = await student();
     await play(headers, who, earning(3));
-    const [first = "", ...rest] = (await lockerOf(headers)).newInWardrobe;
+    const [first = "", ...rest] = (await homeOf(headers)).newInWardrobe;
     expect(rest.length).toBeGreaterThan(0);
 
     const res = await markSeenInWardrobe(headers, [first, "not-a-reward"]);
     expect(res.status).toBe(204);
-    const after = await lockerOf(headers);
+    const after = await homeOf(headers);
     expect(after.newInWardrobe).toEqual(rest);
     expect(after.owned).toContain(first);
   });
 
-  it("keeps a piece seen in the wardrobe new in the locker until it's revealed", async () => {
+  it("keeps a piece seen in the wardrobe new at home until it's revealed", async () => {
     const { headers, who } = await student();
     await play(headers, who, earning(3));
-    const before = await lockerOf(headers);
+    const before = await homeOf(headers);
     await markSeenInWardrobe(headers, before.newInWardrobe);
-    expect((await lockerOf(headers)).unseen).toEqual(before.unseen);
+    expect((await homeOf(headers)).unseen).toEqual(before.unseen);
   });
 
   it("keeps each student's wardrobe their own", async () => {
@@ -292,7 +292,7 @@ describe("what's new in the wardrobe", () => {
     await play(one.headers, one.who, earning(3));
     await play(other.headers, other.who, earning(3));
     await markSeenInWardrobe(other.headers, outfitIn(3));
-    expect((await lockerOf(one.headers)).newInWardrobe).toEqual(outfitIn(3));
+    expect((await homeOf(one.headers)).newInWardrobe).toEqual(outfitIn(3));
   });
 
   it("needs a signed-in student", async () => {

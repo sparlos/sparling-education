@@ -1,4 +1,4 @@
-// The locker, joining a class and sign-in, rendered over the stand-ins: what
+// Home, joining a class and sign-in, rendered over the stand-ins: what
 // a student sees, hears and can do.
 
 import { catalogue, stickers } from "@repo/rewards";
@@ -16,19 +16,19 @@ import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 import { hosted } from "../games.ts";
 import {
-  type LockerPort,
+  type HomePort,
   type Membership,
   NotAStudent,
   type SessionPort,
   type SignInButtonProps,
   type Student,
 } from "../platform/ports.ts";
-import { standInLinks } from "../platform/stand-ins/links.ts";
 import {
   standInGrant,
-  standInLocker,
+  standInHome,
   standInRecognise,
-} from "../platform/stand-ins/locker.ts";
+} from "../platform/stand-ins/home.ts";
+import { standInLinks } from "../platform/stand-ins/links.ts";
 import {
   standInClasses,
   standInGames,
@@ -89,7 +89,7 @@ function setUp({
   beforeRender = (_storage: KeyValueStore) => {},
   // This browser's storage, kept between visits.
   storage = memoryStorage(),
-  lockerPort = undefined as LockerPort | undefined,
+  homePort = undefined as HomePort | undefined,
   shellLines = undefined as Record<string, string> | undefined,
   titleLines = undefined as Record<string, string> | undefined,
 } = {}) {
@@ -106,7 +106,7 @@ function setUp({
           name: "test",
           session: session ?? standInSession(storage),
           memberships: standInMemberships(storage, standInClasses(classGames)),
-          locker: lockerPort ?? standInLocker(storage),
+          home: homePort ?? standInHome(storage),
           records: standInRecords(),
           links: standInLinks({ base: "/play/" }),
           SignInButton,
@@ -129,7 +129,7 @@ function setUp({
   return { navigate, spoken, storage, user: userEvent.setup() };
 }
 
-describe("the locker", () => {
+describe("home", () => {
   it("lists the games of the student's class, and opens one for that class", async () => {
     setUp();
     const hop = await screen.findByRole("link", { name: "Fraction Hop" });
@@ -242,7 +242,7 @@ describe("the locker", () => {
     ).toBeInTheDocument();
   });
 
-  it("sends a signed-out student to sign-in, coming back to the locker", async () => {
+  it("sends a signed-out student to sign-in, coming back home", async () => {
     const { navigate } = setUp({ signedIn: null });
     await waitFor(() =>
       expect(navigate).toHaveBeenCalledWith(
@@ -285,7 +285,7 @@ describe("new rewards", () => {
   const earned = (storage: KeyValueStore) =>
     standInGrant(storage, [sticker, top], { seen: false });
 
-  it("are revealed over the locker, said before the locker's own line", async () => {
+  it("are revealed over home, said before home's own line", async () => {
     const { spoken } = setUp({ path: "/play/?play=p1", beforeRender: earned });
     const reveal = await screen.findByRole("dialog", {
       name: "You got something new!",
@@ -300,7 +300,7 @@ describe("new rewards", () => {
     expect(screen.getByRole("main")).toHaveAttribute("inert");
   });
 
-  it("are put away with the tick, then the locker says what to do", async () => {
+  it("are put away with the tick, then home says what to do", async () => {
     const { spoken, storage, user } = setUp({ beforeRender: earned });
     await user.click(
       await within(
@@ -315,7 +315,7 @@ describe("new rewards", () => {
       ]),
     );
     await waitFor(async () =>
-      expect((await standInLocker(storage).current()).unseen).toEqual([]),
+      expect((await standInHome(storage).current()).unseen).toEqual([]),
     );
   });
 
@@ -329,7 +329,7 @@ describe("new rewards", () => {
     ).toBeInTheDocument();
   });
 
-  it("aren't revealed again once put away, and stickers stay in the locker", async () => {
+  it("aren't revealed again once put away, and stickers stay on the locker", async () => {
     const { storage, user } = setUp({ beforeRender: earned });
     await user.click(await screen.findByRole("button", { name: "Done" }));
     cleanup();
@@ -365,12 +365,12 @@ describe("new rewards", () => {
     );
   });
 
-  it("still opens the locker when its contents can't be read", async () => {
+  it("still opens home when what's there can't be read", async () => {
     const storage = memoryStorage();
-    const locker = standInLocker(storage);
-    vi.spyOn(locker, "current").mockRejectedValue(new Error("offline"));
+    const home = standInHome(storage);
+    vi.spyOn(home, "current").mockRejectedValue(new Error("offline"));
     vi.spyOn(console, "error").mockImplementation(() => {});
-    setUp({ storage, lockerPort: locker });
+    setUp({ storage, homePort: home });
     expect(await screen.findByText("Pick a game to play.")).toBeInTheDocument();
   });
 });
@@ -378,14 +378,14 @@ describe("new rewards", () => {
 describe("designing the avatar, the first time", () => {
   const newcomer = () => ({ ...studentIn(membership()), look: null });
 
-  it("comes before the locker, says what to do, and has no way out but done", async () => {
+  it("comes before home, says what to do, and has no way out but done", async () => {
     const { spoken } = setUp({ signedIn: newcomer() });
     const instruction = "Make your avatar! Pick each part, then tap the tick.";
     expect(await screen.findByText(instruction)).toBeInTheDocument();
     await waitFor(() => expect(spoken).toEqual([instruction]));
     expect(screen.queryByRole("link")).not.toBeInTheDocument();
     expect(
-      screen.queryByRole("button", { name: "Go to your locker" }),
+      screen.queryByRole("button", { name: "Go home" }),
     ).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Done" })).toBeInTheDocument();
   });
@@ -411,7 +411,7 @@ describe("designing the avatar, the first time", () => {
     expect(spoken.at(-1)).toBe("Shoes");
   });
 
-  it("shows each pick on the avatar at once, then keeps the look and opens the locker", async () => {
+  it("shows each pick on the avatar at once, then keeps the look and opens home", async () => {
     const { storage, user } = setUp({ signedIn: newcomer() });
     await user.click(await screen.findByRole("button", { name: "Skin 12" }));
     await user.click(screen.getByRole("button", { name: "Hair" }));
@@ -456,7 +456,7 @@ describe("designing the avatar, the first time", () => {
 });
 
 describe("the wardrobe", () => {
-  it("opens from the student's avatar in the locker", async () => {
+  it("opens from the student's avatar at home", async () => {
     setUp();
     expect(
       await screen.findByRole("link", { name: "Change your clothes" }),
@@ -471,7 +471,7 @@ describe("the wardrobe", () => {
     expect(await screen.findByText(instruction)).toBeInTheDocument();
     await waitFor(() => expect(spoken).toEqual([instruction]));
     await user.click(screen.getByRole("button", { name: "Tops 1" }));
-    await user.click(screen.getByRole("button", { name: "Go to your locker" }));
+    await user.click(screen.getByRole("button", { name: "Go home" }));
     expect(navigate).toHaveBeenCalledWith("/play/");
     expect(standInStudent(storage)?.look).toEqual(studentIn().look);
   });
@@ -500,7 +500,7 @@ describe("the wardrobe", () => {
     ).toBeInTheDocument();
   });
 
-  it("changes the outfit, keeps it, and goes back to the locker", async () => {
+  it("changes the outfit, keeps it, and goes back home", async () => {
     const { navigate, storage, user } = setUp({ path: "/play/wardrobe" });
     await user.click(await screen.findByRole("button", { name: "Tops 1" }));
     await user.click(screen.getByRole("button", { name: "Hats" }));
@@ -530,7 +530,7 @@ describe("the wardrobe", () => {
 });
 
 describe("what's new in the wardrobe", () => {
-  // Revealed in the locker already, but not seen in the wardrobe.
+  // Revealed at home already, but not seen in the wardrobe.
   const newPieces = (storage: KeyValueStore) =>
     standInGrant(storage, ["top-02", "hat-30", catalogue[0] ?? ""], {
       seen: true,
@@ -541,7 +541,7 @@ describe("what's new in the wardrobe", () => {
   const slotButton = (name: string) => screen.getByRole("button", { name });
 
   const stillNew = async (storage: KeyValueStore) =>
-    (await standInLocker(storage).current()).newInWardrobe;
+    (await standInHome(storage).current()).newInWardrobe;
 
   it("stars each slot with a new piece in it until the student opens it", async () => {
     const { user } = setUp({ path: "/play/wardrobe", beforeRender: newPieces });
@@ -586,7 +586,7 @@ describe("what's new in the wardrobe", () => {
     ).toBeInTheDocument();
     // Seen, though neither was worn.
     await waitFor(async () => expect(await stillNew(storage)).toEqual([]));
-    await user.click(screen.getByRole("button", { name: "Go to your locker" }));
+    await user.click(screen.getByRole("button", { name: "Go home" }));
 
     cleanup();
     setUp({ path: "/play/wardrobe", storage });
@@ -640,7 +640,7 @@ describe("what's new in the wardrobe", () => {
     const { user } = setUp({
       path: "/play/wardrobe",
       storage,
-      lockerPort: { ...standInLocker(storage), markSeenInWardrobe },
+      homePort: { ...standInHome(storage), markSeenInWardrobe },
     });
     await user.click(await screen.findByRole("button", { name: "Hats" }));
     expect(
@@ -766,7 +766,7 @@ describe("picking a grade in a split class", () => {
 });
 
 describe("the class join link", () => {
-  it("joins the class, then opens the locker", async () => {
+  it("joins the class, then opens home", async () => {
     const { navigate, storage } = setUp({
       path: "/play/join/G4",
       signedIn: studentIn(),
@@ -777,7 +777,7 @@ describe("the class join link", () => {
     ]);
   });
 
-  it("joins a split class with the grade left for the locker to ask", async () => {
+  it("joins a split class with the grade left for home to ask", async () => {
     const { navigate, storage } = setUp({
       path: "/play/join/G45",
       signedIn: studentIn(),
@@ -797,12 +797,12 @@ describe("the class join link", () => {
     );
   });
 
-  it("says aloud when no class has the code, with a way to the locker", async () => {
+  it("says aloud when no class has the code, with a way home", async () => {
     const { navigate, spoken, user } = setUp({ path: "/play/join/X1" });
     const line = "We couldn't find that class. Ask your teacher for the link.";
     expect(await screen.findByText(line)).toBeInTheDocument();
     expect(spoken).toContain(line);
-    await user.click(screen.getByRole("button", { name: "Go to your locker" }));
+    await user.click(screen.getByRole("button", { name: "Go home" }));
     expect(navigate).toHaveBeenCalledWith("/play/");
   });
 
@@ -860,7 +860,7 @@ describe("sign-in", () => {
     expect(storage.keys()).not.toContain("sign-in.next");
   });
 
-  it("opens the locker when nothing was remembered", async () => {
+  it("opens home when nothing was remembered", async () => {
     const { navigate } = setUp({ path: "/play/sign-in", SignInButton: button });
     await waitFor(() => expect(navigate).toHaveBeenCalledWith("/play/"));
   });
@@ -940,7 +940,7 @@ describe("stickers on the locker", () => {
     standInGrant(storage, [first, second]);
 
   async function placed(storage: KeyValueStore) {
-    return (await standInLocker(storage).current()).placements;
+    return (await standInHome(storage).current()).placements;
   }
 
   it("sticks a sticker where the student taps, saying what to do", async () => {
@@ -972,9 +972,7 @@ describe("stickers on the locker", () => {
     const { storage } = setUp({
       beforeRender: (storage) => {
         owning(storage);
-        void standInLocker(storage).place([
-          { sticker: second, x: 0.5, y: 0.4 },
-        ]);
+        void standInHome(storage).place([{ sticker: second, x: 0.5, y: 0.4 }]);
       },
     });
     const board = await lockerBoard();
@@ -991,7 +989,7 @@ describe("stickers on the locker", () => {
     const { spoken, storage, user } = setUp({
       beforeRender: (storage) => {
         owning(storage);
-        void standInLocker(storage).place([
+        void standInHome(storage).place([
           { sticker: first, x: 0.5, y: 0.5 },
           { sticker: second, x: 0.6, y: 0.5 },
         ]);
@@ -1039,7 +1037,7 @@ describe("stickers on the locker", () => {
     const { storage, user } = setUp({
       beforeRender: (storage) => {
         owning(storage);
-        void standInLocker(storage).place([{ sticker: first, x: 0.5, y: 0.5 }]);
+        void standInHome(storage).place([{ sticker: first, x: 0.5, y: 0.5 }]);
       },
     });
     const board = await lockerBoard();
@@ -1118,10 +1116,10 @@ describe("stickers on the locker", () => {
   it("goes back to what's saved when a change can't be saved", async () => {
     const storage = memoryStorage();
     owning(storage);
-    const locker = standInLocker(storage);
-    vi.spyOn(locker, "place").mockRejectedValue(new Error("offline"));
+    const home = standInHome(storage);
+    vi.spyOn(home, "place").mockRejectedValue(new Error("offline"));
     vi.spyOn(console, "error").mockImplementation(() => {});
-    const { user } = setUp({ storage, lockerPort: locker });
+    const { user } = setUp({ storage, homePort: home });
     const board = await lockerBoard();
     await user.click(
       within(tray()).getAllByRole("button", {
@@ -1173,7 +1171,7 @@ describe("recognition from a teacher", () => {
     const { storage, user } = setUp({ beforeRender: recognised });
     await user.click(await screen.findByRole("button", { name: "Done" }));
     await waitFor(async () =>
-      expect((await standInLocker(storage).current()).unseen).toEqual([]),
+      expect((await standInHome(storage).current()).unseen).toEqual([]),
     );
     const board = await lockerBoard();
     await user.click(
@@ -1187,7 +1185,7 @@ describe("recognition from a teacher", () => {
       coords: { clientX: 200, clientY: 100 },
     });
     await waitFor(async () =>
-      expect((await standInLocker(storage).current()).placements).toEqual([
+      expect((await standInHome(storage).current()).placements).toEqual([
         { sticker: "recognition-kindness", x: 0.5, y: 0.5 },
       ]),
     );

@@ -15,7 +15,7 @@ const prefix = "virtual:voice-lines/";
 
 /**
  * `virtual:voice-titles`: every game's recorded title, `{ [slug]: url }`, for
- * the shell's locker. Games whose title isn't current are absent.
+ * the student's home. Games whose title isn't current are absent.
  */
 const titlesId = "virtual:voice-titles";
 const titleLine = "title";

@@ -1,5 +1,5 @@
 // Designing the avatar: first, before anything else, and then from the
-// locker's wardrobe. The student picks a skin tone, hair and an outfit from
+// wardrobe on home. The student picks a skin tone, hair and an outfit from
 // the pieces they own, seeing their avatar change as they go. Usable without
 // reading: the instruction and each slot's name are spoken, and every choice
 // is a picture. Outfit pieces the student hasn't seen in the wardrobe yet wear
@@ -13,7 +13,7 @@ import { IconButton } from "@repo/ui/icon-button";
 import { PictureButton } from "@repo/ui/picture-button";
 import { Title } from "@repo/ui/title";
 import { useEffect, useRef, useState } from "react";
-import type { Locker, Platform, Student } from "../platform/ports.ts";
+import type { Home, Platform, Student } from "../platform/ports.ts";
 import type { VoiceOptions } from "../play/voice.ts";
 import { Message, shellT, useShellVoice } from "./shared.tsx";
 import type { ShellStringId } from "./shell-strings.ts";
@@ -44,7 +44,7 @@ export interface DesignProps {
   speak?: VoiceOptions["speak"];
   /** Called once the look is saved. */
   onDone(look: AvatarLook): void;
-  /** Back to the locker without changing anything; wardrobe only. */
+  /** Back home without changing anything; wardrobe only. */
   onBack?(): void;
   onError(): void;
 }
@@ -52,19 +52,19 @@ export interface DesignProps {
 /** Loads what the student owns, then lets them design their avatar. */
 export function AvatarDesign(props: DesignProps) {
   const { platform, onError } = props;
-  const [locker, setLocker] = useState<Pick<
-    Locker,
+  const [home, setHome] = useState<Pick<
+    Home,
     "owned" | "newInWardrobe"
   > | null>(null);
   useEffect(() => {
     let cancelled = false;
-    platform.locker.current().then(
-      (locker) => {
-        if (!cancelled) setLocker(locker);
+    platform.home.current().then(
+      (home) => {
+        if (!cancelled) setHome(home);
       },
       (error: unknown) => {
         if (cancelled) return;
-        console.error("[play] Couldn't open the locker", error);
+        console.error("[play] Couldn't open home", error);
         onError();
       },
     );
@@ -72,12 +72,12 @@ export function AvatarDesign(props: DesignProps) {
       cancelled = true;
     };
   }, [platform, onError]);
-  if (!locker) return <Message text={shellT("opening-locker")} busy />;
+  if (!home) return <Message text={shellT("opening-home")} busy />;
   return (
     <Designer
       {...props}
-      owned={locker.owned}
-      newInWardrobe={locker.newInWardrobe}
+      owned={home.owned}
+      newInWardrobe={home.newInWardrobe}
     />
   );
 }
@@ -126,7 +126,7 @@ function Designer({
     const seen = newIn(slot, fresh);
     if (seen.length === 0) return;
     // Not worth interrupting the student for: the stars show again next time.
-    platform.locker.markSeenInWardrobe(seen).catch((error: unknown) => {
+    platform.home.markSeenInWardrobe(seen).catch((error: unknown) => {
       console.error("[play] Couldn't mark new pieces seen", error);
     });
   }, [platform, slot, fresh]);
@@ -141,7 +141,7 @@ function Designer({
   const save = () => {
     voice.stop();
     setSaving(true);
-    platform.locker.wear(look).then(onDone, (error: unknown) => {
+    platform.home.wear(look).then(onDone, (error: unknown) => {
       console.error("[play] Couldn't save the avatar", error);
       onError();
     });
@@ -153,7 +153,7 @@ function Designer({
         {onBack && mode === "wardrobe" && (
           <IconButton
             tone="neutral"
-            label={shellT("to-locker")}
+            label={shellT("to-home")}
             onClick={onBack}
             disabled={saving}
           >

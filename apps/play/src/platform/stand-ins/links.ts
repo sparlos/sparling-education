@@ -1,7 +1,7 @@
 // STAND-IN for the real links port. There's no Google sign-in without the
-// API, so sign-in goes to the shell's own stand-in screen. The locker is the
+// API, so sign-in goes to the shell's own stand-in screen. Home is the
 // shell's own. See ../README.md.
-import { lockerPath } from "../../play/routes.ts";
+import { homePath } from "../../play/routes.ts";
 import type { LinksPort } from "../ports.ts";
 
 /** The stand-in sign-in screen's path, under the shell's base path. */
@@ -15,6 +15,6 @@ export function standInLinks(options: {
     signIn(returnTo) {
       return `${options.base}${standInSignInPath}?${new URLSearchParams({ next: returnTo })}`;
     },
-    locker: (play) => lockerPath(options.base, play),
+    home: (play) => homePath(options.base, play),
   };
 }

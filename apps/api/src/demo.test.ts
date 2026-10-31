@@ -206,8 +206,8 @@ describe("the demo class", () => {
       expect(effort.reduce((a, b) => a + b, 0)).toBeGreaterThan(0);
     }
     await viewAsStudent(headers);
-    const locker = await get(client.locker.$get(undefined, { headers }));
-    expect(locker.stickers.length).toBeGreaterThan(0);
+    const home = await get(client.home.$get(undefined, { headers }));
+    expect(home.stickers.length).toBeGreaterThan(0);
   });
 
   it("has some students recognised already, this term and last", async () => {
@@ -243,9 +243,9 @@ describe("the demo class", () => {
   it("reveals the recognition sticker as new to the student viewed as", async () => {
     const headers = await signIn();
     await viewAsStudent(headers);
-    const locker = await get(client.locker.$get(undefined, { headers }));
-    expect(locker.stickers).toContain(recognitionSticker("kindness"));
-    expect(locker.unseen).toContain(recognitionSticker("kindness"));
+    const home = await get(client.home.$get(undefined, { headers }));
+    expect(home.stickers).toContain(recognitionSticker("kindness"));
+    expect(home.unseen).toContain(recognitionSticker("kindness"));
   });
 
   it("is the same for every teacher, apart from its IDs", async () => {

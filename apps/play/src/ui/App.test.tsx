@@ -21,8 +21,8 @@ import {
   type PlayRecord,
   type Student,
 } from "../platform/ports.ts";
+import { standInEarn, standInHome } from "../platform/stand-ins/home.ts";
 import { standInLinks } from "../platform/stand-ins/links.ts";
-import { standInEarn, standInLocker } from "../platform/stand-ins/locker.ts";
 import {
   type StandInClasses,
   standInClasses,
@@ -124,7 +124,7 @@ function setUp({
         platform={{
           name: "test",
           session,
-          locker: standInLocker(storage),
+          home: standInHome(storage),
           memberships: standInMemberships(storage, classes),
           records,
           links: standInLinks({ base: "/play/" }),
@@ -262,7 +262,7 @@ describe("opening a game", () => {
     expect(avatar.querySelector('[data-slot="hat"]')).toBeNull();
   });
 
-  it("plays for the class the locker opened it for, at the student's grade in that class", async () => {
+  it("plays for the class home opened it for, at the student's grade in that class", async () => {
     const { user, records } = setUp({
       path: "/play/shell-check?class=class-2",
       signedIn: {
@@ -294,7 +294,7 @@ describe("opening a game", () => {
     expect(records.stored[0]).toMatchObject({ class: "class-1" });
   });
 
-  it("sends a student with no class to play the game in to their locker", async () => {
+  it("sends a student with no class to play the game in home", async () => {
     const { navigate } = setUp({ signedIn: { ...student, classes: [] } });
     await waitFor(() => expect(navigate).toHaveBeenCalledWith("/play/"));
   });
@@ -512,18 +512,18 @@ describe("a teacher's game link", () => {
     ).toBe(3);
   });
 
-  it("says aloud when no class has its join code, with a way to the locker", async () => {
+  it("says aloud when no class has its join code, with a way home", async () => {
     const { user, navigate, spoken } = setUp({
       path: "/play/shell-check?join=X1",
     });
     const text = "We couldn't find that class. Ask your teacher for the link.";
     expect(await screen.findByText(text)).toBeInTheDocument();
     expect(spoken).toContain(text);
-    await user.click(screen.getByRole("button", { name: "Go to your locker" }));
+    await user.click(screen.getByRole("button", { name: "Go home" }));
     expect(navigate).toHaveBeenCalledWith("/play/");
   });
 
-  it("says aloud when its class has the game turned off, with a way to the locker", async () => {
+  it("says aloud when its class has the game turned off, with a way home", async () => {
     const { user, navigate, spoken, records, storage } = setUp({
       path: "/play/shell-check?join=G4",
       classes: standInClasses([]),
@@ -533,7 +533,7 @@ describe("a teacher's game link", () => {
     expect(spoken).toContain(text);
     // Still in the class, for its other games.
     expect(standInStudent(storage)?.classes).toHaveLength(2);
-    await user.click(screen.getByRole("button", { name: "Go to your locker" }));
+    await user.click(screen.getByRole("button", { name: "Go home" }));
     expect(navigate).toHaveBeenCalledWith("/play/");
     expect(records.stored).toEqual([]);
   });
@@ -600,7 +600,7 @@ const sentTo = (navigate: ReturnType<typeof vi.fn>) =>
   new URL(navigate.mock.calls[0]?.[0], "https://app.test");
 
 describe("finishing", () => {
-  it("returns the student to their locker, naming the play, after sending its records", async () => {
+  it("returns the student home, naming the play, after sending its records", async () => {
     const { user, records, navigate } = setUp();
     await game();
     await user.click(screen.getByRole("button", { name: "Right" }));
@@ -611,12 +611,12 @@ describe("finishing", () => {
     expect(endsIn(records.stored)).toEqual([
       expect.objectContaining({ ending: "finished" }),
     ]);
-    const locker = sentTo(navigate);
-    expect(locker.pathname).toBe("/play/");
-    expect(locker.searchParams.get("play")).toBe(records.stored[0]?.play);
+    const home = sentTo(navigate);
+    expect(home.pathname).toBe("/play/");
+    expect(home.searchParams.get("play")).toBe(records.stored[0]?.play);
   });
 
-  it("reveals what the play earned once the student is back in their locker", async () => {
+  it("reveals what the play earned once the student is back home", async () => {
     const { user, navigate, storage } = setUp();
     await game();
     await user.click(screen.getByRole("button", { name: "Finish" }));
@@ -633,7 +633,7 @@ describe("finishing", () => {
     await waitFor(() => expect(spoken).toEqual(["You got something new!"]));
   });
 
-  it("returns a student who came by a teacher's game link to their locker too", async () => {
+  it("returns a student who came by a teacher's game link home too", async () => {
     const { user, navigate } = setUp({ path: "/play/shell-check?join=G4" });
     await game();
     await user.click(screen.getByRole("button", { name: "Finish" }));
@@ -682,7 +682,7 @@ describe("leaving", () => {
     expect(leave()).toHaveFocus();
   });
 
-  it("returns the student to their locker, keeping their attempts", async () => {
+  it("returns the student home, keeping their attempts", async () => {
     const { user, records, navigate } = setUp();
     await game();
     await user.click(screen.getByRole("button", { name: "Wrong" }));
@@ -698,9 +698,9 @@ describe("leaving", () => {
     expect(endsIn(records.stored)).toEqual([
       expect.objectContaining({ ending: "left" }),
     ]);
-    const locker = sentTo(navigate);
-    expect(locker.pathname).toBe("/play/");
-    expect(locker.searchParams.get("play")).toBe(records.stored[0]?.play);
+    const home = sentTo(navigate);
+    expect(home.pathname).toBe("/play/");
+    expect(home.searchParams.get("play")).toBe(records.stored[0]?.play);
   });
 });
 

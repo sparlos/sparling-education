@@ -1,7 +1,7 @@
 import {
   Checkbox,
-  CheckboxGroup as MantineCheckboxGroup,
   Group,
+  CheckboxGroup as MantineCheckboxGroup,
 } from "@mantine/core";
 import { inputClassNames } from "./input";
 

@@ -97,7 +97,7 @@ export const welcome: Walkthrough = {
       screen: "dashboard",
       target: at("demo"),
       title: "See it as a student",
-      body: "Click View as a student to see what your students see. It opens a demo student's locker in a new tab. When you're done exploring, you can delete the demo class.",
+      body: "Click View as a student to see what your students see. It opens a demo student's home screen in a new tab. When you're done exploring, you can delete the demo class.",
     },
     {
       screen: "dashboard",

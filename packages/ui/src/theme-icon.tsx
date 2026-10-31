@@ -9,7 +9,7 @@ interface ThemeIconProps {
   tone?: Tone;
   /** `soft` tints the background; `filled` uses the solid tone colour. */
   variant?: "soft" | "filled";
-  /** `sm` is a section heading's tile; `md` the locker's. */
+  /** `sm` is a section heading's tile; `md` home's. */
   size?: "sm" | "md" | "lg" | "xl";
   className?: string;
 }

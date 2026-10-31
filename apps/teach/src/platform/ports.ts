@@ -136,7 +136,7 @@ export interface TeacherPort {
     grade: ClassGrade,
   ): Promise<ClassStudent>;
   /**
-   * Takes the student out of the class: it leaves their locker, and they and
+   * Takes the student out of the class: it leaves their home screen, and they and
    * their results leave every view of it. Rejects when no teacher is signed
    * in, and with `NotFound` when the class isn't theirs or the student isn't
    * in it.
@@ -205,7 +205,7 @@ export interface TeacherPort {
   deleteDemoClass(): Promise<void>;
   /**
    * Has this browser view the play shell as one of the demo class's
-   * students: opening `link` shows their locker, and their plays count only
+   * students: opening `link` shows their home, and their plays count only
    * in the demo class. Rejects when no teacher is signed in, and with
    * `NotFound` when they have no demo class.
    */
@@ -226,7 +226,7 @@ export interface TeacherPort {
 /** Viewing the play shell as a demo student. */
 export interface DemoView {
   student: { id: string; firstName: string; lastInitial: string };
-  /** The play shell, as a full URL: their locker. */
+  /** The play shell, as a full URL: their home. */
   link: string;
 }
 

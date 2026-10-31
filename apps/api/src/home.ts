@@ -1,4 +1,4 @@
-// A student's locker: the outfit pieces and stickers they own, the look they
+// What a student has at home: the outfit pieces and stickers they own, the look they
 // wear, where they put their stickers, and the rewards and recognition they
 // haven't seen yet. Rewards are granted here when a play ends, by the reward
 // rule in scoring.ts; recognition stickers come from teachers
@@ -17,18 +17,18 @@ import {
   rewardKind,
   traitOf,
 } from "@repo/rewards";
-import type { Locker } from "./schemas.ts";
+import type { Home } from "./schemas.ts";
 import { effortOf, rewardsEarned, weekOf } from "./scoring.ts";
 
 /**
- * The student's locker. Every student owns the base set; their rewards add
+ * What the student has at home. Every student owns the base set; their rewards add
  * outfit pieces and stickers, and recognition from any of their teachers
  * adds that trait's sticker, once however often they're recognised for it.
  */
-export async function studentLocker(
+export async function studentHome(
   db: Db,
   studentId: string,
-): Promise<Locker> {
+): Promise<Home> {
   const [rewards, recognitions, placements] = await Promise.all([
     db.reward.findMany({
       where: { studentId },
@@ -88,7 +88,7 @@ export async function placeStickers(
   studentId: string,
   placements: readonly { sticker: string; x: number; y: number }[],
 ): Promise<"placed" | "not-owned"> {
-  const { stickers } = await studentLocker(db, studentId);
+  const { stickers } = await studentHome(db, studentId);
   const mine = new Set(stickers);
   if (!placements.every((p) => isSticker(p.sticker) && mine.has(p.sticker)))
     return "not-owned";
@@ -116,7 +116,7 @@ export async function wearLook(
   studentId: string,
   look: AvatarLook,
 ): Promise<"worn" | "not-owned"> {
-  const { owned } = await studentLocker(db, studentId);
+  const { owned } = await studentHome(db, studentId);
   if (!canWear(look, owned)) return "not-owned";
   await db.account.update({
     where: { id: studentId },

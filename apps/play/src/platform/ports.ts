@@ -1,6 +1,6 @@
 // The platform contract: everything the play shell needs from the rest of
 // The platform (sign-in, the student's classes and grades, joining a class, their
-// locker and avatar, somewhere to send each play's attempts and how it ended, and links into
+// home and avatar, somewhere to send each play's attempts and how it ended, and links into
 // other apps). The shell only ever talks to these interfaces. They're
 // implemented by the stand-ins in ./stand-ins/ and the adapters over
 // The platform's API in ./api/, and each one must pass the suites in
@@ -36,7 +36,7 @@ export interface Membership {
   classId: string;
   className: string;
   /**
-   * The class's colour, which its section of the locker and the screens
+   * The class's colour, which its section of home and the screens
    * around its games take. Never named to the student.
    */
   classColour: ClassColourSlug;
@@ -48,10 +48,10 @@ export interface Membership {
    */
   grade: number | null;
   /** The class's games that are on, in the order students see them. */
-  games: LockerGame[];
+  games: HomeGame[];
 }
 
-export interface LockerGame {
+export interface HomeGame {
   slug: string;
   /** The game's name, as students see and hear it. */
   name: string;
@@ -82,8 +82,8 @@ export interface MembershipsPort {
   pickGrade(classId: string, grade: number): Promise<Membership>;
 }
 
-/** What's in the student's locker. */
-export interface Locker {
+/** What the student has at home: their outfit, stickers and locker. */
+export interface Home {
   /**
    * The outfit pieces they own, as item IDs from `@repo/avatar/parts`: the
    * base set every student starts with, and their rewards. Skin tones and
@@ -99,7 +99,7 @@ export interface Locker {
   /**
    * Rewards (outfit pieces or stickers) and recognition stickers they
    * haven't seen yet, in the order they were given: revealed the next time
-   * they open their locker, until they've seen them.
+   * they open home, until they've seen them.
    */
   unseen: string[];
   /**
@@ -122,9 +122,9 @@ export interface Placement {
   y: number;
 }
 
-export interface LockerPort {
-  /** The signed-in student's locker. */
-  current(): Promise<Locker>;
+export interface HomePort {
+  /** What the signed-in student has at home. */
+  current(): Promise<Home>;
   /**
    * Dresses the signed-in student's avatar in `look`, which the session then
    * returns: the first time when they design it, then from the wardrobe.
@@ -138,7 +138,7 @@ export interface LockerPort {
   markSeen(rewards: readonly string[]): Promise<void>;
   /**
    * The student has opened the wardrobe slot holding these outfit pieces, so
-   * they're no longer new there. Doesn't change what's new in the locker.
+   * they're no longer new there. Doesn't change what's new on home.
    */
   markSeenInWardrobe(items: readonly string[]): Promise<void>;
   /**
@@ -250,10 +250,10 @@ export interface LinksPort {
   /** Sign-in, returning to `returnTo` (the game link the student opened) afterwards. */
   signIn(returnTo: string): string;
   /**
-   * The locker, where every game returns the student, naming the play they're
-   * back from so the locker can reveal the rewards it earned.
+   * Home, where every game returns the student, naming the play they're
+   * back from so home can reveal the rewards it earned.
    */
-  locker(play: string): string;
+  home(play: string): string;
 }
 
 export interface Platform {
@@ -261,7 +261,7 @@ export interface Platform {
   name: string;
   session: SessionPort;
   memberships: MembershipsPort;
-  locker: LockerPort;
+  home: HomePort;
   records: PlayRecordsPort;
   links: LinksPort;
   /**

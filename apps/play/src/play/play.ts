@@ -1,6 +1,6 @@
 // One play of one game by one student: turns the game's attempts into
 // records for the outbox, records how the play ended, and sends the student
-// back to their locker.
+// back home.
 import {
   type Attempt,
   attemptProblem,
@@ -16,7 +16,7 @@ export interface Play {
   record(attempt: Attempt<GameManifest>): void;
   /**
    * Records how the play ended, sends what's left (waiting at most
-   * `timeoutMs`), then gives the link back to the locker, naming this play.
+   * `timeoutMs`), then gives the link back home, naming this play.
    * A play ends once: later calls get the same link, and attempts after it
    * are dropped. Attempts recorded before a student leaves are kept and sent
    * like any others.
@@ -93,7 +93,7 @@ export function createPlay(options: {
       outbox.add({ ...common(), kind: "end", ending });
       ended = outbox
         .drain(timeoutMs)
-        .then(() => options.links.locker(options.id));
+        .then(() => options.links.home(options.id));
       return ended;
     },
   };

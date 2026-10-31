@@ -44,11 +44,11 @@ import classes from "./app.module.css";
 import { ErrorBoundary } from "./ErrorBoundary.tsx";
 import {
   GradePick,
+  HomePage,
   JoinPage,
-  LockerPage,
   SignInPage,
   WardrobePage,
-} from "./Locker.tsx";
+} from "./Home.tsx";
 import {
   Message,
   noRecordings,
@@ -57,7 +57,7 @@ import {
   ShellVoiceGate,
   SpokenMessage,
   shellT,
-  ToLocker,
+  ToHome,
 } from "./shared.tsx";
 import { TooSmall, useTooSmall } from "./TooSmall.tsx";
 import { AvatarDesign } from "./Wardrobe.tsx";
@@ -97,7 +97,7 @@ type Screen =
   | { kind: "ending"; ready: ReadyPlay };
 
 /**
- * The shell: the locker, joining a class, sign-in, or a game, by the URL.
+ * The shell: home, joining a class, sign-in, or a game, by the URL.
  * On a screen too small to play on, a block covers it all; the page stays
  * underneath as it was, inert and silent, until the screen is big enough.
  */
@@ -131,8 +131,8 @@ function RoutedScreen(props: AppProps) {
     [props.url, props.base],
   );
   switch (route?.kind) {
-    case "locker":
-      return <LockerPage {...props} />;
+    case "home":
+      return <HomePage {...props} />;
     case "join":
       return <JoinPage {...props} joinCode={route.joinCode} />;
     case "sign-in":
@@ -162,7 +162,7 @@ function GamePage(props: AppProps) {
           return;
         }
         if (result.kind === "sign-in") return navigate(result.url);
-        if (result.kind === "locker") return navigate(base);
+        if (result.kind === "home") return navigate(base);
         if (result.kind !== "ready") return setScreen(result);
         ready = result.ready;
         setScreen({ kind: "playing", ready });
@@ -199,7 +199,7 @@ function GamePage(props: AppProps) {
     };
   }, [ready]);
 
-  // However a play ends, the student goes back to their locker.
+  // However a play ends, the student goes back home.
   const end = useCallback(
     (ready: ReadyPlay, ending: Ending) => {
       setScreen({ kind: "ending", ready });
@@ -207,7 +207,7 @@ function GamePage(props: AppProps) {
     },
     [navigate, props.finishTimeoutMs],
   );
-  const toLocker = <ToLocker onClick={() => navigate(base)} />;
+  const toHome = <ToHome onClick={() => navigate(base)} />;
 
   switch (screen.kind) {
     case "loading":
@@ -220,7 +220,7 @@ function GamePage(props: AppProps) {
     case "game-off":
       return (
         <SpokenMessage line={screen.kind} speak={props.speak}>
-          {toLocker}
+          {toHome}
         </SpokenMessage>
       );
     case "error":
@@ -377,8 +377,8 @@ function PlayScreen({
             }}
             fallback={
               <Message text={shellT("error")}>
-                {/* Ending again only gives back the crashed play's locker link. */}
-                <ToLocker
+                {/* Ending again only gives back the crashed play's link home. */}
+                <ToHome
                   onClick={() => void play.end("crashed").then(navigate)}
                 />
               </Message>

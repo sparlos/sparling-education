@@ -1,20 +1,20 @@
-// The locker port over the platform's API, through the generated client.
+// The home port over the platform's API, through the generated client.
 import {
-  getLocker,
+  getHome,
   markRewardsSeen,
   markSeenInWardrobe,
   placeStickers,
   wearLook,
 } from "@repo/api-client";
 import { parseLook } from "@repo/avatar";
-import { type LockerPort, NotOwned } from "../ports.ts";
+import { type HomePort, NotOwned } from "../ports.ts";
 import { unexpected } from "./unexpected.ts";
 
-export function apiLocker(): LockerPort {
+export function apiHome(): HomePort {
   return {
     async current() {
-      const res = await getLocker();
-      if (res.status !== 200) throw unexpected("locker", res.status);
+      const res = await getHome();
+      if (res.status !== 200) throw unexpected("home", res.status);
       return res.data;
     },
     async wear(look) {

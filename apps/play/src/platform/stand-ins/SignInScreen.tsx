@@ -10,7 +10,7 @@ import { Text } from "@repo/ui/text";
 import { Title } from "@repo/ui/title";
 import { useState } from "react";
 import type { KeyValueStore } from "../../play/storage.ts";
-import { standInGrant, standInRecognise } from "./locker.ts";
+import { standInGrant, standInRecognise } from "./home.ts";
 import type { StandInClasses } from "./memberships.ts";
 import { standInSignIn } from "./session.ts";
 

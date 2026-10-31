@@ -24,14 +24,14 @@ import {
 import { classDashboard } from "./dashboard.ts";
 import { deleteDemoClass, giveDemoClass, viewDemoAsStudent } from "./demo.ts";
 import { studentEvidence, studentPlay } from "./drill-down.ts";
-import { type IdentityVerifier, identityFrom } from "./identity.ts";
 import {
   markSeen,
   markSeenInWardrobe,
   placeStickers,
-  studentLocker,
+  studentHome,
   wearLook,
-} from "./locker.ts";
+} from "./home.ts";
+import { type IdentityVerifier, identityFrom } from "./identity.ts";
 import {
   classStudents,
   joinClass,
@@ -55,8 +55,8 @@ import {
   GameSwitchSchema,
   GradePickSchema,
   HealthSchema,
+  HomeSchema,
   JoinSchema,
-  LockerSchema,
   LookSchema,
   MembershipSchema,
   NewClassSchema,
@@ -266,15 +266,15 @@ const gradeRoute = createRoute({
   },
 });
 
-const lockerRoute = createRoute({
+const homeRoute = createRoute({
   method: "get",
-  path: "/locker",
-  operationId: "getLocker",
-  summary: "The signed-in student's locker",
+  path: "/home",
+  operationId: "getHome",
+  summary: "The signed-in student's home",
   responses: {
     200: {
-      description: "What's in their locker",
-      content: { "application/json": { schema: LockerSchema } },
+      description: "What they have at home",
+      content: { "application/json": { schema: HomeSchema } },
     },
     ...studentOnly,
   },
@@ -282,7 +282,7 @@ const lockerRoute = createRoute({
 
 const wearRoute = createRoute({
   method: "put",
-  path: "/locker/look",
+  path: "/home/look",
   operationId: "wearLook",
   summary: "Dress the signed-in student's avatar",
   description:
@@ -305,11 +305,11 @@ const wearRoute = createRoute({
 
 const seenRoute = createRoute({
   method: "post",
-  path: "/locker/seen",
+  path: "/home/seen",
   operationId: "markRewardsSeen",
   summary: "The signed-in student has seen these rewards revealed",
   description:
-    "They stop being new in the locker. Rewards the student hasn't got, or has already seen, are ignored.",
+    "They stop being new at home. Rewards the student hasn't got, or has already seen, are ignored.",
   request: {
     body: { content: { "application/json": { schema: SeenSchema } } },
   },
@@ -321,11 +321,11 @@ const seenRoute = createRoute({
 
 const wardrobeSeenRoute = createRoute({
   method: "post",
-  path: "/locker/wardrobe-seen",
+  path: "/home/wardrobe-seen",
   operationId: "markSeenInWardrobe",
   summary: "The signed-in student has seen these outfit pieces in the wardrobe",
   description:
-    "They opened the slot holding them, so they stop being new in the wardrobe. Seeing them revealed in the locker doesn't change this, and this doesn't change that. Pieces the student hasn't got, or has already seen there, are ignored.",
+    "They opened the slot holding them, so they stop being new in the wardrobe. Seeing them revealed at home doesn't change this, and this doesn't change that. Pieces the student hasn't got, or has already seen there, are ignored.",
   request: {
     body: { content: { "application/json": { schema: SeenSchema } } },
   },
@@ -483,7 +483,7 @@ const gameSwitchRoute = createRoute({
   operationId: "switchGame",
   summary: "Turn one of a class's games on or off",
   description:
-    "Students see only the games that are on, in their locker. A game link for one that's off tells them it's turned off. Turning it back on restores both.",
+    "Students see only the games that are on, at their home. A game link for one that's off tells them it's turned off. Turning it back on restores both.",
   request: {
     params: z.object({
       classId: z.uuid(),
@@ -511,7 +511,7 @@ const classColourRoute = createRoute({
   operationId: "setClassColour",
   summary: "Set a class's colour",
   description:
-    "Every screen for the class takes its hue from it, for the teacher and in its students' lockers.",
+    "Every screen for the class takes its hue from it, for the teacher and on its students' homes.",
   request: {
     params: z.object({ classId: z.uuid() }),
     body: {
@@ -589,7 +589,7 @@ const removeStudentRoute = createRoute({
   operationId: "removeStudent",
   summary: "Remove a student from the class",
   description:
-    "The class leaves their locker, and they leave its dashboard. Their plays for the class are kept out of every teacher view; they come back if the student joins again.",
+    "The class leaves their home, and they leave its dashboard. Their plays for the class are kept out of every teacher view; they come back if the student joins again.",
   request: { params: z.object({ classId: z.uuid(), studentId: z.uuid() }) },
   responses: {
     204: { description: "Removed" },
@@ -652,7 +652,7 @@ const recogniseRoute = createRoute({
   operationId: "recogniseStudent",
   summary: "Recognise a student for a character trait",
   description:
-    "Gives the student the trait's exclusive recognition sticker, revealed as new in their locker. Once per trait per term in a class: recognising them for it again this term changes nothing. It never counts toward the weekly reward cap.",
+    "Gives the student the trait's exclusive recognition sticker, revealed as new at their home. Once per trait per term in a class: recognising them for it again this term changes nothing. It never counts toward the weekly reward cap.",
   request: {
     params: z.object({ classId: z.uuid(), studentId: z.uuid() }),
     body: { content: { "application/json": { schema: RecogniseSchema } } },
@@ -791,7 +791,7 @@ const viewDemoRoute = createRoute({
   operationId: "viewDemoAsStudent",
   summary: "View the play shell as one of the demo class's students",
   description:
-    "From now on this browser's student routes act as that demo student, so the play shell opens their locker, and their plays count only in the demo class. Teacher routes are unchanged.",
+    "From now on this browser's student routes act as that demo student, so the play shell opens their home, and their plays count only in the demo class. Teacher routes are unchanged.",
   responses: {
     200: {
       description: "Who they're viewing as, and where to open the play shell",
@@ -993,11 +993,11 @@ export function createApp({
           return c.json({ error: pick.kind }, 400);
       }
     })
-    .openapi(lockerRoute, async (c) => {
+    .openapi(homeRoute, async (c) => {
       const student = await studentOf(c);
       if (student === "signed-out") return c.json({ error: student }, 401);
       if (student === "not-a-student") return c.json({ error: student }, 403);
-      return c.json(await studentLocker(db, student.id), 200);
+      return c.json(await studentHome(db, student.id), 200);
     })
     .openapi(wearRoute, async (c) => {
       const student = await studentOf(c);

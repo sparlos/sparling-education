@@ -53,11 +53,11 @@ async function pageOf(
   return page;
 }
 
-async function lockerOf(headers: Headers) {
-  const res = await client.locker.$get(undefined, { headers });
-  const locker = await res.json();
-  if ("error" in locker) throw new Error(locker.error);
-  return locker;
+async function homeOf(headers: Headers) {
+  const res = await client.home.$get(undefined, { headers });
+  const home = await res.json();
+  if ("error" in home) throw new Error(home.error);
+  return home;
 }
 
 /** What the dashboard says each student was recognised for this term, by first name. */
@@ -90,9 +90,9 @@ describe("recognising a student", () => {
       awardedAt: now.toISOString(),
     });
 
-    const locker = await lockerOf(student.headers);
-    expect(locker.stickers).toEqual(["recognition-kindness"]);
-    expect(locker.unseen).toEqual(["recognition-kindness"]);
+    const home = await homeOf(student.headers);
+    expect(home.stickers).toEqual(["recognition-kindness"]);
+    expect(home.unseen).toEqual(["recognition-kindness"]);
 
     const page = await pageOf(teacherHeaders, where);
     expect(page.recognised).toEqual([
@@ -112,7 +112,7 @@ describe("recognising a student", () => {
     const again = await recognise(teacherHeaders, where, "kindness");
     expect(await again.json()).toEqual({ trait: "kindness", awardedAt: first });
     expect((await pageOf(teacherHeaders, where)).recognised).toHaveLength(1);
-    expect((await lockerOf(student.headers)).stickers).toEqual([
+    expect((await homeOf(student.headers)).stickers).toEqual([
       "recognition-kindness",
     ]);
   });
@@ -128,7 +128,7 @@ describe("recognising a student", () => {
       Ada: ["kindness", "leadership"],
       Ben: [],
     });
-    expect((await lockerOf(student.headers)).stickers).toEqual([
+    expect((await homeOf(student.headers)).stickers).toEqual([
       "recognition-leadership",
       "recognition-kindness",
     ]);
@@ -138,17 +138,17 @@ describe("recognising a student", () => {
     now = new Date("2026-10-29T15:00:00Z");
     const { teacherHeaders, student, where } = await classWithStudent();
     await recognise(teacherHeaders, where, "perseverance");
-    await client.locker.seen.$post(
+    await client.home.seen.$post(
       { json: { rewards: ["recognition-perseverance"] } },
       { headers: student.headers },
     );
-    expect((await lockerOf(student.headers)).unseen).toEqual([]);
+    expect((await homeOf(student.headers)).unseen).toEqual([]);
 
     now = new Date("2027-02-10T15:00:00Z");
     await recognise(teacherHeaders, where, "perseverance");
-    const locker = await lockerOf(student.headers);
-    expect(locker.stickers).toEqual(["recognition-perseverance"]);
-    expect(locker.unseen).toEqual(["recognition-perseverance"]);
+    const home = await homeOf(student.headers);
+    expect(home.stickers).toEqual(["recognition-perseverance"]);
+    expect(home.unseen).toEqual(["recognition-perseverance"]);
   });
 
   it("only shows a class's teacher their own class's recognition", async () => {
@@ -170,7 +170,7 @@ describe("recognising a student", () => {
     });
     expect((await pageOf(teacherHeaders, where)).recognised).toEqual([]);
     // The sticker is the student's, whoever gave it.
-    expect((await lockerOf(student.headers)).stickers).toEqual([
+    expect((await homeOf(student.headers)).stickers).toEqual([
       "recognition-leadership",
     ]);
   });
@@ -257,13 +257,13 @@ describe("recognition and rewards", () => {
     const records = playOf(where, tasks);
     for (let i = 0; i < records.length; i += 25)
       await sendRecords(student.headers, records.slice(i, i + 25));
-    const locker = await lockerOf(student.headers);
-    const granted = locker.unseen.filter(
+    const home = await homeOf(student.headers);
+    const granted = home.unseen.filter(
       (id) => !id.startsWith("recognition-"),
     );
     expect(granted).toHaveLength(rewardRule.weeklyCap);
     expect(
-      locker.stickers.filter((id) => id.startsWith("recognition-")),
+      home.stickers.filter((id) => id.startsWith("recognition-")),
     ).toEqual(["recognition-kindness", "recognition-perseverance"]);
   });
 });
@@ -279,7 +279,7 @@ describe("who can recognise", () => {
     expect((await recognise(await teacher(), where, "kindness")).status).toBe(
       404,
     );
-    expect((await lockerOf(student.headers)).stickers).toEqual([]);
+    expect((await homeOf(student.headers)).stickers).toEqual([]);
   });
 
   it("is only for a student in the class", async () => {
