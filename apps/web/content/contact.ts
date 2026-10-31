@@ -22,7 +22,7 @@ export const contact = {
       icon: "privacy",
       tone: "brand",
       title: "Schools and boards",
-      body: "Questions about privacy, curriculum mapping or licences? Email us and we'll set up a time to talk.",
+      body: "Questions about privacy, licences, or how the games fit the curriculum? Email us and we'll set up a time to talk.",
     },
     {
       icon: "parent",

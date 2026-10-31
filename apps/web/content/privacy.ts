@@ -2,14 +2,14 @@ import { brandName } from "@repo/tokens";
 export const privacy = {
   meta: {
     title: "Privacy",
-    description: `The privacy commitments ${brandName} is being built around: no student emails, names seen only by teachers, no chat, data hosted in Canada.`,
+    description: `The privacy promises we're building ${brandName} around: we never keep student emails, only teachers see student names, there's no chat, and data stays in Canada.`,
   },
   title: `Privacy at ${brandName}`,
-  lead: `${brandName} is still in development. This page describes the commitments we're building around. We'll publish a full privacy policy before any student uses ${brandName}.`,
+  lead: `${brandName} is still in development. This page sets out the promises we're building it around. We'll publish a full privacy policy before any student uses ${brandName}.`,
   sections: [
     {
       title: "What we'll collect from students",
-      body: "Students sign in with their school account, and we keep only their first name and last initial, never their email or photo. Only their teacher sees that name: other students never do.",
+      body: "Students sign in with their school account. We keep only their first name and last initial, never their email or photo. Only their teacher sees that name. Other students never do.",
     },
     {
       title: "Where data will live",
@@ -25,7 +25,7 @@ export const privacy = {
     },
     {
       title: "Clear deletion",
-      body: "Teachers and boards will be able to delete class data, and we'll delete data when asked.",
+      body: "Teachers and boards will be able to delete their classes' data, and we'll delete any data when asked.",
     },
     {
       title: "This website",

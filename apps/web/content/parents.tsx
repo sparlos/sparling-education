@@ -15,48 +15,48 @@ export const parents = {
         A learning game with <TitleHighlight>nothing to buy</TitleHighlight>
       </>
     ),
-    lead: `${brandName} is a game your child plays with their class at school. Everything in it is earned by learning, so you will never be asked for money.`,
+    lead: `${brandName} is a game your child plays with their class at school. They earn everything in it by learning, so you will never be asked for money.`,
     primaryAction: { label: "Get updates", href: "#updates" },
     secondaryAction: { label: "How rewards work", href: "#rewards" },
     image: {
-      alt: "A child's locker decorated with stickers and outfits earned by practising",
-      placeholderLabel: "Student locker render coming soon",
+      alt: "A child's home screen in the game, decorated with stickers and outfits they earned by practising",
+      placeholderLabel: "Picture of a child's home screen coming soon",
     },
   },
   features: {
     eyebrow: "What your child gets",
     title: "Learning they can be proud of",
-    lead: `${brandName} is built so that kids feel like they belong, without anyone spending a cent.`,
+    lead: `We built ${brandName} so every child feels they belong, without anyone spending a cent.`,
     items: [
       {
         icon: "puzzle",
         title: "Games that really teach",
-        body: "Getting better at the game means getting better at the concept. No quiz questions in disguise.",
+        body: "To get better at the game, your child has to get better at the skill. There are no quiz questions in disguise.",
       },
       {
         icon: "sparkles",
-        title: "A locker that shows their effort",
-        body: "Outfits and stickers are earned by practising and improving in games, so their locker becomes a record of their effort.",
+        title: "A space that shows their effort",
+        body: "Your child has their own home screen in the game, called their locker. They decorate it with the outfits and stickers they earn by practising, so it shows how hard they've worked.",
       },
       {
         icon: "chart",
         title: "A teacher who sees how they think",
-        body: "Their teacher sees which ideas they've got and which they're still working on, not just a score.",
+        body: "Their teacher sees which ideas they understand and which they're still working on, not just a score.",
       },
       {
         icon: "star",
         title: "Rewards for effort",
-        body: "Trying again, improving and finishing all count, not just getting the right answer.",
+        body: "Trying again, getting better and finishing all count, not just getting the right answer.",
       },
       {
         icon: "heart",
         title: "Recognition from their teacher",
-        body: "Teachers can award special stickers for kindness, perseverance and leadership.",
+        body: "Teachers can give special stickers for kindness, perseverance and leadership.",
       },
       {
         icon: "privacy",
         title: "Safe by design",
-        body: "There's no chat, classmates never see your child's name, and nobody else can see or change their locker.",
+        body: "There's no chat, and classmates never see your child's name. Nobody else can see or change their locker.",
       },
     ] satisfies Feature[],
   },
@@ -67,7 +67,7 @@ export const parents = {
   comparison: {
     eyebrow: "How it's different",
     title: `What you won't find in ${brandName}`,
-    lead: `Many games for kids are designed to keep them spending or coming back. ${brandName} is designed to help them learn.`,
+    lead: `Many games for kids are designed to keep them spending, or to keep them coming back. ${brandName} is designed to help them learn.`,
   },
   home: {
     eyebrow: "At home",
@@ -76,17 +76,17 @@ export const parents = {
       {
         icon: "smile",
         title: "Play at home, if you like",
-        body: "Kids can replay games and dress up their character. New rewards have a weekly limit kids reach in class, so kids without a device at home aren't left behind.",
+        body: "Kids can play games again and dress up their character. There's a weekly limit on new rewards, and kids can reach it in class time alone. That way, kids without a computer at home don't miss out.",
       },
       {
         icon: "clock",
         title: "No streaks or daily rewards",
-        body: `${brandName} won't pull your child back with streaks, timers or limited-time items.`,
+        body: `${brandName} won't pull your child back with streaks, timers or items that are only around for a short time.`,
       },
       {
         icon: "clipboard",
         title: "Home play counts too",
-        body: "Games played at home are evidence for their teacher, just like games played in class.",
+        body: "Their teacher sees the games they play at home, just like the games they play in class.",
       },
     ] satisfies Feature[],
   },
@@ -96,17 +96,17 @@ export const parents = {
       {
         question: `Does ${brandName} cost anything for families?`,
         answer:
-          "No, never. There's no store, no membership and no ads. Every item in the game is earned by playing and learning.",
+          "No, never. There's no store, no membership and no ads. Your child earns every item in the game by playing and learning.",
       },
       {
         question: "Is it safe for my child?",
         answer:
-          "Children sign in with their school account, and we keep only their first name and last initial, never their email. Classmates never see their name, there's no chat, and student data will be hosted in Canada.",
+          "Children sign in with their school account. We keep only their first name and last initial, never their email. Classmates never see their name, and there's no chat. Student data will be stored in Canada.",
       },
       {
         question: "Can my child play at home?",
         answer:
-          "Yes, on any computer with a web browser. At home they can replay games and dress up their character. New rewards have a weekly limit kids reach in class, so kids without a device at home aren't left behind.",
+          "Yes, on any computer with a web browser. At home they can play games again and dress up their character. There's a weekly limit on new rewards, and kids can reach it in class time alone, so kids without a computer at home don't miss out.",
       },
       {
         question: `How can my child's class start using ${brandName}?`,

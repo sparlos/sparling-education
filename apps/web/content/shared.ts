@@ -15,8 +15,8 @@ export const comparison = {
   rows: {
     mechanic: {
       label: "Learning is how you win",
-      note: "The skill is the gameplay, not a quiz in front of it.",
-      typical: "Questions interrupt the game",
+      note: "Kids practise the skill by playing, not by answering a quiz first.",
+      typical: "Quiz questions interrupt the game",
     },
     store: {
       label: "Kids never see a store",
@@ -24,17 +24,17 @@ export const comparison = {
     },
     earned: {
       label: "Rewards come from effort",
-      note: "Earned by trying and improving.",
-      typical: "Random prize boxes are common",
+      note: "Kids earn them by trying and getting better.",
+      typical: "Prize boxes with random items are common",
     },
     misconceptions: {
-      label: "Shows you the misconceptions",
-      note: "See which wrong ideas are showing up in your class, and who has each.",
+      label: "Shows you the wrong ideas",
+      note: "See which misconceptions are showing up in your class, and who has each one.",
       typical: "Usually a score or a percentage",
     },
     streaks: {
       label: "No pressure to log in",
-      note: "No streaks or daily rewards.",
+      note: "No streaks, and no rewards for coming back every day.",
       typical: "Streaks and daily rewards are common",
     },
   } satisfies Record<string, ComparisonRow>,
@@ -60,19 +60,19 @@ export const promiseItems: PromiseItem[] = [
 export const classroomSteps: Step[] = [
   {
     title: "Create your class",
-    body: "Give it a name and its grade or grades. Every game mapped to Ontario curriculum expectations starts turned on.",
+    body: "Give it a name and choose its grade, or grades for a split class. Every game is on from the start.",
   },
   {
     title: "Share a link",
-    body: "Post your class link, or a game link that fits today's lesson, in Google Classroom. Students sign in with their school account.",
+    body: "Post your class's link in Google Classroom, or a link to one game that fits today's lesson. Students sign in with their school account.",
   },
   {
     title: "Students play",
-    body: "Each student plays at their grade, and every game returns them to their locker with what they've earned. No due dates.",
+    body: "Each student plays at their own grade. After each game, they see what they've earned. There are no due dates.",
   },
   {
-    title: "Assess with evidence",
-    body: "See the misconceptions showing up in your class, open any student's evidence, and print quick assess for report cards.",
+    title: "Assess what they've learned",
+    body: "See which misconceptions are showing up in your class, and look at what any student did in the games. Then print a summary to help with report cards.",
   },
 ];
 

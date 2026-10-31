@@ -8,90 +8,90 @@ export const educators = {
   meta: {
     title: "For educators",
     description:
-      "Curriculum games mapped to Ontario expectations, built for short periods and old Chromebooks. Free for teachers, always.",
+      "Learning games built from Ontario curriculum expectations, made for short periods and old Chromebooks. Free while we build it together.",
   },
   hero: {
     title: (
       <>
-        Games that validate <TitleHighlight>expectation</TitleHighlight>
+        Games built from the <TitleHighlight>Ontario curriculum</TitleHighlight>
       </>
     ),
-    lead: `Every ${brandName} game is mapped to Ontario curriculum expectations, and the concept is the core mechanic. Turn on the games that fit what you're teaching, share them in Google Classroom and see what each student has actually learned.`,
+    lead: `Each ${brandName} game starts from specific Ontario curriculum expectations, and students practise the skill by playing. Choose the games that fit what you're teaching, share them in Google Classroom, and see what each student has learned.`,
     primaryAction: { label: "Join the teacher pilot", href: "#pilot" },
     secondaryAction: { label: "Talk to us", href: "/contact" },
-    note: "Free for teachers, always.",
+    note: "Free while we build it together.",
     image: {
-      alt: "The teacher dashboard: each student against curriculum expectations, with the misconceptions showing up in the class listed above",
-      placeholderLabel: "Dashboard render coming soon",
+      alt: "The teacher's view of a class: how each student is doing on each curriculum expectation, with the wrong ideas showing up in the class listed above",
+      placeholderLabel: "Picture of the teacher's view coming soon",
     },
     // Local for now; point src at the hosted video (Mux, YouTube) later.
     video: {
       src: "/videos/teacher-grading.mp4",
       poster: "/videos/teacher-grading-poster.jpg",
       label: "Watch the 1-minute tour",
-      alt: "A tour of the teacher app, starting from the class dashboard",
+      alt: "A tour of what teachers see, starting from their class",
     },
   },
   features: {
     eyebrow: "Made for real classrooms",
     title: "Built around how your day actually works",
-    lead: "Designed with a Grades 1–8 teacher for short periods, shared Chromebooks and 25 students logging in at once.",
+    lead: "Designed with a Grades 1–8 teacher, for short periods, shared Chromebooks and 25 students signing in at once.",
     items: [
       {
         icon: "curriculum",
-        title: "Mapped to Ontario expectations",
-        body: "Every game is tagged to specific expectation codes, so you always know what it teaches.",
+        title: "Built from Ontario expectations",
+        body: "Each game lists the curriculum expectations it covers, so you always know what it teaches.",
       },
       {
         icon: "chromebook",
         title: "Runs on older Chromebooks",
-        body: "Lightweight and browser-based, built for the oldest Chromebook in the room.",
+        body: "It runs in the browser, and it's built to work on the oldest Chromebook in the room.",
       },
       {
         icon: "clock",
-        title: "Quick starts",
-        body: "A class link and one-click school sign-in get everyone in fast. Game links drop students straight into a game, and every game starts turned on.",
+        title: "Quick to start",
+        body: "Students join your class from one link and sign in with their school account. You can also share a link that opens one game. All the games are on from the start.",
       },
       {
         icon: "chart",
-        title: "Misconceptions you can act on",
-        body: "See which wrong ideas are showing up in your class and who has each, then open any student's evidence to see exactly what happened.",
+        title: "See the wrong ideas, and who has them",
+        body: "See which misconceptions are showing up in your class and which students have each one. Then look at any student's play to see exactly what they did.",
       },
       {
         icon: "clipboard",
-        title: "Quick assess for report cards",
-        body: "View or print a summary of which expectations and learning skills each student's evidence speaks to. The level stays your call.",
+        title: "A summary for report cards",
+        body: "View or print a summary of each student's work. It shows which curriculum expectations and learning skills it speaks to. You still decide the level.",
       },
       {
         icon: "trophy",
         title: "Recognition that's fair",
-        body: "Award exclusive stickers for kindness, perseverance and leadership, and see who hasn't been recognised yet this term. Each game plays at the student's grade, so split classes just work.",
+        body: "Give students special stickers for kindness, perseverance and leadership, and see who you haven't recognised yet this term. In a split class, each student plays at their own grade.",
       },
     ] satisfies Feature[],
   },
   howItWorks: {
     eyebrow: "How it works",
-    title: "Four steps from sign-up to report cards",
+    title: "Four steps from signing up to report cards",
   },
   comparison: {
     eyebrow: "What makes it different",
-    title: "Fewer, better games, where the mechanic is the lesson",
-    lead: `${brandName} skips the quiz-with-a-game-skin approach. Each game targets a common misconception, so the wrong idea visibly fails.`,
+    title: "Fewer, better games, where playing is the lesson",
+    lead: `${brandName} doesn't put quiz questions inside a game. Each game is built around a common misconception, so students see the wrong idea fail.`,
   },
   pricing: {
     eyebrow: "Pricing",
-    title: "Free for teachers. Always.",
-    lead: "Paid licences add deeper tools for teachers, schools and boards. Students and parents never pay.",
+    title: "Free while we build it together.",
+    lead: "Paid licences add more tools for teachers, schools and boards. Students and parents never pay.",
     tiers: [
       {
         name: "Teacher",
-        price: "Free, always",
-        description: `Everything you need to run ${brandName} with your class.`,
+        price: "Free",
+        description: `Everything you need to use ${brandName} with your class.`,
         features: [
-          "Class links for Google Classroom",
+          "A link to share in Google Classroom",
           "Turn on any game for your class",
-          "Game links for any lesson",
-          "Basic progress for every student",
+          "Links that open one game, for any lesson",
+          "See how each student is doing",
         ],
         cta: { label: "Join the pilot", href: "#pilot" },
         tone: "educator",
@@ -101,13 +101,13 @@ export const educators = {
         price: "Pricing to come",
         badge: "Free for pilot teachers",
         description:
-          "Deeper insight and recognition tools for teachers, schools and boards.",
+          "More ways to see how students are doing, and to recognise them, for teachers, schools and boards.",
         features: [
-          "Results mapped to curriculum expectations",
-          "Detailed class and student analytics",
-          "Quick assess for report cards",
-          "Multiple classes",
-          "Recognition stickers",
+          "Results for each curriculum expectation",
+          "A closer look at each student and the whole class",
+          "A summary for report cards",
+          "More than one class",
+          "Stickers you give for kindness, perseverance and leadership",
         ],
         cta: { label: "Talk to us", href: "/contact" },
         highlighted: true,
@@ -125,17 +125,17 @@ export const educators = {
       {
         icon: "privacy",
         title: "Privacy by design",
-        body: "We keep a first name and last initial, never student emails. There's no chat, and students never see each other's names.",
+        body: "We keep each student's first name and last initial, never their email. There's no chat, and students never see each other's names.",
       },
       {
         icon: "secure",
         title: "Data hosted in Canada",
-        body: "Student data will be stored in Canada, with clear deletion when a class or board asks.",
+        body: "Student data will be stored in Canada. When a teacher or board asks, we'll delete it.",
       },
       {
         icon: "clipboard",
-        title: "Evidence for reporting",
-        body: `Results show which expectations and learning skills they speak to. ${brandName} never assigns a level: that judgement stays with the teacher.`,
+        title: "Help with reporting",
+        body: `Teachers see which curriculum expectations and learning skills each student's work speaks to. ${brandName} never gives a level: that's the teacher's call.`,
       },
     ] satisfies Feature[],
     cta: { label: "Talk to us about your board", href: "/contact" },
@@ -144,40 +144,40 @@ export const educators = {
     title: "Questions teachers ask",
     items: [
       {
-        question: `Is ${brandName} really free for teachers?`,
+        question: `Is ${brandName} really free?`,
         answer:
-          "Yes. Class links, turning on games and basic progress are free, always. Paid licences add deeper analytics, curriculum-mapped results and more.",
+          "Yes, while we build it with pilot teachers. Sharing games with your class, choosing which games are on, and seeing how each student is doing are all free. Pilot teachers also get the paid tools free: a closer look at each student, results for each curriculum expectation, and more.",
       },
       {
         question: "What grades and subjects will it cover?",
-        answer: `${brandName} is for Grades 1–8. The first five games cover the Number strand for Grades 3–5: fractions, multiplication, place value, addition and subtraction, and division. Pilot teachers help decide what comes next.`,
+        answer: `${brandName} is for Grades 1–8. The first five games are for Grades 3–5 math, in the Number strand: fractions, multiplication, place value, addition and subtraction, and division. Pilot teachers will help decide what comes next.`,
       },
       {
         question: "Will it run on our Chromebooks?",
-        answer: `That's a requirement from day one. ${brandName} runs in the browser and is built for older Chromebooks, and a game link opens just that game.`,
+        answer: `It has to, and we've built it that way from the start. ${brandName} runs in the browser and works on older Chromebooks. A link to one game opens only that game.`,
       },
       {
         question: `Is ${brandName} approved by my board?`,
-        answer: `Not yet, because ${brandName} is still in development. Before any classroom use, we'll go through your board's privacy and IT review, and we'll help with the paperwork.`,
+        answer: `Not yet, because ${brandName} is still in development. Before any class uses it, we'll go through your board's privacy and IT review, and we'll help with the paperwork.`,
       },
       {
         question: "How is student data protected?",
         answer:
-          "Students sign in with their school account, and we keep only a first name and last initial, never their email. Students never see each other's names, there's no chat, data will be hosted in Canada, and we'll delete it when you ask.",
+          "Students sign in with their school account. We keep only their first name and last initial, never their email. Students never see each other's names, and there's no chat. Data will be stored in Canada, and we'll delete it when you ask.",
       },
       {
         question: `Does ${brandName} replace my unit?`,
-        answer: `No. ${brandName} supplements your teaching: you teach the concept, turn on the games that reinforce it, and use the results as extra evidence when you assess.`,
+        answer: `No. ${brandName} adds to your teaching. You teach the idea, then turn on the games that practise it. What students do in the games gives you more to go on when you assess.`,
       },
       {
         question: "What does the pilot involve?",
         answer:
-          "Trying the first five games with your class, sharing what works and what doesn't, and helping us choose what to build next. Pilot teachers get every paid feature free.",
+          "You try the first five games with your class, tell us what works and what doesn't, and help us choose what to build next. Pilot teachers get every paid feature free.",
       },
       {
         question: "What's coming next?",
         answer:
-          "A shared class world for your students and a view for parents, shaped by what pilot teachers tell us.",
+          "A shared space your class can explore together, and a way for parents to see how their child is doing. What pilot teachers tell us will shape both.",
       },
     ] satisfies FaqItem[],
   },

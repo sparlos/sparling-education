@@ -13,7 +13,7 @@ export const site = {
   },
   title: `${brandName}: learning games where the skill is how you win`,
   description:
-    "Learning games for Grades 1–8 where the curriculum is the game mechanic, teachers see the misconceptions showing up in their class, and every reward is earned. Free for teachers. Students and parents never pay.",
+    "Learning games for Grades 1–8 where kids practise the skill by playing. Teachers see which wrong ideas are showing up in their class, and kids earn every reward. Free for teachers. Students and parents never pay.",
   nav: [
     { label: "For educators", href: "/educators", tone: "educator" },
     { label: "For parents", href: "/parents", tone: "parent" },
@@ -21,7 +21,7 @@ export const site = {
   navCta: { label: "Join the pilot", href: "/educators#pilot" },
   footer: {
     tagline:
-      "A learning game for Grades 1–8 where the skill is how you win. Free for teachers, never paid for by kids.",
+      "Learning games for Grades 1–8 where the skill is how you win. Free for teachers. Kids and parents never pay.",
     columns: [
       {
         title: `${brandName} for`,

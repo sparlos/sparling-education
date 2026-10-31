@@ -13,17 +13,17 @@ export const home = {
     ),
     lead: (
       <>
-        In {brandName}'s games, kids practise the skill as <i>part</i> of the
-        game, not as a quiz bolted on top. You see the misconceptions showing up
-        in your class, and quick assess gathers the evidence for report cards.
+        In {brandName}'s games, kids practise the skill by <i>playing</i>, not
+        by answering a quiz between turns. You see which wrong ideas are showing
+        up in your class, and you get a summary to help with report cards.
       </>
     ),
     primaryAction: { label: "Join the teacher pilot", href: "#pilot" },
     secondaryAction: { label: "See how it works", href: "#how-it-works" },
     note: "Free for teachers. Students and parents are never asked to pay anything.",
     image: {
-      alt: "The teacher dashboard: each student against curriculum expectations, with the misconceptions showing up in the class listed above",
-      placeholderLabel: "Dashboard render coming soon",
+      alt: "The teacher's view of a class: how each student is doing on each curriculum expectation, with the wrong ideas showing up in the class listed above",
+      placeholderLabel: "Picture of the teacher's view coming soon",
     },
   },
   roles: {
@@ -33,7 +33,7 @@ export const home = {
         tone: "educator",
         icon: "teacher",
         title: "I'm a teacher",
-        body: "Share curriculum games, spot misconceptions and see what each student has learned.",
+        body: "Give your class games that fit the curriculum, and see what each student has learned.",
         href: "/educators",
         cta: "For educators",
       },
@@ -52,29 +52,29 @@ export const home = {
     title: "Three ideas we won't compromise on",
     pillars: [
       {
-        title: "Learning is the mechanic",
-        body: "In Fraction Hop, kids plan a route of fraction hops along a number line, then watch their character run it. When the wrong idea fails, the splash shows exactly which hop was wrong.",
+        title: "Playing the game is the practice",
+        body: "In Fraction Hop, kids plan a path of fraction-sized hops along a number line, then watch their character follow it. If a hop is the wrong size, their character falls in the water, and they can see which hop it was.",
         image: {
-          alt: "A student's character hopping along a fraction number line over water",
-          placeholderLabel: "Fraction Hop render",
+          alt: "A student's character hopping along a number line marked with fractions, over water",
+          placeholderLabel: "Picture of Fraction Hop",
         },
         tone: "brand",
       },
       {
         title: "Know what to reteach tomorrow",
-        body: "See every student against curriculum expectations, with the misconceptions showing up in your class listed above. Quick assess gathers the evidence for report cards.",
+        body: "See how each student is doing on each curriculum expectation. The wrong ideas showing up in your class are listed at the top. When report cards come around, print a summary of what each student has shown.",
         image: {
-          alt: "The misconceptions showing up in a class, with how many students show each one",
-          placeholderLabel: "Dashboard render",
+          alt: "A list of the wrong ideas showing up in a class, with how many students have each one",
+          placeholderLabel: "Picture of the teacher's view",
         },
         tone: "educator",
       },
       {
         title: "Rewards are earned, never bought",
-        body: "Outfits and stickers come from effort, retrying and improving. No store, no loot boxes, no ads.",
+        body: "Kids earn outfits and stickers by trying, trying again and getting better. There's no store, no prize boxes and no ads.",
         image: {
-          alt: "A student's locker decorated with stickers earned by practising",
-          placeholderLabel: "Student locker render",
+          alt: "A student's home screen in the game, decorated with stickers they earned by practising",
+          placeholderLabel: "Picture of a student's home screen",
         },
         tone: "parent",
       },
@@ -82,15 +82,15 @@ export const home = {
   },
   howItWorks: {
     eyebrow: "How it works",
-    title: "From class link to report card",
+    title: "From the first link to report cards",
   },
   comparison: {
     eyebrow: "What makes it different",
-    title: "Not another quiz with a game skin",
-    lead: `${brandName} is built around one rule: getting better at the game has to mean getting better at the concept.`,
+    title: "Not a quiz dressed up as a game",
+    lead: `${brandName} is built around one rule: getting better at the game has to mean getting better at the skill.`,
   },
   promise: {
     title: "Students and parents never pay. Not once.",
-    body: `${brandName} is paid for by teachers who want deeper tools and by school boards. Kids get the whole game, and every item is earned by playing and learning.`,
+    body: `Teachers who want more tools and school boards pay for ${brandName}. Kids get the whole game, and they earn every item in it by playing and learning.`,
   },
 };
