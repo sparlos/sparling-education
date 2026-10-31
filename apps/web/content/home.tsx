@@ -23,7 +23,7 @@ export const home = {
     note: "Free for teachers. Students and parents are never asked to pay anything.",
     image: {
       alt: "The teacher's view of a class: how each student is doing on each curriculum expectation, with the wrong ideas showing up in the class listed above",
-      placeholderLabel: "Picture of the teacher's view coming soon",
+      src: "/screens/teacher-class.jpg",
     },
   },
   roles: {
@@ -56,7 +56,7 @@ export const home = {
         body: "In Fraction Hop, kids plan a path of fraction-sized hops along a number line, then watch their character follow it. If a hop is the wrong size, their character falls in the water, and they can see which hop it was.",
         image: {
           alt: "A student's character hopping along a number line marked with fractions, over water",
-          placeholderLabel: "Picture of Fraction Hop",
+          src: "/screens/fraction-hop.jpg",
         },
         tone: "brand",
       },
@@ -65,7 +65,7 @@ export const home = {
         body: "See how each student is doing on each curriculum expectation. The wrong ideas showing up in your class are listed at the top. When report cards come around, print a summary of what each student has shown.",
         image: {
           alt: "A list of the wrong ideas showing up in a class, with how many students have each one",
-          placeholderLabel: "Picture of the teacher's view",
+          src: "/screens/teacher-misconceptions.jpg",
         },
         tone: "educator",
       },
@@ -74,7 +74,7 @@ export const home = {
         body: "Kids earn outfits and stickers by trying, trying again and getting better. There's no store, no prize boxes and no ads.",
         image: {
           alt: "A student's home screen in the game, decorated with stickers they earned by practising",
-          placeholderLabel: "Picture of a student's home screen",
+          src: "/screens/student-locker.jpg",
         },
         tone: "parent",
       },
@@ -86,7 +86,7 @@ export const home = {
   },
   comparison: {
     eyebrow: "What makes it different",
-    title: "Not a quiz dressed up as a game",
+    title: "Games that really teach",
     lead: `${brandName} is built around one rule: getting better at the game has to mean getting better at the skill.`,
   },
   promise: {

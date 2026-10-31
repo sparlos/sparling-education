@@ -22,7 +22,7 @@ export const educators = {
     note: "Free while we build it together.",
     image: {
       alt: "The teacher's view of a class: how each student is doing on each curriculum expectation, with the wrong ideas showing up in the class listed above",
-      placeholderLabel: "Picture of the teacher's view coming soon",
+      src: "/screens/teacher-class.jpg",
     },
     // Local for now; point src at the hosted video (Mux, YouTube) later.
     video: {
