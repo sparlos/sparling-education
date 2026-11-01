@@ -82,13 +82,13 @@ Done when the founder has been asked, with the number of new lines.
 
 ## 8. The founder plays
 
-Give the founder the game link (`/play/<slug>`), what isn't built yet, and your numbered **readings** of the spec for them to confirm. They play, ideally on a touchscreen, and give their calls. For each call: change the code, update SPEC.md, re-run steps 5–6, and say what changed. Visual polish the founder raises (motion, feedback moments, layout finesse) goes on a list for `polish-game`, unless it blocks play.
+**Host it in the API first**, so the founder finds it where teachers and students will: on the dashboard (turned on in every class) and in students' homes. The game link alone reaches neither. Add `hosted(manifest, simulate)` to `games` in `apps/api/src/games.ts` and the game to `apps/api/package.json`'s dependencies (install in the scratch copy and copy back `pnpm-lock.yaml`). New teachers' demo classes then play it, with its own misconceptions. Then run the API's tests: the ones that list a class's games, its expectations or the demo's misconceptions grow by the new game, so update them to match.
 
-**Host it in the API** once the founder accepts it: add `hosted(manifest, simulate)` to `games` in `apps/api/src/games.ts`. New teachers' demo classes then play it, with its own misconceptions.
+Then give the founder the game link (`/play/<slug>`), what isn't built yet, and your numbered **readings** of the spec for them to confirm, and tell them to run `pnpm install` on the host and restart `pnpm dev`. They play, ideally on a touchscreen, and give their calls. For each call: change the code, update SPEC.md, re-run steps 5–6, and say what changed. Visual polish the founder raises (motion, feedback moments, layout finesse) goes on a list for `polish-game`, unless it blocks play.
 
 **Bump `Version`** in SPEC.md and the manifest when what a tier evidences, or what its attempts record, changes. Records made under the old version still arrive days late, so add the old manifest, frozen, to `earlierManifests` in `apps/api/src/games.ts` (Fraction Hop's `src/manifest-v1.ts` is the shape).
 
-Done when the founder accepts the game as playable, every reading is confirmed or changed, and SPEC.md matches the game.
+Done when the game is on the dashboard and in students' homes, the founder accepts it as playable, every reading is confirmed or changed, and SPEC.md matches the game.
 
 ## 9. Record and review
 

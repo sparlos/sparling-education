@@ -50,6 +50,7 @@ function pick(headers: Headers | undefined, classId: string, grade: number) {
 }
 
 const fractionHop = { slug: "fraction-hop", name: "Fraction Hop" };
+const crystalMachine = { slug: "crystal-machine", name: "Crystal Machine" };
 
 describe("student sign-in", () => {
   it("makes a student of a new Google account and returns to the play shell's sign-in page", async () => {
@@ -130,7 +131,7 @@ describe("joining a class", () => {
       classColour: "indigo",
       grades: [4],
       grade: 4,
-      games: [fractionHop],
+      games: [fractionHop, crystalMachine],
     };
     expect(await joined(headers, room.joinCode)).toEqual(membership);
     expect((await sessionOf(headers))?.classes).toEqual([membership]);

@@ -98,17 +98,22 @@ describe("turning a game off and on", () => {
     expect(off.status).toBe(200);
     expect((await ok(off)).games).toEqual([
       expect.objectContaining({ slug: "fraction-hop", on: false }),
+      expect.objectContaining({ slug: "crystal-machine", on: true }),
     ]);
-    expect((await sessionOf(sam.headers)).classes[0]?.games).toEqual([]);
+    expect((await sessionOf(sam.headers)).classes[0]?.games).toEqual([
+      { slug: "crystal-machine", name: "Crystal Machine" },
+    ]);
 
     // Turning it off again changes nothing.
     await switchGame(headers, cls.id, "fraction-hop", false);
     const on = await switchGame(headers, cls.id, "fraction-hop", true);
     expect((await ok(on)).games).toEqual([
       expect.objectContaining({ slug: "fraction-hop", on: true }),
+      expect.objectContaining({ slug: "crystal-machine", on: true }),
     ]);
     expect((await sessionOf(sam.headers)).classes[0]?.games).toEqual([
       { slug: "fraction-hop", name: "Fraction Hop" },
+      { slug: "crystal-machine", name: "Crystal Machine" },
     ]);
   });
 

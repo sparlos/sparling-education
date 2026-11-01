@@ -349,6 +349,14 @@ describe("a game's first play", () => {
     expect(screen.getByTestId("first-play")).toHaveTextContent("played before");
   });
 
+  it("plays it as a first play with ?tutorial=true, in development", async () => {
+    const storage = memoryStorage();
+    await playedBefore(storage);
+    setUp({ storage, path: "/play/shell-check?class=class-1&tutorial=true" });
+    await game();
+    expect(screen.getByTestId("first-play")).toHaveTextContent("first play");
+  });
+
   it("only counts plays of the same game", async () => {
     const storage = memoryStorage();
     await playedBefore(storage, "fraction-hop");

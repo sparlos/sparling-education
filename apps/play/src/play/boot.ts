@@ -100,6 +100,10 @@ export async function boot(options: {
     if (!membership) return { kind: "home" };
   }
 
+  // In development, ?tutorial=true plays it as a first play every time, so
+  // a game's tutorial can be tried again and again.
+  const tutorial =
+    import.meta.env.DEV && options.url.searchParams.get("tutorial") === "true";
   let played = false;
   platform.records.played(link.slug).then(
     (answer) => {
@@ -144,7 +148,7 @@ export async function boot(options: {
       game,
       tier,
       play,
-      firstPlay: () => !played,
+      firstPlay: () => tutorial || !played,
       outboxes: [outbox, ...leftovers],
     },
   };

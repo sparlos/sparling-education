@@ -64,11 +64,25 @@ describe("the dashboard", () => {
     expect(await dashboardOf(headers, cls.id)).toEqual({
       expectations: [
         {
+          id: "math-2020.g4.B1.1",
+          grade: 4,
+          code: "B1.1",
+          description: expectation("math-2020.g4.B1.1").description,
+          link: expectation("math-2020.g4.B1.1").link,
+        },
+        {
           id: "math-2020.g4.B1.6",
           grade: 4,
           code: "B1.6",
           description: expectation("math-2020.g4.B1.6").description,
           link: expectation("math-2020.g4.B1.6").link,
+        },
+        {
+          id: "math-2020.g5.B1.1",
+          grade: 5,
+          code: "B1.1",
+          description: expectation("math-2020.g5.B1.1").description,
+          link: expectation("math-2020.g5.B1.1").link,
         },
         {
           id: "math-2020.g5.B1.3",

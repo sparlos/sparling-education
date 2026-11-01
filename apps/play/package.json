@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@fontsource/plus-jakarta-sans": "5.3.0",
+    "@games/crystal-machine": "workspace:*",
     "@games/fraction-hop": "workspace:*",
     "@repo/api-client": "workspace:*",
     "@repo/avatar": "workspace:*",

@@ -40,6 +40,10 @@ export function hosted<M extends GameManifest>(
 }
 
 export const games: GameRegistry = {
+  "crystal-machine": hosted(
+    () => import("@games/crystal-machine"),
+    () => import("virtual:voice-lines/crystal-machine"),
+  ),
   "fraction-hop": hosted(
     () => import("@games/fraction-hop"),
     () => import("virtual:voice-lines/fraction-hop"),

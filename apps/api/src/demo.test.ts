@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { manifest } from "@games/fraction-hop/manifest";
+import { manifest as fractionHop } from "@games/fraction-hop/manifest";
 import { attemptProblem } from "@repo/game-contract";
 import { maxStickerTilt, recognitionSticker } from "@repo/rewards";
 import { testClient } from "hono/testing";
@@ -141,9 +141,9 @@ describe("the demo class", () => {
     expect(bands).toEqual(
       new Set(["not-yet-showing", "developing", "showing-consistently"]),
     );
-    // Every one of the game's misconceptions, each shown by several students.
+    // Every one of the games' misconceptions, each shown by several students.
     expect(dashboard.misconceptions.map((m) => m.id).sort()).toEqual(
-      Object.keys(manifest.misconceptions).sort(),
+      hostedGames.flatMap((g) => Object.keys(g.manifest.misconceptions)).sort(),
     );
     for (const m of dashboard.misconceptions)
       expect(m.students.length, m.id).toBeGreaterThanOrEqual(2);
@@ -165,6 +165,9 @@ describe("the demo class", () => {
         expect(task.asked).toBeTruthy();
         for (const attempt of task.attempts) {
           expect(attempt.detail).toBeTruthy();
+          const { manifest } = hostedGames.find(
+            (g) => g.slug === play.game,
+          ) as (typeof hostedGames)[number];
           expect(
             attemptProblem(
               manifest,
@@ -369,7 +372,7 @@ describe("viewing as a demo student", () => {
       student: student.id,
       class: classId,
       game: "fraction-hop",
-      gameVersion: manifest.version,
+      gameVersion: fractionHop.version,
       tier: "g3",
       at,
     });

@@ -63,6 +63,12 @@ describe("creating a class", () => {
           on: true,
           path: `/play/fraction-hop?join=${created.joinCode}`,
         },
+        {
+          slug: "crystal-machine",
+          name: "Crystal Machine",
+          on: true,
+          path: `/play/crystal-machine?join=${created.joinCode}`,
+        },
       ],
     });
   });

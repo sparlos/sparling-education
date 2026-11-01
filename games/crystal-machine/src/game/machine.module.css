@@ -1,0 +1,490 @@
+/* Crystal Machine's screen. It always fits the game area with no scrolling:
+   the tubes take whatever height the chutes, windows and caption leave. */
+
+.board {
+  position: relative;
+  height: 100%;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 8px;
+  padding: 10px 16px 8px 8px;
+  box-sizing: border-box;
+  font-family: var(--k-font-heading-stack);
+  color: var(--k-ink);
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* Over the machine, so the hint button's ripple isn't drawn under it. */
+.top {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.job {
+  min-width: 140px;
+  padding: 2px 20px;
+  border-radius: 14px;
+  border: 3px solid var(--k-border-strong);
+  background: var(--k-surface-raised);
+  font-size: 40px;
+  font-weight: 800;
+  line-height: 1.3;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.counter {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 14px;
+  border-radius: 14px;
+  background: var(--k-surface-sunken);
+  font-size: 28px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.counter[data-over] {
+  background: var(--wrong-soft);
+  color: var(--wrong-ink);
+  outline: 3px solid currentColor;
+}
+
+.flash {
+  animation: flash 500ms var(--k-ease-standard) 2;
+}
+
+@keyframes flash {
+  50% {
+    transform: scale(1.12);
+  }
+}
+
+.main {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+}
+
+.machine {
+  position: relative;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(var(--chutes), minmax(0, 1fr));
+  gap: 8px;
+  padding: 10px;
+  border-radius: 20px;
+}
+
+.machine > :not(svg) {
+  position: relative;
+  z-index: 1;
+}
+
+.column {
+  min-height: 0;
+  display: grid;
+  grid-template-rows: 92px 28px minmax(0, 1fr) 30px 56px;
+  gap: 6px;
+  justify-items: center;
+}
+
+/* A chute's whole face is its tap target. */
+.chute {
+  position: relative;
+  width: 100%;
+  min-height: 64px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 2px;
+  padding: 4px;
+  border: none;
+  border-radius: 12px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.chute > :not(svg) {
+  position: relative;
+  z-index: 1;
+}
+
+.chute[data-chosen] {
+  outline: 5px solid var(--tone-fill);
+  outline-offset: 1px;
+  box-shadow: 0 0 18px 4px var(--crystal);
+}
+
+.chute[data-closed] {
+  cursor: default;
+}
+
+/* A closed chute's face: greyed and striped, under its lock. */
+.chute[data-closed] > svg:first-child {
+  filter: grayscale(1);
+  opacity: 0.6;
+}
+
+.chute[data-closed]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--stripe) 0 10px,
+    transparent 10px 20px
+  );
+  outline: 3px dashed var(--k-border-strong);
+  outline-offset: -3px;
+}
+
+.chute[data-locked] {
+  outline: 4px double var(--crystal-dark);
+}
+
+.chute:disabled {
+  cursor: default;
+}
+
+.count {
+  font-size: 34px;
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.lock {
+  display: grid;
+}
+
+.operator {
+  position: relative;
+  width: 100%;
+  min-height: 88px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  border-radius: 12px;
+}
+
+.portrait,
+.lever {
+  position: relative;
+  z-index: 1;
+}
+
+.portrait {
+  transition: transform var(--k-duration-base) var(--k-ease-standard);
+}
+
+.lever {
+  display: block;
+  transform-origin: 50% 88%;
+  transition: transform var(--k-duration-base) var(--k-ease-springy);
+}
+
+.operator[data-pulled] .lever {
+  transform: rotate(150deg);
+}
+
+.operator[data-pulled] .portrait {
+  transform: translateX(6px) rotate(6deg);
+}
+
+.tube {
+  position: relative;
+  width: min(100%, 124px);
+  min-height: 0;
+  height: 100%;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+/* Each place's value, in its gem's colour, between its chute and tube. */
+.placeTag {
+  align-self: center;
+  min-width: 40px;
+  padding: 1px 10px;
+  border-radius: 999px;
+  border: 2px solid var(--crystal-dark);
+  background: var(--k-surface-raised);
+  color: var(--k-ink);
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1.2;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* The gems, over the tubes' glass; physics moves them (gems.ts). */
+.gems {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  overflow: visible;
+  pointer-events: none;
+}
+
+/* Hint 2's picture, at the top of a closed chute's tube. */
+.trade {
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  z-index: 4;
+  translate: -50% 0;
+}
+
+.hintDigit,
+.window {
+  position: relative;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.hintDigit > span,
+.window > span {
+  position: relative;
+  z-index: 1;
+}
+
+.hintDigit {
+  width: 44px;
+  font-size: 22px;
+  color: var(--k-ink);
+}
+
+.window {
+  width: 64px;
+  font-size: 38px;
+  color: var(--k-ink-inverse);
+  border-radius: 8px;
+}
+
+.window[data-wrong] {
+  outline: 4px solid var(--wrong);
+  color: var(--wrong-soft);
+}
+
+.window[data-wrong]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 8px;
+  background: var(--wrong);
+  opacity: 0.45;
+}
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+}
+
+.pad {
+  display: grid;
+  grid-template-columns: repeat(3, 64px);
+  grid-auto-rows: 64px;
+  gap: 6px;
+}
+
+/* 0 under 8, beside delete. */
+.pad > :nth-child(10) {
+  grid-column: 1;
+}
+
+.key {
+  position: relative;
+  min-width: 64px;
+  min-height: 64px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: none;
+  border-radius: 12px;
+  background: none;
+  color: var(--k-ink);
+  font: inherit;
+  font-size: 30px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.key > span {
+  position: relative;
+  z-index: 1;
+}
+
+.key:active:not(:disabled) {
+  transform: translateY(3px);
+}
+
+.key:disabled {
+  cursor: default;
+}
+
+.button {
+  min-height: 64px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 0 24px;
+  border-radius: 16px;
+  border: 3px solid var(--tone-edge);
+  border-bottom-width: 6px;
+  font: inherit;
+  font-size: 24px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.button:active:not(:disabled) {
+  border-bottom-width: 3px;
+  transform: translateY(3px);
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.run {
+  min-height: 72px;
+  background: var(--tone-fill);
+  color: var(--tone-on-fill);
+}
+
+.quiet {
+  background: var(--k-surface-raised);
+  color: var(--k-ink);
+  border-color: var(--k-border-strong);
+}
+
+/* In the tutorial the controls are off but look on, so the hand's taps look real. */
+.demo .button:disabled,
+.demo .key:disabled {
+  opacity: 1;
+}
+
+.skip:disabled {
+  opacity: 1;
+}
+
+/* The hint button offering itself: a ring that pushes out and fades, over
+   and over, and a gentle swell of the button. */
+.glow {
+  position: relative;
+  border-color: var(--tone-edge);
+  background: var(--tone-soft);
+  animation: swell 1.6s var(--k-ease-standard) infinite;
+}
+
+.glow::before,
+.glow::after {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border-radius: 20px;
+  border: 4px solid var(--tone-fill);
+  pointer-events: none;
+  animation: ripple 1.6s ease-out infinite;
+}
+
+.glow::after {
+  animation-delay: 0.8s;
+}
+
+@keyframes swell {
+  50% {
+    transform: scale(1.06);
+  }
+}
+
+@keyframes ripple {
+  from {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  to {
+    transform: scale(1.45, 1.8);
+    opacity: 0;
+  }
+}
+
+.caption {
+  margin: 0;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  font-weight: 700;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.hand {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 3;
+  pointer-events: none;
+  transition:
+    transform 600ms var(--k-ease-standard),
+    opacity 200ms;
+  filter: drop-shadow(0 4px 6px rgb(0 0 0 / 0.25));
+}
+
+.appearing {
+  transition: opacity 200ms;
+}
+
+.handPress {
+  transition: transform 120ms var(--k-ease-standard);
+}
+
+.tapping {
+  transform: scale(0.82);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glow,
+  .glow::after,
+  .flash {
+    animation: none;
+  }
+  .glow::before {
+    animation: none;
+    transform: scale(1.1, 1.2);
+    opacity: 0.8;
+  }
+  .lever,
+  .portrait,
+  .hand,
+  .handPress {
+    transition: none;
+  }
+}

@@ -395,3 +395,47 @@ Ticket `.scratch/mvp-platform/issues/23-fraction-hop-records-every-run.md`, on t
 
 - A run ends at the first landing past the goal, so three 1/4 hops for 3/8 land "past the goal, on 4/8", not 6/8 as the `numerator-not-a-count` section of SPEC.md says. Left for the founder.
 - Two first-draft mutations were equivalent (a solve adds no matches; `after` is the state before the ladder climbs). `pnpm mutate` showed them up; the redundant check was removed.
+
+## Crystal Machine (built to playable, 2026-10-31)
+
+`games/crystal-machine`, registered in `apps/play`, playable at `/play/crystal-machine`. Not yet played by the founder.
+
+### What's where
+
+- `src/rules/`: `orders.ts` (order kinds per tier, the answer with closed places carried down, the generator and its fit rule), `machine.ts` (drops and fuses, windows), `judge.ts` (both misconceptions), `order.ts` (one order: pad, Run, refusals, the help ladder, the attempt), `teacher.ts` (`asked`/`detail`), `simulate.ts`.
+- `src/game/`: `CrystalMachine.tsx` (wiring), `Board.tsx` (screen), `playback.ts` (a run's events grouped into at most 45 frames, so a 1000-crystal run lasts about 3 s), `caption.ts` (number fragments shown as numerals), `tutorial.ts`, `art.tsx` (every slot in SPEC.md's Art table; panels stretch via `PanelArt`).
+- 79 tests; 27 mutations, two marked `survives`; the tour is clean at all tiers and both sizes.
+
+### Decisions
+
+- **The manifest's tier expectations are checked against the rules' order table** (`tierExpectations`), and its misconception descriptions come from `judge.ts`.
+- **No contract change.** Grade 3's two expectations are per order, carried on each order.
+- **No error-colour token exists**, so wrong windows and an over-full counter use `palette.ember` through CSS variables set in TS.
+
+### Spec changes
+
+- **Founder's call:** with two closed chutes (G5 order 6), the lower one's digit may be 0 (10 620). The "never 0" rule applies to the top closed chute.
+- "Dropped: `whole-number-as-count`" was a `###` heading, which `describeManifestSpec` read as a misconception. Now a bold paragraph; no content change.
+
+### Readings (for the founder)
+
+1. Windows show the number as written: blank left of its first digit, 0 inside it. Blank until a run, while the machine runs, and again once the plan changes.
+2. The pad appends to the chosen chute's count; a fourth digit is ignored; ⌫ removes the last digit. Counts show 0 until set.
+3. Each hint tap goes up a level, glowing or not. On an open order (no hint 2), tapping again repeats hint 1. Hint 2 glows at miss 3 only after a miss with hint 1 on, as in Fraction Hop.
+4. Guided sets chutes biggest first, locks them (double border) and moves the chosen chute on. A chute set to 0 is said by its place only ("Here's one more chute. Ones."): there's no `num.0`. Captions write a place after a count lower case ("16 tens.").
+5. Tutorial chute taps don't say the place, to keep it short. The tutorial runs on the tier's own machine (G5: six tubes).
+6. The avatar and lever stand in the extra tube's chute space. Neutral while running, happy the moment a 2-fuse chain lands, encouraging after a miss or refusal, happy on a made order, cheering at the end.
+7. Orders in a play are all different. Open digits of a closed order can be 0 (160).
+
+### Not built
+
+Polish (fuse motion and sound, crystals flying between tubes, a chute's drop animation). Voice: 140 new lines.
+
+### Where the founder stepped in
+
+- **Host the game before the founder plays (founder's call).** The skill hosted a game in the API only once it was accepted, so the founder couldn't find Crystal Machine on the dashboard or in a student's home. It's now hosted, with six API tests updated for a second game. `build-game` step 8 now hosts first.
+
+### Gotchas
+
+- The glowing hint button swells forever, so Playwright never sees it "stable": the tour taps it with `force`.
+- `wrongWindows`/window order: the board lists places left to right (biggest first), so DOM order already reads as the number.
