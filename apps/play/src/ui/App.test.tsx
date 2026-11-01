@@ -187,6 +187,12 @@ describe("opening a game", () => {
     expect(await screen.findByTestId("tier")).toBeInTheDocument();
   });
 
+  it("starts on a tap anywhere on the start screen, not just the button", async () => {
+    const { user } = setUp();
+    await user.click(await screen.findByRole("img", { name: "Your avatar" }));
+    expect(await screen.findByTestId("tier")).toBeInTheDocument();
+  });
+
   it("shows how many tasks of a progression-based game are done", async () => {
     const { user } = setUp();
     await game();

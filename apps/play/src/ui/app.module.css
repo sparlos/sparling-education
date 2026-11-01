@@ -85,3 +85,27 @@
   align-items: center;
   gap: var(--mantine-spacing-sm);
 }
+
+/* A game's start screen, over its splash image if it has one: the play
+   button in the centre and the portrait low, under the game's title. A tap
+   anywhere starts. */
+.start {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  background-color: var(--k-surface-page);
+  background-size: cover;
+  background-position: center;
+}
+
+.startButton,
+.startAvatar {
+  grid-area: 1 / 1;
+}
+
+.startAvatar {
+  align-self: end;
+  padding-bottom: var(--mantine-spacing-xl);
+}

@@ -5,6 +5,7 @@
 // tinted placeholder in its class's colour.
 import { palette } from "@repo/tokens";
 import type { ReactNode } from "react";
+import { splashArt } from "./splash-art.ts";
 
 /** A 240×120 frame, centred. */
 interface HomeArt {
@@ -52,8 +53,17 @@ export const homeArt: Record<string, HomeArt> = {
   },
 };
 
-/** The picture on a game's card on home: its slot's art, or the placeholder. */
+/**
+ * The picture on a game's card on home: its splash image, else its slot's
+ * art, else the placeholder.
+ */
 export function HomeCardPicture({ slug }: { slug: string }) {
+  const splash = splashArt[slug];
+  if (splash)
+    return (
+      // biome-ignore lint/performance/noImgElement: not a Next.js app
+      <img data-slot="home-card" src={splash} alt="" draggable={false} />
+    );
   const art = homeArt[slug];
   return (
     <svg

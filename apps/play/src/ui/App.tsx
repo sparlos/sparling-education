@@ -9,7 +9,6 @@ import { ClassColourScope } from "@repo/ui/class-colour-scope";
 import { Icon } from "@repo/ui/icon";
 import { IconButton } from "@repo/ui/icon-button";
 import { Progress as ProgressBar } from "@repo/ui/progress";
-import { Stack } from "@repo/ui/stack";
 import {
   useCallback,
   useContext,
@@ -61,6 +60,7 @@ import {
   shellT,
   ToHome,
 } from "./shared.tsx";
+import { splashArt } from "./splash-art.ts";
 import { TooSmall, useTooSmall } from "./TooSmall.tsx";
 import { AvatarDesign } from "./Wardrobe.tsx";
 
@@ -395,6 +395,7 @@ function PlayScreen({
             ) : (
               <StartScreen
                 look={student.look}
+                splash={splashArt[game.manifest.slug]}
                 onStart={() => {
                   setFirstPlay(ready.firstPlay());
                   setStarted(true);
@@ -443,26 +444,49 @@ function ProgressStrip({ progress }: { progress: Progress }) {
  * The tap that lets the browser play sound. Usable without reading: the
  * student's portrait and a big play button.
  */
-function StartScreen({ look, onStart }: { look: AvatarLook; onStart(): void }) {
+function StartScreen({
+  look,
+  splash,
+  onStart,
+}: {
+  look: AvatarLook;
+  /** The game's splash image, behind the portrait and button. */
+  splash?: string;
+  onStart(): void;
+}) {
   const start = useRef<HTMLDivElement>(null);
   useEffect(() => {
     start.current?.querySelector("button")?.focus();
   }, []);
+  // A tap on the button also reaches the screen; start only once.
+  const started = useRef(false);
+  const startOnce = () => {
+    if (started.current) return;
+    started.current = true;
+    onStart();
+  };
   return (
-    <div className={classes.message}>
-      <Stack align="center" gap="lg">
+    // A tap anywhere starts. Keyboards and screen readers use the button.
+    // biome-ignore lint/a11y/noStaticElementInteractions: the button is the accessible way in
+    // biome-ignore lint/a11y/useKeyWithClickEvents: the button takes the keyboard
+    <div
+      className={classes.start}
+      style={splash ? { backgroundImage: `url("${splash}")` } : undefined}
+      onClick={startOnce}
+    >
+      <div ref={start} className={classes.startButton}>
+        <IconButton tone="accent" label={shellT("start")} onClick={startOnce}>
+          <Icon name="play" size={48} />
+        </IconButton>
+      </div>
+      <div className={classes.startAvatar}>
         <Portrait
           look={look}
           expression="happy"
           size={160}
           label={shellT("avatar")}
         />
-        <div ref={start}>
-          <IconButton tone="accent" label={shellT("start")} onClick={onStart}>
-            <Icon name="play" size={48} />
-          </IconButton>
-        </div>
-      </Stack>
+      </div>
     </div>
   );
 }
