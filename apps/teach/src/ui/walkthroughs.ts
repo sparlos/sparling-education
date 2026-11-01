@@ -212,7 +212,7 @@ export const screenWalkthroughs: Walkthrough[] = [
         target: at("tries"),
         position: "bottom-start",
         title: "Every answer, in order",
-        body: "Each task shows what the game asked. Under it is each answer the student gave. You'll see what they did, any help the game gave them, and any wrong idea it showed. Answers marked Explored were the student trying things out, so they don't count.",
+        body: "Each task shows what the game asked and how it went: green for on their own, blue for with help. Under it is each answer the student gave. You'll see what they did, any help the game gave them, and any wrong idea it showed. Answers marked Explored were the student trying things out, so they don't count.",
       },
     ],
   },

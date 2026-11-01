@@ -1,6 +1,8 @@
-// One play, opened: what each task asked, then every try at it in order
-// (explored ones too), with the help the game gave, what the student did and
-// any misconception each revealed, and how the play ended.
+// One play, opened: the play at a glance (a mark per task, and how it
+// ended), then what each task asked and every try at it in order (explored
+// ones too), each try marked with how it went, with the help the game gave,
+// what the student did and any misconception each revealed.
+import { Icon } from "@repo/ui/icon";
 import { Stack } from "@repo/ui/stack";
 import { Text } from "@repo/ui/text";
 import { Title } from "@repo/ui/title";
@@ -9,6 +11,16 @@ import { nameOf } from "./Dashboard.tsx";
 import classes from "./drill-down.module.css";
 import { endingLabels, noEnding, when } from "./Evidence.tsx";
 import { ButtonLink, useUp } from "./links.tsx";
+import {
+  attemptOutcome,
+  endingIcons,
+  type Outcome,
+  OutcomeMark,
+  OutcomeStrip,
+  outcomeLabels,
+  ShowedChip,
+  taskOutcome,
+} from "./Outcome.tsx";
 import { TeacherText } from "./TeacherText.tsx";
 
 /** The help the game gave before an attempt, in a teacher's words. */
@@ -23,6 +35,7 @@ export function PlayScreen({ classId, play }: { classId: string; play: Play }) {
   const student = nameOf(play.student);
   // Up is the student's evidence for what the play evidenced.
   const expectationId = play.tasks[0]?.expectation;
+  const outcomes = play.tasks.map((task) => taskOutcome(task.attempts));
   return (
     <Stack gap="lg">
       <div>
@@ -44,12 +57,37 @@ export function PlayScreen({ classId, play }: { classId: string; play: Play }) {
           {student} · Grade {play.tierGrade} tier
         </Text>
       </div>
+      <div className={classes.summary}>
+        <OutcomeStrip outcomes={outcomes} size="md" />
+        <span>{counted(outcomes)}</span>
+        <span className={classes.summaryEnding}>
+          <Icon
+            name={play.ending ? endingIcons[play.ending] : "clock"}
+            size={18}
+          />
+          <span>
+            How it ended: {play.ending ? endingLabels[play.ending] : noEnding}
+            {play.ending === "crashed" &&
+              ". It doesn't count for or against them."}
+          </span>
+        </span>
+      </div>
       <ol className={classes.tasks}>
         {play.tasks.map((task, i) => (
-          <li key={task.task} className={classes.task} data-walkthrough="tries">
-            <Title order={2} size="h5">
-              Task {i + 1}
-            </Title>
+          <li
+            key={task.task}
+            className={classes.task}
+            data-outcome={outcomes[i]}
+            data-walkthrough="tries"
+          >
+            <div className={classes.taskHead}>
+              <Title order={2} size="h5">
+                Task {i + 1}
+              </Title>
+              <span className={classes.taskOutcome} data-outcome={outcomes[i]}>
+                {outcomeLabels[outcomes[i] ?? "not-yet"]}
+              </span>
+            </div>
             {task.asked && (
               <Text className={classes.asked}>
                 <TeacherText text={task.asked} />
@@ -64,6 +102,7 @@ export function PlayScreen({ classId, play }: { classId: string; play: Play }) {
                   data-succeeded={attempt.succeeded}
                   data-exploring={attempt.exploring}
                 >
+                  <OutcomeMark outcome={attemptOutcome(attempt)} />
                   <span className={classes.try}>
                     {n === 0 ? "First try" : `Retry ${n}`}
                   </span>
@@ -74,8 +113,10 @@ export function PlayScreen({ classId, play }: { classId: string; play: Play }) {
                     </span>
                   )}
                   {attempt.misconception && (
-                    <span className={classes.showed}>
-                      Showed: {attempt.misconception.description}
+                    <span className={classes.attemptShowed}>
+                      <ShowedChip>
+                        {attempt.misconception.description}
+                      </ShowedChip>
                     </span>
                   )}
                 </li>
@@ -84,12 +125,22 @@ export function PlayScreen({ classId, play }: { classId: string; play: Play }) {
           </li>
         ))}
       </ol>
-      <Text>
-        How it ended: {play.ending ? endingLabels[play.ending] : noEnding}
-        {play.ending === "crashed" && ". It doesn't count for or against them."}
-      </Text>
     </Stack>
   );
+}
+
+/** "2 on their own, 3 with help, 1 not yet": the strip, in words. */
+function counted(outcomes: readonly Outcome[]) {
+  const count = (o: Outcome) => outcomes.filter((x) => x === o).length;
+  const own = count("own");
+  return [
+    `${own} of ${outcomes.length} ${outcomes.length === 1 ? "task" : "tasks"} on their own`,
+    count("help") > 0 && `${count("help")} with help`,
+    count("not-yet") > 0 && `${count("not-yet")} not yet`,
+    count("explored") > 0 && `${count("explored")} only explored`,
+  ]
+    .filter(Boolean)
+    .join(", ");
 }
 
 function outcome({ succeeded, exploring, assisted }: Attempt) {

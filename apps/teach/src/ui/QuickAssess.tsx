@@ -322,7 +322,13 @@ export function StudentBlock({
             )}
           </section>
           <section aria-labelledby={part("next")} className={classes.part}>
-            <SectionTitle id={part("next")} icon="target" order={3} size="h5">
+            <SectionTitle
+              id={part("next")}
+              icon="idea"
+              tone="misconception"
+              order={3}
+              size="h5"
+            >
               What to work on next
             </SectionTitle>
             {nextSteps.length === 0 ? (
@@ -419,8 +425,20 @@ function Tally({ line }: { line: QuickAssessExpectation }) {
       : `over the last ${line.plays} times they played`;
   return (
     <span className={classes.line}>
-      <span>
-        {`${line.onTheirOwn} of ${line.tasks} ${line.tasks === 1 ? "task" : "tasks"} done on their own, ${times}`}
+      <span className={classes.tallyTop}>
+        <span
+          className={`${classes.meter} ${classes.screenOnly}`}
+          aria-hidden="true"
+        >
+          <span
+            style={{
+              width: `${line.tasks === 0 ? 0 : (100 * line.onTheirOwn) / line.tasks}%`,
+            }}
+          />
+        </span>
+        <span>
+          {`${line.onTheirOwn} of ${line.tasks} ${line.tasks === 1 ? "task" : "tasks"} done on their own, ${times}`}
+        </span>
       </span>
       <span className={classes.muted}>
         {[

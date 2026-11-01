@@ -123,7 +123,7 @@
   box-shadow: 1px 0 0 var(--k-border-subtle);
 }
 
-.grid tbody td:first-child {
+.grid tbody th:first-child {
   background-color: var(--k-surface-raised);
 }
 

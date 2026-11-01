@@ -234,6 +234,30 @@
   font-weight: 700;
 }
 
+/* The tasks done on their own, as a share: green, as in each play's marks. */
+.tallyTop {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
+}
+
+.meter {
+  display: inline-flex;
+  flex: none;
+  width: 4rem;
+  height: 0.5rem;
+  border-radius: 999px;
+  overflow: hidden;
+  background-color: var(--k-surface-sunken);
+  box-shadow: inset 0 0 0 1px var(--k-border);
+}
+
+.meter > span {
+  border-radius: inherit;
+  background-color: var(--k-success);
+}
+
 .muted {
   color: var(--k-ink-muted);
 }

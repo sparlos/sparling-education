@@ -72,11 +72,13 @@
 }
 
 .playCard {
+  position: relative;
   display: grid;
   gap: var(--mantine-spacing-xs);
   width: 100%;
   min-height: 3rem;
   padding: var(--mantine-spacing-md);
+  padding-inline-end: calc(var(--mantine-spacing-md) + 1.75rem);
   border: 1px solid var(--k-border-subtle);
   border-radius: var(--mantine-radius-md);
   box-sizing: border-box;
@@ -92,47 +94,168 @@
   border-color: var(--k-border-strong);
 }
 
+/* Says it opens. */
+.playGo {
+  position: absolute;
+  top: 50%;
+  right: var(--mantine-spacing-sm);
+  display: flex;
+  color: var(--k-ink-muted);
+  transform: translateY(-50%);
+}
+
+.playCard:hover .playGo {
+  color: var(--k-ink);
+}
+
 .playCard:focus-visible {
   outline: 2px solid var(--k-focus);
   outline-offset: 2px;
+}
+
+/* A play the result leaves out: there, but quieter. */
+.playCard[data-counts="false"] {
+  border-style: dashed;
+  background-color: var(--k-surface-page);
+}
+
+.playTop {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
 }
 
 .playTitle {
   font-weight: 700;
 }
 
-.showed {
-  color: var(--k-accent-text);
+.playWhen {
+  margin-inline-start: var(--mantine-spacing-xs);
+  font-weight: 500;
+  white-space: nowrap;
+  color: var(--k-ink-muted);
 }
 
+/* The play's tasks as marks, then the same in words. */
+.playTally {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
+}
+
+.notCounted {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--mantine-spacing-xs);
+  color: var(--k-ink-muted);
+}
+
+/* A play at a glance: a mark per task, the same in words, how it ended. */
+.summary {
+  display: grid;
+  gap: var(--mantine-spacing-sm);
+  justify-items: start;
+  padding: var(--mantine-spacing-md) var(--mantine-spacing-lg);
+  border-radius: var(--k-radius-card);
+  background-color: var(--k-surface-raised);
+  box-shadow: var(--k-shadow-card);
+}
+
+.summaryEnding {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--mantine-spacing-xs);
+  color: var(--k-ink-muted);
+}
+
+.summaryEnding > svg {
+  flex: none;
+}
+
+/* A task, its edge coloured by how it went. */
 .task {
   display: grid;
-  gap: var(--mantine-spacing-xs);
+  gap: var(--mantine-spacing-sm);
   padding: var(--mantine-spacing-md);
   border: 1px solid var(--k-border-subtle);
+  border-left: 4px solid var(--k-border-strong);
   border-radius: var(--mantine-radius-md);
   background-color: var(--k-surface-raised);
 }
 
-.attempt {
-  display: grid;
-  grid-template-columns: 6rem 1fr;
-  gap: 0 var(--mantine-spacing-md);
+.task[data-outcome="own"] {
+  border-left-color: var(--k-success);
 }
 
-.attempt .showed,
-.attempt .detail {
-  grid-column: 2;
+.task[data-outcome="help"] {
+  border-left-color: var(--k-info);
+}
+
+.task[data-outcome="explored"] {
+  border-left-color: var(--k-border);
+}
+
+.taskHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
+}
+
+/* How the task went, in words, in its colour. */
+.taskOutcome {
+  padding: 2px var(--mantine-spacing-sm);
+  border-radius: 999px;
+  font-size: var(--mantine-font-size-sm);
+  font-weight: 700;
+  color: var(--k-ink-muted);
+  background-color: var(--k-surface-sunken);
+}
+
+.taskOutcome[data-outcome="own"] {
+  color: var(--k-success);
+  background-color: var(--k-success-soft);
+}
+
+.taskOutcome[data-outcome="help"] {
+  color: var(--k-info);
+  background-color: var(--k-info-soft);
+}
+
+/* Each try: its mark, which try, how it went; then what they did. */
+.attempt {
+  display: grid;
+  grid-template-columns: 1.75rem 5.5rem 1fr;
+  align-items: center;
+  gap: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
+}
+
+.attempt .detail,
+.attemptShowed {
+  grid-column: 2 / -1;
   min-width: 0;
   overflow-wrap: anywhere;
+}
+
+.attemptShowed {
+  display: grid;
 }
 
 .asked {
   overflow-wrap: anywhere;
 }
 
+.outcome {
+  font-weight: 700;
+}
+
 /* Explored is neither right nor wrong: muted, never styled as a miss. */
 .attempt[data-exploring="true"] .outcome {
+  font-weight: 500;
   color: var(--k-ink-muted);
   font-style: italic;
 }
@@ -140,4 +263,17 @@
 .try {
   font-weight: 700;
   color: var(--k-ink-muted);
+}
+
+@media print {
+  .task,
+  .task[data-outcome] {
+    border-left-color: var(--k-ink);
+  }
+
+  .taskOutcome,
+  .taskOutcome[data-outcome] {
+    color: var(--k-ink);
+    background: none;
+  }
 }

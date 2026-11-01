@@ -1,12 +1,19 @@
 // One student's evidence for one expectation, opened on their page: their
 // understanding at each tier, then every play with evidence for it, newest
 // first, each opening on its attempts.
+import { Icon } from "@repo/ui/icon";
 import { Text } from "@repo/ui/text";
 import { Title } from "@repo/ui/title";
 import { Link } from "@tanstack/react-router";
 import type { Ending, Evidence, EvidencePlay } from "../platform/ports.ts";
 import { Band } from "./Dashboard.tsx";
 import classes from "./drill-down.module.css";
+import {
+  countedOutcomes,
+  EndingPill,
+  OutcomeStrip,
+  ShowedChip,
+} from "./Outcome.tsx";
 
 /** How each play ended, in a teacher's words. */
 export const endingLabels: Record<Exclude<Ending, null>, string> = {
@@ -92,31 +99,39 @@ function PlayCard({
       params={{ classId, studentId, playId: play.play }}
       state={{ fromAbove: true }}
       className={classes.playCard}
+      data-counts={play.counts}
     >
-      <span className={classes.playTitle}>
-        {play.gameName} · {when(play.at)}
+      <span className={classes.playTop}>
+        <span className={classes.playTitle}>
+          {play.gameName}{" "}
+          <span className={classes.playWhen}>{when(play.at)}</span>
+        </span>
+        <EndingPill ending={play.ending}>
+          {play.ending ? endingLabels[play.ending] : noEnding}
+        </EndingPill>
+      </span>
+      <span className={classes.playTally}>
+        <OutcomeStrip outcomes={countedOutcomes(play)} />
+        <span>{tally}</span>
       </span>
       <span className={classes.muted}>
-        Grade {play.tierGrade} level ·{" "}
-        {play.ending ? endingLabels[play.ending] : noEnding}
-      </span>
-      <span>{tally}</span>
-      <span className={classes.muted}>
-        {`${play.tries} ${play.tries === 1 ? "try" : "tries"}`}
+        {`Grade ${play.tierGrade} level · ${play.tries} ${play.tries === 1 ? "try" : "tries"}`}
         {play.explored > 0 && `, and ${play.explored} explored`}
       </span>
       {play.misconceptions.map((m) => (
-        <span key={m.id} className={classes.showed}>
-          Showed: {m.description}
-        </span>
+        <ShowedChip key={m.id}>{m.description}</ShowedChip>
       ))}
       {!play.counts && (
-        <span className={classes.muted}>
+        <span className={classes.notCounted}>
+          <Icon name="ban" size={16} />
           {play.ending === "crashed"
             ? "Not counted, because it crashed."
             : "Not counted: only their most recent games count."}
         </span>
       )}
+      <span className={classes.playGo} aria-hidden="true">
+        <Icon name="chevron-right" size={20} />
+      </span>
     </Link>
   );
 }

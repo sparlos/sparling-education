@@ -620,7 +620,8 @@ describe("the dashboard", () => {
     expect(plays).toHaveLength(2);
     expect(plays[0]).toHaveTextContent("4 of 4 tasks on their own");
     expect(plays[1]).toHaveTextContent("Fraction Hop");
-    expect(plays[1]).toHaveTextContent("Grade 4 level · Finished");
+    expect(plays[1]).toHaveTextContent("Finished");
+    expect(plays[1]).toHaveTextContent("Grade 4 level · ");
     expect(plays[1]).toHaveTextContent(
       "1 of 3 tasks on their own, 1 with help, 1 not yet",
     );
@@ -650,6 +651,10 @@ describe("the dashboard", () => {
       "First tryGot it, with a hint",
     );
     expect(screen.getByText(/^How it ended: Finished/)).toBeInTheDocument();
+    // The play at a glance, in words beside its marks.
+    expect(
+      screen.getByText("1 of 3 tasks on their own, 1 with help, 1 not yet"),
+    ).toBeInTheDocument();
 
     // And back up, one tap at a time, to the strip as it was left.
     await user.click(screen.getByRole("link", { name: "Ana D." }));
@@ -754,7 +759,9 @@ describe("the dashboard", () => {
     ).toBeVisible();
 
     // A task the game didn't describe reads as it always has.
-    expect(second).toHaveTextContent(/^Task 2First tryGot it$/);
+    expect(second).toHaveTextContent(/^Task 2On their ownFirst tryGot it$/);
+    // Each task says how it went over all its tries.
+    expect(first).toHaveTextContent(/^Task 1With help/);
   });
 
   it("goes from a cell to the student's evidence, down to a play, and back", async () => {
