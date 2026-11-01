@@ -57,6 +57,8 @@
 }
 
 .inside {
+  /* Dark behind the shelves, like the inside of a real locker. */
+  --locker-back: color-mix(in srgb, var(--tone-edge) 85%, black);
   display: flex;
   flex-direction: column;
   padding: 6% 6% 0;
@@ -82,7 +84,7 @@
   grid-template-columns: 1fr 1fr;
   align-items: end;
   justify-items: center;
-  border-bottom: 0.5rem solid var(--tone-edge);
+  border-bottom: 0.5rem solid var(--tone-fill);
 }
 
 /* The locker's floor is the last shelf. */
@@ -175,6 +177,8 @@
   background: none;
   transform: translate(-50%, -50%) rotate(var(--tilt));
   filter: drop-shadow(0 2px 2px rgb(0 0 0 / 0.3));
+  /* Hidden on a turned-away face: see below. */
+  transition: visibility 0s linear calc(var(--swing) * 0.21);
 }
 
 .placed svg,
@@ -354,6 +358,17 @@ button.placed,
       0 0 0 2px var(--k-sparkle),
       0 0 6px 2px var(--k-sparkle);
   }
+}
+
+/* Some browsers (Safari) draw a turned-away face's stickers anyway, so
+   they're hidden outright as the door passes edge-on: 40% of the way
+   through the eased swing opening, 21% closing. */
+.area[data-open] .placed {
+  transition-delay: calc(var(--swing) * 0.4);
+}
+
+.face[aria-hidden="true"] .placed {
+  visibility: hidden;
 }
 
 @media (prefers-reduced-motion: reduce) {

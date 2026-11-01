@@ -35,7 +35,12 @@ const placeholders: Record<LockerSlot, () => ReactNode> = {
   ),
   "locker-inside": () => (
     <>
-      <rect width="60" height="100" rx="3" fill="var(--tone-soft)" />
+      <rect
+        width="60"
+        height="100"
+        rx="3"
+        fill="var(--locker-back, var(--tone-soft))"
+      />
       <rect
         x="1"
         y="1"
