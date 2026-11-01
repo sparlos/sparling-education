@@ -9,6 +9,7 @@ import type { PrototypeMeta, PrototypeProps } from "../prototype.ts";
 
 export const meta: PrototypeMeta = {
   title: "Seed Count",
+  isArchived: true,
   pitch:
     "A field, 6 rows by 27 columns. Put up your fence (one at G3 and G4, one each way at G5) to split it into parts you can work out, fill each part's seed bag (100s, 10s, 5s, 1s), then plant. Each part sows its own bag: a wrong part stays bare or spills over.",
   expectations: ["math-2020.g3.B2.6", "math-2020.g4.B2.5", "math-2020.g5.B2.6"],

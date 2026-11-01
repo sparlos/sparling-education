@@ -46,10 +46,12 @@ pnpm mutate <slug>                 # break each key rule; the tests must notice
 
 - **Run Vitest from the game's folder** (`--filter` does). From anywhere else
   its `vitest.config.ts` is missed and every test fails with no jsdom.
-- **`pnpm tour <slug> [--grades 3,4] [--out dir] [--url base] [--chrome path]`**
+- **`pnpm tour <slug> [--grades 3,4] [--jobs 6] [--out dir] [--url base] [--chrome path]`**
   runs `games/<slug>/tour.ts` at each tier's grade, at 1366 × 650 and
-  1280 × 650: a stand-in student signs in, the shell's start button is tapped,
-  and the game's `play` takes over. `checkFit` fails on page scroll, elements
+  1280 × 650, up to `--jobs` runs at once (use `--jobs 1` if timing looks
+  flaky): a stand-in student signs in, the shell's start button is tapped,
+  and the game's `play` takes over. A tour's `reducedMotion` can shorten the
+  animations at a size that only checks fit. `checkFit` fails on page scroll, elements
   that must show being cut off, and buttons under the minimum target (64 px
   for Grades 1–2, 48 px after, or the game's own). Console errors and a
   game that doesn't end back home fail too. It uses the dev server at

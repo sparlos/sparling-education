@@ -69,6 +69,12 @@ describe("creating a class", () => {
           on: true,
           path: `/play/crystal-machine?join=${created.joinCode}`,
         },
+        {
+          slug: "cargo-line",
+          name: "Cargo Line",
+          on: true,
+          path: `/play/cargo-line?join=${created.joinCode}`,
+        },
       ],
     });
   });

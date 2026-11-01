@@ -49,7 +49,8 @@ interface DemoStudent {
    * The misconceptions they hold in each game, as positions in the list of
    * the game's misconceptions their tier can reveal, in manifest order. So
    * every game's first misconception is shared by several students, and a new
-   * game's misconceptions show up without anyone naming them.
+   * game's misconceptions show up without anyone naming them. A game with
+   * fewer misconceptions than a position just ignores it.
    */
   holds: readonly number[];
   /** How likely they take help when it's offered. */
@@ -79,24 +80,24 @@ export const demoStudents: readonly DemoStudent[] = [
   student("Chloé", "G", 3, 0.36, [1]),
   student("Dev", "P", 3, 0.02, [0], 0.9),
   student("Elsie", "M", 3, 0.81),
-  student("Farah", "H", 3, 0.3),
+  student("Farah", "H", 3, 0.3, [3]),
   student("Gabriel", "L", 3, 0.2, [0, 1]),
-  student("Hana", "K", 3, 0.49),
+  student("Hana", "K", 3, 0.49, [3]),
   student("Isaac", "R", 4, 0.64),
   student("Jada", "W", 4, 0.16, [0]),
-  student("Kai", "N", 4, 0.36, [1]),
+  student("Kai", "N", 4, 0.36, [1, 3]),
   student("Léa", "B", 4, 0.81),
   student("Malik", "A", 4, 0.25, [0]),
   student("Nadia", "S", 4, 0.02, [1], 0.9),
-  student("Owen", "C", 4, 0.49),
-  student("Priya", "D", 4, 0.3, [0]),
+  student("Owen", "C", 4, 0.49, [4]),
+  student("Priya", "D", 4, 0.3, [0, 4]),
   student("Quinn", "F", 5, 0.72),
   student("Rosa", "V", 5, 0.25, [2]),
   student("Sami", "J", 5, 0.2, [0, 2]),
   student("Tessa", "Y", 5, 0.81),
-  student("Uriel", "E", 5, 0.36, [2]),
-  student("Violet", "Z", 5, 0.25, [0]),
-  student("Wren", "I", 5, 0.49, [1]),
+  student("Uriel", "E", 5, 0.36, [2, 4]),
+  student("Violet", "Z", 5, 0.25, [0, 4]),
+  student("Wren", "I", 5, 0.49, [1, 3]),
   student("Yusuf", "Q", 5, 0.02, [], 0.9),
 ];
 

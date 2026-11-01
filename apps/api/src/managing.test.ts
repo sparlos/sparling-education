@@ -99,9 +99,11 @@ describe("turning a game off and on", () => {
     expect((await ok(off)).games).toEqual([
       expect.objectContaining({ slug: "fraction-hop", on: false }),
       expect.objectContaining({ slug: "crystal-machine", on: true }),
+      expect.objectContaining({ slug: "cargo-line", on: true }),
     ]);
     expect((await sessionOf(sam.headers)).classes[0]?.games).toEqual([
       { slug: "crystal-machine", name: "Crystal Machine" },
+      { slug: "cargo-line", name: "Cargo Line" },
     ]);
 
     // Turning it off again changes nothing.
@@ -110,10 +112,12 @@ describe("turning a game off and on", () => {
     expect((await ok(on)).games).toEqual([
       expect.objectContaining({ slug: "fraction-hop", on: true }),
       expect.objectContaining({ slug: "crystal-machine", on: true }),
+      expect.objectContaining({ slug: "cargo-line", on: true }),
     ]);
     expect((await sessionOf(sam.headers)).classes[0]?.games).toEqual([
       { slug: "fraction-hop", name: "Fraction Hop" },
       { slug: "crystal-machine", name: "Crystal Machine" },
+      { slug: "cargo-line", name: "Cargo Line" },
     ]);
   });
 

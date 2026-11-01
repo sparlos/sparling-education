@@ -2,6 +2,11 @@
 ## Founder notes
 - accessibility - will need to be audited a fair few times by AI, probably against each game, the main site, etc etc
 - accessibility features that are in modern games - think high contrast, color blindness modes, etc etc. probably need to do a grill session with the LLM to determine what would be good candidates, and then bake that into the game shell so all games can support it
+- A prototype for /design-game should always have a short modal at the beginning explaining the rules of the game and anything that might be confusing to a first time player. I almost always DON'T like a prototype game at first, because it's unclear as to what I'm even supposed to do
+- FE site specifically to allow everyone to try all of the games. can be separate deployment that just consumes all of the games. grid renders all playable games, maybe with a short description of each (new metadata on the game itself?) underneath
+- need analytics in general so that we can track what teachers/students are doing, where things might be confusing, and how it all ties together
+- need email integration (resend) to handle marketing emails & transactional
+- need error handling & altering, so we can know what's going wrong behind the scenes
 
 ## Bingo Notes
 - demo class should just be a 3/4, NO 5 included

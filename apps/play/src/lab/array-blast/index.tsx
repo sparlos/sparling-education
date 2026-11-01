@@ -8,6 +8,7 @@ import type { PrototypeMeta, PrototypeProps } from "../prototype.ts";
 
 export const meta: PrototypeMeta = {
   title: "Array Blast",
+  isArchived: true,
   pitch:
     "A hole in the board, labelled only by its sides (6 by 27). Drag array blocks (6 × 20, 6 × 7…) from the tray to fill it exactly, turning them with a tap. Fill it and it blasts, showing the multiplication you just built.",
   expectations: ["math-2020.g3.B2.6", "math-2020.g4.B2.5", "math-2020.g5.B2.6"],

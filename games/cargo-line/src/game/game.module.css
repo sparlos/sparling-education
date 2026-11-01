@@ -1,0 +1,527 @@
+/* Cargo Line's screen. It always fits the game area with no scrolling:
+   the loop takes whatever room the pad and the caption leave, at its own
+   shape (5 × 3), so the help pictures over its field line up with it. */
+
+.board {
+  position: relative;
+  height: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 8px 14px;
+  padding: 8px 16px 6px 8px;
+  box-sizing: border-box;
+  font-family: var(--k-font-heading-stack);
+  color: var(--k-ink);
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.loopArea {
+  min-height: 0;
+  min-width: 0;
+  container-type: size;
+  display: grid;
+  place-items: center;
+}
+
+.loopBox {
+  position: relative;
+  width: min(100cqw, 100cqh * 5 / 3);
+  aspect-ratio: 5 / 3;
+}
+
+.loopSvg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.signText {
+  font-size: 38px;
+  font-weight: 800;
+  fill: var(--sign-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.missingGlow {
+  animation: glowPulse 1.4s var(--k-ease-standard) infinite;
+}
+
+@keyframes glowPulse {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.roofBadge {
+  fill: var(--roof);
+  stroke: var(--sign-ink);
+  stroke-width: 3;
+}
+
+.roofText {
+  font-size: 30px;
+  font-weight: 800;
+  fill: var(--sign-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The trip's sum, in the field. */
+.tallyPlate {
+  fill: var(--roof);
+  stroke: var(--sign-ink);
+  stroke-width: 3;
+}
+
+.tallyText {
+  font-size: 26px;
+  font-weight: 800;
+  fill: var(--sign-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+/* A station's moment: crates cross between it and the wagon, and its amount
+   pops up over its sign. */
+.hop {
+  opacity: 0;
+  animation: hop 650ms var(--k-ease-standard) both;
+}
+
+@keyframes hop {
+  0% {
+    transform: translate(0, 0) scale(0.8);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--dx), var(--dy)) scale(1);
+    opacity: 0;
+  }
+}
+
+.amountPlate {
+  fill: var(--halo);
+  stroke: var(--sign-ink);
+  stroke-width: 4;
+}
+
+.amountPop {
+  font-size: 50px;
+  font-weight: 800;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: pop 320ms var(--k-ease-springy) both;
+}
+
+.amountPop[data-loads="true"] {
+  fill: var(--load-ink);
+}
+
+.amountPop[data-loads="false"] {
+  fill: var(--unload-ink);
+}
+
+@keyframes pop {
+  from {
+    transform: scale(0.4);
+  }
+}
+
+/* The yard's sign, while the train waits at the gate to be checked. */
+.checkRing {
+  fill: none;
+  stroke: var(--check);
+  stroke-width: 7;
+  animation: glowPulse 500ms var(--k-ease-standard) infinite;
+}
+
+.gate {
+  transition: transform var(--k-duration-slow) var(--k-ease-standard);
+}
+
+.gate[data-open] {
+  transform: scaleY(0.12);
+}
+
+.stalled {
+  animation: shudder 120ms linear 5;
+}
+
+@keyframes shudder {
+  25% {
+    transform: translateX(-4px);
+  }
+  75% {
+    transform: translateX(4px);
+  }
+}
+
+.waving .driver {
+  animation: wave 300ms var(--k-ease-standard) 3;
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+}
+
+@keyframes wave {
+  50% {
+    transform: rotate(14deg);
+  }
+}
+
+/* The trip picture, on the field in the middle of the loop. */
+.trip {
+  position: absolute;
+  left: 33.5%;
+  right: 33.5%;
+  top: 45%;
+  height: 14.5%;
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  gap: 6px;
+  padding: 6px;
+  border-radius: 12px;
+  background: var(--k-surface-raised);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.15);
+}
+
+.tripBar {
+  display: flex;
+  gap: 3px;
+  min-height: 0;
+}
+
+.tripPart {
+  position: relative;
+  flex-basis: 0;
+  min-width: 0;
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.tripPart > span {
+  position: relative;
+  z-index: 1;
+}
+
+.tripPart[data-kind="load"] > svg rect {
+  fill: var(--k-success-soft);
+}
+
+.tripPart[data-kind="unload"] > svg rect {
+  fill: var(--unload-soft);
+}
+
+.tripPart[data-missing] {
+  outline: 3px dashed var(--tone-fill);
+  outline-offset: -3px;
+  border-radius: 6px;
+}
+
+/* The replay, over the field. */
+.replay {
+  position: absolute;
+  left: 12%;
+  right: 12%;
+  top: 19%;
+  bottom: 30%;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 4px;
+  padding: 8px 12px;
+  border-radius: 16px;
+  background: var(--k-surface-raised);
+  box-shadow: 0 3px 12px rgb(0 0 0 / 0.2);
+  z-index: 2;
+}
+
+.replaySum {
+  margin: 0;
+  text-align: center;
+  font-size: 22px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.replayGrid {
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) minmax(0, 1fr) 34px;
+  gap: 3px 6px;
+  align-items: stretch;
+}
+
+.replayHead {
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--k-ink-muted);
+}
+
+.replayHead[data-lit],
+.replayCell[data-lit] {
+  color: var(--tone-text);
+}
+
+.replayCell {
+  position: relative;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  justify-items: center;
+  padding: 2px;
+  border-radius: 8px;
+  background: var(--k-surface-sunken);
+}
+
+.replayCell[data-lit] {
+  outline: 3px solid var(--tone-fill);
+}
+
+.replayCell strong {
+  font-size: 20px;
+  line-height: 1.1;
+}
+
+.replayOp {
+  align-self: center;
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.crates {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-content: flex-start;
+  gap: 1px;
+  overflow: hidden;
+}
+
+.carry {
+  position: absolute;
+  top: -8px;
+  right: -4px;
+  animation: drop var(--k-duration-slow) var(--k-ease-springy);
+}
+
+@keyframes drop {
+  from {
+    transform: translate(-30px, 10px) scale(1.6);
+    opacity: 0;
+  }
+}
+
+.replayAnswer {
+  position: relative;
+  min-height: 30px;
+  border-top: 3px solid var(--k-ink);
+  text-align: center;
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.point {
+  position: absolute;
+  right: -7px;
+}
+
+.side {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  justify-content: center;
+}
+
+.sideTop {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.portrait {
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+}
+
+.pad {
+  display: grid;
+  grid-template-columns: repeat(3, 64px);
+  grid-auto-rows: 64px;
+  gap: 8px;
+}
+
+.key {
+  position: relative;
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: 30px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.key > span {
+  position: relative;
+  z-index: 1;
+}
+
+.key:active:not(:disabled) {
+  transform: scale(0.94);
+}
+
+.key:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.button {
+  position: relative;
+  min-height: 64px;
+  padding: 0 18px;
+  border-radius: 16px;
+  border: 3px solid var(--k-border-strong);
+  background: var(--k-surface-raised);
+  color: inherit;
+  font: inherit;
+  font-size: 24px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.button:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.quiet {
+  flex: 1;
+}
+
+.go {
+  border-color: var(--tone-edge);
+  background: var(--tone-fill);
+  color: var(--k-ink-inverse);
+  font-size: 28px;
+}
+
+/* In the tutorial the controls are disabled but keep their look. */
+.demo .key:disabled,
+.demo .button:disabled {
+  opacity: 1;
+}
+
+.glow {
+  border-color: var(--tone-edge);
+  background: var(--tone-soft);
+  animation: swell 1.6s var(--k-ease-standard) infinite;
+}
+
+.glow::before,
+.glow::after {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border-radius: 20px;
+  border: 4px solid var(--tone-fill);
+  pointer-events: none;
+  animation: ripple 1.6s ease-out infinite;
+}
+
+.glow::after {
+  animation-delay: 0.8s;
+}
+
+@keyframes swell {
+  50% {
+    transform: scale(1.06);
+  }
+}
+
+@keyframes ripple {
+  from {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  to {
+    transform: scale(1.3, 1.6);
+    opacity: 0;
+  }
+}
+
+.caption {
+  grid-column: 1 / -1;
+  margin: 0;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  font-weight: 700;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.hand {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 3;
+  pointer-events: none;
+  transition:
+    transform 600ms var(--k-ease-standard),
+    opacity 200ms;
+  filter: drop-shadow(0 4px 6px rgb(0 0 0 / 0.25));
+}
+
+.appearing {
+  transition: opacity 200ms;
+}
+
+.handPress {
+  transition: transform 120ms var(--k-ease-standard);
+}
+
+.tapping {
+  transform: scale(0.82);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glow,
+  .glow::after,
+  .missingGlow,
+  .stalled,
+  .waving .driver,
+  .carry,
+  .amountPop,
+  .checkRing {
+    animation: none;
+  }
+  .hop {
+    display: none;
+  }
+  .glow::before {
+    animation: none;
+    transform: scale(1.1, 1.2);
+    opacity: 0.8;
+  }
+  .gate,
+  .hand,
+  .handPress {
+    transition: none;
+  }
+}

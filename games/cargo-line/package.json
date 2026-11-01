@@ -1,0 +1,43 @@
+{
+  "name": "@games/cargo-line",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.tsx",
+    "./manifest": "./src/manifest.ts",
+    "./simulate": "./src/rules/simulate.ts"
+  },
+  "scripts": {
+    "check-types": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@repo/game-contract": "workspace:*",
+    "@repo/game-kit": "workspace:*",
+    "@repo/tokens": "workspace:*"
+  },
+  "peerDependencies": {
+    "react": "19.2.8"
+  },
+  "devDependencies": {
+    "@repo/avatar": "workspace:*",
+    "@repo/curriculum": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "@testing-library/dom": "10.4.2",
+    "@testing-library/jest-dom": "7.0.1",
+    "@testing-library/react": "16.3.3",
+    "@types/node": "24.19.2",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.5",
+    "@vitejs/plugin-react": "6.1.2",
+    "jsdom": "30.1.3",
+    "playwright-core": "1.59.1",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "typescript": "7.0.2",
+    "vite": "8.3.4",
+    "vitest": "5.0.5"
+  }
+}

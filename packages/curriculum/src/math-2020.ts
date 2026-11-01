@@ -27,6 +27,11 @@ export const math2020 = {
       "Solves fair-share problems that show two fractions can be the same amount, using eighths, fourths and halves; sixths and thirds; or tenths and fifths.",
     link: "https://www.dcp.edu.gov.on.ca/en/curriculum/elementary-mathematics/grades/g3-math/strand-b/b1#b1-7",
   },
+  "math-2020.g3.B2.5": {
+    description:
+      "Solves story problems that add or subtract whole numbers with totals up to 1000, whether the unknown is the result, the change or the start, using tools, models such as number lines and bar models, and written methods.",
+    link: "https://www.dcp.edu.gov.on.ca/en/curriculum/elementary-mathematics/grades/g3-math/strand-b/b2#b2-5",
+  },
   "math-2020.g3.B2.8": {
     description:
       "Shows with tools, drawings and fraction notation that the numerator counts unit fractions: three fifths is one fifth added three times.",
@@ -52,6 +57,11 @@ export const math2020 = {
       "Counts up to 10 in unit fractions, halves to tenths (not sevenths or ninths), with or without tools: one fourth, two fourths, and on to forty fourths.",
     link: "https://www.dcp.edu.gov.on.ca/en/curriculum/elementary-mathematics/grades/g4-math/strand-b/b1#b1-6",
   },
+  "math-2020.g4.B2.4": {
+    description:
+      "Solves story problems that add or subtract whole numbers with totals up to 10 000, and decimals in tenths, choosing tools and strategies, the column method included.",
+    link: "https://www.dcp.edu.gov.on.ca/en/curriculum/elementary-mathematics/grades/g4-math/strand-b/b2#b2-4",
+  },
   "math-2020.g5.B1.1": {
     description:
       "Reads and shows whole numbers to 100 000 in many forms, expanded notation included, builds them up and splits them apart in different ways (10 620 as 106 hundreds and 20 ones), and talks about where people use numbers every day.",
@@ -66,6 +76,11 @@ export const math2020 = {
     description:
       "Compares fractions from halves to twelfths and puts them in order of size, including ones greater than one, as improper fractions or mixed numbers, in different situations.",
     link: "https://www.dcp.edu.gov.on.ca/en/curriculum/elementary-mathematics/grades/g5-math/strand-b/b1#b1-4",
+  },
+  "math-2020.g5.B2.4": {
+    description:
+      "Solves story problems that add or subtract whole numbers with totals up to 100 000, and decimals to hundredths, choosing tools and strategies, the column method included.",
+    link: "https://www.dcp.edu.gov.on.ca/en/curriculum/elementary-mathematics/grades/g5-math/strand-b/b2#b2-4",
   },
   "math-2020.g5.B2.5": {
     description:

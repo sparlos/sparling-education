@@ -3,6 +3,8 @@
 // dev-only games. Each game's name is its manifest's `title` string, so it's
 // written once and voiced with the game's other lines. Each game's simulator
 // plays the demo class's plays (demo.ts).
+import { manifest as cargoLine } from "@games/cargo-line/manifest";
+import { simulate as simulateCargoLine } from "@games/cargo-line/simulate";
 import { manifest as crystalMachine } from "@games/crystal-machine/manifest";
 import { simulate as simulateCrystalMachine } from "@games/crystal-machine/simulate";
 import { manifest as fractionHop } from "@games/fraction-hop/manifest";
@@ -42,6 +44,7 @@ const hosted = <M extends GameManifest>(manifest: M, simulate: Simulate<M>) =>
 const games = [
   hosted(fractionHop, simulateFractionHop),
   hosted(crystalMachine, simulateCrystalMachine),
+  hosted(cargoLine, simulateCargoLine),
 ];
 const manifests: readonly GameManifest[] = games.map((g) => g.manifest);
 

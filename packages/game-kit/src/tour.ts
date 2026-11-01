@@ -5,8 +5,9 @@
 //
 // A game's tour is `games/<slug>/tour.ts`, default-exporting
 // `defineTour({ play })`. `pnpm tour <slug>` (scripts/tour.ts) runs it: for
-// each grade and size it signs a stand-in student in at that grade, opens
-// /play/<slug>, taps the shell's start button and hands the page to `play`.
+// each grade and size, several at once, it signs a stand-in student in at that
+// grade, opens /play/<slug>, taps the shell's start button and hands the page
+// to `play`.
 // The student is new to the game unless `firstPlay` says otherwise.
 // After `play` it checks the student is back home, and for errors. Speech is
 // stubbed: each utterance "ends" after 300 ms, and `spoken()` lists them.
@@ -64,6 +65,11 @@ export interface GameTour {
    * played it before. By default, new everywhere.
    */
   firstPlay?(at: { grade: number; first: boolean }): boolean;
+  /**
+   * Whether the browser asks for reduced motion at this grade and size, which
+   * shortens a game's animations if it honours the setting. By default, never.
+   */
+  reducedMotion?(at: { grade: number; first: boolean }): boolean;
   /** Selectors `checkFit` always checks are on screen. */
   mustShow?: string[];
   /** Plays one whole play, from the game's first screen to its end. */
