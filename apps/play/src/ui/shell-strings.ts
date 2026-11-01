@@ -5,6 +5,8 @@ export const shellStrings = {
   "en-CA": {
     loading: "Getting your game ready…",
     "hear-again": "Hear it again",
+    "sounds-off": "Turn off music and sounds",
+    "sounds-on": "Turn on music and sounds",
     "not-found": "We couldn't find that game.",
     error: "Something went wrong. Let's try that again.",
     "try-again": "Try again",

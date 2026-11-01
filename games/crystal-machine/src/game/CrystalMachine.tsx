@@ -29,6 +29,7 @@ import type { MachineRun } from "../rules/machine.ts";
 import type { Place, StringId } from "../strings.ts";
 import { Board } from "./Board.tsx";
 import type { Shown } from "./GemLayer.tsx";
+import { landingRate } from "./gems.ts";
 import { framesFor, runLength } from "./playback.ts";
 import {
   beatMs,
@@ -48,8 +49,6 @@ const solvedMs = 800;
 const doneMs = 1500;
 /** How long the ghost hand points at a chute guided set. */
 const pointMs = 1800;
-/** How far a landing crystal's sound varies in speed, in total. */
-const dropPitchRange = 0.08;
 
 type Mode = "tutorial" | "play" | "done";
 
@@ -297,11 +296,8 @@ export function CrystalMachine(props: GameProps<Manifest>) {
 
   const gemEvents = useMemo(
     () => ({
-      // A small change of pitch, so a fast column doesn't sound like a machine gun.
-      landed: () =>
-        playSound("crystal-drop", {
-          rate: 1 + (Math.random() - 0.5) * dropPitchRange,
-        }),
+      landed: (place: Place) =>
+        playSound("crystal-drop", { rate: landingRate(place) }),
       fused: () => playSound("crystal-merge"),
     }),
     [playSound],

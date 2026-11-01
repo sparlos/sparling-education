@@ -286,10 +286,14 @@ function GamePage(props: AppProps) {
           onEnd={end}
           navigate={navigate}
           speak={props.speak}
+          storage={storage}
         />
       );
   }
 }
+
+/** Whether the student has turned off music and sounds in this browser. */
+const mutedKey = "sounds.muted";
 
 function PlayScreen({
   ready,
@@ -297,12 +301,14 @@ function PlayScreen({
   onEnd,
   navigate,
   speak,
+  storage,
 }: {
   ready: ReadyPlay;
   ending: boolean;
   onEnd(ready: ReadyPlay, ending: Ending): void;
   navigate(url: string): void;
   speak?: VoiceOptions["speak"];
+  storage: KeyValueStore | null;
 }) {
   const { game, student, tier, play } = ready;
   const [hasLine, setHasLine] = useState(false);
@@ -336,6 +342,12 @@ function PlayScreen({
   );
   // The leave question is said over the game's music.
   useEffect(() => (asking ? sounds.duck() : undefined), [asking, sounds]);
+  // The student's choice, kept in this browser for their next games. The voice
+  // stays on: students rely on it.
+  const [muted, setMuted] = useState(
+    () => storage?.getItem(mutedKey) === "true",
+  );
+  useEffect(() => sounds.mute(muted), [muted, sounds]);
 
   // Games re-render often; give them props that only change when they must.
   const ended = useRef(false);
@@ -387,14 +399,29 @@ function PlayScreen({
         >
           <Icon name="leave" size={32} />
         </IconButton>
-        <IconButton
-          tone="neutral"
-          label={shellT("hear-again")}
-          onClick={() => voice.again()}
-          disabled={!hasLine}
-        >
-          <Icon name="speaker" size={32} />
-        </IconButton>
+        <div className={classes.soundControls}>
+          {/* A game with no sounds has nothing for it to turn off. */}
+          {game.sounds && (
+            <IconButton
+              tone="neutral"
+              label={shellT(muted ? "sounds-on" : "sounds-off")}
+              onClick={() => {
+                setMuted(!muted);
+                storage?.setItem(mutedKey, String(!muted));
+              }}
+            >
+              <Icon name={muted ? "music-off" : "music"} size={32} />
+            </IconButton>
+          )}
+          <IconButton
+            tone="neutral"
+            label={shellT("hear-again")}
+            onClick={() => voice.again()}
+            disabled={!hasLine}
+          >
+            <Icon name="speaker" size={32} />
+          </IconButton>
+        </div>
       </div>
       <div className={classes.game} inert={asking || ending}>
         {started && game.manifest.progress && progress && (

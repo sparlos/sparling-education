@@ -107,7 +107,7 @@ export function GemLayer({
       },
       reducedMotion(),
       {
-        landed: () => latestEvents.current.landed(),
+        landed: (place) => latestEvents.current.landed(place),
         fused: () => latestEvents.current.fused(),
       },
     );

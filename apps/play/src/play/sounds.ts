@@ -16,6 +16,8 @@ export interface Sounds {
   music(id: string | null): void;
   /** Lowers the music until the returned function is called. */
   duck(): () => void;
+  /** Silences effects and music, or brings them back. Music keeps its place. */
+  mute(muted: boolean): void;
   /** Pauses everything, music where it is, until `release`. */
   hold(): void;
   release(): void;
@@ -28,11 +30,14 @@ const musicLevel = 0.35;
 const duckedLevel = 0.12;
 /** How quickly music fades, as a Web Audio time constant in seconds. */
 const fadeS = 0.15;
+const muteFadeS = 0.02;
 
 interface Mix {
   context: AudioContext;
   effects: GainNode;
   music: GainNode;
+  /** Everything but the voice, which is played apart from this. */
+  master: GainNode;
 }
 
 export function createSounds(
@@ -48,6 +53,7 @@ export function createSounds(
   } | null = null;
   let ducks = 0;
   let held = false;
+  let muted = false;
 
   function setMusicLevel() {
     mix?.music.gain.setTargetAtTime(
@@ -106,14 +112,15 @@ export function createSounds(
         const context = new Context();
         const effects = context.createGain();
         effects.gain.value = effectsLevel;
-        // Many effects at once would add up past full volume and crackle.
-        effects
-          .connect(context.createDynamicsCompressor())
-          .connect(context.destination);
         const music = context.createGain();
         music.gain.value = ducks > 0 ? duckedLevel : musicLevel;
-        music.connect(context.destination);
-        const mine = { context, effects, music };
+        const master = context.createGain();
+        master.gain.value = muted ? 0 : 1;
+        master.connect(context.destination);
+        // Many effects at once would add up past full volume and crackle.
+        effects.connect(context.createDynamicsCompressor()).connect(master);
+        music.connect(master);
+        const mine = { context, effects, music, master };
         mix = mine;
         if (!held) void context.resume();
         for (const [id, url] of entries) void load(mine, id, url);
@@ -153,6 +160,15 @@ export function createSounds(
         ducks -= 1;
         setMusicLevel();
       };
+    },
+    mute(next) {
+      muted = next;
+      // Quick, but not instant, which would click.
+      mix?.master.gain.setTargetAtTime(
+        muted ? 0 : 1,
+        mix.context.currentTime,
+        muteFadeS,
+      );
     },
     hold() {
       held = true;

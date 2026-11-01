@@ -726,9 +726,9 @@ describe("a game's sounds", () => {
   });
 
   /** A game open, its files loaded. */
-  async function playing() {
+  async function playing(storage?: KeyValueStore) {
     const audio = stubAudio();
-    setUp();
+    setUp({ storage });
     await screen.findByRole("button", { name: "Start" });
     // Browsers keep audio silent until a tap, so nothing starts before it.
     expect(audio.contexts).toEqual([]);
@@ -744,6 +744,50 @@ describe("a game's sounds", () => {
     fireEvent.click(screen.getByRole("button", { name: "Play a sound" }));
     expect(context.sources).toHaveLength(1);
     expect(context.sources[0]?.started).toBe(true);
+  });
+
+  it("lets the student turn off music and sounds, and back on, leaving the voice", async () => {
+    const context = await playing();
+    const master = context.gains[2];
+    fireEvent.click(
+      screen.getByRole("button", { name: "Turn off music and sounds" }),
+    );
+    expect(master?.gain.target).toBe(0);
+    fireEvent.click(
+      screen.getByRole("button", { name: "Turn on music and sounds" }),
+    );
+    expect(master?.gain.target).toBe(1);
+  });
+
+  it("offers no such button in a game with no sounds", async () => {
+    setUp({
+      path: "/play/fraction-hop?class=class-1",
+      signedIn: {
+        ...student,
+        classes: student.classes.map((m) => ({
+          ...m,
+          games: standInGames(["fraction-hop"]),
+        })),
+      },
+    });
+    await screen.findByRole("button", { name: "Start" });
+    expect(
+      screen.queryByRole("button", { name: "Turn off music and sounds" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("remembers the choice for the next game", async () => {
+    const storage = memoryStorage();
+    await playing(storage);
+    fireEvent.click(
+      screen.getByRole("button", { name: "Turn off music and sounds" }),
+    );
+    cleanup();
+    const context = await playing(storage);
+    expect(
+      screen.getByRole("button", { name: "Turn on music and sounds" }),
+    ).toBeInTheDocument();
+    expect(context.gains[2]?.gain.value).toBe(0);
   });
 
   it("lowers the music while the leave question is up", async () => {

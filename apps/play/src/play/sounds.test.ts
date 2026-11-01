@@ -122,6 +122,26 @@ describe("createSounds", () => {
     expect(level()).toBeGreaterThan(ducked as number);
   });
 
+  it("mutes effects and music together, and brings them back", async () => {
+    const { sounds, context } = await started();
+    // The effects' bus, the music's, then the one they both go through.
+    const master = context.gains[2];
+    expect(master?.gain.value).toBe(1);
+    sounds.mute(true);
+    expect(master?.gain.target).toBe(0);
+    sounds.mute(false);
+    expect(master?.gain.target).toBe(1);
+  });
+
+  it("starts silent if muted before the tap", async () => {
+    const audio = stubAudio();
+    const sounds = createSounds(files);
+    sounds.mute(true);
+    sounds.start();
+    await audio.loaded();
+    expect(audio.contexts[0]?.gains[2]?.gain.value).toBe(0);
+  });
+
   it("holds everything, dropping effects, until released", async () => {
     const { sounds, context } = await started();
     sounds.hold();

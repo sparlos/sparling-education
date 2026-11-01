@@ -2,7 +2,7 @@
 // tests can't reach these: jsdom has no layout, so GemLayer stays inert there.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Place } from "../strings.ts";
-import { GemTubes, landGapMs } from "./gems.ts";
+import { GemTubes, landGapMs, landingRate } from "./gems.ts";
 
 const svgNs = "http://www.w3.org/2000/svg";
 const frameMs = 1000 / 60;
@@ -48,7 +48,29 @@ beforeEach(() => {
 
 afterEach(() => vi.unstubAllGlobals());
 
+describe("landingRate", () => {
+  it("makes each bigger gem lower, whatever the random variation", () => {
+    for (const place of [0, 1, 2, 3, 4] as const) {
+      const lowestOfThis = landingRate(place, 0);
+      const highestOfNext = landingRate((place + 1) as Place, 1);
+      expect(highestOfNext).toBeLessThan(lowestOfThis);
+    }
+  });
+
+  it("varies each landing a little", () => {
+    expect(landingRate(2, 1)).toBeGreaterThan(landingRate(2, 0));
+  });
+});
+
 describe("the gems' sounds", () => {
+  it("says which place's gem landed", () => {
+    const { tubes, events } = setUp();
+    tubes.sync([0, 1], [], false);
+    run(1000);
+    expect(events.landed).toHaveBeenCalledWith(1);
+    tubes.destroy();
+  });
+
   it("says a gem landed when it hits the tube, not when it starts to fall", () => {
     const { tubes, events } = setUp();
     tubes.sync([1, 0], [], false);

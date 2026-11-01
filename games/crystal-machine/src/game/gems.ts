@@ -14,8 +14,8 @@ const { Bodies, Body, Composite, Engine, Events } = Matter;
 
 /** The moments that make a sound. */
 export interface GemEvents {
-  /** A gem has hit the bottom of its tube, or the pile. */
-  landed(): void;
+  /** A gem of this place has hit the bottom of its tube, or the pile. */
+  landed(place: Place): void;
   /** Ten gems have started to pull together. */
   fused(): void;
 }
@@ -27,6 +27,23 @@ export interface GemEvents {
 export const landGapMs = 15;
 /** The shortest gap between two fusing sounds, which are long enough to blur. */
 export const fuseGapMs = 60;
+
+/** The landing sound's speed for the smallest gem, above the recording's own pitch. */
+const smallestGemRate = 1.3;
+/** Each bigger gem lands a whole tone lower. */
+const wholeToneDown = 2 ** (-2 / 12);
+/** How far a landing varies at random, as a share either way. */
+const landingVariation = 0.04;
+
+/**
+ * How fast to play a gem's landing sound: bigger gems sound lower, and each
+ * landing varies a little, so a fast column doesn't sound like a machine gun.
+ * The variation stays under a whole tone, so the sizes never overlap.
+ */
+export const landingRate = (place: Place, random = Math.random()) =>
+  smallestGemRate *
+  wholeToneDown ** place *
+  (1 + (random * 2 - 1) * landingVariation);
 
 /** A tube's inside, in the layer's px. */
 export interface TubeRect {
@@ -78,8 +95,8 @@ export class GemTubes {
   private timers: { at: number; fn: () => void }[] = [];
   private raf = 0;
   private now = 0;
-  /** Gems that haven't hit anything yet, by body ID. */
-  private falling = new Set<number>();
+  /** Each gem that hasn't hit anything yet: its place, by body ID. */
+  private falling = new Map<number, Place>();
   private lastLanded = -Infinity;
   private lastFused = -Infinity;
 
@@ -102,13 +119,15 @@ export class GemTubes {
     this.reduced = reduced;
     this.events = events;
     Events.on(this.engine, "collisionStart", ({ pairs }) => {
-      let landed = false;
+      let landed: Place | undefined;
       for (const { bodyA, bodyB } of pairs)
-        for (const body of [bodyA, bodyB])
-          if (this.falling.delete(body.id)) landed = true;
-      if (landed && this.now - this.lastLanded >= landGapMs) {
+        for (const body of [bodyA, bodyB]) {
+          landed ??= this.falling.get(body.id);
+          this.falling.delete(body.id);
+        }
+      if (landed !== undefined && this.now - this.lastLanded >= landGapMs) {
         this.lastLanded = this.now;
-        this.events.landed();
+        this.events.landed(landed);
       }
     });
     this.bodies = tubes.map(() => []);
@@ -247,7 +266,7 @@ export class GemTubes {
       });
       Body.setVelocity(body, { x: 0, y: 4 });
       Composite.add(this.engine.world, body);
-      this.falling.add(body.id);
+      this.falling.set(body.id, p);
       const el = this.draw.gem(p);
       this.layer.appendChild(el);
       this.els.set(body.id, el);

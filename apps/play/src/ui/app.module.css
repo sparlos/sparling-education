@@ -60,6 +60,12 @@
   padding: var(--mantine-spacing-md);
 }
 
+.soundControls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-sm);
+}
+
 /* Clear, so the sky behind the shell's pages shows through. */
 .message {
   position: fixed;
