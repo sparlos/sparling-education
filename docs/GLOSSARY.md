@@ -126,6 +126,10 @@ _Avoid_: Correctness, accuracy, mastery (unqualified)
 How a student worked during a play: retrying, improving after mistakes, persisting. Evidence of Learning Skills, and the only thing rewards are earned from.
 _Avoid_: Engagement, time spent
 
+**Notebook**:
+A drawer of scratch space a student can slide out over a game to work things out, as they would on paper. It shows the task they're on and starts empty for each new task. Nothing in it is kept, and no game depends on it.
+_Avoid_: Scratchpad, whiteboard, manipulatives
+
 **Quick assess**:
 A summary of a student's or a class's results that a teacher views, or prints, when writing report cards. It names which curriculum expectations and Learning Skills each piece of evidence contributes to, but never assigns a level or a Learning Skills rating: that judgement stays with the teacher.
 _Avoid_: Report card, grade report, rubric (as the product name)

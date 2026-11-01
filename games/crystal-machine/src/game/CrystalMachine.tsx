@@ -5,6 +5,7 @@
 // The voice and the screen take turns, never both at once: `await speak(...)`
 // before acting on what was said, never a timer guessed from a line's length.
 import type { AvatarExpression, GameProps } from "@repo/game-contract";
+import { handMs, offerHint } from "@repo/game-kit/frame";
 import { seeded } from "@repo/game-kit/random";
 import { useTimers } from "@repo/game-kit/timers";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -32,7 +33,6 @@ import { framesFor, runLength } from "./playback.ts";
 import {
   beatMs,
   type Cue,
-  handMs,
   minLineMs,
   type Tap,
   tapMs,
@@ -48,10 +48,6 @@ const solvedMs = 800;
 const doneMs = 1500;
 /** How long the ghost hand points at a chute guided set. */
 const pointMs = 1800;
-/** How long the hand shows in the middle of the screen before gliding to the hint button. */
-const nudgeMs = 450;
-/** How long it rests on the hint button after offering the hint, before fading. */
-const nudgeHoldMs = 2000;
 
 type Mode = "tutorial" | "play" | "done";
 
@@ -264,13 +260,7 @@ export function CrystalMachine(props: GameProps<Manifest>) {
       )
         return speak(step.say);
       await speak(step.say.slice(0, -1));
-      setHand("center");
-      const offered = speak([offer]);
-      await pause(nudgeMs);
-      setHand((at) => (at === "center" ? "hint" : at));
-      await Promise.all([offered, pause(handMs)]);
-      await pause(nudgeHoldMs);
-      setHand((at) => (at === "hint" ? null : at));
+      await offerHint({ say: () => speak([offer]), pause, setHand });
     },
     [commit, speak, later, pause],
   );

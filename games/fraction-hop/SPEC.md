@@ -242,9 +242,7 @@ Placeholder SVG first, from the style kit, each in a fixed frame with an anchor.
 | `block` | A hop block: one size for every fraction, with the fraction drawn on it |
 | `slot` | An empty plan slot |
 | `arc` | Hint 2's preview arc |
-| `ghost-hand` | The tutorial's and guided's pointing hand |
 | `sparkle` | The "Nice fix!" burst (polish) |
-| `icon-play`, `icon-hint` | Button icons |
 
 ## Teacher card
 

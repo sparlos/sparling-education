@@ -190,7 +190,7 @@ describe("the tutorial", () => {
     expect(said.at(-1)).toEqual(["tutorial.play"]);
     expect(screen.getByTestId("ghost-hand")).toHaveAttribute(
       "data-target",
-      "play",
+      "main",
     );
     expect(screen.getByTestId("hopper")).toHaveAttribute("data-at", "0");
   });
@@ -199,7 +199,7 @@ describe("the tutorial", () => {
     setUp("g3");
     const play = screen.getByRole("button", { name: "Play" });
     expect(play).toBeDisabled();
-    expect(screen.getByTestId("board").className).toMatch(/demo/);
+    expect(screen.getByTestId("board")).toHaveAttribute("data-demo");
   });
 
   it("can be skipped at any time", async () => {

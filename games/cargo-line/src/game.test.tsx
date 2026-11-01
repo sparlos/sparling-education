@@ -34,7 +34,7 @@ async function typeNumber(shell: Shell, text: string) {
 
 async function tryNumber(shell: Shell, lap: Lap, n: number, wait = runWait) {
   await typeNumber(shell, written(n, lap.dp));
-  await shell.tap(screen.getByTestId("go"));
+  await shell.tap(screen.getByTestId("main"));
   await shell.wait(wait);
 }
 
@@ -62,9 +62,9 @@ describe("the opening", () => {
   it("keeps Go off until a number is typed", async () => {
     const { shell } = playing("g3");
     await shell.wait(100);
-    expect(screen.getByTestId("go")).toBeDisabled();
+    expect(screen.getByTestId("main")).toBeDisabled();
     await shell.tap(key("4"));
-    expect(screen.getByTestId("go")).toBeEnabled();
+    expect(screen.getByTestId("main")).toBeEnabled();
   });
 
   it("shows what's typed on the missing sign", async () => {
@@ -134,7 +134,7 @@ describe("the tutorial", () => {
     // What Go tests has just been shown, so it isn't said again.
     finishLine();
     await typeNumber(shell, "1");
-    await shell.tap(screen.getByTestId("go"));
+    await shell.tap(screen.getByTestId("main"));
     await shell.wait(10);
     expect(shell.said.flat()).not.toContain("run.stakes");
   });
@@ -278,7 +278,7 @@ describe("a run", () => {
     const lap = lapsFor("g3")[0] as Lap;
     const station = lap.stations[0] as Lap["stations"][number];
     await typeNumber(shell, written(lap.end + 1, 0));
-    await shell.tap(screen.getByTestId("go"));
+    await shell.tap(screen.getByTestId("main"));
     await shell.wait(1000);
     finishLine();
     await shell.wait(8000);
@@ -315,7 +315,7 @@ describe("a run", () => {
     expect(screen.getByTestId("tally").dataset.text).toMatch(/ = \?$/);
     await typeNumber(shell, written(lap.end - 1, 0));
     expect(screen.queryByTestId("tally")).not.toBeInTheDocument();
-    await shell.tap(screen.getByTestId("go"));
+    await shell.tap(screen.getByTestId("main"));
     await shell.wait(1500);
     expect(screen.getByTestId("roof")).toHaveAttribute("data-load", "?");
     // The last result's caption is gone: nothing reads as this run's yet.
@@ -331,7 +331,7 @@ describe("a run", () => {
     const lap = laps[0] as Lap;
     await tryNumber(shell, lap, lap.end + 1);
     await typeNumber(shell, written(lap.end + 2, 0));
-    await shell.tap(screen.getByTestId("go"));
+    await shell.tap(screen.getByTestId("main"));
     let seen = false;
     for (let i = 0; i < 200 && !seen; i++) {
       await shell.wait(50);
@@ -354,7 +354,7 @@ describe("a run", () => {
     finishLine();
     const lap = lapsFor("g3")[0] as Lap;
     await typeNumber(shell, written(lap.end, 0));
-    await shell.tap(screen.getByTestId("go"));
+    await shell.tap(screen.getByTestId("main"));
     await shell.wait(1000);
     finishLine(); // what Go tests
     await shell.wait(8000);
@@ -375,13 +375,13 @@ describe("help", () => {
     await shell.wait(100);
     const lap = laps[0] as Lap;
     await tryNumber(shell, lap, lap.end + 1);
-    expect(screen.getByTestId("help")).not.toHaveAttribute("data-glow");
+    expect(screen.getByTestId("hint")).not.toHaveAttribute("data-glow");
     await tryNumber(shell, lap, lap.end + 2);
-    expect(screen.getByTestId("help")).toHaveAttribute("data-glow", "true");
-    expect(shell.said.at(-1)).toEqual(["help.ready"]);
+    expect(screen.getByTestId("hint")).toHaveAttribute("data-glow", "true");
+    expect(shell.said.at(-1)).toEqual(["hint.ready"]);
     expect(shell.said.at(-2)).toEqual(["run.too-big"]);
     expect(screen.queryByTestId("trip-picture")).not.toBeInTheDocument();
-    await shell.tap(screen.getByTestId("help"));
+    await shell.tap(screen.getByTestId("hint"));
     expect(shell.lastSaid()).toEqual(["help.picture"]);
     expect(screen.getByTestId("trip-picture")).toBeInTheDocument();
     expect(screen.getByTestId("trip-off")).toHaveTextContent("?");

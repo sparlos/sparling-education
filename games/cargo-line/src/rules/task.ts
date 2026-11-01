@@ -278,7 +278,7 @@ export function finishGo(before: LapState, run: Run): GoResult {
     say: startDemo
       ? [...said, "demo.start"]
       : glow && !before.glow
-        ? [...said, "help.ready"]
+        ? [...said, "hint.ready"]
         : said,
     attempt: attemptFor(before, run, again, match),
     startDemo,

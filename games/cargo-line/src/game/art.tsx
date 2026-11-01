@@ -529,40 +529,6 @@ export const art = {
       />
     ),
   },
-  /** A number pad key's face, stretched to the key. */
-  "pad-key": {
-    width: 64,
-    height: 64,
-    anchor: { x: 0, y: 0 },
-    draw: () => (
-      <rect
-        x="2"
-        y="2"
-        width="60"
-        height="60"
-        rx="12"
-        fill={palette.sand[0]}
-        stroke={palette.ink[4]}
-        strokeWidth="3"
-      />
-    ),
-  },
-  /** The tutorial's and the help nudge's pointing hand, its fingertip at the anchor. */
-  "ghost-hand": {
-    width: 64,
-    height: 64,
-    anchor: { x: 22, y: 4 },
-    draw: () => (
-      <path
-        d="M18 30 V8 a5 5 0 0 1 10 0 V26 V22 a5 5 0 0 1 10 0 V28 V25 a5 5 0 0 1 10 0 V31 a5 5 0 0 1 10 0 V44 c0 10 -8 18 -18 18 h-6 c-6 0 -11 -3 -14 -8 L8 40 a5 5 0 0 1 8 -6 z"
-        fill="white"
-        stroke={ink}
-        strokeWidth="3"
-        strokeLinejoin="round"
-        opacity="0.92"
-      />
-    ),
-  },
 } satisfies Record<string, Slot>;
 
 export type ArtSlot = keyof typeof art;

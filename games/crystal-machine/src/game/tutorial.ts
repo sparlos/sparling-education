@@ -50,7 +50,7 @@ export function tutorialScript(chutes: 3 | 4 | 5): Cue[] {
     ...tapOn("key-3", { key: 3 }),
     ...tapOn("chute-0", { chute: 0 }),
     ...tapOn("key-4", { key: 4 }),
-    { point: "run" },
+    { point: "main" },
     { say: ["tutorial.run"] },
     { tap: { run: true } },
     { point: null },
@@ -60,7 +60,7 @@ export function tutorialScript(chutes: 3 | 4 | 5): Cue[] {
     ...tapOn("chute-0", { chute: 0 }),
     ...tapOn("key-2", { key: 2 }),
     ...tapOn("key-0", { key: 0 }),
-    { point: "run" },
+    { point: "main" },
     { tap: { run: true, say: ["tutorial.fuse"] } },
     { point: null },
     { say: ["tutorial.your-turn"] },
@@ -68,8 +68,6 @@ export function tutorialScript(chutes: 3 | 4 | 5): Cue[] {
   ];
 }
 
-/** How long the hand takes to reach a target (its CSS transition, plus a beat). */
-export const handMs = 750;
 /** How long a tap takes to show before it happens. */
 export const tapMs = 300;
 /** A beat after each tap or line. */

@@ -1,6 +1,7 @@
 // The game: the tutorial (on the student's first play only), then six tasks. The rules live in ../rules; this
 // file wires them to taps, the run's animation, the voice and the shell.
 import type { AvatarExpression, GameProps } from "@repo/game-contract";
+import { handMs, offerHint } from "@repo/game-kit/frame";
 import { seeded } from "@repo/game-kit/random";
 import { useTimers } from "@repo/game-kit/timers";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -26,7 +27,6 @@ import { Board, type Carried } from "./Board.tsx";
 import { type Hopper, home, hopMs, sinkMs } from "./Course.tsx";
 import {
   beatMs,
-  handMs,
   minLineMs,
   type Tap,
   tapMs,
@@ -40,10 +40,6 @@ const solvedMs = 800;
 const doneMs = 1500;
 /** How long the ghost hand points at a hop guided placed. */
 const pointMs = 1800;
-/** How long the hand shows in the middle of the screen before gliding to the hint button. */
-const nudgeMs = 450;
-/** How long it rests on the hint button after offering the hint, before fading. */
-const nudgeHoldMs = 2000;
 /** How long the "Nice fix!" sparkle lasts. */
 const sparkleMs = 800;
 /** A beat before the first hop, so the hopper is home before it takes off. */
@@ -291,13 +287,7 @@ export function FractionHop(props: GameProps<Manifest>) {
       )
         return speak(step.say);
       await speak(step.say.slice(0, -1));
-      setHand("center");
-      const offered = speak([offer]);
-      await pause(nudgeMs);
-      setHand((at) => (at === "center" ? "hint" : at));
-      await Promise.all([offered, pause(handMs)]);
-      await pause(nudgeHoldMs);
-      setHand((at) => (at === "hint" ? null : at));
+      await offerHint({ say: () => speak([offer]), pause, setHand });
     },
     [commit, record, speak, later, pause],
   );

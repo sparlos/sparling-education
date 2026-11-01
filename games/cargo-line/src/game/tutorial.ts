@@ -38,7 +38,7 @@ export const tutorialScript: Cue[] = [
   { say: ["tutorial.missing"] },
   { point: "key-9" },
   { key: "9" },
-  { point: "go" },
+  { point: "main" },
   { say: ["tutorial.go"] },
   { go: true, narrate: true },
   { point: null },
@@ -47,15 +47,13 @@ export const tutorialScript: Cue[] = [
   { key: "del" },
   { point: "key-8" },
   { key: "8" },
-  { point: "go" },
+  { point: "main" },
   { go: true, narrate: false },
   { point: null },
   { say: ["tutorial.your-turn"] },
   { end: true },
 ];
 
-/** How long the hand takes to reach a target (its CSS transition, plus a beat). */
-export const handMs = 750;
 /** How long a tap takes to show before it happens. */
 export const tapMs = 300;
 /** A beat after each tap or line. */

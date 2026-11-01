@@ -131,22 +131,6 @@ export function Art({
 
 /** Screen art, drawn as small standalone SVGs. */
 export const screenArt = {
-  /** The tutorial's and guided's pointing hand, anchored at its fingertip. */
-  "ghost-hand": {
-    width: 64,
-    height: 80,
-    anchor: { x: 22, y: 4 },
-    draw: () => (
-      <path
-        d="M22 4 c6 0 9 4 9 10 v24 c3 -3 13 -3 14 3 c4 -3 12 -1 12 6 c5 -2 11 1 11 8 v12 c0 12 -8 21 -22 21 h-8 c-9 0 -15 -5 -20 -12 l-14 -20 c-3 -5 1 -10 7 -8 l6 4 v-38 c0 -6 3 -10 9 -10 z"
-        fill={palette.sand[0]}
-        fillOpacity="0.92"
-        stroke={ink}
-        strokeWidth="3"
-        strokeLinejoin="round"
-      />
-    ),
-  },
   /** The "Nice fix!" burst (polish). */
   sparkle: {
     width: 48,
@@ -160,39 +144,6 @@ export const screenArt = {
         strokeWidth="3"
         strokeLinejoin="round"
       />
-    ),
-  },
-  "icon-play": {
-    width: 32,
-    height: 32,
-    anchor: { x: 16, y: 16 },
-    draw: () => (
-      <path
-        d="M9 5 l19 11 l-19 11 z"
-        fill="currentColor"
-        strokeLinejoin="round"
-      />
-    ),
-  },
-  "icon-hint": {
-    width: 32,
-    height: 32,
-    anchor: { x: 16, y: 16 },
-    draw: () => (
-      <g
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="3"
-        strokeLinecap="round"
-      >
-        <path
-          d="M11 20 a8 8 0 1 1 10 0 v4 h-10 z"
-          fill="currentColor"
-          fillOpacity="0.2"
-        />
-        <path d="M12 28 h8" />
-        <path d="M16 2 v2 M4 14 h2 M26 14 h2 M7 5 l2 2 M25 5 l-2 2" />
-      </g>
     ),
   },
 } satisfies Record<string, Slot>;

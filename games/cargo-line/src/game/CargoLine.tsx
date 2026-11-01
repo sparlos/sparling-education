@@ -5,6 +5,7 @@
 // The voice and the screen take turns, never both at once: `await speak(...)`
 // before acting on what was said, never a timer guessed from a line's length.
 import type { AvatarExpression, GameProps } from "@repo/game-contract";
+import { handMs, offerHint } from "@repo/game-kit/frame";
 import { seeded } from "@repo/game-kit/random";
 import { useTimers } from "@repo/game-kit/timers";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -37,7 +38,6 @@ import { yardAt } from "./track.ts";
 import {
   beatMs,
   type Cue,
-  handMs,
   minLineMs,
   tapMs,
   tutorialLap,
@@ -48,10 +48,6 @@ import {
 const solvedMs = 800;
 /** The pause after the last line of the play before the shell takes over. */
 const doneMs = 1500;
-/** How long the hand shows in the middle of the screen before gliding to the help button. */
-const nudgeMs = 450;
-/** How long it rests on the help button after offering help, before fading. */
-const nudgeHoldMs = 2000;
 /** Ticks of the roof's number as crates go on or off at a station. */
 const ticks = 6;
 
@@ -309,24 +305,16 @@ export function CargoLine(props: GameProps<Manifest>) {
   }, [mode, pause, speak, commit, pressKey, play, beginLap, clearTimers]);
 
   /**
-   * Says a miss's result. When the help button starts to glow, the result
-   * is said first; then, while help is offered, the hand glides from the
-   * middle of the screen to the button, and fades soon after, so it
-   * invites a tap without demanding one.
+   * Says a miss's result. When the hint button starts to glow, the result
+   * is said first, then the hint is offered.
    */
   const sayMiss = useCallback(
     async (before: LapState, result: GoResult) => {
       const offer = result.say.at(-1);
-      if (!result.state.glow || before.glow || offer !== "help.ready")
+      if (!result.state.glow || before.glow || offer !== "hint.ready")
         return speak(result.say);
       await speak(result.say.slice(0, -1));
-      setHand("center");
-      const offered = speak(["help.ready"]);
-      await pause(nudgeMs);
-      setHand((at) => (at === "center" ? "help" : at));
-      await Promise.all([offered, pause(handMs)]);
-      await pause(nudgeHoldMs);
-      setHand((at) => (at === "help" ? null : at));
+      await offerHint({ say: () => speak(["hint.ready"]), pause, setHand });
     },
     [speak, pause],
   );

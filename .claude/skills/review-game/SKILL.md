@@ -49,7 +49,7 @@ Then go through every check below. Each gets a verdict and its evidence: a test 
 - Every interaction works by tap; drag is never the only way. Pointer Events, nothing hover-only. Targets at least 64 px for Grades 1–2 and 48 px after (the tour checks buttons; check other targets by eye).
 - Every instruction is a caption and a voice line from the same string ID. For Grades 1–3, nothing needs reading: demonstrations or visuals carry it. At every grade, every result shows on screen, so nothing needs hearing.
 - Voice and screen take turns: actions follow an `await say(...)`, no timer is sized to a line's length, and one moment is one `say(...)`. The game opens with a line, since it mounts after the shell's start tap.
-- The screen fits 1366 × 650 and 1280 × 650 with no scroll at every tier, and keeps the shell's left-hand corners clear.
+- The screen fits 1366 × 650 and 1280 × 650 with no scroll at every tier, and its screen is laid out in the kit's `GameFrame`.
 - The avatar's expression follows play as the spec says.
 
 ### Contract and code

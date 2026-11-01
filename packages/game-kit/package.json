@@ -6,6 +6,8 @@
   "exports": {
     "./art": "./src/art.tsx",
     "./burst": "./src/burst.tsx",
+    "./frame": "./src/frame.tsx",
+    "./frame-strings": "./src/frame-strings.ts",
     "./timers": "./src/timers.ts",
     "./spec": "./src/spec.ts",
     "./testing": "./src/testing/fake-shell.tsx",

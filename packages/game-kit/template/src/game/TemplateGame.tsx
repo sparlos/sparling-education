@@ -1,11 +1,14 @@
 // The game: an opening line, then the tasks. The rules live in ../rules;
-// this file wires them to taps, the voice and the shell.
+// this file wires them to taps, the voice and the shell, and lays them out in
+// the kit's game frame, which also gives a game its hint button, main button,
+// number pad and ghost hand (see the kit's README).
 //
 // The voice and the screen take turns, never both at once: `await speak(...)`
 // before acting on what was said, never a timer guessed from a line's length.
 // The shell mounts the game only after the student taps start, so the first
 // line can play.
 import type { AvatarExpression, GameProps } from "@repo/game-contract";
+import { GameFrame } from "@repo/game-kit/frame";
 import { seeded } from "@repo/game-kit/random";
 import { useTimers } from "@repo/game-kit/timers";
 import { palette } from "@repo/tokens";
@@ -112,55 +115,53 @@ export function TemplateGame(props: GameProps<Manifest>) {
   };
 
   return (
-    <div className={styles.board} data-testid="board">
-      <div className={styles.top}>
-        <Avatar expression={mood} size={96} />
-        <p className={styles.caption} data-testid="caption">
-          {caption.map((id) => t(id)).join(" ")}
-        </p>
-      </div>
-      {task && (
-        <div className={styles.cards}>
-          {[task.left, task.right].map((d) => (
-            <button
-              key={d}
-              type="button"
-              className={styles.card}
-              data-testid="card"
-              data-d={d}
-              data-marked={hinted && d === bigger(task)}
-              aria-label={t(fracId(d))}
-              disabled={busy}
-              onClick={() => void tap(d)}
-            >
-              <span className={styles.frac} aria-hidden="true">
-                <span>1</span>
-                <span>{d}</span>
-              </span>
-              <svg
-                viewBox="0 0 100 24"
-                className={styles.bar}
-                aria-hidden="true"
+    <GameFrame
+      info={<Avatar expression={mood} size={96} />}
+      stage={
+        task && (
+          <div className={styles.cards}>
+            {[task.left, task.right].map((d) => (
+              <button
+                key={d}
+                type="button"
+                className={styles.card}
+                data-testid="card"
+                data-d={d}
+                data-marked={hinted && d === bigger(task)}
+                aria-label={t(fracId(d))}
+                disabled={busy}
+                onClick={() => void tap(d)}
               >
-                <Art slot="bar" x={0} y={0} />
-                <rect
-                  x="3"
-                  y="3"
-                  width={94 / d}
-                  height="18"
-                  rx="2"
-                  fill={palette.leaf[5]}
-                />
-              </svg>
-              {solved && d === bigger(task) && (
-                <span className={styles.star}>
-                  <ScreenArt slot="star" size={48} />
+                <span className={styles.frac} aria-hidden="true">
+                  <span>1</span>
+                  <span>{d}</span>
                 </span>
-              )}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
+                <svg
+                  viewBox="0 0 100 24"
+                  className={styles.bar}
+                  aria-hidden="true"
+                >
+                  <Art slot="bar" x={0} y={0} />
+                  <rect
+                    x="3"
+                    y="3"
+                    width={94 / d}
+                    height="18"
+                    rx="2"
+                    fill={palette.leaf[5]}
+                  />
+                </svg>
+                {solved && d === bigger(task) && (
+                  <span className={styles.star}>
+                    <ScreenArt slot="star" size={48} />
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+        )
+      }
+      caption={caption.map((id) => t(id)).join(" ")}
+    />
   );
 }

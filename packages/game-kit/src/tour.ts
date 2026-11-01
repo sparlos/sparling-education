@@ -90,7 +90,7 @@ export async function measureFit(
   page: Page,
   minTarget: number,
   mustShow: string[],
-): Promise<Fit & { offscreen: string[] }> {
+): Promise<Fit & { offscreen: string[]; misplaced: string[] }> {
   return page.evaluate(
     ([min, selectors]) => {
       const se = document.scrollingElement as Element;
@@ -115,11 +115,37 @@ export async function measureFit(
             b.getAttribute("aria-label") ??
             (b.textContent?.trim() || b.outerHTML.slice(0, 60)),
         );
+      // The frame's controls land in the same place in every game: its
+      // right and bottom padding, and the top of the area under the shell's
+      // strip. Slack for a press or a glowing button's swell.
+      const board = document.querySelector('[data-testid="board"]');
+      const top = board?.getBoundingClientRect().top ?? 0;
+      const near = (a: number, b: number) => Math.abs(a - b) <= 6;
+      const box = (id: string) =>
+        document
+          .querySelector(`[data-testid="${id}"]`)
+          ?.getBoundingClientRect();
+      const misplaced: string[] = [];
+      for (const id of ["hint", "skip"]) {
+        const r = box(id);
+        if (r && !(near(r.right, innerWidth - 16) && near(r.top, top + 12)))
+          misplaced.push(id);
+      }
+      const main = box("main");
+      if (
+        main &&
+        !(
+          near(main.right, innerWidth - 16) &&
+          near(main.bottom, innerHeight - 12)
+        )
+      )
+        misplaced.push("main");
       return {
         viewport: { width: innerWidth, height: innerHeight },
         scroll: { width: se.scrollWidth, height: se.scrollHeight },
         small,
         offscreen,
+        misplaced,
       };
     },
     [minTarget, mustShow] as const,

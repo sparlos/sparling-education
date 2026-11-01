@@ -54,9 +54,10 @@ Done when the spec tests pass and every string in SPEC.md's table is in `strings
 
 - **Voice and screen take turns.** Say a line (a pointer may rest on what it's about), then act, then say the next: `await say(...)` before acting, and `useTimers().pause` only for beats between turns, never a timer guessed from a line's length. One moment is one `say(...)`: a new call cuts off the last, so a result and the next prompt go in one call.
 - **The game starts after the shell's start tap,** so it opens with a spoken line and can rely on sound being allowed.
+- **The game frame lays out every screen.** Build on `GameFrame` from `@repo/game-kit/frame`, and spread `frameStrings` from `@repo/game-kit/frame-strings` into the game's strings. It draws Hint or Skip, the main button, the caption and the ghost hand, and `NumberPad` is the only number pad. The game fills `info`, `stage`, and `side` or `deck`. Never draw these yourself, and if the frame can't do what the spec needs, change the frame for every game (ask the founder first). The kit's tests and the tour fail otherwise. `packages/game-kit/README.md` has the details.
 - **Touch first:** every action works by tap (pick up, then place). Drag is a second way in, through Pointer Events. Targets are at least 64 px for Grades 1–2 and 48 px after, or the spec's own size.
 - **Never read, never hear:** every instruction is a caption and a voice line from the same string, and every result shows on screen.
-- **The screen always fits** 1366 × 650 and 1280 × 650 with no scrolling, with the shell's progress strip above it and its top-left ("leave") and bottom-left ("hear it again") corners kept clear.
+- **The screen always fits** 1366 × 650 and 1280 × 650 with no scrolling, with the shell's progress strip above it and its rail on the left.
 - **The avatar's expression follows play** (thinking, happy, encouraging, cheering), as the spec says.
 - **Look:** colours and sizes from `@repo/tokens`, components from `@repo/ui`, art through named slots (`@repo/game-kit/art`), and `prefers-reduced-motion` turning motion off.
 

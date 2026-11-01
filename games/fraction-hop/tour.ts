@@ -97,7 +97,7 @@ async function drag(page: Page, from: string, to: string) {
 const waitIdle = (page: Page) =>
   page.waitForFunction(
     () =>
-      !(document.querySelector('[data-hand="play"]') as HTMLButtonElement)
+      !(document.querySelector('[data-hand="main"]') as HTMLButtonElement)
         .disabled,
     null,
     { timeout: 20_000 },
@@ -174,7 +174,7 @@ export default defineTour({
       else
         for (let i = 0; i < c.budget; i++)
           await tap(page, `[data-testid="block"][data-d="${smallest}"]`);
-      await tap(page, '[data-hand="play"]');
+      await tap(page, '[data-hand="main"]');
       await page.waitForTimeout(400);
       if (task === 1) await screenshot("task1-running");
       await waitIdle(page);
@@ -220,7 +220,7 @@ export default defineTour({
         for (const d of r.slice(locked))
           await tap(page, `[data-testid="block"][data-d="${d}"]`);
       if (task === 2) await screenshot("task2-hints");
-      await tap(page, '[data-hand="play"]');
+      await tap(page, '[data-hand="main"]');
       if (fixable) {
         // Attached, not visible: the burst itself is 0 × 0.
         await page.waitForSelector('[data-testid="burst"]', {

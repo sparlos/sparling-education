@@ -147,7 +147,7 @@ Retrying is the loop itself: a run costs nothing, the lap stays as it was after 
 
 **The help ladder**, one lap at a time, reset at the next lap:
 
-1. **The help button** is always there. It starts to glow after **2 misses**, with the ghost hand gliding to it while the voice offers help. Tapping it turns on **the trip picture** (`hint`) beside the loop: two bars of the same length. The top bar is what went onto the train (what it left with, then each pickup). The bottom bar is what came off (each drop-off, then what came back). Every part is labelled with its sign's number, and the missing one with ?. For "dropped off 136, came back with 251", the top bar is one part, ?, and the bottom bar is 136 and 251, so the student can see the two parts make up the start.
+1. **The hint button** is always there. It starts to glow after **2 misses**, with the ghost hand gliding to it while the voice offers a hint. Tapping it turns on **the trip picture** (`hint`) beside the loop: two bars of the same length. The top bar is what went onto the train (what it left with, then each pickup). The bottom bar is what came off (each drop-off, then what came back). Every part is labelled with its sign's number, and the missing one with ?. For "dropped off 136, came back with 251", the top bar is one part, ?, and the bottom bar is 136 and 251, so the student can see the two parts make up the start.
 2. After **4 misses** in all, whatever help was taken, **"Let's work it out together"** (`demonstration`) starts by itself. The replay works each step of the lap in place-value crates, one column at a time from the smallest place: for 251 + 136, the ones, then the tens, then the hundreds. Wherever a column trades, you watch it: ten crates combine into one of the next place up, or one opens into ten of the place below. It ends with the answer on the wagon's roof. The student types it and presses Go. Visuals carry the replay. The voice names each step ("Add the ones.").
 
 Once help is on, it stays on until the end of that lap.
@@ -166,11 +166,11 @@ Once help is on, it stays on until the end of that lap.
 
 ## Touch, reading and sound
 
-- **Touch only, tap only:** pad keys, Go, help and skip. No dragging. Every tap target is at least **64 px**.
+- **Touch only, tap only:** pad keys, Go, hint and skip. No dragging. Every tap target is at least **64 px**.
 - **No reading:** signs tell the lap in pictures: arrows out of and into the yard, arrows onto and off the train at stations, + and − beside their numbers, a glowing ? on the missing one. The only text a student needs is numerals and the sum's + − =. Every instruction is a caption and a voice line from the same string, and the lap's story is spoken when it arrives and can be heard again.
 - **No sound needed:** every result is on screen: the stalled train and its red station sign, the red yard sign with the wagon's number and the trip's sum, or the gate opening. Without sound, the +/− on the signs, the crates, the sum and the highlighted yard sign show what each stop did and what's being checked.
 - **Numbers are spoken from the number family** (see Strings), and captions show numerals as on screen (57 903, 2.18), never words.
-- **The game always fits the screen,** with no scrolling or zooming, at 1366 × 650 and 1280 × 650 and larger: the loop, both yard signs, two stations, the pad, Go and help. The browser tour checks this.
+- **The game always fits the screen,** with no scrolling or zooming, at 1366 × 650 and 1280 × 650 and larger: the loop, both yard signs, two stations, the pad, Go and hint. The browser tour checks this.
 - **Progress:** a progression-based game (`progress` in the manifest): the shell's thin bar shows laps done, from 0/6 to 6/6.
 - **The notebook** (once the shell has one): the game hands it a small strip of the lap's signs as the problem picture, and marks each lap's start so it clears. Nothing here depends on it.
 
@@ -198,7 +198,7 @@ Every string a student sees or hears. Each one also becomes a voice line. Senten
 | `tutorial.try-again` | The gate stayed shut. So change your number and press Go again. |
 | `tutorial.your-turn` | Now it's your turn! |
 | `ui.go` | Go |
-| `ui.help` | Help |
+| `ui.hint` | Hint |
 | `ui.skip` | Skip |
 | `story.leaves` | The train leaves with |
 | `story.leaves-some` | The train leaves with some |
@@ -229,7 +229,7 @@ Every string a student sees or hears. Each one also becomes a voice line. Senten
 | `run.solved` | It made it! The gate opens. |
 | `lap.next` | Here's the next trip. |
 | `play.done` | You finished every trip. Great work! |
-| `help.ready` | Want some help? Tap the help button. |
+| `hint.ready` | Want a hint? Tap the hint button. |
 | `help.picture` | The top bar is what went onto the train. The bottom bar is what came off. They're the same. |
 | `demo.start` | Let's work it out together. |
 | `demo.add.0` … `demo.add.4` | Add the ones. / Add the tens. / Add the hundreds. / Add the thousands. / Add the ten thousands. |
@@ -280,7 +280,6 @@ A toy countryside from above: soft greens, a warm wooden train, chunky signs. Re
 | `crate-0` … `crate-4` | The replay's place-value crates: one, ten, hundred, thousand, ten thousand |
 | `crate-tenth`, `crate-hundredth` | The replay's crates for tenths and hundredths |
 | `trip-bar` | The trip picture's two bars and their labelled parts |
-| `pad-key` | A number pad key |
 
 ## Teacher card
 

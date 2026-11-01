@@ -1,0 +1,293 @@
+/* The screen every game is laid out in. It always fits the game area with no
+   scrolling: the stage takes whatever room the controls leave. The right
+   column is one width in every game, so its controls land in the same place. */
+
+.frame {
+  --frame-column: 204px;
+  position: relative;
+  height: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--frame-column);
+  gap: 8px 16px;
+  padding: 12px 16px 12px 8px;
+  box-sizing: border-box;
+  font-family: var(--k-font-heading-stack);
+  color: var(--k-ink);
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* With no info, the stage takes the top-left corner too. */
+.frame[data-layout="side"] {
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    "stage corner"
+    "stage rail"
+    "caption rail";
+}
+
+.frame[data-layout="side"][data-info] {
+  grid-template-areas:
+    "info corner"
+    "stage rail"
+    "caption rail";
+}
+
+.frame[data-layout="deck"] {
+  grid-template-rows: auto minmax(0, 1fr) auto auto;
+  grid-template-areas:
+    "info corner"
+    "stage stage"
+    "caption caption"
+    "deck deck";
+}
+
+.info {
+  grid-area: info;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* Over the stage, so the hint button's ripple isn't drawn under it. */
+.corner {
+  grid-area: corner;
+  position: relative;
+  z-index: 1;
+  min-height: 64px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-start;
+}
+
+.stage {
+  grid-area: stage;
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  grid-template: minmax(0, 1fr) / minmax(0, 1fr);
+}
+
+.caption {
+  grid-area: caption;
+  margin: 0;
+  min-height: 44px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0 0.3em;
+  font-size: 20px;
+  font-weight: 700;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.rail {
+  grid-area: rail;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.side {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* The panel reaches past the frame's padding by its own, so the main button
+   lands exactly where it does in a rail. */
+.deck {
+  grid-area: deck;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--frame-column);
+  align-items: end;
+  gap: 8px 16px;
+  margin: 0 -12px -8px 0;
+  padding: 8px 12px;
+  border-radius: 20px;
+  background: var(--k-surface-sunken);
+}
+
+.deckTop {
+  grid-column: 1 / -1;
+}
+
+.deckControls {
+  grid-column: 1;
+  min-width: 0;
+  align-self: center;
+}
+
+.button {
+  position: relative;
+  min-width: 132px;
+  min-height: 64px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 0 20px;
+  border-radius: 16px;
+  border: 3px solid var(--k-border-strong);
+  border-bottom-width: 6px;
+  background: var(--k-surface-raised);
+  color: var(--k-ink);
+  font: inherit;
+  font-size: 24px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.button:active:not(:disabled) {
+  border-bottom-width: 3px;
+  transform: translateY(3px);
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.main {
+  grid-column: 2;
+  width: 100%;
+  min-height: 72px;
+  border-color: var(--tone-edge);
+  background: var(--tone-fill);
+  color: var(--tone-on-fill);
+}
+
+/* The hint button offering itself: a ring that pushes out and fades, over
+   and over, and a gentle swell of the button. */
+.button[data-glow] {
+  border-color: var(--tone-edge);
+  background: var(--tone-soft);
+  animation: swell 1.6s var(--k-ease-standard) infinite;
+}
+
+.button[data-glow]::before,
+.button[data-glow]::after {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border-radius: 20px;
+  border: 4px solid var(--tone-fill);
+  pointer-events: none;
+  animation: ripple 1.6s ease-out infinite;
+}
+
+.button[data-glow]::after {
+  animation-delay: 0.8s;
+}
+
+@keyframes ripple {
+  from {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  to {
+    transform: scale(1.45, 1.8);
+    opacity: 0;
+  }
+}
+
+@keyframes swell {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  20% {
+    transform: scale(1.06);
+  }
+}
+
+.pad {
+  display: grid;
+  grid-template-columns: repeat(3, 64px);
+  grid-auto-rows: 64px;
+  gap: 6px;
+}
+
+.key {
+  padding: 0;
+  border-radius: 12px;
+  border: 3px solid var(--k-border-strong);
+  border-bottom-width: 6px;
+  background: var(--k-surface-raised);
+  color: var(--k-ink);
+  font: inherit;
+  font-size: 30px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.key:active:not(:disabled) {
+  border-bottom-width: 3px;
+  transform: translateY(3px);
+}
+
+.key:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.frame[data-demo] .button:disabled,
+.frame[data-demo] .key:disabled {
+  opacity: 1;
+}
+
+.hand {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 3;
+  pointer-events: none;
+  transition:
+    transform 600ms var(--k-ease-standard),
+    opacity 200ms;
+  filter: drop-shadow(0 4px 6px rgb(0 0 0 / 0.25));
+}
+
+/* Appearing, the hand fades in where it points, instead of gliding there from its last spot. */
+.appearing {
+  transition: opacity 200ms;
+}
+
+.handPress {
+  transition: transform 120ms var(--k-ease-standard);
+}
+
+.tapping {
+  transform: scale(0.82);
+}
+
+/* What the hand drags, centred under its fingertip. */
+.carrying {
+  position: absolute;
+  transform: translate(-50%, -50%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button[data-glow],
+  .button[data-glow]::after {
+    animation: none;
+  }
+  /* A still ring instead of the ripple. */
+  .button[data-glow]::before {
+    animation: none;
+    transform: scale(1.1, 1.2);
+    opacity: 0.8;
+  }
+  .hand,
+  .handPress {
+    transition: none;
+  }
+}

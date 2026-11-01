@@ -78,7 +78,7 @@ const waitIdle = (page: Page) =>
   );
 
 async function go(page: Page) {
-  await tap(page, '[data-testid="go"]');
+  await tap(page, '[data-testid="main"]');
   await page.waitForSelector('[data-key="1"]:disabled', { timeout: 2000 });
   await waitIdle(page);
 }
@@ -90,7 +90,7 @@ export default defineTour({
     '[data-testid="loop"]',
     '[data-testid="sign-leaves"]',
     '[data-testid="sign-back"]',
-    '[data-testid="go"]',
+    '[data-testid="main"]',
     '[data-testid="caption"]',
   ],
   firstPlay: ({ first }) => first,
@@ -119,12 +119,12 @@ export default defineTour({
         await typeIn(page, right + m, o.dp);
         // The fourth miss leads straight into the replay, pad off throughout.
         if (replays && m === misses) {
-          await tap(page, '[data-testid="go"]');
+          await tap(page, '[data-testid="main"]');
           break;
         }
         if (first && i === 1) {
           // The run's two big moments: a station, and the check at the gate.
-          await tap(page, '[data-testid="go"]');
+          await tap(page, '[data-testid="main"]');
           await page.waitForSelector('[data-testid="station-amount"]', {
             timeout: 30_000,
           });
@@ -139,7 +139,7 @@ export default defineTour({
         await checkFit(`lap ${i} miss ${m}`);
         if (i === 1 && m === 1) await screenshot("miss");
         if (i === 2 && m === 1) {
-          await page.locator('[data-testid="help"]').click({ force: true });
+          await page.locator('[data-testid="hint"]').click({ force: true });
           await page.waitForSelector('[data-testid="trip-picture"]');
           await checkFit("trip picture");
           await screenshot("trip-picture");
@@ -156,7 +156,7 @@ export default defineTour({
       }
       await typeIn(page, right, o.dp);
       if (i === 6) await screenshot("typed");
-      await tap(page, '[data-testid="go"]');
+      await tap(page, '[data-testid="main"]');
       if (first && i === 3) {
         await page.waitForTimeout(2500);
         await screenshot("running");

@@ -1,22 +1,6 @@
-/* Cargo Line's screen. It always fits the game area with no scrolling:
-   the loop takes whatever room the pad and the caption leave, at its own
-   shape (5 × 3), so the help pictures over its field line up with it. */
-
-.board {
-  position: relative;
-  height: 100%;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  grid-template-rows: minmax(0, 1fr) auto;
-  gap: 8px 14px;
-  padding: 8px 16px 6px 8px;
-  box-sizing: border-box;
-  font-family: var(--k-font-heading-stack);
-  color: var(--k-ink);
-  user-select: none;
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
-}
+/* What's Cargo Line's own in the game frame: the loop takes whatever room
+   the frame leaves, at its own shape (5 × 3), so the help pictures over its
+   field line up with it. */
 
 .loopArea {
   min-height: 0;
@@ -336,173 +320,15 @@
   right: -7px;
 }
 
-.side {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  justify-content: center;
-}
-
-.sideTop {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
 .portrait {
+  align-self: center;
   display: grid;
   place-items: center;
   width: 72px;
   height: 72px;
 }
 
-.pad {
-  display: grid;
-  grid-template-columns: repeat(3, 64px);
-  grid-auto-rows: 64px;
-  gap: 8px;
-}
-
-.key {
-  position: relative;
-  padding: 0;
-  border: none;
-  background: none;
-  color: inherit;
-  font: inherit;
-  font-size: 30px;
-  font-weight: 800;
-  cursor: pointer;
-}
-
-.key > span {
-  position: relative;
-  z-index: 1;
-}
-
-.key:active:not(:disabled) {
-  transform: scale(0.94);
-}
-
-.key:disabled {
-  cursor: default;
-  opacity: 0.55;
-}
-
-.button {
-  position: relative;
-  min-height: 64px;
-  padding: 0 18px;
-  border-radius: 16px;
-  border: 3px solid var(--k-border-strong);
-  background: var(--k-surface-raised);
-  color: inherit;
-  font: inherit;
-  font-size: 24px;
-  font-weight: 800;
-  cursor: pointer;
-}
-
-.button:disabled {
-  cursor: default;
-  opacity: 0.55;
-}
-
-.quiet {
-  flex: 1;
-}
-
-.go {
-  border-color: var(--tone-edge);
-  background: var(--tone-fill);
-  color: var(--k-ink-inverse);
-  font-size: 28px;
-}
-
-/* In the tutorial the controls are disabled but keep their look. */
-.demo .key:disabled,
-.demo .button:disabled {
-  opacity: 1;
-}
-
-.glow {
-  border-color: var(--tone-edge);
-  background: var(--tone-soft);
-  animation: swell 1.6s var(--k-ease-standard) infinite;
-}
-
-.glow::before,
-.glow::after {
-  content: "";
-  position: absolute;
-  inset: -6px;
-  border-radius: 20px;
-  border: 4px solid var(--tone-fill);
-  pointer-events: none;
-  animation: ripple 1.6s ease-out infinite;
-}
-
-.glow::after {
-  animation-delay: 0.8s;
-}
-
-@keyframes swell {
-  50% {
-    transform: scale(1.06);
-  }
-}
-
-@keyframes ripple {
-  from {
-    transform: scale(1);
-    opacity: 0.9;
-  }
-  to {
-    transform: scale(1.3, 1.6);
-    opacity: 0;
-  }
-}
-
-.caption {
-  grid-column: 1 / -1;
-  margin: 0;
-  min-height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
-  font-weight: 700;
-  text-align: center;
-  line-height: 1.2;
-}
-
-.hand {
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 3;
-  pointer-events: none;
-  transition:
-    transform 600ms var(--k-ease-standard),
-    opacity 200ms;
-  filter: drop-shadow(0 4px 6px rgb(0 0 0 / 0.25));
-}
-
-.appearing {
-  transition: opacity 200ms;
-}
-
-.handPress {
-  transition: transform 120ms var(--k-ease-standard);
-}
-
-.tapping {
-  transform: scale(0.82);
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .glow,
-  .glow::after,
   .missingGlow,
   .stalled,
   .waving .driver,
@@ -514,14 +340,7 @@
   .hop {
     display: none;
   }
-  .glow::before {
-    animation: none;
-    transform: scale(1.1, 1.2);
-    opacity: 0.8;
-  }
-  .gate,
-  .hand,
-  .handPress {
+  .gate {
     transition: none;
   }
 }

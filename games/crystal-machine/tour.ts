@@ -57,26 +57,29 @@ async function setPlan(page: Page, o: Seen, plan: number[]) {
     const chute = `[data-testid="chute"][data-place="${p}"]`;
     if (await page.locator(`${chute}[data-locked]`).count()) continue;
     await tap(page, chute);
-    for (let i = 0; i < 3; i++) await tap(page, '[data-testid="key-delete"]');
+    for (let i = 0; i < 3; i++)
+      await tap(page, '[data-testid="key"][data-key="del"]');
     for (const d of String(plan[p] ?? 0))
-      await tap(page, `[data-testid="key"][data-d="${d}"]`);
+      await tap(page, `[data-testid="key"][data-key="${d}"]`);
   }
 }
 
 /** Waits until Run can be pressed: no run, no tutorial, no job change in the way. */
-const waitIdle = (page: Page) =>
+const waitIdle = (page: Page, timeout = 30_000) =>
   page.waitForFunction(
     () =>
-      !(document.querySelector('[data-testid="run"]') as HTMLButtonElement)
+      !(document.querySelector('[data-testid="main"]') as HTMLButtonElement)
         .disabled,
     null,
-    { timeout: 30_000 },
+    { timeout },
   );
 
 /** Presses Run and waits for the machine to stop. */
 async function run(page: Page) {
-  await tap(page, '[data-testid="run"]');
-  await page.waitForSelector('[data-testid="run"]:disabled', { timeout: 2000 });
+  await tap(page, '[data-testid="main"]');
+  await page.waitForSelector('[data-testid="main"]:disabled', {
+    timeout: 2000,
+  });
   await page.waitForFunction(
     () => !document.querySelector("[data-pulled]"),
     null,
@@ -91,8 +94,7 @@ export default defineTour({
     '[data-testid="job"]',
     '[data-testid="counter"]',
     '[data-testid="machine"]',
-    '[data-testid="run"]',
-    '[data-testid="hint"]',
+    '[data-testid="main"]',
   ],
   firstPlay: ({ first }) => first,
   async play({ page, grade, firstPlay, checkFit, screenshot, log }) {
@@ -103,7 +105,8 @@ export default defineTour({
         // Mid-tutorial, then the fuse: watch it to the end.
         await page.waitForTimeout(9000);
         await screenshot("tutorial");
-        await waitIdle(page);
+        // The whole tutorial is two jobs' worth of voice and runs.
+        await waitIdle(page, 180_000);
       } else {
         await tap(page, "button:has-text('Skip')");
       }

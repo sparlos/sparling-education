@@ -52,22 +52,20 @@ export const tutorialScript: readonly Cue[] = [
   { tap: { drag: 4, to: 0 } },
   { point: "block-2" },
   { tap: { drag: 2, to: 1 } },
-  { point: "play" },
+  { point: "main" },
   { say: "tutorial.play" },
   { tap: { play: true } },
   { point: null },
   { say: "tutorial.splash" },
   { point: "slot-0" },
   { tap: { move: 0, to: 1 } },
-  { point: "play" },
+  { point: "main" },
   { tap: { play: true } },
   { point: null },
   { say: "tutorial.goal-found" },
   { end: true },
 ];
 
-/** How long the hand takes to reach a target (its CSS transition, plus a beat). */
-export const handMs = 750;
 /** How long a tap takes to show before it happens. */
 export const tapMs = 300;
 /** A beat after each tap or line. */

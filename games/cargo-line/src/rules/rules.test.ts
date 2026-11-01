@@ -659,7 +659,7 @@ describe("the help ladder", () => {
     expect(one.say).toEqual(["run.too-big"]);
     const two = tryNumber(one.state, 317);
     expect(two.state.glow).toBe(true);
-    expect(two.say).toEqual(["run.too-big", "help.ready"]);
+    expect(two.say).toEqual(["run.too-big", "hint.ready"]);
     const three = tryNumber(two.state, 318);
     expect(three.say).toEqual(["run.too-big"]);
     expect(missesForHelp).toBe(2);

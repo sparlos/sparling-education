@@ -235,12 +235,9 @@ A crystal workshop: glowing, faceted crystal in the base ten shapes, on a machin
 | `fuse` | The flash when ten crystals fuse into one |
 | `operator` | The avatar at the control panel (the portrait for now), anchored at its base |
 | `lever` | The Run lever, up and down |
-| `pad-key` | A number pad key |
 | `counter` | The crystal counter, with its crystal icon |
 | `hint-digit` | Hint 1's digit tag above a window |
 | `trade` | Hint 2's picture: one crystal breaking into ten of the next place, with an arrow |
-| `ghost-hand` | The tutorial's and guided's pointing hand |
-| `icon-run`, `icon-hint` | Button icons |
 
 ## Teacher card
 

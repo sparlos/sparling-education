@@ -5,7 +5,11 @@
 // Plain TypeScript with `.ts` imports only: `@repo/voice` loads the manifest
 // with Node.
 
+import { frameStrings, hintAgainStrings } from "@repo/game-kit/frame-strings";
+
 export const fixedStrings = {
+  ...frameStrings,
+  ...hintAgainStrings,
   title: "Fraction Hop",
   "tutorial.welcome": "Welcome to Fraction Hop!",
   "tutorial.goal":
@@ -17,9 +21,7 @@ export const fixedStrings = {
     "Splash! That hop landed in the water. Change it, and try again.",
   "tutorial.goal-found":
     "No hop landed in the water, and the last one landed on the goal. Now you try!",
-  "ui.skip": "Skip",
   "ui.play": "Play",
-  "ui.hint": "Hint",
   "ui.goal-at": "Goal at",
   "ui.plan": "Your plan",
   "ui.hops": "Hops",
@@ -34,8 +36,6 @@ export const fixedStrings = {
   "run.keep-going": "Keep going!",
   "run.solved": "You found the goal!",
   "run.nice-fix": "Nice fix!",
-  "hint.ready": "Want a hint? Tap the hint button.",
-  "hint.ready-again": "Want another hint? Tap the hint button again.",
   "hint.labels": "Now you can see the goal, and every mark shows its fraction.",
   "hint.arcs": "Now every hop you add shows where it will land.",
   "guided.start": "Let's do it together.",

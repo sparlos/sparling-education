@@ -6,7 +6,11 @@
 // Plain TypeScript with `.ts` imports only: `@repo/voice` loads the manifest
 // with Node.
 
+import { frameStrings, hintAgainStrings } from "@repo/game-kit/frame-strings";
+
 export const fixedStrings = {
+  ...frameStrings,
+  ...hintAgainStrings,
   title: "Crystal Machine",
   "tutorial.welcome": "Welcome to the Crystal Machine!",
   "tutorial.job":
@@ -16,8 +20,6 @@ export const fixedStrings = {
   "tutorial.fuse": "Ten crystals fuse into one bigger crystal.",
   "tutorial.your-turn": "Now it's your turn!",
   "ui.run": "Run",
-  "ui.hint": "Hint",
-  "ui.skip": "Skip",
   "job.make": "Make",
   "job.with": "with",
   "job.crystals": "crystals.",
@@ -35,8 +37,6 @@ export const fixedStrings = {
   "run.solved": "Job done!",
   "job.next": "Here's the next job.",
   "play.done": "You did every job. Great work!",
-  "hint.ready": "Want a hint? Tap the hint button.",
-  "hint.ready-again": "Want another hint? Tap the hint button again.",
   "hint.digits": "Now each tube shows the digit it should end up with.",
   "hint.trade":
     "A closed chute's crystal can come in as ten smaller crystals, down the next chute.",

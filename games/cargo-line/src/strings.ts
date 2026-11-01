@@ -7,7 +7,10 @@
 // Plain TypeScript with `.ts` imports only: `@repo/voice` loads the manifest
 // with Node.
 
+import { frameStrings } from "@repo/game-kit/frame-strings";
+
 export const fixedStrings = {
+  ...frameStrings,
   title: "Cargo Line",
   "tutorial.welcome": "Welcome to Cargo Line!",
   "tutorial.signs": "The signs tell the train's trip.",
@@ -19,8 +22,6 @@ export const fixedStrings = {
     "The gate stayed shut. So change your number and press Go again.",
   "tutorial.your-turn": "Now it's your turn!",
   "ui.go": "Go",
-  "ui.help": "Help",
-  "ui.skip": "Skip",
   "story.leaves": "The train leaves with",
   "story.leaves-some": "The train leaves with some",
   "story.picks-up": "It picks up",
@@ -50,7 +51,6 @@ export const fixedStrings = {
   "run.solved": "It made it! The gate opens.",
   "lap.next": "Here's the next trip.",
   "play.done": "You finished every trip. Great work!",
-  "help.ready": "Want some help? Tap the help button.",
   "help.picture":
     "The top bar is what went onto the train. The bottom bar is what came off. They're the same.",
   "demo.start": "Let's work it out together.",

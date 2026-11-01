@@ -237,6 +237,10 @@ try {
           );
         if (fit.offscreen.length)
           problem(`${when}: not fully on screen: ${fit.offscreen.join(", ")}`);
+        if (fit.misplaced.length)
+          problem(
+            `${when}: not where the game frame puts them: ${fit.misplaced.join(", ")}`,
+          );
         if (fit.small.length)
           problem(
             `${when}: targets under ${minTarget} px: ${fit.small.join(", ")}`,

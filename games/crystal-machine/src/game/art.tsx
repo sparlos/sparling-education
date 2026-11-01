@@ -161,8 +161,6 @@ export const art = {
   ),
   /** The digit window under a tube. Stretched; its digit is drawn over it. */
   window: panel(() => box(ink, brassDark)),
-  /** A number pad key. Stretched; its digit is drawn over it. */
-  "pad-key": panel(() => box(palette.sand[0], brassDark)),
   /** Hint 1's digit tag above a window. Stretched. */
   "hint-digit": panel(() => box(palette.violet[0], palette.violet[5])),
   /** The control panel the avatar stands at, behind the portrait. Stretched. */
@@ -310,46 +308,6 @@ export const art = {
           strokeLinejoin="round"
         />
         <path d="M18 3 L12 14 H4 Z" fill={palette.violet[2]} />
-      </>
-    ),
-  },
-  /** The guide's pointing hand, anchored at its fingertip. */
-  "ghost-hand": {
-    width: 64,
-    height: 64,
-    anchor: { x: 22, y: 4 },
-    draw: () => (
-      <path
-        d="M18 30 V8 a5 5 0 0 1 10 0 V26 V22 a5 5 0 0 1 10 0 V28 V25 a5 5 0 0 1 10 0 V31 a5 5 0 0 1 10 0 V44 c0 10 -8 18 -18 18 h-6 c-6 0 -11 -3 -14 -8 L8 40 a5 5 0 0 1 8 -6 z"
-        fill="white"
-        stroke={ink}
-        strokeWidth="3"
-        strokeLinejoin="round"
-        opacity="0.92"
-      />
-    ),
-  },
-  /** Run's icon: a play triangle. */
-  "icon-run": {
-    width: 32,
-    height: 32,
-    anchor: { x: 16, y: 16 },
-    draw: () => <path d="M9 5 L27 16 L9 27 Z" fill="currentColor" />,
-  },
-  /** Hint's icon: a light bulb. */
-  "icon-hint": {
-    width: 32,
-    height: 32,
-    anchor: { x: 16, y: 16 },
-    draw: () => (
-      <>
-        <path
-          d="M16 3 a9 9 0 0 1 5 16.5 V23 H11 V19.5 A9 9 0 0 1 16 3 z"
-          fill={palette.sunshine[3]}
-          stroke={ink}
-          strokeWidth="2.5"
-        />
-        <rect x="11" y="25" width="10" height="4" rx="2" fill={ink} />
       </>
     ),
   },

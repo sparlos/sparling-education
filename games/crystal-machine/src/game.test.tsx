@@ -29,10 +29,10 @@ const chute = (p: number) =>
   screen
     .getAllByTestId("chute")
     .find((c) => c.dataset.place === String(p)) as HTMLElement;
-const key = (d: number) =>
+const key = (d: number | "del") =>
   screen
     .getAllByTestId("key")
-    .find((k) => k.dataset.d === String(d)) as HTMLElement;
+    .find((k) => k.dataset.key === String(d)) as HTMLElement;
 const windows = () => screen.getAllByTestId("window").map((w) => w.textContent);
 const caption = () => screen.getByTestId("caption").textContent;
 const mood = () => screen.getByTestId("avatar").getAttribute("data-expression");
@@ -42,8 +42,7 @@ async function setPlan(shell: Shell, job: Job, plan: readonly number[]) {
   for (const p of openChutes(job)) {
     if (chute(p).dataset.locked) continue;
     await shell.tap(chute(p));
-    for (let i = 0; i < 3; i++)
-      await shell.tap(screen.getByTestId("key-delete"));
+    for (let i = 0; i < 3; i++) await shell.tap(key("del"));
     for (const d of String(plan[p] ?? 0)) await shell.tap(key(Number(d)));
   }
 }
@@ -54,7 +53,7 @@ const longestRunMs = 10_000;
 
 /** Presses Run and waits for the machine to stop, then for the result to be said. */
 async function run(shell: Shell) {
-  await shell.tap(screen.getByTestId("run"));
+  await shell.tap(screen.getByTestId("main"));
   const pulled = () =>
     screen.getByTestId("lever").parentElement?.hasAttribute("data-pulled");
   let ms = 0;
@@ -211,7 +210,7 @@ describe("a run", () => {
     await shell.wait(100);
     const job = jobsFor("g3")[0] as Job;
     await setPlan(shell, job, withoutZerosPlan(job));
-    await shell.tap(screen.getByTestId("run"));
+    await shell.tap(screen.getByTestId("main"));
     // The lever pulls and the windows stay blank while it runs.
     expect(screen.getByTestId("lever").parentElement).toHaveAttribute(
       "data-pulled",
@@ -226,7 +225,7 @@ describe("a run", () => {
     );
     expect(windows().join("")).toBe(String(made));
     // The same plan again: blank while it runs, then the number again.
-    await shell.tap(screen.getByTestId("run"));
+    await shell.tap(screen.getByTestId("main"));
     await shell.wait(400);
     expect(windows().every((w) => w === "")).toBe(true);
     await shell.wait(6000);
@@ -249,7 +248,7 @@ describe("a run", () => {
     expect(job.count).toBeGreaterThanOrEqual(19);
     // 9 tens, then 10 ones: the tenth one makes a ten, which makes a hundred.
     await setPlan(shell, job, [10, 9, 0]);
-    await shell.tap(screen.getByTestId("run"));
+    await shell.tap(screen.getByTestId("main"));
     const moods = new Set<string | null>();
     for (let ms = 0; ms < longestRunMs + 1000; ms += 50) {
       await shell.wait(50);
@@ -263,7 +262,7 @@ describe("a run", () => {
     const shell = mountGame(game, { tier: "g3", random, firstPlay: false });
     await shell.wait(100);
     const first = jobsFor("g3")[0] as Job;
-    await shell.tap(screen.getByTestId("run"));
+    await shell.tap(screen.getByTestId("main"));
     expect(shell.lastSaid()).toEqual(["run.empty"]);
     await setPlan(
       shell,
@@ -271,7 +270,7 @@ describe("a run", () => {
       first.answer.map((n, p) => (p === 0 ? n + 1 : n)),
     );
     expect(screen.getByTestId("counter")).toHaveAttribute("data-over", "true");
-    await shell.tap(screen.getByTestId("run"));
+    await shell.tap(screen.getByTestId("main"));
     expect(shell.lastSaid()).toEqual([
       "run.too-many",
       "run.job-has",
