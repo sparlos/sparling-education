@@ -8,12 +8,14 @@ import { Button } from "@repo/ui/button";
 import { ClassColourScope } from "@repo/ui/class-colour-scope";
 import { Icon } from "@repo/ui/icon";
 import { IconButton } from "@repo/ui/icon-button";
+import { Loader } from "@repo/ui/loader";
+import { SignInStage } from "@repo/ui/marketing/sign-in-stage";
 import { Stack } from "@repo/ui/stack";
 import { Text } from "@repo/ui/text";
 import { ThemeIcon } from "@repo/ui/theme-icon";
 import { Title } from "@repo/ui/title";
 import { VisuallyHidden } from "@repo/ui/visually-hidden";
-import { useEffect, useState } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import type { GameRegistry } from "../games.ts";
 import {
   type DressedStudent,
@@ -46,6 +48,7 @@ import {
   SpokenMessage,
   shellT,
   ToHome,
+  useShellLine,
   useShellVoice,
 } from "./shared.tsx";
 import type { ShellStringId } from "./shell-strings.ts";
@@ -603,25 +606,70 @@ export function SignInPage({
   }, [url, base, platform, storage, navigate]);
 
   const { SignInButton } = platform;
-  switch (state) {
-    case "loading":
-      return <Message text={shellT("loading")} busy />;
-    case "error":
-      return <TryAgain url={url} navigate={navigate} />;
-    case "not-a-student":
-      return <SpokenMessage line="for-students" speak={speak} />;
-    case "unavailable":
-      return <SpokenMessage line="sign-in-unavailable" speak={speak} />;
-    case "signed-out":
-      if (!SignInButton)
-        return <SpokenMessage line="sign-in-unavailable" speak={speak} />;
-      return (
-        <SpokenMessage
-          line={url.searchParams.has("failed") ? "sign-in-failed" : "sign-in"}
-          speak={speak}
+  const signedOut = state === "signed-out" && SignInButton;
+  const line: ShellStringId =
+    state === "loading"
+      ? "loading"
+      : state === "error"
+        ? "error"
+        : state === "not-a-student"
+          ? "for-students"
+          : state === "unavailable" || !SignInButton
+            ? "sign-in-unavailable"
+            : url.searchParams.has("failed")
+              ? "sign-in-failed"
+              : "sign-in";
+  return (
+    <SignInLine
+      line={line}
+      spoken={state !== "loading" && state !== "error"}
+      speak={speak}
+    >
+      {state === "loading" ? (
+        <Loader label={shellT("loading")} />
+      ) : state === "error" ? (
+        <IconButton
+          label={shellT("try-again")}
+          onClick={() => navigate(url.href)}
         >
-          <SignInButton onUnavailable={() => setState("unavailable")} />
-        </SpokenMessage>
-      );
-  }
+          <Icon name="replay" size={32} />
+        </IconButton>
+      ) : signedOut ? (
+        <SignInButton onUnavailable={() => setState("unavailable")} />
+      ) : null}
+    </SignInLine>
+  );
+}
+
+/** The sign-in page's line, shown big on the welcome stage, and said aloud if `spoken`. */
+function SignInLine({
+  line,
+  spoken,
+  speak,
+  children,
+}: {
+  line: ShellStringId;
+  spoken: boolean;
+  speak?: AppProps["speak"];
+  children?: ReactNode;
+}) {
+  return (
+    <>
+      {spoken && <Say line={line} speak={speak} />}
+      <SignInStage heading={shellT(line)} playful status>
+        {children}
+      </SignInStage>
+    </>
+  );
+}
+
+function Say({
+  line,
+  speak,
+}: {
+  line: ShellStringId;
+  speak?: AppProps["speak"];
+}) {
+  useShellLine(line, speak);
+  return null;
 }

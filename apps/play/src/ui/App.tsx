@@ -8,6 +8,7 @@ import type {
 import { ClassColourScope } from "@repo/ui/class-colour-scope";
 import { Icon } from "@repo/ui/icon";
 import { IconButton } from "@repo/ui/icon-button";
+import { Sky } from "@repo/ui/marketing/sky";
 import { Progress as ProgressBar } from "@repo/ui/progress";
 import {
   useCallback,
@@ -134,22 +135,33 @@ function RoutedScreen(props: AppProps) {
     () => parseRoute(props.url, props.base),
     [props.url, props.base],
   );
-  switch (route?.kind) {
-    case "home":
-      return <HomePage {...props} />;
-    case "join":
-      return <JoinPage {...props} joinCode={route.joinCode} />;
-    case "sign-in":
-      return <SignInPage {...props} />;
-    case "wardrobe":
-      return <WardrobePage {...props} />;
-    case "locker":
-      return <LockerPage {...props} />;
-    case "game":
-      return <GamePage {...props} />;
-    case undefined:
-      return <Message text={shellT("not-found")} />;
-  }
+  const screen = (() => {
+    switch (route?.kind) {
+      case "home":
+        return <HomePage {...props} />;
+      case "join":
+        return <JoinPage {...props} joinCode={route.joinCode} />;
+      case "sign-in":
+        return <SignInPage {...props} />;
+      case "wardrobe":
+        return <WardrobePage {...props} />;
+      case "locker":
+        return <LockerPage {...props} />;
+      case "game":
+        return <GamePage {...props} />;
+      case undefined:
+        return <Message text={shellT("not-found")} />;
+    }
+  })();
+  // Everywhere but a game and sign-in, which has its own night sky, the
+  // shell's pages sit on the light, glinting sky.
+  const sky = route?.kind !== "game" && route?.kind !== "sign-in";
+  return (
+    <>
+      {sky && <Sky variant="day" playful fixed />}
+      {screen}
+    </>
+  );
 }
 
 function GamePage(props: AppProps) {

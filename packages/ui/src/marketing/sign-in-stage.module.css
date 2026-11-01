@@ -1,0 +1,207 @@
+/* The night sky: indigo, lit from two corners by the tone's violet. */
+.stage {
+  position: relative;
+  isolation: isolate;
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: var(--mantine-spacing-xl) var(--mantine-spacing-md);
+  overflow: hidden;
+  color: var(--k-ink-inverse);
+}
+
+.column {
+  position: relative;
+  width: 100%;
+  max-width: 30rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--mantine-spacing-xl);
+}
+
+.logo {
+  filter: drop-shadow(
+    0 0 24px color-mix(in srgb, var(--tone-fill) 70%, transparent)
+  );
+}
+
+/* The student side's gem, big, with light behind it. */
+.gem {
+  position: relative;
+  display: grid;
+  place-items: center;
+  font-size: 7.5rem;
+  margin-bottom: calc(var(--mantine-spacing-md) * -1);
+}
+
+.gem svg {
+  position: relative;
+  height: 1.12em;
+  width: auto;
+  aspect-ratio: 126 / 123;
+  filter: drop-shadow(0 14px 22px rgba(0, 0, 0, 0.35));
+}
+
+.halo {
+  position: absolute;
+  width: 2.2em;
+  height: 2.2em;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--k-sparkle) 55%, transparent) 0%,
+    color-mix(in srgb, var(--tone-fill) 40%, transparent) 40%,
+    transparent 70%
+  );
+}
+
+/* The card: bright, with a glowing violet rim. */
+.card {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--mantine-spacing-md);
+  padding: 2.5rem 2rem 2.25rem;
+  text-align: center;
+  color: var(--k-ink);
+  border-radius: calc(var(--k-radius-card) * 1.5);
+  border: 2px solid transparent;
+  background:
+    linear-gradient(var(--k-surface-raised), var(--k-surface-raised))
+    padding-box,
+    linear-gradient(
+      150deg,
+      var(--tone-soft) 0%,
+      var(--tone-fill) 45%,
+      var(--k-recognition-fill) 100%
+    )
+    border-box;
+  box-shadow:
+    0 30px 60px -20px rgba(0, 0, 0, 0.55),
+    0 0 80px -10px color-mix(in srgb, var(--tone-fill) 65%, transparent);
+}
+
+@media (--k-xs-down) {
+  .card {
+    padding: 2rem 1.25rem 1.75rem;
+  }
+}
+
+.heading {
+  text-wrap: balance;
+  letter-spacing: -0.02em;
+}
+
+.stage[data-playful] .heading {
+  background: linear-gradient(
+    100deg,
+    var(--tone-edge) 0%,
+    var(--tone-text) 50%,
+    var(--k-recognition-text) 100%
+  );
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+.lead {
+  font-size: var(--mantine-font-size-lg);
+  color: var(--k-ink-muted);
+  text-wrap: balance;
+}
+
+.action {
+  display: flex;
+  justify-content: center;
+  min-height: 48px;
+  align-items: center;
+  margin-top: var(--mantine-spacing-xs);
+}
+
+.stage[data-playful] .action {
+  margin-top: var(--mantine-spacing-xl);
+}
+
+.note {
+  font-size: var(--mantine-font-size-sm);
+  color: var(--k-ink-muted);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .logo,
+  .gem {
+    animation: drop-in 700ms var(--k-ease-springy) backwards;
+  }
+
+  .gem svg {
+    animation: bob 4.5s ease-in-out 700ms infinite alternate;
+  }
+
+  .halo {
+    animation: pulse 3.2s ease-in-out infinite;
+  }
+
+  .card {
+    animation: rise 650ms var(--k-ease-springy) 120ms backwards;
+  }
+
+  .card > * {
+    animation: fade-up 500ms var(--k-ease-standard) backwards;
+  }
+
+  .card > :nth-child(1) {
+    animation-delay: 260ms;
+  }
+
+  .card > :nth-child(2) {
+    animation-delay: 340ms;
+  }
+
+  .card > :nth-child(3) {
+    animation-delay: 420ms;
+  }
+
+  .card > :nth-child(4) {
+    animation-delay: 500ms;
+  }
+}
+
+@keyframes drop-in {
+  from {
+    opacity: 0;
+    transform: translateY(-24px) scale(0.85);
+  }
+}
+
+@keyframes bob {
+  from {
+    transform: translateY(0) rotate(-3deg);
+  }
+  to {
+    transform: translateY(-10px) rotate(3deg);
+  }
+}
+
+@keyframes pulse {
+  50% {
+    transform: scale(1.12);
+    opacity: 0.8;
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(32px) scale(0.96);
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}

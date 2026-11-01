@@ -22,6 +22,7 @@ import {
   redirect,
   useParams,
   useRouter,
+  useRouterState,
 } from "@tanstack/react-router";
 import { type ReactNode, useEffect } from "react";
 import {
@@ -46,8 +47,21 @@ const root = createRootRouteWithContext<{
 }>()({
   component: function Root() {
     const { teacher, account, onSignOut } = root.useRouteContext();
+    // The open class's colour, if a class is open, for the sky behind it all.
+    const colour = useRouterState({
+      select: (state) =>
+        (
+          state.matches.find((match) => match.routeId === classRoute.id)
+            ?.loaderData as { colour?: string } | null | undefined
+        )?.colour,
+    });
     return (
-      <Chrome teacher={teacher} account={account} onSignOut={onSignOut}>
+      <Chrome
+        teacher={teacher}
+        account={account}
+        onSignOut={onSignOut}
+        colour={colour}
+      >
         <Outlet />
       </Chrome>
     );

@@ -817,7 +817,7 @@ describe("sign-in", () => {
     expect(
       await screen.findByRole("button", { name: "Sign in with Google" }),
     ).toBeInTheDocument();
-    expect(spoken).toContain("Sign in to play.");
+    expect(spoken).toContain("Sign in to play!");
   });
 
   it("remembers where the student was headed, since the trip through Google can't carry it", async () => {

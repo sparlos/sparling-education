@@ -81,7 +81,7 @@ export function googleSignInButton(options: {
             size: "large",
             text: "signin_with",
             shape: "pill",
-            width: 280,
+            width: 260,
           });
         },
         (error: unknown) => {
@@ -94,6 +94,8 @@ export function googleSignInButton(options: {
       };
     }, []);
 
-    return <div ref={parent} />;
+    // Google's largest button is 44px tall; zoomed so it's a big, easy
+    // target for young children (64px, like the shell's other buttons).
+    return <div ref={parent} style={{ zoom: 1.45 }} />;
   };
 }

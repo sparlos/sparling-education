@@ -7,7 +7,6 @@
   flex-direction: column;
   gap: var(--mantine-spacing-sm);
   padding: var(--mantine-spacing-md) var(--mantine-spacing-lg);
-  background-color: var(--k-surface-page);
   overflow: hidden;
 }
 

@@ -6,6 +6,7 @@
 /* Over everything, portals included, and solid, so nothing behind shows through. */
 .tooSmall {
   z-index: 1000;
+  background-color: var(--k-surface-page);
 }
 
 /* The shell fills the screen; a game owns everything inside .game. */
@@ -59,6 +60,7 @@
   padding: var(--mantine-spacing-md);
 }
 
+/* Clear, so the sky behind the shell's pages shows through. */
 .message {
   position: fixed;
   inset: 0;
@@ -66,7 +68,6 @@
   place-items: center;
   padding: var(--mantine-spacing-lg);
   text-align: center;
-  background-color: var(--k-surface-page);
 }
 
 /* Solid, so nothing behind shows through to compete with the question. */

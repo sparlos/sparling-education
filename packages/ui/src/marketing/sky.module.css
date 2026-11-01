@@ -1,0 +1,222 @@
+/* The tone, registered as colours so a change (say, to another class's
+   colour) fades across instead of jumping. */
+@property --sky-fill {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+
+@property --sky-soft {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+
+@property --sky-edge {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+
+/* Night: indigo, lit from below by the tone's violet. */
+.sky {
+  --sky-fill: var(--tone-fill);
+  --sky-soft: var(--tone-soft);
+  --sky-edge: var(--tone-edge);
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  overflow: hidden;
+  background:
+    radial-gradient(
+      ellipse 80% 60% at 50% 115%,
+      color-mix(in srgb, var(--sky-fill) 55%, transparent) 0%,
+      transparent 70%
+    ),
+    linear-gradient(
+      160deg,
+      var(--k-surface-inverse) 0%,
+      color-mix(in srgb, var(--sky-edge) 70%, var(--k-surface-inverse)) 55%,
+      var(--sky-edge) 100%
+    );
+  background-color: var(--k-surface-inverse);
+}
+
+/* Everything in the sky follows the fading tone. */
+.sky > * {
+  --tone-fill: var(--sky-fill);
+  --tone-soft: var(--sky-soft);
+  --tone-edge: var(--sky-edge);
+}
+
+.sky[data-fixed] {
+  position: fixed;
+}
+
+/* Parallax: everything in the sky rides up with the page's scroll. The
+   `translate` property, so it adds to each shape's own drift and turn. */
+.sky > * {
+  translate: 0 calc(var(--sky-shift, 0px) * -1);
+}
+
+/* Day: the pale page, with a little violet and pink light in it. */
+.sky[data-variant="day"] {
+  background: linear-gradient(
+    165deg,
+    var(--k-surface-page) 0%,
+    var(--sky-soft) 55%,
+    color-mix(in srgb, var(--k-recognition-soft) 60%, var(--sky-soft)) 100%
+  );
+  background-color: var(--k-surface-page);
+}
+
+/* Quiet (the teacher app): the faintest wash of the tone, and nothing moves. */
+.sky[data-quiet] {
+  background: linear-gradient(
+    165deg,
+    var(--k-surface-page) 0%,
+    color-mix(in srgb, var(--sky-soft) 55%, var(--k-surface-page)) 100%
+  );
+  background-color: var(--k-surface-page);
+}
+
+/* Soft clouds of colour, blurred so they read as light, not shapes. */
+.aurora {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(70px);
+  opacity: 0.55;
+}
+
+.auroraA {
+  width: 46vmax;
+  height: 46vmax;
+  left: -12vmax;
+  top: -14vmax;
+  background: var(--tone-fill);
+}
+
+.auroraB {
+  width: 38vmax;
+  height: 38vmax;
+  right: -10vmax;
+  top: 18%;
+  background: var(--k-recognition-fill);
+  opacity: 0.3;
+}
+
+.auroraC {
+  width: 34vmax;
+  height: 34vmax;
+  left: 22%;
+  bottom: -20vmax;
+  background: var(--k-info);
+  opacity: 0.28;
+}
+
+.sky[data-variant="day"] .auroraA {
+  opacity: 0.16;
+}
+
+.sky[data-variant="day"] .auroraB {
+  opacity: 0.1;
+}
+
+.sky[data-variant="day"] .auroraC {
+  opacity: 0.12;
+}
+
+@media print {
+  .sky {
+    display: none;
+  }
+}
+
+/* A faint field of stars, in two sizes so it has depth. */
+.stars {
+  --star: var(--k-ink-inverse);
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(
+      circle at center,
+      color-mix(in srgb, var(--star) 70%, transparent) 0 1px,
+      transparent 1.5px
+    ),
+    radial-gradient(
+      circle at center,
+      color-mix(in srgb, var(--star) 40%, transparent) 0 1px,
+      transparent 1.5px
+    );
+  background-size:
+    140px 140px,
+    90px 90px;
+  background-position:
+    0 0,
+    45px 60px;
+  mask-image: radial-gradient(ellipse at 50% 40%, #000 20%, transparent 85%);
+}
+
+/* By day, the stars are faint violet dust. */
+.sky[data-variant="day"] .stars {
+  --star: var(--tone-fill);
+  opacity: 0.35;
+}
+
+/* Quiet's fainter shapes and light. Here, after the day sky's, to win. A
+   filter, since each shape sets its own opacity inline. */
+.sky[data-quiet] > :not(.aurora, .stars) {
+  filter: opacity(0.4);
+  animation: none;
+}
+
+.sky[data-quiet] .auroraA,
+.sky[data-quiet] .auroraB,
+.sky[data-quiet] .auroraC {
+  opacity: 0.06;
+}
+
+.sky[data-quiet] .stars {
+  opacity: 0.15;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .sky {
+    transition:
+      --sky-fill var(--k-duration-slow) var(--k-ease-standard),
+      --sky-soft var(--k-duration-slow) var(--k-ease-standard),
+      --sky-edge var(--k-duration-slow) var(--k-ease-standard);
+  }
+
+  .sky:not([data-quiet]) .auroraA {
+    animation: wander 22s ease-in-out infinite alternate;
+  }
+
+  .sky:not([data-quiet]) .auroraB {
+    animation: wander 28s ease-in-out -9s infinite alternate-reverse;
+  }
+
+  .sky:not([data-quiet]) .auroraC {
+    animation: wander 25s ease-in-out -4s infinite alternate;
+  }
+
+  .sky[data-variant="night"] .stars {
+    animation: shimmer 6s ease-in-out infinite alternate;
+  }
+}
+
+@keyframes wander {
+  to {
+    transform: translate(6vmax, 4vmax) scale(1.15);
+  }
+}
+
+@keyframes shimmer {
+  from {
+    opacity: 0.55;
+  }
+  to {
+    opacity: 1;
+  }
+}

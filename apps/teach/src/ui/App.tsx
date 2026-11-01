@@ -1,19 +1,15 @@
 import { brandName } from "@repo/tokens";
 import { Button } from "@repo/ui/button";
 import { Loader } from "@repo/ui/loader";
-import { Wordmark } from "@repo/ui/marketing/wordmark";
-import { Stack } from "@repo/ui/stack";
-import { Text } from "@repo/ui/text";
-import { Title } from "@repo/ui/title";
+import { SignInStage } from "@repo/ui/marketing/sign-in-stage";
 import { type RouterHistory, RouterProvider } from "@tanstack/react-router";
-import { type ReactNode, useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   type Account,
   CredentialRejected,
   type Platform,
   type TeacherPort,
 } from "../platform/ports.ts";
-import classes from "./app.module.css";
 import { teacherRouter } from "./routes.tsx";
 
 export interface AppProps {
@@ -81,39 +77,36 @@ export function App({ platform, history }: AppProps) {
   switch (screen.kind) {
     case "loading":
       return (
-        <Centered>
+        <SignInStage heading={`Welcome to ${brandName}`}>
           <Loader label="Loading" />
-        </Centered>
+        </SignInStage>
       );
     case "error":
       return (
-        <Centered>
-          <Title order={1} size="h2">
-            {brandName} can't be reached
-          </Title>
-          <Text>Check your connection, then try again.</Text>
+        <SignInStage
+          heading={`${brandName} can't be reached`}
+          lead="Check your connection, then try again."
+        >
           <Button tone="educator" onClick={load}>
             Try again
           </Button>
-        </Centered>
+        </SignInStage>
       );
     case "signed-out":
       return (
-        <Centered>
-          <Wordmark size="lg" byline />
-          <Title order={1} size="h2">
-            Sign in to {brandName} for teachers
-          </Title>
-          <Text>Use your school Google account.</Text>
+        <SignInStage
+          heading="Sign in"
+          lead="Use your school Google account."
+          note={
+            screen.rejected ? "That sign-in didn't work. Try again." : undefined
+          }
+        >
           {screen.busy ? (
             <Loader label="Signing in" size="md" />
           ) : (
             <SignInButton onCredential={signIn} />
           )}
-          {screen.rejected && (
-            <Text c="muted">That sign-in didn't work. Try again.</Text>
-          )}
-        </Centered>
+        </SignInStage>
       );
     case "signed-in":
       return screen.account.role === "teacher" ? (
@@ -124,18 +117,14 @@ export function App({ platform, history }: AppProps) {
           history={history}
         />
       ) : (
-        <Centered>
-          <Title order={1} size="h2">
-            This is for teachers
-          </Title>
-          <Text>
-            You're signed in with a student account. To use {brandName} for
-            teachers, sign out and sign in with your teacher account.
-          </Text>
+        <SignInStage
+          heading="This is for teachers"
+          lead={`You're signed in with a student account. To use ${brandName} for teachers, sign out and sign in with your teacher account.`}
+        >
           <Button variant="secondary" onClick={signOut}>
             Sign out
           </Button>
-        </Centered>
+        </SignInStage>
       );
   }
 }
@@ -156,12 +145,4 @@ function Screens({
     teacherRouter({ teacher, account, onSignOut, history }),
   );
   return <RouterProvider router={router} />;
-}
-
-function Centered({ children }: { children: ReactNode }) {
-  return (
-    <main className={classes.centered}>
-      <Stack align="center">{children}</Stack>
-    </main>
-  );
 }

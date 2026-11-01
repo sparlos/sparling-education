@@ -48,7 +48,7 @@ export const shellStrings = {
     "to-home": "Go home",
     "for-students": "This is for students. Teachers, use the teacher app.",
     "too-small": `This screen is too small for ${brandName}. Please use a tablet or a computer.`,
-    "sign-in": "Sign in to play.",
+    "sign-in": "Sign in to play!",
     "sign-in-failed": "That didn't work. Let's try again.",
     "sign-in-unavailable":
       "Signing in isn't working right now. Ask your teacher for help.",

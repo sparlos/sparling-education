@@ -13,7 +13,6 @@
     "stage picker"
     "stage done";
   gap: var(--mantine-spacing-lg);
-  background-color: var(--k-surface-page);
 }
 
 @media (--k-sm-down) {
