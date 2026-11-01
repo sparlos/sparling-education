@@ -48,6 +48,8 @@ const solvedMs = 800;
 const doneMs = 1500;
 /** How long the ghost hand points at a chute guided set. */
 const pointMs = 1800;
+/** How far a landing crystal's sound varies in speed, in total. */
+const dropPitchRange = 0.08;
 
 type Mode = "tutorial" | "play" | "done";
 
@@ -61,7 +63,16 @@ const still = (chutes: number): Shown => ({
 });
 
 export function CrystalMachine(props: GameProps<Manifest>) {
-  const { tier, firstPlay, t, say, onAttempt, onProgress, onFinish } = props;
+  const {
+    tier,
+    firstPlay,
+    t,
+    say,
+    playSound,
+    onAttempt,
+    onProgress,
+    onFinish,
+  } = props;
   const chutes = chutesFor[tier];
   const jobs = useMemo(
     () => generatePlay(tier, seeded(Math.floor(Math.random() * 2 ** 31))),
@@ -284,8 +295,21 @@ export function CrystalMachine(props: GameProps<Manifest>) {
 
   const playing = mode === "play" && !state.solved;
 
+  const gemEvents = useMemo(
+    () => ({
+      // A small change of pitch, so a fast column doesn't sound like a machine gun.
+      landed: () =>
+        playSound("crystal-drop", {
+          rate: 1 + (Math.random() - 0.5) * dropPitchRange,
+        }),
+      fused: () => playSound("crystal-merge"),
+    }),
+    [playSound],
+  );
+
   return (
     <Board
+      gemEvents={gemEvents}
       state={state}
       shown={shown}
       running={running}

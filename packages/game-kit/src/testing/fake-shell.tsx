@@ -13,6 +13,7 @@ import type {
   GameManifest,
   GameProps,
   Progress,
+  SoundId,
   StringId,
   TierId,
 } from "@repo/game-contract";
@@ -41,6 +42,10 @@ export interface FakeShell<M extends GameManifest> {
   /** Every `say(...)`, in order, each as its list of string IDs. */
   said: StringId<M>[][];
   lastSaid(): StringId<M>[];
+  /** Every `playSound(...)`, in order. */
+  sounds: SoundId<M>[];
+  /** Every `playMusic(...)`, in order. */
+  music: (SoundId<M> | null)[];
   attempts(): Attempt<M>[];
   progress(): Progress[];
   /** How many times the game called `onFinish`. */
@@ -146,6 +151,14 @@ export function mountGame<M extends GameManifest>(
   } = options;
   const strings: Record<string, string> = manifest.strings["en-CA"];
   const said: StringId<M>[][] = [];
+  const sounds: SoundId<M>[] = [];
+  const music: (SoundId<M> | null)[] = [];
+  const knownSound = (id: string, via: string) => {
+    if (!manifest.sounds?.includes(id))
+      problems.push(`${via}("${id}"): no such sound in the manifest`);
+    else if (!game.sounds?.[id])
+      problems.push(`${via}("${id}"): defineGame wasn't given its file`);
+  };
   const attempts: Attempt<M>[] = [];
   const progress: Progress[] = [];
   let finished = 0;
@@ -168,6 +181,14 @@ export function mountGame<M extends GameManifest>(
       for (const id of ids) knownString(id, "say");
       said.push(ids);
       return voice();
+    },
+    playSound: (id) => {
+      knownSound(id, "playSound");
+      sounds.push(id);
+    },
+    playMusic: (id) => {
+      if (id !== null) knownSound(id, "playMusic");
+      music.push(id);
     },
     onAttempt: (attempt) => {
       if (finished) problems.push(`attempt on ${attempt.task} after finishing`);
@@ -201,6 +222,8 @@ export function mountGame<M extends GameManifest>(
     props,
     said,
     lastSaid: () => said.at(-1) ?? [],
+    sounds,
+    music,
     attempts: () => [...attempts],
     progress: () => [...progress],
     finished: () => finished,

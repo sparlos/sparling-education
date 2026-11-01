@@ -45,6 +45,37 @@ defineGame(manifest, (props: Props) => {
   );
 });
 
+// A game's sounds: each needs a file, and only they can be played.
+const withSounds = { ...manifest, sounds: ["ding", "song"] } as const;
+defineGame(
+  withSounds,
+  (props: GameProps<typeof withSounds>) => {
+    props.playSound("ding", { volume: 0.5, rate: 1.1 });
+    props.playMusic("song");
+    props.playMusic(null);
+    // @ts-expect-error not one of the manifest's sounds
+    props.playSound("nope");
+    // @ts-expect-error not one of the manifest's sounds
+    props.playMusic("nope");
+    return null;
+  },
+  { ding: "ding.ogg", song: "song.ogg" },
+);
+// @ts-expect-error a sound with no file
+defineGame(withSounds, () => null);
+defineGame(
+  withSounds,
+  () => null,
+  // @ts-expect-error a sound with no file
+  { ding: "ding.ogg" },
+);
+// A game without sounds has none to play, and passes no files.
+defineGame(manifest, (props: Props) => {
+  // @ts-expect-error the manifest has no sounds
+  props.playSound("ding");
+  return null;
+});
+
 // Unknown expectations, in a tier or a misconception.
 defineGame(
   {

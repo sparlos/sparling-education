@@ -10,7 +10,23 @@ import Matter from "matter-js";
 import type { Place } from "../strings.ts";
 import { fallMs, flyMs, mergeMs } from "./playback.ts";
 
-const { Bodies, Body, Composite, Engine } = Matter;
+const { Bodies, Body, Composite, Engine, Events } = Matter;
+
+/** The moments that make a sound. */
+export interface GemEvents {
+  /** A gem has hit the bottom of its tube, or the pile. */
+  landed(): void;
+  /** Ten gems have started to pull together. */
+  fused(): void;
+}
+
+/**
+ * The shortest gap between two landing sounds: about one per frame, so a big
+ * column sounds like a shower of gems. Raise it for a sparser sound.
+ */
+export const landGapMs = 15;
+/** The shortest gap between two fusing sounds, which are long enough to blur. */
+export const fuseGapMs = 60;
 
 /** A tube's inside, in the layer's px. */
 export interface TubeRect {
@@ -62,22 +78,39 @@ export class GemTubes {
   private timers: { at: number; fn: () => void }[] = [];
   private raf = 0;
   private now = 0;
+  /** Gems that haven't hit anything yet, by body ID. */
+  private falling = new Set<number>();
+  private lastLanded = -Infinity;
+  private lastFused = -Infinity;
 
   private layer: SVGGElement;
   private tubes: readonly TubeRect[];
   private draw: GemDrawing;
   private reduced: boolean;
+  private events: GemEvents;
 
   constructor(
     layer: SVGGElement,
     tubes: readonly TubeRect[],
     draw: GemDrawing,
     reduced: boolean,
+    events: GemEvents,
   ) {
     this.layer = layer;
     this.tubes = tubes;
     this.draw = draw;
     this.reduced = reduced;
+    this.events = events;
+    Events.on(this.engine, "collisionStart", ({ pairs }) => {
+      let landed = false;
+      for (const { bodyA, bodyB } of pairs)
+        for (const body of [bodyA, bodyB])
+          if (this.falling.delete(body.id)) landed = true;
+      if (landed && this.now - this.lastLanded >= landGapMs) {
+        this.lastLanded = this.now;
+        this.events.landed();
+      }
+    });
     this.bodies = tubes.map(() => []);
     this.inFlight = tubes.map(() => 0);
     this.pending = tubes.map(() => 0);
@@ -167,12 +200,14 @@ export class GemTubes {
     this.timers = [];
     this.inFlight = this.inFlight.map(() => 0);
     this.pending = this.pending.map(() => 0);
+    this.falling.clear();
   }
 
   destroy() {
     cancelAnimationFrame(this.raf);
     this.raf = 0;
     this.clear();
+    Events.off(this.engine, "collisionStart");
     Composite.clear(this.engine.world, false);
     Engine.clear(this.engine);
   }
@@ -212,6 +247,7 @@ export class GemTubes {
       });
       Body.setVelocity(body, { x: 0, y: 4 });
       Composite.add(this.engine.world, body);
+      this.falling.add(body.id);
       const el = this.draw.gem(p);
       this.layer.appendChild(el);
       this.els.set(body.id, el);
@@ -221,6 +257,7 @@ export class GemTubes {
   }
 
   private drop(body: Matter.Body) {
+    this.falling.delete(body.id);
     Composite.remove(this.engine.world, body);
     this.els.get(body.id)?.remove();
     this.els.delete(body.id);
@@ -231,6 +268,10 @@ export class GemTubes {
    * place arcs from there into the tube to the left.
    */
   private merge(p: Place) {
+    if (this.now - this.lastFused >= fuseGapMs) {
+      this.lastFused = this.now;
+      this.events.fused();
+    }
     // The oldest ten: gems dropped in since belong to the tube's next ten.
     const list = this.bodies[p] ?? [];
     const ten = list.splice(0, 10);
@@ -247,6 +288,7 @@ export class GemTubes {
         ]
       : [t.x + t.w / 2, t.y + t.h / 2];
     for (const b of ten) {
+      this.falling.delete(b.id);
       Composite.remove(this.engine.world, b);
       const el = this.els.get(b.id);
       this.els.delete(b.id);

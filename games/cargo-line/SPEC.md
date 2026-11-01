@@ -34,7 +34,7 @@ Each **lap** is one task, and it's told by signs:
 The voice tells the lap as a story, and the caption shows the same words: "The train leaves with some crates. It drops off 136 crates at the farm. It must come back with 251 crates. How many should it leave with?"
 
 1. **Type the missing number** on the number pad beside the loop. It appears on the glowing sign as you type.
-2. **Press Go.** The first Go of a play says what's being tested: "Let's test your number. If it's right, the gate opens." (unless the tutorial has just shown it). The train leaves the yard with its load and drives the loop, and the **trip's sum** builds up in the middle of the field. At each station it stops with its wagon beside the sign. On the first try at a lap the voice says the station ("It picks up 293 crates at the mill."); a retry just runs. Then crates cross between the station and the wagon, the amount pops up big over the sign (+293), the sum grows (225 + 293), and the wagon's number ticks up or down. Back at the shut gate, the train waits while the yard's returning sign is highlighted: that's the check.
+2. **Press Go.** The first Go of a play says what's being tested: "Let's test your number. If it's right, the gate opens." (unless the tutorial has just shown it). The train leaves the yard with its load and drives the loop, and the **trip's sum** builds up in the middle of the field. At each station it stops with its wagon beside the sign, and no voice line holds it up. Crates cross between the station and the wagon, the amount pops up big over the sign (+293), the sum grows (225 + 293), and the wagon's number ticks up or down. Back at the shut gate, the train waits while the yard's returning sign is highlighted: that's the check.
 3. **Where it ends:**
    - **It comes back with the yard's number.** The gate opens, the train rolls in, and the lap is done. When the student typed what comes back, the train must bring exactly that, and the sum shows its result (225 + 293 = 518).
    - **It stalls.** At an unloading station, when the train has less on board than the sign says to drop off, it shudders to a stop. The station's sign turns red, and the voice says "The train only has 115 crates. It can't drop off that many."
@@ -180,7 +180,7 @@ A scripted, in-code demonstration on the student's first play of Cargo Line only
 
 1. "Welcome to Cargo Line!" A lap: leaves with 5 crates, picks up 3 at the farm, comes back with ?. "The signs tell the train's trip."
 2. "One sign is missing its number. Type it on the number pad." The hand taps 9, a wrong number on purpose.
-3. "Then press Go to test your number. If it's right, the gate opens." The hand presses Go. "It picks up 3 crates at the farm." The sum builds to 5 + 3 = ?, the gate stays shut, and the yard's sign turns red. "Your number is too big."
+3. "Then press Go to test your number. If it's right, the gate opens." The hand presses Go. The sum builds to 5 + 3 = ?, the gate stays shut, and the yard's sign turns red. "Your number is too big."
 4. "The gate stayed shut. So change your number and press Go again." The hand deletes the 9, taps 8 and presses Go. The sum reads 5 + 3 = 8, the wagon shows 8, and the gate opens. "It made it! The gate opens."
 5. "Now it's your turn!" Lap 1 begins.
 
@@ -252,7 +252,6 @@ How they combine:
 - A lap arrives, as one `say(...)`: "The train leaves with some crates. It drops off 136 crates at the farm. It must come back with 251 crates. How many should it leave with?" is `story.leaves-some unit.crates-end · story.drops-off num.1 num.hundred num.36 unit.crates at.farm · story.back num.2 num.hundred num.51 unit.crates-end · ask.leaves`.
 - A stall: `say("run.only-has", "num.1", "num.hundred", "num.15", "unit.crates-end", "run.cant-drop")`.
 - A wrong load: `say("run.came-back", …, "unit.crates-end", "run.sign-says", …)`. With what comes back missing: `say("run.too-big")` or `say("run.too-small")`.
-- A station, on a lap's first try: `say("story.picks-up", "num.2", "num.hundred", "num.93", "unit.crates", "at.mill")`, with its crates moving once it's been said.
 
 **Every number spoken is in the family.** Whole numbers are said as `num.<1–99>`, `num.hundred`, `num.thousand` and `num.million` in English order (57 903 is "fifty-seven" "thousand" "nine" "hundred" "three"). Decimals are the whole part, then `num.point`, then each digit as `num.<1–9>` or `num.zero` ("two" "point" "one" "eight"), with `num.zero` for a whole part of 0. The pad takes at most 4 digits at Grade 3, 5 at Grade 4 and 6 at Grade 5, plus one or two decimal places on decimal laps. So the biggest number spoken (a typed start plus two pickups at Grade 5) is under 1 200 000.
 

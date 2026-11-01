@@ -12,6 +12,7 @@ export const manifest = {
   renderer: "dom",
   avatar: "character",
   progress: true,
+  sounds: ["crystal-drop", "crystal-merge"],
   tiers: {
     g3: {
       grade: 3,

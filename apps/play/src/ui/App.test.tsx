@@ -36,6 +36,7 @@ import {
   standInStudent,
 } from "../platform/stand-ins/session.ts";
 import type { KeyValueStore } from "../play/storage.ts";
+import { stubAudio } from "../test/fake-audio.ts";
 import { memoryStorage } from "../test/memory-storage.ts";
 import { App } from "./App.tsx";
 
@@ -715,6 +716,66 @@ describe("leaving", () => {
     const home = sentTo(navigate);
     expect(home.pathname).toBe("/play/");
     expect(home.searchParams.get("play")).toBe(records.stored[0]?.play);
+  });
+});
+
+describe("a game's sounds", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    Object.assign(window, { innerWidth: 1024, innerHeight: 768 });
+  });
+
+  /** A game open, its files loaded. */
+  async function playing() {
+    const audio = stubAudio();
+    setUp();
+    await screen.findByRole("button", { name: "Start" });
+    // Browsers keep audio silent until a tap, so nothing starts before it.
+    expect(audio.contexts).toEqual([]);
+    await game();
+    await act(() => audio.loaded());
+    const context = audio.contexts[0];
+    if (!context) throw new Error("no audio started on the tap");
+    return context;
+  }
+
+  it("plays an effect when the game asks", async () => {
+    const context = await playing();
+    fireEvent.click(screen.getByRole("button", { name: "Play a sound" }));
+    expect(context.sources).toHaveLength(1);
+    expect(context.sources[0]?.started).toBe(true);
+  });
+
+  it("lowers the music while the leave question is up", async () => {
+    const context = await playing();
+    const music = context.gains[1];
+    fireEvent.click(screen.getByRole("button", { name: "Play music" }));
+    fireEvent.click(screen.getByRole("button", { name: "Leave the game" }));
+    const ducked = music?.gain.target as number;
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Keep playing" }),
+    );
+    expect(music?.gain.target).toBeGreaterThan(ducked);
+  });
+
+  it("pauses sound behind the too-small block, and picks it up after", async () => {
+    const context = await playing();
+    act(() => {
+      Object.assign(window, { innerWidth: 390, innerHeight: 844 });
+      window.dispatchEvent(new Event("resize"));
+    });
+    expect(context.state).toBe("suspended");
+    act(() => {
+      Object.assign(window, { innerWidth: 1024, innerHeight: 768 });
+      window.dispatchEvent(new Event("resize"));
+    });
+    expect(context.state).toBe("running");
+  });
+
+  it("closes the audio when the student leaves the play", async () => {
+    const context = await playing();
+    cleanup();
+    expect(context.state).toBe("closed");
   });
 });
 

@@ -26,7 +26,7 @@ export type Cue =
   /** The hand taps a key where it points. */
   | { key: Key }
   /** The hand presses Go, the train runs, and the result is said. */
-  | { go: true; narrate: boolean }
+  | { go: true }
   | { end: true };
 
 export const tutorialScript: Cue[] = [
@@ -40,7 +40,7 @@ export const tutorialScript: Cue[] = [
   { key: "9" },
   { point: "main" },
   { say: ["tutorial.go"] },
-  { go: true, narrate: true },
+  { go: true },
   { point: null },
   { say: ["tutorial.try-again"] },
   { point: "key-del" },
@@ -48,7 +48,7 @@ export const tutorialScript: Cue[] = [
   { point: "key-8" },
   { key: "8" },
   { point: "main" },
-  { go: true, narrate: false },
+  { go: true },
   { point: null },
   { say: ["tutorial.your-turn"] },
   { end: true },

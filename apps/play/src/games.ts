@@ -15,6 +15,8 @@ export interface HostedGame {
   Component: ComponentType<GameProps<GameManifest>>;
   /** The game's current voice recordings, by locale; see `resolveLineUrl`. */
   lines?: Partial<Record<Locale, LineMap>>;
+  /** The URL of each of the manifest's sounds. */
+  sounds?: Readonly<Record<string, string>>;
 }
 
 export type GameRegistry = Readonly<Record<string, () => Promise<HostedGame>>>;

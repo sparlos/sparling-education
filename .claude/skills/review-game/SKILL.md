@@ -61,7 +61,7 @@ Then go through every check below. Each gets a verdict and its evidence: a test 
 
 ### Chromebook budgets
 
-- At most 250 KB gzipped JavaScript beyond the shell, and at most 2 MB to start one tier, art and audio included (voice lines load when said, so they don't count).
+- At most 250 KB gzipped JavaScript beyond the shell, and at most 2 MB to start one tier, art and audio included (voice lines load when said, and music loads behind the game once it has started, so they don't count; sound effects do).
 - At least 30 fps while dragging and touch response within 100 ms, under 4× CPU throttling: **unmeasured** until the kit automates it, unless you measure it in the tour with Chrome's CPU throttling.
 
 Done when every check above has a verdict and evidence.

@@ -31,6 +31,7 @@ import { boot, type ReadyPlay } from "../play/boot.ts";
 import type { OutboxOptions } from "../play/outbox.ts";
 import type { Ending } from "../play/play.ts";
 import { parseRoute } from "../play/routes.ts";
+import { createSounds } from "../play/sounds.ts";
 import type { KeyValueStore } from "../play/storage.ts";
 import { translator } from "../play/strings.ts";
 import {
@@ -313,6 +314,7 @@ function PlayScreen({
   const [firstPlay, setFirstPlay] = useState(true);
   const [progress, setProgress] = useState<Progress | null>(null);
   const gate = useContext(ShellVoiceGate);
+  const sounds = useMemo(() => createSounds(game.sounds), [game]);
   const voice = useMemo<Voice>(
     () =>
       createVoice({
@@ -321,10 +323,19 @@ function PlayScreen({
         lineUrl: (id) => resolveLineUrl(game, student.locale, id),
         speak,
         gate,
+        duck: sounds.duck,
       }),
-    [game, student, speak, gate],
+    [game, student, speak, gate, sounds],
   );
   useEffect(() => () => voice.stop(), [voice]);
+  useEffect(() => () => sounds.close(), [sounds]);
+  // What silences the voice (the too-small screen) silences sounds too.
+  useEffect(
+    () => gate?.listen((closed) => (closed ? sounds.hold() : sounds.release())),
+    [gate, sounds],
+  );
+  // The leave question is said over the game's music.
+  useEffect(() => (asking ? sounds.duck() : undefined), [asking, sounds]);
 
   // Games re-render often; give them props that only change when they must.
   const ended = useRef(false);
@@ -347,11 +358,13 @@ function PlayScreen({
         setHasLine(true);
         return voice.say(...ids);
       },
+      playSound: (id, options) => sounds.play(id, options),
+      playMusic: (id) => sounds.music(id),
       onAttempt: (attempt) => play.record(attempt),
       onProgress: (next) => setProgress(next),
       onFinish: () => endOnce("finished"),
     }),
-    [game, student, tier, firstPlay, play, voice, endOnce],
+    [game, student, tier, firstPlay, play, voice, sounds, endOnce],
   );
 
   // The shell around the game is in the colour of the class it counts for.
@@ -409,6 +422,7 @@ function PlayScreen({
                 look={student.look}
                 splash={splashArt[game.manifest.slug]}
                 onStart={() => {
+                  sounds.start();
                   setFirstPlay(ready.firstPlay());
                   setStarted(true);
                 }}

@@ -26,7 +26,7 @@ example `template/SPEC.md`, so it can't rot.
 
 | Import | What |
 | --- | --- |
-| `@repo/game-kit/testing` | `mountGame(game, { tier, voice?, random? })`: the fake shell. Mounts a game through the contract, records lines said, attempts, progress and finishing, and checks every call against the manifest. `heldVoice()` finishes lines by hand, to test that voice and actions take turns. `wait(ms)` advances fake timers. |
+| `@repo/game-kit/testing` | `mountGame(game, { tier, voice?, random? })`: the fake shell. Mounts a game through the contract, records lines said, sounds, music, attempts, progress and finishing, and checks every call against the manifest. `heldVoice()` finishes lines by hand, to test that voice and actions take turns. `wait(ms)` advances fake timers. |
 | `@repo/game-kit/testing/setup` | The Vitest setup file: jest-dom, a `matchMedia` stub, cleanup, and **failing any test in which a mounted game broke the contract**. |
 | `@repo/game-kit/spec` | `readSpec`, `describeManifestSpec` (header, tiers, misconceptions), `stringRows`, `subsections`, `codes`: tests that read SPEC.md and fail on drift. |
 | `@repo/game-kit/art` | `Slot`, `SlotArt` (in an SVG) and `SlotImage` (standalone): art slots with a frame and anchor, replaceable by real art without code changes. |
@@ -37,6 +37,24 @@ example `template/SPEC.md`, so it can't rot.
 | `@repo/game-kit/random` | `seeded`, `int`, `pick`: reproducible plays. |
 | `@repo/game-kit/tour` | `defineTour` for a game's `tour.ts`. |
 | `@repo/game-kit/mutations` | `defineMutations` for a game's `mutations.ts`. |
+
+## Sound effects and music
+
+1. Put the files in `games/<slug>/audio/`. Use `.ogg` or `.mp3`, and keep effects short.
+2. List their IDs in the manifest: `sounds: ["crystal-drop"]`.
+3. Pass the files to `defineGame` in `src/index.tsx`. It won't compile if one's missing:
+
+   ```ts
+   import crystalDrop from "../audio/crystal-drop.ogg";
+
+   export default defineGame(manifest, MyGame, { "crystal-drop": crystalDrop });
+   ```
+
+4. Call `playSound(id, { volume?, rate? })` at the moment the sound belongs to, and `playMusic(id)` or `playMusic(null)` for a looping track.
+
+The shell owns the rest (`apps/play/src/play/sounds.ts`). It loads every file on the start tap and plays them through Web Audio, so an effect starts within milliseconds and many can overlap. It lowers music under the voice, and stops it when the play ends. An effect can sound during a voice line, unlike an on-screen action, because it never carries an instruction. A sound can't be the only sign of anything, since no grade requires sound.
+
+In tests, `shell.sounds` and `shell.music` list what was played.
 
 ## Checks
 

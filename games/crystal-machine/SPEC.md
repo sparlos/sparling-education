@@ -145,6 +145,7 @@ Expressions (the contract's set):
 - **Touch only, tap only:** tap a chute, tap pad keys, tap Run, hint and skip. No dragging. Every tap target is at least **64 px**: each chute's whole face, each pad key, Run and hint.
 - **No reading:** the only text a student needs is numerals, which are what's being taught. Chutes are marked by their crystal's shape, not by a word, and tapping one speaks its place. Closed chutes show a lock. The crystal counter is numerals and a crystal icon. Every instruction is a caption and a voice line from the same string. The job is spoken when it arrives and can be heard again.
 - **No sound needed:** every result is on screen: the windows read the number made, wrong places are red, and the counter goes red with too many crystals.
+- **Sound effects:** a crystal makes a sound as it lands (`crystal-drop`, with a small change of pitch each time), and ten fusing makes another as they start to pull together (`crystal-merge`). A big column sounds like a shower of crystals: up to one landing sound every 15 ms, and one fusing sound every 60 ms.
 - **The game always fits the screen,** with no scrolling or zooming, at 1366 × 650 and 1280 × 650 and larger: at Grade 5, six tubes, the pad and the job. The browser tour checks this.
 - **Progress:** a progression-based game (`progress` in the manifest): the shell's thin bar shows jobs done, from 0/6 to 6/6.
 

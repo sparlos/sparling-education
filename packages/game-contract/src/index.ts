@@ -62,6 +62,24 @@ export interface GameManifest {
   strings: { "en-CA": { title: string } & Record<string, string> } & Partial<
     Record<Locale, Record<string, string>>
   >;
+  /**
+   * The IDs of the game's sound effects and music. `defineGame` takes each
+   * one's file, and `playSound` and `playMusic` play them.
+   */
+  sounds?: readonly string[];
+}
+
+export type SoundId<M extends GameManifest> = M extends {
+  sounds: readonly (infer S extends string)[];
+}
+  ? S
+  : never;
+
+export interface SoundOptions {
+  /** How loud, from 0 to 1: 1 by default. */
+  volume?: number;
+  /** Playback speed, which also shifts the pitch: 1 by default. */
+  rate?: number;
 }
 
 export type TierId<M extends GameManifest> = keyof M["tiers"] & string;
@@ -177,6 +195,18 @@ export interface GameProps<M extends GameManifest> {
    * the student taps start, so the browser lets the voice play.
    */
   say(...ids: StringId<M>[]): Promise<void>;
+  /**
+   * Plays a sound effect now, within a few milliseconds, over whatever else is
+   * playing. Unlike `say`, it never waits or cuts anything off, so call it at
+   * the moment the effect belongs to. It may not be heard (no sound, or not
+   * loaded yet), so never make it the only sign of anything.
+   */
+  playSound(id: SoundId<M>, options?: SoundOptions): void;
+  /**
+   * Loops a track, fading from the one before, or fades out on null. The
+   * shell lowers it under the voice and stops it when the play ends.
+   */
+  playMusic(id: SoundId<M> | null): void;
   onAttempt(attempt: Attempt<M>): void;
   /**
    * How far through the play the student is, for a game whose manifest sets
@@ -191,13 +221,23 @@ export interface GameProps<M extends GameManifest> {
 export interface Game<M extends GameManifest> {
   manifest: M;
   Component: ComponentType<GameProps<M>>;
+  /** The URL of each of the manifest's sounds. */
+  sounds?: Readonly<Record<string, string>>;
 }
 
+/**
+ * A game whose manifest lists `sounds` also passes each one's file, imported
+ * from `audio/`. They stay out of the manifest because it's loaded in plain
+ * Node, by the voice tool and the API.
+ */
 export function defineGame<const M extends GameManifest>(
   manifest: M,
   Component: ComponentType<GameProps<M>>,
+  ...[sounds]: [SoundId<M>] extends [never]
+    ? []
+    : [sounds: Readonly<Record<SoundId<M>, string>>]
 ): Game<M> {
-  return { manifest, Component };
+  return { manifest, Component, sounds };
 }
 
 const assistance: readonly string[] = ["hint", "demonstration", "guided"];

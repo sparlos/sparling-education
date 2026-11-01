@@ -38,6 +38,15 @@ async function tryNumber(shell: Shell, lap: Lap, n: number, wait = runWait) {
   await shell.wait(wait);
 }
 
+/** Waits for the train to reach a station and its crates to start moving. */
+async function waitForStation(shell: Shell) {
+  for (let i = 0; i < 400; i++) {
+    if (screen.queryByTestId("station-amount")) return;
+    await shell.wait(50);
+  }
+  throw new Error("The train never reached a station");
+}
+
 const playing = (tier: TierId) => {
   const shell = mountGame(game, { tier, random, firstPlay: false });
   return { shell, laps: lapsFor(tier) };
@@ -101,15 +110,10 @@ describe("the tutorial", () => {
     ]);
     // The wrong number first.
     expect(screen.getByTestId("sign-back")).toHaveAttribute("data-text", "9");
-    await finish(8000);
-    expect(shell.lastSaid()).toEqual([
-      "story.picks-up",
-      "num.3",
-      "unit.crates",
-      "at.farm",
-    ]);
-    await finish(12_000);
+    await finish(runWait);
+    // The run says nothing until its result.
     expect(shell.lastSaid()).toEqual(["run.too-big"]);
+    expect(shell.said).toHaveLength(5);
     expect(screen.getByTestId("gate")).not.toHaveAttribute("data-open");
     expect(screen.getByTestId("tally")).toHaveAttribute(
       "data-text",
@@ -117,7 +121,7 @@ describe("the tutorial", () => {
     );
     await finish(4000);
     expect(shell.lastSaid()).toEqual(["tutorial.try-again"]);
-    // The right number: the second run isn't talked through.
+    // The right number.
     await finish(16_000);
     expect(screen.getByTestId("gate")).toHaveAttribute("data-open", "true");
     expect(screen.getByTestId("roof")).toHaveAttribute("data-load", "8");
@@ -139,7 +143,7 @@ describe("the tutorial", () => {
     expect(shell.said.flat()).not.toContain("run.stakes");
   });
 
-  it("isn't picked back up after a skip while the voice is talking the run through", async () => {
+  it("isn't picked back up after a skip during its run", async () => {
     // As in the real shell, a new line settles the one it cuts off.
     const lines: (() => void)[] = [];
     const voice = () => new Promise<void>((resolve) => lines.push(resolve));
@@ -147,9 +151,9 @@ describe("the tutorial", () => {
     await shell.wait(3000);
     for (let i = 0; i < 4; i++) {
       lines.at(-1)?.();
-      await shell.wait(i === 3 ? 8000 : 4000);
+      await shell.wait(4000);
     }
-    expect(shell.lastSaid()[0]).toBe("story.picks-up");
+    await waitForStation(shell);
     await shell.tap(screen.getByTestId("skip"));
     for (const line of lines) line();
     await shell.wait(5000);
@@ -257,15 +261,13 @@ describe("a run", () => {
     finishLine();
     await shell.wait(runWait);
     finishLine();
-    await shell.wait(runWait);
-    finishLine();
     await tryNumber(shell, lap, lap.end + 2);
     expect(shell.said.flat().filter((id) => id === "run.stakes")).toHaveLength(
       1,
     );
   });
 
-  it("says a station on the first try, before its crates move, and just runs on a retry", async () => {
+  it("moves the crates at a station and drives on with nothing said", async () => {
     const { voice, finishLine } = heldVoice();
     const shell = mountGame(game, {
       tier: "g3",
@@ -280,23 +282,15 @@ describe("a run", () => {
     await typeNumber(shell, written(lap.end + 1, 0));
     await shell.tap(screen.getByTestId("main"));
     await shell.wait(1000);
-    finishLine();
-    await shell.wait(8000);
-    expect(shell.lastSaid()[0]).toBe(
-      station.loads ? "story.picks-up" : "story.drops-off",
-    );
-    expect(screen.queryByTestId("station-amount")).not.toBeInTheDocument();
-    finishLine();
-    await shell.wait(500);
+    finishLine(); // what Go tests
+    const said = shell.said.length;
+    await waitForStation(shell);
     expect(screen.getByTestId("station-amount")).toHaveTextContent(
       `${station.loads ? "+" : "−"}${written(station.amount, 0)}`,
     );
+    expect(shell.said).toHaveLength(said);
+    // Only the result is said, and no line had to finish to get there.
     await shell.wait(runWait);
-    finishLine();
-    await shell.wait(1000);
-    const said = shell.said.length;
-    await tryNumber(shell, lap, lap.end + 2);
-    // Only the result: the retry says no station.
     expect(shell.said.slice(said)).toEqual([["run.too-big"]]);
   });
 
@@ -357,8 +351,6 @@ describe("a run", () => {
     await shell.tap(screen.getByTestId("main"));
     await shell.wait(1000);
     finishLine(); // what Go tests
-    await shell.wait(8000);
-    finishLine(); // the station
     await shell.wait(runWait);
     expect(shell.lastSaid()).toEqual(["run.solved"]);
     await shell.wait(runWait);

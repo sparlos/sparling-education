@@ -237,10 +237,10 @@ export const mutations = defineMutations([
     replace: "const hidden = false;",
   },
   {
-    name: "the crates move before the station's line is said",
+    name: "the train waits on the voice at a station",
     file: screen,
-    find: "await speak(stationLines(lap, run, beat.station));",
-    replace: "void speak(stationLines(lap, run, beat.station));",
+    find: "          done += 1;\n",
+    replace: '          await speak(["lap.next"]);\n          done += 1;\n',
   },
   {
     name: "the train leaves before what Go tests is said",
@@ -253,17 +253,5 @@ export const mutations = defineMutations([
     file: screen,
     find: "stakesDue.current = false;\n    await play",
     replace: "await play",
-  },
-  {
-    name: "a retry talks every station through again",
-    file: screen,
-    find: "narrate: before.lastTyped === null,",
-    replace: "narrate: true,",
-  },
-  {
-    name: "a skipped tutorial's run goes on after the voice is cut off",
-    file: screen,
-    find: "epoch.current += 1;",
-    replace: "",
   },
 ]);

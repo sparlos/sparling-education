@@ -13,6 +13,7 @@ import type { ChutePlace, Place, StringId } from "../strings.ts";
 import { crystalColours, crystalSlot, PanelArt, ScreenArt } from "./art.tsx";
 import { captionText } from "./caption.ts";
 import { GemLayer, type Shown } from "./GemLayer.tsx";
+import type { GemEvents } from "./gems.ts";
 import styles from "./machine.module.css";
 
 export interface BoardProps {
@@ -31,6 +32,8 @@ export interface BoardProps {
   tapping: boolean;
   /** Bumped to flash the counter on a refused Run. */
   counterFlash: number;
+  /** The gems' moments that make a sound. */
+  gemEvents: GemEvents;
   onChoose(p: Place): void;
   onDigit(d: number): void;
   onDelete(): void;
@@ -110,7 +113,7 @@ export function Board(props: BoardProps) {
         stage={
           <section className={styles.machine} data-testid="machine">
             <PanelArt slot="machine" />
-            <GemLayer shown={props.shown} />
+            <GemLayer shown={props.shown} events={props.gemEvents} />
             {places.map((p) => {
               const isExtra = p === job.chutes;
               const chute = p as ChutePlace;

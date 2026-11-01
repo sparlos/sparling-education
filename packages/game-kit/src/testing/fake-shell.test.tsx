@@ -21,6 +21,7 @@ const manifest = {
     },
   },
   strings: { "en-CA": { title: "Breaker", go: "Go" } },
+  sounds: ["ding"],
 } as const;
 
 /** Each button breaks one rule, bypassing the types as a cast would. */
@@ -28,6 +29,8 @@ function Breaker(props: GameProps<typeof manifest>) {
   const loose = props as unknown as GameProps<typeof manifest> & {
     say(...ids: string[]): Promise<void>;
     onAttempt(a: object): void;
+    playSound(id: string): void;
+    playMusic(id: string | null): void;
   };
   const breaks: Record<string, () => void> = {
     "other tier": () =>
@@ -67,6 +70,8 @@ function Breaker(props: GameProps<typeof manifest>) {
         });
     },
     "unknown string": () => void loose.say("nope"),
+    "unknown sound": () => loose.playSound("nope"),
+    "unknown music": () => loose.playMusic("nope"),
     "no progress": () => props.onProgress({ done: 0, total: 1 }),
     "finish twice": () => {
       props.onFinish();
@@ -80,14 +85,22 @@ function Breaker(props: GameProps<typeof manifest>) {
           {name}
         </button>
       ))}
-      <button type="button" onClick={() => void props.say("go")}>
+      <button
+        type="button"
+        onClick={() => {
+          void props.say("go");
+          props.playSound("ding");
+          props.playMusic("ding");
+          props.playMusic(null);
+        }}
+      >
         fine
       </button>
     </>
   );
 }
 
-const game = defineGame(manifest, Breaker);
+const game = defineGame(manifest, Breaker, { ding: "ding.ogg" });
 
 afterEach(() => {
   // Each test checks its own problems; don't fail it again in the setup.
@@ -99,6 +112,8 @@ describe("mountGame", () => {
     const shell = mountGame(game, { tier: "g3" });
     await shell.tap(screen.getByText("fine"));
     expect(shell.said).toEqual([["go"]]);
+    expect(shell.sounds).toEqual(["ding"]);
+    expect(shell.music).toEqual(["ding", null]);
     expect(takeContractProblems()).toEqual([]);
   });
 
@@ -112,6 +127,8 @@ describe("mountGame", () => {
       /asked "Reach 3\/4\.", but earlier tries asked "Reach 5\/4\."/,
     ],
     ["unknown string", /say\("nope"\): no such string/],
+    ["unknown sound", /playSound\("nope"\): no such sound/],
+    ["unknown music", /playMusic\("nope"\): no such sound/],
     ["no progress", /the manifest doesn't set progress/],
     ["finish twice", /onFinish called more than once/],
   ])("catches %s", async (name, problem) => {

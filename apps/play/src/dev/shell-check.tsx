@@ -1,7 +1,7 @@
 // A throwaway game that exercises every prop of the game contract, for
 // checking the shell by hand (/play/shell-check in dev) and in the shell's
 // tests. It teaches nothing; it isn't a model for real games.
-import { defineGame } from "@repo/game-contract";
+import { defineGame, type GameProps } from "@repo/game-contract";
 import { useEffect, useState } from "react";
 
 export const manifest = {
@@ -27,18 +27,36 @@ export const manifest = {
       right: "Right",
       wrong: "Wrong",
       finish: "Finish",
+      "play-sound": "Play a sound",
+      "play-music": "Play music",
+      "stop-music": "Stop music",
     },
   },
+  sounds: ["beep"],
 } as const;
+
+/** A short beep, inline so this dev game has no files. */
+const beep =
+  "data:audio/wav;base64,UklGRhQBAABXQVZFZm10IBAAAAABAAEAoA8AAKAPAAABAAgAZGF0YfAAAACAzc6CNTF6yM6IOjF1w86NPzFwvs6RRDFruc2WSTJns8yaTjRjrsudUzVgqcmhWTddpMekXjlan8SmYjxYmsKoZz9Wlb+qbEJUkbyrcEVTjbmsdEhSibWteExShbKtfE9Sga6tgFNSfqutg1ZTe6eshlpUeKOriF1VdqCqimFWdJyojGRYcpmmjmhacJakj2tcb5KikG5eb4+gkXFgbo2ekXRiboqbkXZlboiZkXhoboWWkHtqb4SUkHxtcIKRj35vcYGPjX9ycn+MjIB0dH+KioF2dn6IiYF5d36Fh4F7eX6DhYF8e36CgoB+fn+AgIA=";
 
 const expectationFor = {
   g3: "math-2020.g3.B2.8",
   g4: "math-2020.g4.B1.4",
 } as const;
 
-export default defineGame(manifest, function ShellCheck(props) {
-  const { Avatar, t, say, onAttempt, onProgress, onFinish, tier, firstPlay } =
-    props;
+function ShellCheck(props: GameProps<typeof manifest>) {
+  const {
+    Avatar,
+    t,
+    say,
+    playSound,
+    playMusic,
+    onAttempt,
+    onProgress,
+    onFinish,
+    tier,
+    firstPlay,
+  } = props;
   // Two tasks: each right answer finishes one.
   const [done, setDone] = useState(0);
   useEffect(() => onProgress({ done, total: 2 }), [done, onProgress]);
@@ -74,6 +92,17 @@ export default defineGame(manifest, function ShellCheck(props) {
       <button type="button" onClick={onFinish}>
         {t("finish")}
       </button>
+      <button type="button" onClick={() => playSound("beep")}>
+        {t("play-sound")}
+      </button>
+      <button type="button" onClick={() => playMusic("beep")}>
+        {t("play-music")}
+      </button>
+      <button type="button" onClick={() => playMusic(null)}>
+        {t("stop-music")}
+      </button>
     </section>
   );
-});
+}
+
+export default defineGame(manifest, ShellCheck, { beep });

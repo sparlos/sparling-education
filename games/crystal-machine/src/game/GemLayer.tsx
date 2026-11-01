@@ -4,7 +4,7 @@
 import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import type { Place } from "../strings.ts";
 import { art, Gem, gemShapes } from "./art.tsx";
-import { GemTubes, type TubeRect } from "./gems.ts";
+import { type GemEvents, GemTubes, type TubeRect } from "./gems.ts";
 import styles from "./machine.module.css";
 
 const svgNs = "http://www.w3.org/2000/svg";
@@ -30,12 +30,20 @@ const reducedMotion = () =>
   typeof matchMedia !== "undefined" &&
   matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-export function GemLayer({ shown }: { shown: Shown }) {
+export function GemLayer({
+  shown,
+  events,
+}: {
+  shown: Shown;
+  events: GemEvents;
+}) {
   const svg = useRef<SVGSVGElement>(null);
   const world = useRef<SVGGElement>(null);
   const physics = useRef<GemTubes | null>(null);
   const latest = useRef(shown);
   latest.current = shown;
+  const latestEvents = useRef(events);
+  latestEvents.current = events;
   const [layout, setLayout] = useState<Layout | null>(null);
   const id = useId().replace(/:/g, "");
 
@@ -98,6 +106,10 @@ export function GemLayer({ shown }: { shown: Shown }) {
         sides: (p) => gemShapes[p].sides,
       },
       reducedMotion(),
+      {
+        landed: () => latestEvents.current.landed(),
+        fused: () => latestEvents.current.fused(),
+      },
     );
     physics.current = tubes;
     tubes.sync(latest.current.tubes, [], false);

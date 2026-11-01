@@ -11,6 +11,72 @@ import {
 
 const text = (id: string) => `text of ${id}`;
 
+describe("lowering the music", () => {
+  it("holds it down from the start of an instruction until it settles", async () => {
+    const release = vi.fn();
+    const duck = vi.fn(() => release);
+    const voice = createVoice({
+      text,
+      locale: "en-CA",
+      speak: (_, __, onEnd) => {
+        setTimeout(() => onEnd?.(), 0);
+        return () => {};
+      },
+      duck,
+    });
+    const said = voice.say("a");
+    expect(duck).toHaveBeenCalledTimes(1);
+    expect(release).not.toHaveBeenCalled();
+    await said;
+    await Promise.resolve();
+    expect(release).toHaveBeenCalledTimes(1);
+  });
+
+  it("doesn't let the music up between one instruction and the next", async () => {
+    const events: string[] = [];
+    const voice = createVoice({
+      text,
+      locale: "en-CA",
+      speak: () => () => {},
+      duck: () => {
+        events.push("down");
+        return () => events.push("up");
+      },
+    });
+    void voice.say("a");
+    void voice.say("b");
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(events).toEqual(["down", "down", "up"]);
+  });
+
+  it("holds it down for hear-it-again too", () => {
+    const duck = vi.fn(() => () => {});
+    const voice = createVoice({
+      text,
+      locale: "en-CA",
+      speak: () => () => {},
+      duck,
+    });
+    void voice.say("a");
+    voice.again();
+    expect(duck).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe("the gate's listeners", () => {
+  it("hear it close and open, until they stop listening", () => {
+    const gate = createVoiceGate();
+    const heard: boolean[] = [];
+    const stop = gate.listen((closed) => heard.push(closed));
+    gate.close();
+    gate.open();
+    stop();
+    gate.close();
+    expect(heard).toEqual([true, false]);
+  });
+});
+
 function setUp(overrides: Partial<VoiceOptions> = {}) {
   const spoken: string[] = [];
   const stopSpeech = vi.fn();

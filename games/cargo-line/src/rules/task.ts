@@ -12,14 +12,7 @@ import {
   tierExpectations,
 } from "./generate.ts";
 import { type MisconceptionId, matchOf } from "./judge.ts";
-import {
-  answerOf,
-  type Lap,
-  type Run,
-  runTrip,
-  unitOf,
-  withTyped,
-} from "./lap.ts";
+import { answerOf, type Lap, type Run, runTrip, unitOf } from "./lap.ts";
 import { askedFor, tryDetail } from "./teacher.ts";
 
 /** Misses on a lap before the help button glows. */
@@ -154,18 +147,6 @@ export function lapLines(lap: Lap): StringId[] {
       lap.stations[missing.at]?.loads ? "ask.picks-up" : "ask.drops-off",
     );
   return lines;
-}
-
-/** What the voice says as the train reaches a station: "It picks up 293 crates at the mill." */
-export function stationLines(lap: Lap, run: Run, station: number): StringId[] {
-  const s = withTyped(lap, run.typed).stations[station];
-  if (!s) return [];
-  return [
-    s.loads ? "story.picks-up" : "story.drops-off",
-    ...amountIds(s.amount, lap.dp),
-    unitId(lap, false),
-    `at.${s.place}`,
-  ];
 }
 
 /** What the voice says when a run misses. */

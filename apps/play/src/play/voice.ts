@@ -41,6 +41,11 @@ export interface VoiceOptions {
   speak?(text: string, locale: Locale, onEnd?: () => void): (() => void) | null;
   /** The gate that can silence this voice; see `createVoiceGate`. */
   gate?: VoiceGate;
+  /**
+   * Called as an instruction starts, to lower the music under it. The
+   * function it returns is called when the instruction settles.
+   */
+  duck?(): () => void;
 }
 
 /**
@@ -59,12 +64,15 @@ export interface VoiceGate {
   track(stop: () => void): () => void;
   /** For voices: settles once the gate is open. */
   opened(): Promise<void>;
+  /** Hears the gate close and open, for other sound. Returns its unlistening. */
+  listen(onChange: (closed: boolean) => void): () => void;
 }
 
 export function createVoiceGate(): VoiceGate {
   let closed = false;
   const playing = new Set<() => void>();
   let waiting: (() => void)[] = [];
+  const listeners = new Set<(closed: boolean) => void>();
   return {
     get closed() {
       return closed;
@@ -72,11 +80,17 @@ export function createVoiceGate(): VoiceGate {
     close() {
       closed = true;
       for (const stop of [...playing]) stop();
+      for (const listener of listeners) listener(true);
     },
     open() {
       closed = false;
       for (const resolve of waiting) resolve();
       waiting = [];
+      for (const listener of listeners) listener(false);
+    },
+    listen(onChange) {
+      listeners.add(onChange);
+      return () => listeners.delete(onChange);
     },
     track(stop) {
       playing.add(stop);
@@ -167,14 +181,21 @@ export function createVoice(options: VoiceOptions): Voice {
     });
   }
 
+  function instruct(ids: readonly string[]): Promise<void> {
+    const undo = options.duck?.();
+    const said = play(ids);
+    if (undo) void said.then(undo);
+    return said;
+  }
+
   return {
     say(...ids) {
       if (ids.length === 0) return Promise.resolve();
       last = ids;
-      return play(ids);
+      return instruct(ids);
     },
     again() {
-      if (last !== null) void play(last);
+      if (last !== null) void instruct(last);
     },
     stop,
     get last() {

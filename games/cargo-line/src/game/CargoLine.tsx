@@ -24,7 +24,6 @@ import {
   lapLines,
   press,
   startLap,
-  stationLines,
   tapHelp,
   tuningLog,
   typedUnits,
@@ -79,8 +78,6 @@ export function CargoLine(props: GameProps<Manifest>) {
       : startLap(tier, 1, laps[0] ?? tutorialLap),
   );
   const current = useRef(state);
-  // Goes up with each new lap, so a run waiting on the voice can tell it's over.
-  const epoch = useRef(0);
   // What Go tests is said once a play, unless the tutorial has just shown it.
   const stakesDue = useRef(true);
   const [train, setTrain] = useState<TrainView>(inYard);
@@ -124,17 +121,11 @@ export function CargoLine(props: GameProps<Manifest>) {
 
   /**
    * Plays a run; settles when the train has stopped. `stakes` says what's
-   * being tested before it leaves, and `narrate` says each station before
-   * its crates move.
+   * being tested before it leaves.
    */
   const play = useCallback(
-    async (
-      lap: Lap,
-      run: Run,
-      options: { stakes?: boolean; narrate?: boolean },
-    ) => {
+    async (lap: Lap, run: Run, stakes = false) => {
       const hide = lap.missing.what === "end";
-      const lapEpoch = epoch.current;
       let done = 0;
       setRunning(true);
       // The last result is over; it mustn't read as this run's.
@@ -146,20 +137,13 @@ export function CargoLine(props: GameProps<Manifest>) {
       setTally(tallyText(lap, run, 0));
       setMoment(null);
       setChecking(false);
-      if (options.stakes) {
-        await speak(["run.stakes"]);
-        if (lapEpoch !== epoch.current) return;
-      }
+      if (stakes) await speak(["run.stakes"]);
       await pause(beatMs / 2);
       setTrain({ ...inYard, waving: true });
       for (const beat of beatsFor(lap, run, reducedMotion())) {
         if (beat.kind === "drive") {
           setTrain((now) => ({ ...now, at: beat.to, ms: beat.ms }));
         } else if (beat.kind === "station") {
-          if (options.narrate) {
-            await speak(stationLines(lap, run, beat.station));
-            if (lapEpoch !== epoch.current) return;
-          }
           done += 1;
           setTally(tallyText(lap, run, done));
           setMoment({
@@ -219,7 +203,6 @@ export function CargoLine(props: GameProps<Manifest>) {
   const beginLap = useCallback(
     (index: number) => {
       clearTimers();
-      epoch.current += 1;
       const lap = laps[index - 1];
       if (!lap) return;
       commit(startLap(tier, index, lap));
@@ -281,7 +264,7 @@ export function CargoLine(props: GameProps<Manifest>) {
         await tap();
         const run = go(current.current);
         if (!run) return;
-        await play(current.current.lap, run, { narrate: cue.narrate });
+        await play(current.current.lap, run);
         if (cancelled) return;
         const result = finishGo(current.current, run);
         commit(result.state);
@@ -376,11 +359,7 @@ export function CargoLine(props: GameProps<Manifest>) {
     setHand(null);
     const stakes = stakesDue.current;
     stakesDue.current = false;
-    await play(before.lap, run, {
-      stakes,
-      // The first try at a lap talks the trip through; a retry just runs.
-      narrate: before.lastTyped === null,
-    });
+    await play(before.lap, run, stakes);
     const result = finishGo(before, run);
     // Sent as it happens, so a student who leaves mid-lap keeps their tries.
     onAttempt(result.attempt);
