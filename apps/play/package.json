@@ -8,7 +8,7 @@
     "build": "vite build",
     "preview": "vite preview --port 3003 --host",
     "dev:try": "vite --mode try --port 3006 --host",
-    "build:try": "node scripts/build-try.ts",
+    "build:try": "pnpm --filter @repo/tokens generate && node scripts/build-try.ts",
     "check-types": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest"
