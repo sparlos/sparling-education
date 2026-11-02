@@ -1,7 +1,7 @@
 // The tutorial's lap and script (SPEC.md's Tutorial section): the train
 // leaves with 5 crates and picks up 3 at the farm. The hand types 9 for what
-// comes back and presses Go, so the student sees a wrong number leave the
-// gate shut, then changes it to 8, and the gate opens.
+// it arrives with and presses Go, so the student sees a wrong number leave the
+// gate shut and the train roll back, then changes it to 8, and the gate opens.
 //
 // Speech and actions take turns, never both at once: a line is said (the
 // hand may rest on what it's about), then the hand acts on it. Each cue
@@ -21,6 +21,10 @@ export const tutorialLap: Lap = makeLap(
 export type Cue =
   /** Says the lines, as one instruction, and waits until they've been said. */
   | { say: StringId[] }
+  /** The camera zooms in from the whole mountain to the practice track. */
+  | { zoom: true }
+  /** Waits while the train rolls back to the start. */
+  | { rollBack: true }
   /** Moves the hand to a `data-hand` target (or away), and waits until it's there. */
   | { point: string | null }
   /** The hand taps a key where it points. */
@@ -31,10 +35,12 @@ export type Cue =
 
 export const tutorialScript: Cue[] = [
   { say: ["tutorial.welcome"] },
+  { say: ["climb.goal"] },
+  { zoom: true },
   { point: "center" },
   { point: "sign-leaves" },
   { say: ["tutorial.signs"] },
-  { point: "sign-back" },
+  { point: "sign-arrives" },
   { say: ["tutorial.missing"] },
   { point: "key-9" },
   { key: "9" },
@@ -45,6 +51,7 @@ export const tutorialScript: Cue[] = [
   { say: ["tutorial.try-again"] },
   { point: "key-del" },
   { key: "del" },
+  { rollBack: true },
   { point: "key-8" },
   { key: "8" },
   { point: "main" },

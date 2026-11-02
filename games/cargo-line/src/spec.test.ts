@@ -9,7 +9,7 @@ import { describe, expect, it } from "vitest";
 import { manifest } from "./manifest.ts";
 import { lapsPerPlay, padDigits } from "./rules/generate.ts";
 import { matchesToRecord } from "./rules/judge.ts";
-import { makeLap, runTrip, type Station } from "./rules/lap.ts";
+import { makeLap, mountainParts, runTrip, type Station } from "./rules/lap.ts";
 import { missesForDemo, missesForHelp } from "./rules/task.ts";
 import { askedFor, tryDetail } from "./rules/teacher.ts";
 import { fixedStrings, numberWord, placeNames, strings } from "./strings.ts";
@@ -64,9 +64,9 @@ describe("the strings match SPEC.md", () => {
 });
 
 describe("the rules match SPEC.md", () => {
-  it("plays the laps per play it names", () => {
+  it("plays the trips per play it names", () => {
     expect(spec.section("Tiers")).toContain(
-      `Every tier: **${lapsPerPlay} laps per play.**`,
+      `Every tier: **${lapsPerPlay} trips per play.**`,
     );
   });
 
@@ -85,6 +85,23 @@ describe("the rules match SPEC.md", () => {
     expect(spec.section("Strings")).toContain(
       `The pad takes at most ${padDigits.g3} digits at Grade 3, ${padDigits.g4} at Grade 4 and ${padDigits.g5} at Grade 5`,
     );
+  });
+});
+
+describe("the mountain matches SPEC.md", () => {
+  it("has the parts and stops it names, in climbing order", () => {
+    const mechanic = spec.section("Mechanic");
+    const rows = ["Green meadows", "Pine forest", "Rock and snow"].map(
+      (name, i) =>
+        `| ${name} | ${2 * i + 1}–${2 * i + 2} | the ${mountainParts[i]?.[0]}, the ${mountainParts[i]?.[1]} |`,
+    );
+    for (const row of rows) expect(mechanic).toContain(row);
+  });
+
+  it("has an at-the-stop string for every stop", () => {
+    for (const part of mountainParts)
+      for (const place of part)
+        expect(fixedStrings[`at.${place}`]).toBe(`at the ${place}.`);
   });
 });
 
@@ -108,18 +125,21 @@ describe("the Attempts table, rebuilt from the rules", () => {
   });
 
   it("asked", () => {
-    expect(rows["asked: Every try at a lap"]).toBe(askedFor(startMissing));
-    expect(rows["asked: Two stations, end missing"]).toBe(
+    expect(rows["asked: Every try at a trip"]).toBe(askedFor(startMissing));
+    expect(rows["asked: Two stops, end missing"]).toBe(
       askedFor(
         makeLap(
           0,
           57_903,
-          [farm(false, 28_542), { place: "mill", loads: true, amount: 5032 }],
+          [
+            farm(false, 28_542),
+            { place: "windmill", loads: true, amount: 5032 },
+          ],
           { what: "end" },
         ),
       ),
     );
-    expect(rows["asked: Decimal lap"]).toBe(
+    expect(rows["asked: Decimal trip"]).toBe(
       askedFor(
         makeLap(2, 218, [{ place: "quarry", loads: false, amount: 40 }], {
           what: "change",

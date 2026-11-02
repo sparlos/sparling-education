@@ -1,5 +1,5 @@
-// One lap as a task, from its arrival until the train comes back with the
-// yard's number: the pad, what each Go counts as, the help ladder, and the
+// One lap as a task, from when its stretch appears until the train arrives
+// with the gate's number: the pad, what each Go counts as, the help ladder, and the
 // attempt each Go records (SPEC.md's Mechanic, Attempts and Effort
 // sections). Plain state in, plain state out; the screen renders it.
 import { type StringId, writtenIds } from "../strings.ts";
@@ -159,11 +159,11 @@ export function missLines(lap: Lap, run: Run): StringId[] {
       unitId(lap, true),
       "run.cant-drop",
     ];
-  // The answer can't be copied from a wrong run when what comes back is missing.
+  // The answer can't be copied from a wrong run when what it arrives with is missing.
   if (lap.missing.what === "end")
     return [end.load > run.typed ? "run.too-small" : "run.too-big"];
   return [
-    "run.came-back",
+    "run.arrived",
     ...amountIds(end.load, lap.dp),
     unitId(lap, true),
     "run.sign-says",

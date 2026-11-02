@@ -1,103 +1,108 @@
-// The loop from above (SPEC.md's Mechanic): a rounded rectangle of track
-// in the board's 1000 × 600 viewBox, with the yard at the bottom middle.
-// Distances are measured along the track from the yard, the way the train
-// goes: right along the bottom, up the right side, across the top, down
-// the left side and back. Plain geometry, so the screen and its tests agree
-// on where everything is.
+// Where everything is (SPEC.md's Mechanic): the mountain, and one stretch of
+// track, both in the board's 1000 × 600 viewBox. A stretch is drawn small on
+// the mountain's face, so the camera really does zoom in on it. Distances
+// along a stretch are its x. Plain geometry, so the screen and its tests agree.
 
 export const viewBox = { width: 1000, height: 600 } as const;
 
-const left = 110;
-const right = 890;
-const top = 95;
-const bottom = 500;
-const r = 110;
-const mid = (left + right) / 2;
+// ---- One stretch ----
 
-export const trackBox = { left, right, top, bottom, r } as const;
+const slope = 0.22;
+const angle = (-Math.atan(slope) * 180) / Math.PI;
 
-interface Segment {
-  length: number;
-  at(t: number): { x: number; y: number; angle: number };
-}
-
-const line = (x0: number, y0: number, x1: number, y1: number): Segment => {
-  const length = Math.hypot(x1 - x0, y1 - y0);
-  const angle = (Math.atan2(y1 - y0, x1 - x0) * 180) / Math.PI;
-  return {
-    length,
-    at: (t) => ({ x: x0 + (x1 - x0) * t, y: y0 + (y1 - y0) * t, angle }),
-  };
-};
-
-/** A quarter turn about (cx, cy), from angle a0 (degrees, SVG's) by −90. */
-const arc = (cx: number, cy: number, a0: number): Segment => ({
-  length: (Math.PI * r) / 2,
-  at: (t) => {
-    const a = ((a0 - 90 * t) * Math.PI) / 180;
-    return {
-      x: cx + r * Math.cos(a),
-      y: cy + r * Math.sin(a),
-      angle: a0 - 90 * t - 90,
-    };
-  },
-});
-
-const segments: Segment[] = [
-  line(mid, bottom, right - r, bottom),
-  arc(right - r, bottom - r, 90),
-  line(right, bottom - r, right, top + r),
-  arc(right - r, top + r, 0),
-  line(right - r, top, left + r, top),
-  arc(left + r, top + r, -90),
-  line(left, top + r, left, bottom - r),
-  arc(left + r, bottom - r, -180),
-  line(left + r, bottom, mid, bottom),
-];
-
-/** Once round the loop. */
-export const loopLength = segments.reduce((sum, s) => sum + s.length, 0);
+/** The height of the track at x. */
+export const trackY = (x: number) => 500 - x * slope;
 
 /** The point at distance `s` along the track, and the way it faces (degrees). */
-export function pointAt(s: number) {
-  let rest = ((s % loopLength) + loopLength) % loopLength;
-  for (const seg of segments) {
-    if (rest <= seg.length) return seg.at(rest / seg.length);
-    rest -= seg.length;
-  }
-  return (segments.at(-1) as Segment).at(1);
-}
-
-/** The track as an SVG path, the same way round. */
-export const trackPath = [
-  `M ${mid} ${bottom}`,
-  `L ${right - r} ${bottom}`,
-  `A ${r} ${r} 0 0 0 ${right} ${bottom - r}`,
-  `L ${right} ${top + r}`,
-  `A ${r} ${r} 0 0 0 ${right - r} ${top}`,
-  `L ${left + r} ${top}`,
-  `A ${r} ${r} 0 0 0 ${left} ${top + r}`,
-  `L ${left} ${bottom - r}`,
-  `A ${r} ${r} 0 0 0 ${left + r} ${bottom}`,
-  "Z",
-].join(" ");
+export const pointAt = (s: number) => ({ x: s, y: trackY(s), angle });
 
 /** How far the wagon rides behind the engine's middle. */
-export const wagonGap = 78;
-/** Where the engine waits in the yard, ready to leave, and where it ends a lap. */
-export const yardAt = 40;
-/** Where it waits at the shut gate, coming back. */
-export const gateWaitAt = loopLength - 120;
-/** The gate across the track, just before the yard. */
-export const gateAt = loopLength - 60;
+export const wagonGap = 104;
+/** Where the engine waits at the start, ready to leave. */
+export const startAt = 270;
+/** The gate across the track. */
+export const gateAt = 850;
+/** Where the engine waits at the shut gate. */
+export const gateWaitAt = 790;
+/** Far enough past the gate for the whole train to be off the screen. */
+export const pastGateAt = 1200;
 
-/** Each station's spot along the track: the top with one, the two sides with two. */
-export function stationAt(count: number, i: number): number {
-  const side = right - r - mid + (Math.PI * r) / 2 + (bottom - top - 2 * r) / 2;
-  if (count === 1) return loopLength / 2;
-  return i === 0 ? side : loopLength - side;
+/** How high a sign's middle stands above the track, clear of the train under it. */
+const signHeight = 190;
+const sign = (x: number) => ({ x, y: trackY(x) - signHeight });
+
+export const startSign = sign(110);
+export const gateSign = sign(880);
+
+/** A stop's sign, at the middle with one stop, and spread out with two. */
+export function stopSign(count: number, i: number) {
+  return sign(count === 1 ? 520 : i === 0 ? 420 : 650);
 }
 
-/** Where the engine stops so its wagon is right beside station i. */
+/** Where the engine stops so its wagon is right under stop i's sign. */
 export const stopAt = (count: number, i: number) =>
-  stationAt(count, i) + wagonGap;
+  stopSign(count, i).x + wagonGap;
+
+// ---- The mountain ----
+
+export const valley = { x: 94, y: 569 };
+/** The gate at the end of each trip's stretch, from the valley up. */
+export const gates = [
+  { x: 240, y: 512 },
+  { x: 385, y: 425 },
+  { x: 510, y: 356 },
+  { x: 625, y: 275 },
+  { x: 729, y: 187 },
+  { x: 807, y: 100 },
+] as const;
+export const summit = { x: 833, y: 42 };
+/** The end of the tutorial's practice track, at the foot of the mountain. */
+const practiceEnd = { x: 160, y: 543 };
+
+const lerp = (
+  a: { x: number; y: number },
+  b: { x: number; y: number },
+  t: number,
+) => ({ x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t });
+
+/** The gate at the end of trip n (1 to 6); the practice track's end for 0. */
+export const gateOf = (n: number) => gates[n - 1] ?? practiceEnd;
+
+/** Where the tiny train waits before the camera zooms in on trip n. */
+export const waitingFor = (n: number) =>
+  lerp(n <= 1 ? valley : gateOf(n - 1), gateOf(n), 0.45);
+
+/** A stretch is drawn this small on the mountain. */
+export const stretchScale = 0.12;
+
+/** Where trip n's stretch sits on the mountain: its gate on the mountain's gate. */
+export function stretchAt(n: number) {
+  const gate = gateOf(n);
+  return {
+    x: gate.x - gateAt * stretchScale,
+    y: gate.y - trackY(gateAt) * stretchScale,
+    width: viewBox.width * stretchScale,
+    height: viewBox.height * stretchScale,
+  };
+}
+
+/** A touch past filling the picture, so no sliver of the mountain shows at its edge. */
+const overscan = 1.004;
+
+/** The camera's move that fills the screen with trip n's stretch. */
+export function zoomOn(n: number): string {
+  const { x, y, width, height } = stretchAt(n);
+  const k = (1 / stretchScale) * overscan;
+  // Centred, so the overscan hides the mountain's edge on every side.
+  const inX = (viewBox.width - width * k) / 2;
+  const inY = (viewBox.height - height * k) / 2;
+  return `translate(${inX - x * k}px, ${inY - y * k}px) scale(${k})`;
+}
+
+/** The camera's move that shows the whole mountain. */
+export const wholeMountain = "translate(0px, 0px) scale(1)";
+
+/** The mountain's outline, and where its parts meet. */
+export const mountainOutline = "42,600 833,25 1000,300 1000,600";
+export const forestLine = 418;
+export const rockLine = 268;

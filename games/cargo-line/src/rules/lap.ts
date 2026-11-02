@@ -1,15 +1,37 @@
-// One lap: what the train leaves with, what each station loads or unloads,
-// what it must come back with, and which of those numbers is missing
-// (SPEC.md's Mechanic). Its steps are the sums its answer takes, and its
-// run is what the train does with a typed number.
+// One lap: what SPEC.md calls a trip, and a station is its stop (the code's
+// names, and the `lap-<n>` task IDs in records, date from when the train went
+// around a loop). What the train leaves with, what each station loads or
+// unloads, what it must arrive with, and which of those numbers is missing
+// (SPEC.md's Mechanic). Its steps are the sums its answer takes, and its run
+// is what the train does with a typed number.
 import { apply, type Dp, type Op } from "./amounts.ts";
 
-export type StationPlace = "farm" | "mill" | "quarry";
-export const stationPlaces: readonly StationPlace[] = [
-  "farm",
-  "mill",
-  "quarry",
-];
+export type StationPlace =
+  | "farm"
+  | "windmill"
+  | "sawmill"
+  | "cabin"
+  | "quarry"
+  | "mine";
+
+/** The mountain's three parts, in climbing order, two trips and two stops each. */
+export const mountainParts = [
+  ["farm", "windmill"],
+  ["sawmill", "cabin"],
+  ["quarry", "mine"],
+] as const satisfies readonly (readonly [StationPlace, StationPlace])[];
+
+/** Which part of the mountain trip n (1 to 6) is on. The tutorial's is the first. */
+export const partOf = (n: number) => Math.floor((Math.max(n, 1) - 1) / 2);
+
+/**
+ * The stops of trip n: both of its part's with two stops, and its part's two
+ * in turn with one.
+ */
+export function placesOf(n: number, stops: 1 | 2): StationPlace[] {
+  const part: readonly StationPlace[] = mountainParts[partOf(n)] ?? [];
+  return stops === 2 ? [...part] : part.filter((_, i) => i === (n - 1) % 2);
+}
 
 export interface Station {
   place: StationPlace;
@@ -172,7 +194,7 @@ export interface Run {
   /** Each station it got past. */
   stops: readonly Stop[];
   end: RunEnd;
-  /** It came back with the yard's number, or what was typed when that's missing. */
+  /** It arrived with the gate's number, or what was typed when that's missing. */
   succeeded: boolean;
 }
 

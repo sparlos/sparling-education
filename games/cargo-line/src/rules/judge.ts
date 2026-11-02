@@ -22,12 +22,12 @@ import {
 export const misconceptions = {
   "undoes-the-trip-wrong-way": {
     description:
-      "Undoes the trip the wrong way round (e.g. a train dropped off 136 and came back with 251: left with 251 − 136 = 115).",
+      "Undoes the trip the wrong way round (e.g. a train dropped off 136 and arrived with 251: left with 251 − 136 = 115).",
     decimalsOnly: false,
   },
   "adds-the-amounts-given": {
     description:
-      "Adds the two amounts given to find the change (e.g. a train left with 452 and came back with 315: dropped off 452 + 315 = 767).",
+      "Adds the two amounts given to find the change (e.g. a train left with 452 and arrived with 315: dropped off 452 + 315 = 767).",
     decimalsOnly: false,
   },
   "smaller-digit-from-larger": {

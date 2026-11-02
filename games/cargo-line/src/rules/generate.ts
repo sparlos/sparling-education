@@ -3,7 +3,7 @@
 // station amounts ending in a non-zero digit, the trades each sum may
 // have, and predictions for the misconceptions it should reveal that the
 // student could type and that can't be told apart from nothing else.
-import { int, pick, type Random } from "@repo/game-kit/random";
+import { int, type Random } from "@repo/game-kit/random";
 import { type Dp, lengthOf, tradesIn, written } from "./amounts.ts";
 import {
   distinct,
@@ -17,8 +17,9 @@ import {
   loadsOf,
   type Missing,
   makeLap,
+  placesOf,
   type Station,
-  stationPlaces,
+  type StationPlace,
   stepsOf,
 } from "./lap.ts";
 
@@ -51,6 +52,8 @@ export interface LapKind {
   trades: 1 | 2;
   /** Grade 5's lap 5: a sum trades across zeros, or more than twice. */
   hard: boolean;
+  /** The stops, from its part of the mountain, in the order the train reaches them. */
+  places: readonly StationPlace[];
 }
 
 export function lapKind(tier: TierId, n: number): LapKind {
@@ -60,7 +63,14 @@ export function lapKind(tier: TierId, n: number): LapKind {
   const trades = n <= 3 ? 1 : 2;
   switch (tier) {
     case "g3":
-      return { missing, stations: 1, dp: 0, trades, hard: false };
+      return {
+        missing,
+        stations: 1,
+        dp: 0,
+        trades,
+        hard: false,
+        places: placesOf(n, 1),
+      };
     case "g4":
       return {
         missing,
@@ -68,6 +78,7 @@ export function lapKind(tier: TierId, n: number): LapKind {
         dp: n === 3 || n === 6 ? 1 : 0,
         trades,
         hard: false,
+        places: placesOf(n, n <= 3 ? 1 : 2),
       };
     case "g5":
       return {
@@ -76,6 +87,7 @@ export function lapKind(tier: TierId, n: number): LapKind {
         dp: n % 2 === 0 ? 2 : 0,
         trades,
         hard: n === 5,
+        places: placesOf(n, 2),
       };
   }
 }
@@ -155,14 +167,12 @@ export function lapProblems(tier: TierId, kind: LapKind, lap: Lap): string[] {
 export function generateLap(tier: TierId, kind: LapKind, random: Random): Lap {
   const top = biggest(tier, kind.dp);
   for (let tries = 0; tries < 50_000; tries++) {
-    const places = [...stationPlaces];
     const stations: Station[] = [];
     let load = int(random, Math.ceil(top * 0.15), Math.floor(top * 0.85));
     const start = load;
     let ok = true;
     for (let i = 0; i < kind.stations; i++) {
-      const place = pick(random, places);
-      places.splice(places.indexOf(place), 1);
+      const place = kind.places[i] as StationPlace;
       const loads =
         kind.missing === "start" && i === 0 ? false : random() < 0.5;
       const hi = loads ? top - load : load - 1;

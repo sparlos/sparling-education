@@ -131,7 +131,7 @@ export const mutations = defineMutations([
     replace: "!s.loads && load <= s.amount",
   },
   {
-    name: "what comes back must match the yard's number even when it's missing",
+    name: "the gate's number must match even when it's missing",
     file: lap,
     find: 'lap.missing.what === "end" ? typed : lap.end',
     replace: "lap.end",
@@ -209,8 +209,8 @@ export const mutations = defineMutations([
   {
     name: "the next lap comes before the result is said",
     file: screen,
-    find: '      await speak(["run.solved"]);',
-    replace: '      void speak(["run.solved"]);',
+    find: 'await speak(["run.solved"]);',
+    replace: 'void speak(["run.solved"]);',
   },
   {
     name: "the pad stays on while the replay is announced",
@@ -221,11 +221,11 @@ export const mutations = defineMutations([
   {
     name: "the last result's caption stays up during a run",
     file: screen,
-    find: "      setCaption([]);\n",
-    replace: "",
+    find: "this run's.\n      setCaption([]);\n",
+    replace: "this run's.\n",
   },
   {
-    name: "the load shows when what comes back is missing",
+    name: "the load shows when what it arrives with is missing",
     file: screen,
     find: 'const hide = lap.missing.what === "end";',
     replace: "const hide = false;",
@@ -240,13 +240,74 @@ export const mutations = defineMutations([
     name: "the train waits on the voice at a station",
     file: screen,
     find: "          done += 1;\n",
-    replace: '          await speak(["lap.next"]);\n          done += 1;\n',
+    replace: '          await speak(["run.stakes"]);\n          done += 1;\n',
   },
   {
     name: "the train leaves before what Go tests is said",
     file: screen,
     find: 'await speak(["run.stakes"]);',
     replace: 'void speak(["run.stakes"]);',
+  },
+  {
+    name: "the climb starts before the opening's line is said",
+    file: screen,
+    find: 'await hold(Promise.all([speak(["climb.goal"]), pause(minLineMs)]));',
+    replace: 'void speak(["climb.goal"]);',
+  },
+  {
+    name: "a lap is told before the camera arrives",
+    file: screen,
+    find: "      await hold(moveMs(zoomMs));\n",
+    replace: "",
+  },
+  // The climb.
+  {
+    name: "the train doesn't roll back",
+    file: screen,
+    find: "setTrain({ ...atStart, ms: reducedMotion() ? 0 : rollMs });",
+    replace: "setTrain(atStart);",
+  },
+  {
+    name: "a gate stays red on the mountain",
+    file: screen,
+    find: "setCleared(done.index);",
+    replace: "",
+  },
+  {
+    name: "the flag never changes at the summit",
+    file: screen,
+    find: "setAtTop(true);",
+    replace: "",
+  },
+  {
+    name: "the camera stays close between laps",
+    file: screen,
+    find: "      setNear(false);\n      await hold(moveMs(pullMs));",
+    replace: "      await hold(moveMs(pullMs));",
+  },
+  {
+    name: "the pad works while the camera moves",
+    file: screen,
+    find: " && !demoing && !climbing;",
+    replace: " && !demoing;",
+  },
+  {
+    name: "skip doesn't end the camera's move",
+    file: screen,
+    find: "    endHold.current?.();\n",
+    replace: "",
+  },
+  {
+    name: "a skip carries over to the next climb",
+    file: screen,
+    find: "    await pause(solvedMs);\n    freshMove();",
+    replace: "    await pause(solvedMs);",
+  },
+  {
+    name: "one-stop laps always use the part's first stop",
+    file: lap,
+    find: "part.filter((_, i) => i === (n - 1) % 2)",
+    replace: "part.filter((_, i) => i === 0)",
   },
   {
     name: "what Go tests is said on every run",

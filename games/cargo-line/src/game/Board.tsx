@@ -1,6 +1,6 @@
-// One lap in the game frame: the loop (with the trip picture or the replay
-// over its field), and beside it the portrait, the number pad and Go. The tutorial and real laps both
-// render it; only who taps differs.
+// One lap in the game frame: the picture (with the trip picture or the replay
+// over it), and beside it the portrait, the number pad and Go. The tutorial
+// and real laps both render it; only who taps differs.
 import type { AvatarExpression } from "@repo/game-contract";
 import { GameFrame, NumberPad } from "@repo/game-kit/frame";
 import { palette } from "@repo/tokens";
@@ -8,14 +8,14 @@ import type { ComponentType, CSSProperties } from "react";
 import type { DemoStep } from "../rules/demo.ts";
 import type { Key, LapState } from "../rules/task.ts";
 import type { StringId } from "../strings.ts";
-import { captionText } from "./caption.ts";
-import styles from "./game.module.css";
 import {
-  Loop,
+  Climb,
   type StationMoment,
   type TrainView,
   type WrongSign,
-} from "./Loop.tsx";
+} from "./Climb.tsx";
+import { captionText } from "./caption.ts";
+import styles from "./game.module.css";
 import { Replay, type ReplayView } from "./Replay.tsx";
 import { TripPicture } from "./TripPicture.tsx";
 
@@ -40,15 +40,22 @@ export interface BoardProps {
   onKey(key: Key): void;
   onGo(): void;
   onHelp(): void;
-  /** The tutorial's skip button. */
+  /** The skip button: the tutorial's, or the camera's while it moves. */
   onSkip?: () => void;
+  /** Close on the stretch, or back on the whole mountain. */
+  near: boolean;
+  /** The camera jumps instead of moving: the student skipped. */
+  jump: boolean;
+  tiny: { x: number; y: number };
+  cleared: number;
+  atTop: boolean;
 }
 
 /** Which sign the last run turned red. */
 function wrongSign(state: LapState): WrongSign {
   const run = state.lastRun;
   if (!run || run.succeeded) return null;
-  return run.end.stalled ? { station: run.end.station } : "back";
+  return run.end.stalled ? { station: run.end.station } : "gate";
 }
 
 export function Board(props: BoardProps) {
@@ -63,7 +70,7 @@ export function Board(props: BoardProps) {
       onSkip={props.onSkip}
       stage={
         <div
-          className={styles.loopArea}
+          className={styles.sceneArea}
           style={
             {
               "--wrong": palette.ember[6],
@@ -77,8 +84,14 @@ export function Board(props: BoardProps) {
             } as CSSProperties
           }
         >
-          <div className={styles.loopBox}>
-            <Loop
+          <div className={styles.sceneBox}>
+            <Climb
+              index={state.index}
+              near={props.near}
+              jump={props.jump}
+              tiny={props.tiny}
+              cleared={props.cleared}
+              atTop={props.atTop}
               lap={lap}
               typed={state.typed}
               train={props.train}
@@ -90,7 +103,9 @@ export function Board(props: BoardProps) {
               wrong={wrongSign(state)}
               Avatar={props.Avatar}
             />
-            {state.hint && !props.replay && <TripPicture lap={lap} />}
+            {state.hint && !props.replay && props.near && (
+              <TripPicture lap={lap} />
+            )}
             {props.replay && (
               <Replay
                 lap={lap}

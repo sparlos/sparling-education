@@ -1,7 +1,7 @@
 // The trip picture (SPEC.md's Effort section, step 1): two bars of the
 // same length. The top one is what went onto the train (what it left with,
 // then each pickup); the bottom one is what came off (each drop-off, then
-// what came back). Each part is labelled with its sign's number, the
+// what it arrived with). Each part is labelled with its sign's number, the
 // missing one with ?.
 import { written } from "../rules/amounts.ts";
 import type { Lap } from "../rules/lap.ts";
@@ -12,8 +12,8 @@ interface Part {
   value: number;
   label: string;
   missing: boolean;
-  /** Loading, unloading, or the yard's own number. */
-  kind: "yard" | "load" | "unload";
+  /** Loading, unloading, or the start's or the gate's own number. */
+  kind: "end" | "load" | "unload";
 }
 
 export function tripBars(lap: Lap): { on: Part[]; off: Part[] } {
@@ -37,12 +37,12 @@ export function tripBars(lap: Lap): { on: Part[]; off: Part[] } {
   );
   return {
     on: [
-      part(lap.start, missing.what === "start", "yard"),
+      part(lap.start, missing.what === "start", "end"),
       ...stations.filter((p) => p.kind === "load"),
     ],
     off: [
       ...stations.filter((p) => p.kind === "unload"),
-      part(lap.end, missing.what === "end", "yard"),
+      part(lap.end, missing.what === "end", "end"),
     ],
   };
 }

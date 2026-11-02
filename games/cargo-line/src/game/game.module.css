@@ -1,8 +1,8 @@
-/* What's Cargo Line's own in the game frame: the loop takes whatever room
-   the frame leaves, at its own shape (5 × 3), so the help pictures over its
-   field line up with it. */
+/* What's Cargo Line's own in the game frame: the picture takes whatever room
+   the frame leaves, at its own shape (5 × 3), so the help pictures over it
+   line up with it. */
 
-.loopArea {
+.sceneArea {
   min-height: 0;
   min-width: 0;
   container-type: size;
@@ -10,16 +10,48 @@
   place-items: center;
 }
 
-.loopBox {
+.sceneBox {
   position: relative;
   width: min(100cqw, 100cqh * 5 / 3);
   aspect-ratio: 5 / 3;
 }
 
-.loopSvg {
+.scene {
   display: block;
   width: 100%;
   height: 100%;
+  border-radius: 16px;
+}
+
+/* The camera, moving between the whole mountain and one stretch. */
+.camera {
+  transform-origin: 0 0;
+  transition: transform 1200ms var(--k-ease-standard);
+}
+
+.stretch {
+  opacity: 0;
+  transition: opacity 350ms var(--k-ease-standard);
+}
+
+.stretch[data-near] {
+  opacity: 1;
+  transition: opacity 450ms var(--k-ease-standard) 750ms;
+}
+
+.tiny {
+  transition: transform 1400ms var(--k-ease-standard);
+}
+
+.gate {
+  transition: transform var(--k-duration-slow) var(--k-ease-standard);
+}
+
+.scene[data-jump] .camera,
+.scene[data-jump] .stretch,
+.scene[data-jump] .tiny,
+.scene[data-jump] .gate {
+  transition: none;
 }
 
 .signText {
@@ -52,7 +84,7 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* The trip's sum, in the field. */
+/* The trip's sum, on the hillside. */
 .tallyPlate {
   fill: var(--roof);
   stroke: var(--sign-ink);
@@ -66,7 +98,7 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* A station's moment: crates cross between it and the wagon, and its amount
+/* A stop's moment: crates cross between it and the wagon, and its amount
    pops up over its sign. */
 .hop {
   opacity: 0;
@@ -118,7 +150,7 @@
   }
 }
 
-/* The yard's sign, while the train waits at the gate to be checked. */
+/* The gate's sign, while the train waits there to be checked. */
 .checkRing {
   fill: none;
   stroke: var(--check);
@@ -126,12 +158,8 @@
   animation: glowPulse 500ms var(--k-ease-standard) infinite;
 }
 
-.gate {
-  transition: transform var(--k-duration-slow) var(--k-ease-standard);
-}
-
 .gate[data-open] {
-  transform: scaleY(0.12);
+  transform: rotate(-82deg);
 }
 
 .stalled {
@@ -159,12 +187,12 @@
   }
 }
 
-/* The trip picture, on the field in the middle of the loop. */
+/* The trip picture, in the sky at the top left, clear of the signs. */
 .trip {
   position: absolute;
-  left: 33.5%;
-  right: 33.5%;
-  top: 45%;
+  left: 3%;
+  width: 40%;
+  top: 3%;
   height: 14.5%;
   display: grid;
   grid-template-rows: 1fr 1fr;
@@ -212,7 +240,7 @@
   border-radius: 6px;
 }
 
-/* The replay, over the field. */
+/* The replay, over the stretch. */
 .replay {
   position: absolute;
   left: 12%;
@@ -340,7 +368,11 @@
   .hop {
     display: none;
   }
-  .gate {
+  .gate,
+  .camera,
+  .stretch,
+  .stretch[data-near],
+  .tiny {
     transition: none;
   }
 }

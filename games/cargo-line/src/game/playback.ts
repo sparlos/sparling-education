@@ -1,10 +1,10 @@
 // A run, as the beats the screen plays in turn: the train drives to each
-// station, its load ticks up or down there, and it stalls or comes back to
-// the gate, which opens or stays shut. Times come from distance, so the
-// train keeps one speed. Plain data, tested on its own.
+// stop, its load ticks up or down there, and it stalls or reaches the gate,
+// which opens or stays shut. Times come from distance, so the train keeps one
+// speed. Plain data, tested on its own.
 import { written } from "../rules/amounts.ts";
 import { type Lap, type Run, withTyped } from "../rules/lap.ts";
-import { gateWaitAt, loopLength, stopAt, yardAt } from "./track.ts";
+import { gateWaitAt, pastGateAt, startAt, stopAt } from "./track.ts";
 
 export type Beat =
   | { kind: "drive"; to: number; ms: number }
@@ -17,16 +17,24 @@ export type Beat =
       ms: number;
     }
   | { kind: "stall"; station: number; ms: number }
-  /** The train waits at the gate while the yard's sign is checked. */
+  /** The train waits at the gate while its sign is checked. */
   | { kind: "check"; ms: number }
   | { kind: "gate"; open: boolean; ms: number };
 
 /** Track units a millisecond. */
-const speed = 0.5;
+const speed = 0.4;
 export const stationMs = 1300;
 export const stallMs = 700;
 export const gateMs = 600;
 export const checkMs = 600;
+/** How long the train takes to roll back down to the start after a miss. */
+export const rollMs = 1400;
+/** The camera pulling back to the whole mountain. */
+export const pullMs = 1000;
+/** The tiny train climbing towards its next gate. */
+export const tinyMs = 1400;
+/** The camera zooming in on the next stretch. */
+export const zoomMs = 1300;
 
 const drive = (from: number, to: number, fast: boolean): Beat => ({
   kind: "drive",
@@ -38,7 +46,7 @@ const drive = (from: number, to: number, fast: boolean): Beat => ({
 export function beatsFor(lap: Lap, run: Run, fast = false): Beat[] {
   const count = lap.stations.length;
   const beats: Beat[] = [];
-  let at = yardAt;
+  let at = startAt;
   for (const stop of run.stops) {
     const to = stopAt(count, stop.station);
     beats.push(drive(at, to, fast));
@@ -54,13 +62,13 @@ export function beatsFor(lap: Lap, run: Run, fast = false): Beat[] {
   beats.push(drive(at, gateWaitAt, fast));
   beats.push({ kind: "check", ms: fast ? 200 : checkMs });
   beats.push({ kind: "gate", open: run.succeeded, ms: gateMs });
-  if (run.succeeded) beats.push(drive(gateWaitAt, loopLength + yardAt, fast));
+  if (run.succeeded) beats.push(drive(gateWaitAt, pastGateAt, fast));
   return beats;
 }
 
 /**
  * The trip's sum so far, after `done` stops: "225 + 293 = 518". When what
- * comes back is missing, its result stays "?" until the train has made it, so
+ * it arrives with is missing, its result stays "?" until the train has made it, so
  * a wrong run can't give the answer away. `ended` is the run's last moment,
  * which adds the drop-off a stalled train couldn't make: "115 − 136".
  */

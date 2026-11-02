@@ -5,8 +5,8 @@
 // answer; on lap 2 it takes the trip picture. At the widest size it also
 // misses four times on lap 4 to watch the replay, with the train at full
 // length; the narrower size only checks fit, so its train jumps between stops
-// (reduced motion). Checks the screen fits, the loop and controls show, and
-// every target is 64 px, at every step. See packages/game-kit/src/tour.ts.
+// and its camera cuts (reduced motion). Checks the screen fits, the picture and
+// controls show, and every target is 64 px, at every step. See packages/game-kit/src/tour.ts.
 import { defineTour } from "@repo/game-kit/tour";
 import type { Page } from "playwright-core";
 
@@ -21,7 +21,8 @@ interface Seen {
 const readLap = (page: Page): Promise<Seen> =>
   page.evaluate(() => {
     const dp = Number(
-      (document.querySelector('[data-testid="loop"]') as SVGElement).dataset.dp,
+      (document.querySelector('[data-testid="scene"]') as SVGElement).dataset
+        .dp,
     );
     const value = (el: Element | null) => {
       const g = el as SVGGElement;
@@ -38,7 +39,7 @@ const readLap = (page: Page): Promise<Seen> =>
           '[data-testid="sign-station"]',
         ),
       ].map((g) => ({ loads: g.dataset.loads === "true", amount: value(g) })),
-      end: value(document.querySelector('[data-testid="sign-back"]')),
+      end: value(document.querySelector('[data-testid="sign-arrives"]')),
     };
   });
 
@@ -87,20 +88,21 @@ export default defineTour({
   // The spec's call for this game: 64 px at every grade.
   minTarget: () => 64,
   mustShow: [
-    '[data-testid="loop"]',
+    '[data-testid="scene"]',
     '[data-testid="sign-leaves"]',
-    '[data-testid="sign-back"]',
+    '[data-testid="sign-arrives"]',
     '[data-testid="main"]',
     '[data-testid="caption"]',
   ],
   firstPlay: ({ first }) => first,
   reducedMotion: ({ first }) => !first,
   async play({ page, grade, first, firstPlay, checkFit, screenshot, log }) {
+    await page.waitForSelector('[data-testid="board"]');
+    await screenshot("mountain");
     if (firstPlay) {
-      await page.waitForSelector('[data-testid="board"]');
       await checkFit("tutorial");
       if (grade === 3) {
-        await page.waitForTimeout(8000);
+        await page.waitForTimeout(14_000);
         await screenshot("tutorial");
         await waitIdle(page);
       } else {
@@ -160,6 +162,24 @@ export default defineTour({
       if (first && i === 3) {
         await page.waitForTimeout(2500);
         await screenshot("running");
+      }
+      if (first && i === 4) {
+        await page.waitForSelector(
+          '[data-testid="scene"][data-camera="mountain"]',
+          {
+            timeout: 60_000,
+          },
+        );
+        await page.waitForTimeout(1200);
+        await checkFit("back on the mountain");
+        await screenshot("pulled-back");
+      }
+      if (first && i === 6) {
+        await page.waitForSelector(
+          '[data-testid="summit-flag"][data-reached]',
+          { timeout: 60_000 },
+        );
+        await screenshot("summit");
       }
       log(`lap ${i}: ${JSON.stringify(o)} → ${text(right, o.dp)}`);
     }

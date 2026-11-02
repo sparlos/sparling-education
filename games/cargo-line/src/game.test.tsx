@@ -5,6 +5,8 @@ import { seeded } from "@repo/game-kit/random";
 import { heldVoice, mountGame } from "@repo/game-kit/testing";
 import { screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { rollMs } from "./game/playback.ts";
+import { startAt } from "./game/track.ts";
 import game from "./index.tsx";
 import { written } from "./rules/amounts.ts";
 import { generatePlay, type TierId } from "./rules/generate.ts";
@@ -20,8 +22,10 @@ const lapsFor = (tier: TierId) =>
 
 type Shell = ReturnType<typeof mountGame<typeof game.manifest>>;
 
-/** Long enough for any run, its result and the next lap's arrival. */
+/** Long enough for any run, its result, the climb and the next lap's arrival. */
 const runWait = 20_000;
+/** Long enough for the opening: the goal, the climb and the zoom. */
+const openWait = 6000;
 
 const key = (k: string) =>
   screen.getAllByTestId("key").find((b) => b.dataset.key === k) as HTMLElement;
@@ -47,6 +51,14 @@ async function waitForStation(shell: Shell) {
   throw new Error("The train never reached a station");
 }
 
+/** With the voice held: says the goal, climbs, and says the first lap's story. */
+async function opened(shell: Shell, finishLine: () => void) {
+  await shell.wait(100);
+  finishLine();
+  await shell.wait(openWait);
+  finishLine();
+}
+
 const playing = (tier: TierId) => {
   const shell = mountGame(game, { tier, random, firstPlay: false });
   return { shell, laps: lapsFor(tier) };
@@ -60,17 +72,24 @@ afterEach(() => {
 });
 
 describe("the opening", () => {
-  it("tells a returning student the first lap's story, with no tutorial", async () => {
+  it("shows a returning student the mountain and the goal, then zooms in on the first lap, with no tutorial", async () => {
     const { shell, laps } = playing("g3");
     await shell.wait(100);
-    expect(shell.said).toEqual([lapLines(laps[0] as Lap)]);
+    expect(shell.said).toEqual([["climb.goal"]]);
+    expect(screen.getByTestId("scene")).toHaveAttribute(
+      "data-camera",
+      "mountain",
+    );
+    await shell.wait(openWait);
+    expect(shell.said).toEqual([["climb.goal"], lapLines(laps[0] as Lap)]);
+    expect(screen.getByTestId("scene")).toHaveAttribute("data-camera", "1");
     expect(screen.queryByTestId("skip")).not.toBeInTheDocument();
     expect(shell.progress()).toEqual([{ done: 0, total: 6 }]);
   });
 
   it("keeps Go off until a number is typed", async () => {
     const { shell } = playing("g3");
-    await shell.wait(100);
+    await shell.wait(openWait);
     expect(screen.getByTestId("main")).toBeDisabled();
     await shell.tap(key("4"));
     expect(screen.getByTestId("main")).toBeEnabled();
@@ -78,14 +97,14 @@ describe("the opening", () => {
 
   it("shows what's typed on the missing sign", async () => {
     const { shell, laps } = playing("g3");
-    await shell.wait(100);
-    // Lap 1: what comes back is missing.
+    await shell.wait(openWait);
+    // Lap 1: what it arrives with is missing.
     expect((laps[0] as Lap).missing.what).toBe("end");
-    const back = screen.getByTestId("sign-back");
-    expect(back).toHaveAttribute("data-missing", "true");
-    expect(back).toHaveAttribute("data-text", "?");
+    const arrives = screen.getByTestId("sign-arrives");
+    expect(arrives).toHaveAttribute("data-missing", "true");
+    expect(arrives).toHaveAttribute("data-text", "?");
     await typeNumber(shell, "42");
-    expect(back).toHaveAttribute("data-text", "42");
+    expect(arrives).toHaveAttribute("data-text", "42");
   });
 });
 
@@ -101,19 +120,32 @@ describe("the tutorial", () => {
       finishLine();
       await shell.wait(ms);
     };
-    for (let i = 0; i < 3; i++) await finish(4000);
+    await finish(4000);
+    expect(shell.lastSaid()).toEqual(["climb.goal"]);
+    expect(screen.getByTestId("scene")).toHaveAttribute(
+      "data-camera",
+      "mountain",
+    );
+    await finish(4000);
+    // The goal said: the camera goes to the practice track.
+    expect(screen.getByTestId("scene")).toHaveAttribute("data-camera", "0");
+    for (let i = 0; i < 2; i++) await finish(4000);
     expect(shell.said.map((s) => s[0])).toEqual([
       "tutorial.welcome",
+      "climb.goal",
       "tutorial.signs",
       "tutorial.missing",
       "tutorial.go",
     ]);
     // The wrong number first.
-    expect(screen.getByTestId("sign-back")).toHaveAttribute("data-text", "9");
+    expect(screen.getByTestId("sign-arrives")).toHaveAttribute(
+      "data-text",
+      "9",
+    );
     await finish(runWait);
     // The run says nothing until its result.
     expect(shell.lastSaid()).toEqual(["run.too-big"]);
-    expect(shell.said).toHaveLength(5);
+    expect(shell.said).toHaveLength(6);
     expect(screen.getByTestId("gate")).not.toHaveAttribute("data-open");
     expect(screen.getByTestId("tally")).toHaveAttribute(
       "data-text",
@@ -132,8 +164,9 @@ describe("the tutorial", () => {
     expect(shell.lastSaid()).toEqual(["run.solved"]);
     await finish(4000);
     expect(shell.lastSaid()).toEqual(["tutorial.your-turn"]);
-    await finish(3000);
+    await finish(openWait);
     expect(shell.lastSaid()).toEqual(lapLines(lapsFor("g3")[0] as Lap));
+    expect(screen.getByTestId("scene")).toHaveAttribute("data-camera", "1");
     expect(shell.attempts()).toEqual([]);
     // What Go tests has just been shown, so it isn't said again.
     finishLine();
@@ -153,20 +186,26 @@ describe("the tutorial", () => {
       lines.at(-1)?.();
       await shell.wait(4000);
     }
+    lines.at(-1)?.();
     await waitForStation(shell);
     await shell.tap(screen.getByTestId("skip"));
     for (const line of lines) line();
     await shell.wait(5000);
     expect(screen.queryByTestId("station-amount")).not.toBeInTheDocument();
     expect(screen.queryByTestId("tally")).not.toBeInTheDocument();
-    expect(screen.getByTestId("train")).toHaveAttribute("data-at", "40");
+    expect(screen.getByTestId("train")).toHaveAttribute(
+      "data-at",
+      String(startAt),
+    );
   });
 
   it("can be skipped at any time", async () => {
     const shell = mountGame(game, { tier: "g4", random });
     await shell.wait(500);
     await shell.tap(screen.getByTestId("skip"));
+    await shell.wait(10);
     expect(shell.lastSaid()).toEqual(lapLines(lapsFor("g4")[0] as Lap));
+    expect(screen.getByTestId("scene")).toHaveAttribute("data-camera", "1");
     expect(screen.queryByTestId("skip")).not.toBeInTheDocument();
   });
 });
@@ -174,7 +213,7 @@ describe("the tutorial", () => {
 describe.each(["g3", "g4", "g5"] as const)("a %s play", (tier) => {
   it("records a miss and a solve on every lap, then finishes", async () => {
     const { shell, laps } = playing(tier);
-    await shell.wait(100);
+    await shell.wait(openWait);
     const expectation = game.manifest.tiers[tier].expectations[0];
     const expected = [];
     for (const [i, lap] of laps.entries()) {
@@ -207,7 +246,17 @@ describe.each(["g3", "g4", "g5"] as const)("a %s play", (tier) => {
     expect(shell.progress()).toEqual(
       [0, 1, 2, 3, 4, 5, 6].map((done) => ({ done, total: 6 })),
     );
-    expect(shell.lastSaid()).toEqual(["run.solved", "play.done"]);
+    expect(shell.said.at(-2)).toEqual(["run.solved"]);
+    expect(shell.lastSaid()).toEqual(["play.done"]);
+    expect(screen.getByTestId("scene")).toHaveAttribute(
+      "data-camera",
+      "mountain",
+    );
+    expect(screen.getByTestId("mountain")).toHaveAttribute("data-cleared", "6");
+    expect(screen.getByTestId("summit-flag")).toHaveAttribute(
+      "data-reached",
+      "true",
+    );
     expect(screen.getByTestId("portrait").firstChild).toHaveAttribute(
       "data-expression",
       "cheering",
@@ -219,7 +268,7 @@ describe.each(["g3", "g4", "g5"] as const)("a %s play", (tier) => {
 describe("a run", () => {
   it("stalls at a station with too little on board, and turns its sign red", async () => {
     const { shell, laps } = playing("g3");
-    await shell.wait(100);
+    await shell.wait(openWait);
     const lap = laps[2] as Lap; // the start is missing; the station unloads
     // Lap 1 and 2 first.
     for (const l of laps.slice(0, 2)) await tryNumber(shell, l, answerOf(l));
@@ -235,12 +284,25 @@ describe("a run", () => {
       "unit.crates-end",
       "run.cant-drop",
     ]);
-    // Typing again clears it and brings the train home.
+    // It holds still at the red sign for as long as the student needs.
+    const stalledAt = screen.getByTestId("train").dataset.at;
+    expect(stalledAt).not.toBe(String(startAt));
+    await shell.wait(30_000);
+    expect(screen.getByTestId("train").dataset.at).toBe(stalledAt);
+    // The first key clears it and rolls the train back down.
     await shell.tap(key("del"));
     expect(screen.getByTestId("sign-station")).not.toHaveAttribute(
       "data-wrong",
     );
     expect(screen.getByTestId("train")).not.toHaveAttribute("data-stalled");
+    expect(screen.getByTestId("train")).toHaveAttribute(
+      "data-at",
+      String(startAt),
+    );
+    expect(screen.getByTestId("train")).toHaveAttribute(
+      "data-ms",
+      String(rollMs),
+    );
   });
 
   it("says what Go tests once a play, before the train leaves", async () => {
@@ -251,12 +313,14 @@ describe("a run", () => {
       random,
       firstPlay: false,
     });
-    await shell.wait(100);
-    finishLine();
+    await opened(shell, finishLine);
     const lap = lapsFor("g3")[0] as Lap;
     await tryNumber(shell, lap, lap.end + 1, 3000);
     expect(shell.lastSaid()).toEqual(["run.stakes"]);
-    expect(screen.getByTestId("train")).toHaveAttribute("data-at", "40");
+    expect(screen.getByTestId("train")).toHaveAttribute(
+      "data-at",
+      String(startAt),
+    );
     expect(key("1")).toBeDisabled();
     finishLine();
     await shell.wait(runWait);
@@ -275,8 +339,7 @@ describe("a run", () => {
       random,
       firstPlay: false,
     });
-    await shell.wait(100);
-    finishLine();
+    await opened(shell, finishLine);
     const lap = lapsFor("g3")[0] as Lap;
     const station = lap.stations[0] as Lap["stations"][number];
     await typeNumber(shell, written(lap.end + 1, 0));
@@ -294,13 +357,13 @@ describe("a run", () => {
     expect(shell.said.slice(said)).toEqual([["run.too-big"]]);
   });
 
-  it("keeps the answer back when what comes back is missing, and says if the number is too big or too small", async () => {
+  it("keeps the answer back when what it arrives with is missing, and says if the number is too big or too small", async () => {
     const { shell, laps } = playing("g3");
-    await shell.wait(100);
+    await shell.wait(openWait);
     const lap = laps[0] as Lap;
     await tryNumber(shell, lap, lap.end + 1);
     expect(shell.lastSaid()).toEqual(["run.too-big"]);
-    expect(screen.getByTestId("sign-back")).toHaveAttribute(
+    expect(screen.getByTestId("sign-arrives")).toHaveAttribute(
       "data-wrong",
       "true",
     );
@@ -319,9 +382,9 @@ describe("a run", () => {
     expect(shell.said.at(-2)).toEqual(["run.too-small"]);
   });
 
-  it("checks the yard's sign at the gate", async () => {
+  it("checks the gate's sign when the train gets there", async () => {
     const { shell, laps } = playing("g3");
-    await shell.wait(100);
+    await shell.wait(openWait);
     const lap = laps[0] as Lap;
     await tryNumber(shell, lap, lap.end + 1);
     await typeNumber(shell, written(lap.end + 2, 0));
@@ -344,8 +407,7 @@ describe("a run", () => {
       random,
       firstPlay: false,
     });
-    await shell.wait(100);
-    finishLine();
+    await opened(shell, finishLine);
     const lap = lapsFor("g3")[0] as Lap;
     await typeNumber(shell, written(lap.end, 0));
     await shell.tap(screen.getByTestId("main"));
@@ -356,15 +418,127 @@ describe("a run", () => {
     await shell.wait(runWait);
     expect(shell.lastSaid()).toEqual(["run.solved"]);
     finishLine();
+    // The camera's move has no voice, and the next lap's told at its end.
     await shell.wait(2000);
-    expect(shell.lastSaid()[0]).toBe("lap.next");
+    expect(shell.lastSaid()).toEqual(["run.solved"]);
+    await shell.wait(openWait);
+    expect(shell.lastSaid()).toEqual(lapLines(lapsFor("g3")[1] as Lap));
+  });
+});
+
+describe("the climb", () => {
+  async function solveFirst(shell: Shell, lap: Lap) {
+    await typeNumber(shell, written(answerOf(lap), 0));
+    await shell.tap(screen.getByTestId("main"));
+    for (let i = 0; i < 400; i++) {
+      if (shell.lastSaid()[0] === "run.solved") break;
+      await shell.wait(50);
+    }
+    // The line, then the pause after it.
+    await shell.wait(1000);
+  }
+
+  it("pulls back after a gate opens, shows it green, and zooms in on the next stretch", async () => {
+    const { shell, laps } = playing("g3");
+    await shell.wait(openWait);
+    await solveFirst(shell, laps[0] as Lap);
+    expect(screen.getByTestId("scene")).toHaveAttribute(
+      "data-camera",
+      "mountain",
+    );
+    expect(screen.getByTestId("mountain")).toHaveAttribute("data-cleared", "1");
+    expect(key("1")).toBeDisabled();
+    expect(screen.getByTestId("main")).toBeDisabled();
+    await shell.wait(openWait);
+    expect(screen.getByTestId("scene")).toHaveAttribute("data-camera", "2");
+    expect(key("1")).toBeEnabled();
+    expect(screen.getByTestId("station")).toHaveAttribute(
+      "data-place",
+      "windmill",
+    );
+  });
+
+  it("tells the next lap only once the camera has arrived, with the pad off until then", async () => {
+    const { shell, laps } = playing("g3");
+    await shell.wait(openWait);
+    await solveFirst(shell, laps[0] as Lap);
+    for (let i = 0; i < 200; i++) {
+      if (screen.getByTestId("scene").dataset.camera === "2") break;
+      await shell.wait(50);
+    }
+    expect(screen.getByTestId("scene")).toHaveAttribute("data-camera", "2");
+    expect(shell.lastSaid()).toEqual(["run.solved"]);
+    expect(key("1")).toBeDisabled();
+    await shell.wait(openWait);
+    expect(shell.lastSaid()).toEqual(lapLines(laps[1] as Lap));
+    expect(key("1")).toBeEnabled();
+  });
+
+  it("holds the mountain until the goal has been said", async () => {
+    const { voice, finishLine } = heldVoice();
+    const shell = mountGame(game, {
+      tier: "g3",
+      voice,
+      random,
+      firstPlay: false,
+    });
+    await shell.wait(openWait * 3);
+    expect(shell.said).toEqual([["climb.goal"]]);
+    expect(screen.getByTestId("scene")).toHaveAttribute(
+      "data-camera",
+      "mountain",
+    );
+    finishLine();
+    await shell.wait(openWait);
+    expect(screen.getByTestId("scene")).toHaveAttribute("data-camera", "1");
+  });
+
+  it("can be skipped, and goes straight to the next stretch", async () => {
+    const { shell, laps } = playing("g3");
+    await shell.wait(openWait);
+    await solveFirst(shell, laps[0] as Lap);
+    await shell.tap(screen.getByTestId("skip"));
+    await shell.wait(10);
+    expect(screen.getByTestId("scene")).toHaveAttribute("data-camera", "2");
+    expect(screen.getByTestId("scene")).toHaveAttribute("data-jump", "true");
+    expect(shell.lastSaid()).toEqual(lapLines(laps[1] as Lap));
+    expect(screen.queryByTestId("skip")).not.toBeInTheDocument();
+  });
+
+  it("can skip the opening, even mid-line", async () => {
+    const { voice } = heldVoice();
+    const shell = mountGame(game, {
+      tier: "g3",
+      voice,
+      random,
+      firstPlay: false,
+    });
+    await shell.wait(100);
+    await shell.tap(screen.getByTestId("skip"));
+    await shell.wait(10);
+    expect(screen.getByTestId("scene")).toHaveAttribute("data-camera", "1");
+    expect(shell.lastSaid()).toEqual(lapLines(lapsFor("g3")[0] as Lap));
+  });
+
+  it("moves on again after a skip, with the camera moving", async () => {
+    const { shell, laps } = playing("g3");
+    await shell.wait(openWait);
+    await solveFirst(shell, laps[0] as Lap);
+    await shell.tap(screen.getByTestId("skip"));
+    await shell.wait(10);
+    await solveFirst(shell, laps[1] as Lap);
+    expect(screen.getByTestId("scene")).not.toHaveAttribute("data-jump");
+    expect(screen.getByTestId("scene")).toHaveAttribute(
+      "data-camera",
+      "mountain",
+    );
   });
 });
 
 describe("help", () => {
   it("glows after 2 misses, and the trip picture is recorded as a hint", async () => {
     const { shell, laps } = playing("g4");
-    await shell.wait(100);
+    await shell.wait(openWait);
     const lap = laps[0] as Lap;
     await tryNumber(shell, lap, lap.end + 1);
     expect(screen.getByTestId("hint")).not.toHaveAttribute("data-glow");
@@ -394,6 +568,7 @@ describe("help", () => {
     });
     await shell.wait(100);
     const lap = lapsFor("g3")[0] as Lap;
+    const firstColumn = lap.stations[0]?.loads ? "demo.add.0" : "demo.take.0";
     const finishAll = async (times: number) => {
       for (let i = 0; i < times; i++) {
         finishLine();
@@ -411,12 +586,12 @@ describe("help", () => {
     finishLine();
     await shell.wait(3000);
     expect(screen.getByTestId("replay")).toBeInTheDocument();
-    expect(shell.lastSaid()).toEqual(["demo.add.0"]);
+    expect(shell.lastSaid()).toEqual([firstColumn]);
     // The pad stays off through the replay.
     expect(key("1")).toBeDisabled();
     await shell.wait(5000);
     // Still on the ones until that line has been said.
-    expect(shell.lastSaid()).toEqual(["demo.add.0"]);
+    expect(shell.lastSaid()).toEqual([firstColumn]);
     await finishAll(12);
     expect(screen.queryByTestId("replay")).not.toBeInTheDocument();
     expect(shell.lastSaid()[0]).toBe("demo.answer");

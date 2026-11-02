@@ -1,5 +1,6 @@
-// The game: the tutorial (on the student's first play only), then six
-// laps. The rules live in ../rules; this file wires them to taps, the
+// The game: one climb up the mountain. The tutorial (on the student's first
+// play only), then six laps, with the camera pulling back between them. The
+// rules live in ../rules; this file wires them to taps, the
 // train's run, the replay, the voice and the shell.
 //
 // The voice and the screen take turns, never both at once: `await speak(...)`
@@ -30,10 +31,17 @@ import {
 } from "../rules/task.ts";
 import type { StringId } from "../strings.ts";
 import { Board } from "./Board.tsx";
-import type { StationMoment, TrainView } from "./Loop.tsx";
-import { beatsFor, tallyText } from "./playback.ts";
+import type { StationMoment, TrainView } from "./Climb.tsx";
+import {
+  beatsFor,
+  pullMs,
+  rollMs,
+  tallyText,
+  tinyMs,
+  zoomMs,
+} from "./playback.ts";
 import type { ReplayView } from "./Replay.tsx";
-import { yardAt } from "./track.ts";
+import { gateOf, startAt, summit, valley, waitingFor } from "./track.ts";
 import {
   beatMs,
   type Cue,
@@ -52,7 +60,12 @@ const ticks = 6;
 
 type Mode = "tutorial" | "play" | "done";
 
-const inYard: TrainView = { at: yardAt, ms: 0, stalled: false, waving: false };
+const atStart: TrainView = {
+  at: startAt,
+  ms: 0,
+  stalled: false,
+  waving: false,
+};
 
 /** The roof's number before a run: what the train will leave with, or ? if that's not typed yet. */
 const idleRoof = (state: LapState): number | null =>
@@ -80,7 +93,14 @@ export function CargoLine(props: GameProps<Manifest>) {
   const current = useRef(state);
   // What Go tests is said once a play, unless the tutorial has just shown it.
   const stakesDue = useRef(true);
-  const [train, setTrain] = useState<TrainView>(inYard);
+  // The camera: close on the stretch, or back on the whole mountain.
+  const [near, setNear] = useState(false);
+  const [climbing, setClimbing] = useState(!firstPlay);
+  const [jump, setJump] = useState(false);
+  const [tiny, setTiny] = useState(valley);
+  const [cleared, setCleared] = useState(0);
+  const [atTop, setAtTop] = useState(false);
+  const [train, setTrain] = useState<TrainView>(atStart);
   // A number shown on the roof instead of the idle one: during a run, and
   // after the replay. Hidden while the train carries what's being worked out.
   const [roof, setRoof] = useState<number | null | "idle" | "hidden">("idle");
@@ -103,6 +123,36 @@ export function CargoLine(props: GameProps<Manifest>) {
   // Every timer, cleared together on skip, on a new lap, and on unmount.
   // A pause cut short this way never resumes, which ends whatever awaited it.
   const { later, pause, clear: clearTimers } = useTimers();
+
+  // A skip ends the camera's move now, and every step after it on this climb.
+  const skipped = useRef(false);
+  const endHold = useRef<(() => void) | null>(null);
+  /** Waits for `work`, unless the student skips. */
+  const hold = useCallback(
+    (work: Promise<unknown>) =>
+      skipped.current
+        ? Promise.resolve()
+        : new Promise<void>((resolve) => {
+            endHold.current = resolve;
+            void work.then(() => resolve());
+          }),
+    [],
+  );
+  const skipMove = useCallback(() => {
+    skipped.current = true;
+    setJump(true);
+    endHold.current?.();
+  }, []);
+  /** Starts a new move of the camera, which moves unless it's been skipped. */
+  const freshMove = useCallback(() => {
+    skipped.current = false;
+    setJump(false);
+  }, []);
+  /** A pause for the camera, short with reduced motion. */
+  const moveMs = useCallback(
+    (ms: number) => pause(reducedMotion() ? Math.min(ms, 200) : ms),
+    [pause],
+  );
 
   const commit = useCallback((next: LapState) => {
     current.current = next;
@@ -132,14 +182,14 @@ export function CargoLine(props: GameProps<Manifest>) {
       setCaption([]);
       setGateOpen(false);
       setMood("neutral");
-      setTrain(inYard);
+      setTrain(atStart);
       setRoof(hide ? "hidden" : run.start);
       setTally(tallyText(lap, run, 0));
       setMoment(null);
       setChecking(false);
       if (stakes) await speak(["run.stakes"]);
       await pause(beatMs / 2);
-      setTrain({ ...inYard, waving: true });
+      setTrain({ ...atStart, waving: true });
       for (const beat of beatsFor(lap, run, reducedMotion())) {
         if (beat.kind === "drive") {
           setTrain((now) => ({ ...now, at: beat.to, ms: beat.ms }));
@@ -184,13 +234,13 @@ export function CargoLine(props: GameProps<Manifest>) {
     [later, pause, speak],
   );
 
-  /** A pad key. A changed number brings the train back to the yard, ready to go again. */
+  /** A pad key. A changed number rolls the train back down to the start, ready to go again. */
   const pressKey = useCallback(
     (key: Key) => {
       const before = current.current;
       const next = press(before, key);
       if (before.lastRun && !next.lastRun) {
-        setTrain(inYard);
+        setTrain({ ...atStart, ms: reducedMotion() ? 0 : rollMs });
         setGateOpen(false);
         setTally(null);
       }
@@ -200,14 +250,25 @@ export function CargoLine(props: GameProps<Manifest>) {
     [commit],
   );
 
-  const beginLap = useCallback(
-    (index: number) => {
-      clearTimers();
+  /**
+   * Pulls back to the whole mountain, climbs the tiny train towards trip
+   * `index`, zooms in on its stretch, and tells the trip.
+   */
+  const climbTo = useCallback(
+    async (index: number) => {
       const lap = laps[index - 1];
       if (!lap) return;
-      commit(startLap(tier, index, lap));
       setMode("play");
-      setTrain(inYard);
+      setClimbing(true);
+      setCaption([]);
+      setHand(null);
+      setTapping(false);
+      setNear(false);
+      await hold(moveMs(pullMs));
+      setTiny(waitingFor(index));
+      await hold(moveMs(tinyMs));
+      commit(startLap(tier, index, lap));
+      setTrain(atStart);
       setGateOpen(false);
       setRoof("idle");
       setTally(null);
@@ -216,24 +277,27 @@ export function CargoLine(props: GameProps<Manifest>) {
       setReplay(null);
       setDemoing(false);
       setRunning(false);
-      setHand(null);
-      setTapping(false);
+      setNear(true);
+      await hold(moveMs(zoomMs));
+      setClimbing(false);
       setMood("thinking");
-      void speak([
-        ...(index > 1 ? (["lap.next"] as const) : []),
-        ...lapLines(lap),
-      ]);
+      void speak(lapLines(lap));
     },
-    [clearTimers, commit, laps, speak, tier],
+    [commit, hold, laps, moveMs, speak, tier],
   );
 
   // The shell's progress bar: laps done out of the play's.
   useEffect(() => onProgress({ done: 0, total: lapsPerPlay }), [onProgress]);
 
-  // A returning student's first lap is on screen already; say it.
+  // A returning student opens on the mountain, hears the goal, and climbs.
   // biome-ignore lint/correctness/useExhaustiveDependencies: once, as the game opens
   useEffect(() => {
-    if (!firstPlay) beginLap(1);
+    if (firstPlay) return;
+    void (async () => {
+      // With no sound, the line still holds the screen long enough to read.
+      await hold(Promise.all([speak(["climb.goal"]), pause(minLineMs)]));
+      await climbTo(1);
+    })();
   }, []);
 
   // The tutorial: a fixed script on its own lap, never recorded. Each cue
@@ -253,6 +317,10 @@ export function CargoLine(props: GameProps<Manifest>) {
     };
     const step = async (cue: Cue) => {
       if ("say" in cue) await line(cue.say);
+      else if ("zoom" in cue) {
+        setNear(true);
+        await moveMs(zoomMs);
+      } else if ("rollBack" in cue) await pause(rollMs);
       else if ("point" in cue) {
         setHand(cue.point);
         await pause(cue.point ? handMs : beatMs);
@@ -271,7 +339,8 @@ export function CargoLine(props: GameProps<Manifest>) {
         await line(result.say);
       } else {
         stakesDue.current = false;
-        beginLap(1);
+        freshMove();
+        await climbTo(1);
       }
     };
     void (async () => {
@@ -283,9 +352,8 @@ export function CargoLine(props: GameProps<Manifest>) {
     })();
     return () => {
       cancelled = true;
-      clearTimers();
     };
-  }, [mode, pause, speak, commit, pressKey, play, beginLap, clearTimers]);
+  }, [mode, pause, moveMs, speak, commit, pressKey, play, climbTo, freshMove]);
 
   /**
    * Says a miss's result. When the hint button starts to glow, the result
@@ -324,7 +392,7 @@ export function CargoLine(props: GameProps<Manifest>) {
         await pause(beatMs * 2);
       }
       setReplay(null);
-      setTrain(inYard);
+      setTrain(atStart);
       setGateOpen(false);
       setTally(null);
       commit(afterDemo(current.current));
@@ -340,16 +408,25 @@ export function CargoLine(props: GameProps<Manifest>) {
     onProgress({ done: done.index, total: lapsPerPlay });
     console.info("[cargo-line] tuning (local only)", tuningLog(done));
     setMood("cheering");
-    if (done.index < lapsPerPlay) {
-      await speak(["run.solved"]);
-      await pause(solvedMs);
-      beginLap(done.index + 1);
-    } else {
-      setMode("done");
-      await speak(["run.solved", "play.done"]);
-      await pause(doneMs);
-      onFinish();
-    }
+    setCleared(done.index);
+    setTiny(gateOf(done.index));
+    await speak(["run.solved"]);
+    await pause(solvedMs);
+    freshMove();
+    if (done.index < lapsPerPlay) return climbTo(done.index + 1);
+    // The last gate: pull back and climb to the summit.
+    setMode("done");
+    setClimbing(true);
+    setCaption([]);
+    setNear(false);
+    await hold(moveMs(pullMs));
+    setTiny(summit);
+    await hold(moveMs(tinyMs));
+    setClimbing(false);
+    setAtTop(true);
+    await speak(["play.done"]);
+    await pause(doneMs);
+    onFinish();
   };
 
   const onGo = async () => {
@@ -372,7 +449,14 @@ export function CargoLine(props: GameProps<Manifest>) {
     if (result.startDemo) await runDemo(before.lap);
   };
 
-  const playing = mode === "play" && !state.solved && !demoing;
+  const playing = mode === "play" && !state.solved && !demoing && !climbing;
+
+  /** The tutorial's skip: straight to the first trip, the camera jumping there. */
+  const skipTutorial = () => {
+    clearTimers();
+    skipMove();
+    void climbTo(1);
+  };
 
   return (
     <Board
@@ -392,7 +476,14 @@ export function CargoLine(props: GameProps<Manifest>) {
       replay={replay}
       hand={hand}
       tapping={tapping}
-      onSkip={mode === "tutorial" ? () => beginLap(1) : undefined}
+      onSkip={
+        mode === "tutorial" ? skipTutorial : climbing ? skipMove : undefined
+      }
+      near={near}
+      jump={jump}
+      tiny={tiny}
+      cleared={cleared}
+      atTop={atTop}
       onKey={(k) => {
         pressKey(k);
         setMood("thinking");

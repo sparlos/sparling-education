@@ -67,7 +67,7 @@ export interface Job {
   at: number;
 }
 
-function makeJob(grade: number, round: number): Job {
+export function makeJob(grade: number, round: number): Job {
   const kind = kindFor(grade, round);
   const n = grade <= 3 ? 1 : 2;
   const unknown = (["end", "change", "start"] as const)[round % 3] ?? "end";

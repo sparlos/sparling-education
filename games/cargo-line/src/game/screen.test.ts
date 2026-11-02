@@ -5,16 +5,26 @@ import { generatePlay } from "../rules/generate.ts";
 import { makeLap, runTrip } from "../rules/lap.ts";
 import { lapLines, missLines } from "../rules/task.ts";
 import { type StringId, strings } from "../strings.ts";
+import { typedText } from "./Climb.tsx";
 import { captionText } from "./caption.ts";
-import { typedText } from "./Loop.tsx";
 import { beatsFor, runMs, tallyText } from "./playback.ts";
 import {
+  gateAt,
+  gateOf,
+  gates,
   gateWaitAt,
-  loopLength,
+  pastGateAt,
   pointAt,
-  stationAt,
-  trackBox,
-  yardAt,
+  startAt,
+  stopAt,
+  stopSign,
+  stretchAt,
+  summit,
+  trackY,
+  valley,
+  viewBox,
+  waitingFor,
+  zoomOn,
 } from "./track.ts";
 
 const t = (id: StringId) => strings[id] as string;
@@ -25,10 +35,10 @@ const lap = makeLap(0, 387, [{ place: "farm", loads: false, amount: 136 }], {
 describe("captions", () => {
   it("show numbers as numerals, as the spec writes the story", () => {
     expect(captionText(lapLines(lap), t)).toBe(
-      "The train leaves with some crates. It drops off 136 crates at the farm. It must come back with 251 crates. How many should it leave with?",
+      "The train leaves with some crates. It drops off 136 crates at the farm. It must arrive with 251 crates. How many should it leave with?",
     );
     expect(captionText(missLines(lap, runTrip(lap, 377)), t)).toBe(
-      "The train came back with 241 crates. The yard's sign says 251.",
+      "The train arrived with 241 crates. The gate's sign says 251.",
     );
     expect(
       captionText(
@@ -59,7 +69,7 @@ describe("the missing sign", () => {
 });
 
 describe("the trip's sum", () => {
-  const stations = [{ place: "mill", loads: true, amount: 293 }] as const;
+  const stations = [{ place: "windmill", loads: true, amount: 293 }] as const;
   const end = makeLap(0, 225, stations, { what: "end" });
 
   it("builds up stop by stop, with the result when the load is on show", () => {
@@ -68,7 +78,7 @@ describe("the trip's sum", () => {
     expect(tallyText(lap, run, 1)).toBe("377 − 136 = 241");
   });
 
-  it("keeps the result back when what comes back is missing, until it's right", () => {
+  it("keeps the result back when what it arrives with is missing, until it's right", () => {
     const wrong = runTrip(end, 519);
     expect(tallyText(end, wrong, 1)).toBe("225 + 293 = ?");
     expect(tallyText(end, wrong, 1, true)).toBe("225 + 293 = ?");
@@ -82,7 +92,7 @@ describe("the trip's sum", () => {
     const change = makeLap(
       0,
       452,
-      [{ place: "mill", loads: false, amount: 137 }],
+      [{ place: "windmill", loads: false, amount: 137 }],
       {
         what: "change",
         at: 0,
@@ -91,13 +101,13 @@ describe("the trip's sum", () => {
     expect(tallyText(change, runTrip(change, 12), 1)).toBe("452 − 12 = 440");
   });
 
-  it("writes two stations and decimals as the signs do", () => {
+  it("writes two stops and decimals as the signs do", () => {
     const two = makeLap(
       0,
       57_903,
       [
         { place: "farm", loads: false, amount: 28_542 },
-        { place: "mill", loads: true, amount: 5032 },
+        { place: "windmill", loads: true, amount: 5032 },
       ],
       { what: "start" },
     );
@@ -118,24 +128,71 @@ describe("the trip's sum", () => {
   });
 });
 
-describe("the track", () => {
-  it("starts and ends at the yard, going right", () => {
-    const start = pointAt(0);
-    expect(start).toMatchObject({ x: 500, y: trackBox.bottom, angle: 0 });
-    const end = pointAt(loopLength - 0.001);
-    expect(end.x).toBeCloseTo(500);
-    expect(end.y).toBeCloseTo(trackBox.bottom);
+describe("a stretch", () => {
+  it("climbs from left to right, on screen", () => {
+    expect(trackY(startAt)).toBeGreaterThan(trackY(gateAt));
+    expect(pointAt(startAt).angle).toBeLessThan(0);
+    expect(trackY(0)).toBeLessThan(viewBox.height);
+    expect(pastGateAt).toBeGreaterThan(viewBox.width + 104);
   });
 
-  it("puts one station at the top, two on the sides", () => {
-    expect(pointAt(stationAt(1, 0))).toMatchObject({ y: trackBox.top });
-    expect(pointAt(stationAt(2, 0)).x).toBeCloseTo(trackBox.right);
-    expect(pointAt(stationAt(2, 1)).x).toBeCloseTo(trackBox.left);
+  it("stops the wagon under each sign, before the gate", () => {
+    for (const count of [1, 2])
+      for (let i = 0; i < count; i++) {
+        expect(stopAt(count, i)).toBeLessThan(gateWaitAt);
+        expect(stopSign(count, i).y).toBeLessThan(trackY(stopSign(count, i).x));
+      }
+    expect(gateWaitAt).toBeLessThan(gateAt);
+    expect(stopSign(1, 0).x).toBeGreaterThan(startAt - 104);
+  });
+});
+
+describe("the mountain", () => {
+  it("climbs every gate higher than the last, up to the summit", () => {
+    const route = [valley, ...gates, summit];
+    for (const [i, p] of route.entries()) {
+      const next = route[i + 1];
+      if (!next) continue;
+      expect(next.y).toBeLessThan(p.y);
+      expect(next.x).toBeGreaterThan(p.x);
+    }
+  });
+
+  it("waits partway to the next gate, past the last one", () => {
+    expect(waitingFor(1).x).toBeGreaterThan(valley.x);
+    expect(waitingFor(1).x).toBeLessThan(gateOf(1).x);
+    expect(waitingFor(4).x).toBeGreaterThan(gateOf(3).x);
+    expect(waitingFor(4).x).toBeLessThan(gateOf(4).x);
+  });
+
+  it("keeps each stretch on the picture, so the camera never shows past its edge", () => {
+    for (const n of [0, 1, 2, 3, 4, 5, 6]) {
+      const at = stretchAt(n);
+      expect(at.x).toBeGreaterThanOrEqual(0);
+      expect(at.y).toBeGreaterThanOrEqual(0);
+      expect(at.x + at.width).toBeLessThanOrEqual(viewBox.width);
+      expect(at.y + at.height).toBeLessThanOrEqual(viewBox.height);
+    }
+  });
+
+  it("zooms so the stretch just overfills the picture, on every side", () => {
+    for (const n of [0, 1, 6]) {
+      const at = stretchAt(n);
+      const found = /translate\((.+)px, (.+)px\) scale\((.+)\)/.exec(zoomOn(n));
+      const tx = Number(found?.[1]);
+      const ty = Number(found?.[2]);
+      const k = Number(found?.[3]);
+      expect(tx + at.x * k).toBeLessThan(0);
+      expect(ty + at.y * k).toBeLessThan(0);
+      expect(tx + (at.x + at.width) * k).toBeGreaterThan(viewBox.width);
+      expect(ty + (at.y + at.height) * k).toBeGreaterThan(viewBox.height);
+      expect(k).toBeLessThan(1.01 / 0.12);
+    }
   });
 });
 
 describe("a run's beats", () => {
-  it("stop at each station, then come back to the gate", () => {
+  it("stop at each stop, then reach the gate, and go through it", () => {
     const beats = beatsFor(lap, runTrip(lap, 387));
     expect(beats.map((b) => b.kind)).toEqual([
       "drive",
@@ -146,7 +203,7 @@ describe("a run's beats", () => {
       "drive",
     ]);
     expect(beats[4]).toMatchObject({ open: true });
-    expect(beats[5]).toMatchObject({ to: loopLength + yardAt });
+    expect(beats[5]).toMatchObject({ to: pastGateAt });
   });
 
   it("end at a stall, or at a shut gate", () => {

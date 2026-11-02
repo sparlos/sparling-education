@@ -37,6 +37,8 @@ import {
   loadsOf,
   type Missing,
   makeLap,
+  partOf,
+  placesOf,
   runTrip,
   type Station,
   stepsOf,
@@ -66,7 +68,7 @@ const farm = (loads: boolean, amount: number): Station => ({
   amount,
 });
 const mill = (loads: boolean, amount: number): Station => ({
-  place: "mill",
+  place: "windmill",
   loads,
   amount,
 });
@@ -177,7 +179,7 @@ describe("a lap", () => {
     });
   });
 
-  it("comes back with the wrong load, or the yard's", () => {
+  it("arrives with the wrong load, or the gate's", () => {
     expect(runTrip(startMissing, 377).end).toEqual({
       stalled: false,
       load: 241,
@@ -188,12 +190,32 @@ describe("a lap", () => {
     });
   });
 
-  it("succeeds only on exactly what comes back, when that's missing", () => {
+  it("succeeds only on exactly what it arrives with, when that's missing", () => {
     expect(runTrip(subtracting, 315).succeeded).toBe(true);
     expect(runTrip(subtracting, 325)).toMatchObject({
       end: { stalled: false, load: 315 },
       succeeded: false,
     });
+  });
+});
+
+describe("the stops of the mountain", () => {
+  it("go in turn with one stop, and both with two", () => {
+    expect([1, 2, 3, 4, 5, 6].map((n) => placesOf(n, 1)[0])).toEqual([
+      "farm",
+      "windmill",
+      "sawmill",
+      "cabin",
+      "quarry",
+      "mine",
+    ]);
+    expect(placesOf(1, 2)).toEqual(["farm", "windmill"]);
+    expect(placesOf(4, 2)).toEqual(["sawmill", "cabin"]);
+    expect(placesOf(6, 2)).toEqual(["quarry", "mine"]);
+    expect(partOf(0)).toBe(0);
+    expect(partOf(2)).toBe(0);
+    expect(partOf(3)).toBe(1);
+    expect(partOf(6)).toBe(2);
   });
 });
 
@@ -299,6 +321,9 @@ describe.each(tiers)("the %s generator, over 150 plays", (tier) => {
         expect(l.dp).toBe(kind.dp);
         expect(new Set(l.stations.map((s) => s.place)).size).toBe(
           l.stations.length,
+        );
+        expect(l.stations.map((s) => s.place)).toEqual(
+          placesOf(i + 1, kind.stations),
         );
       });
     }
@@ -507,7 +532,7 @@ describe("the voice", () => {
       "unit.crates-end",
       "story.drops-off-some",
       "unit.crates",
-      "at.mill",
+      "at.windmill",
       "story.back",
       "num.3",
       "num.hundred",
@@ -568,7 +593,7 @@ describe("the voice", () => {
       "run.cant-drop",
     ]);
     expect(missLines(startMissing, runTrip(startMissing, 377))).toEqual([
-      "run.came-back",
+      "run.arrived",
       "num.2",
       "num.hundred",
       "num.41",
@@ -578,7 +603,7 @@ describe("the voice", () => {
       "num.hundred",
       "num.51",
     ]);
-    // What comes back is missing: only whether the typed number is too big or too small.
+    // What it arrives with is missing: only whether the typed number is too big or too small.
     expect(missLines(subtracting, runTrip(subtracting, 305))).toEqual([
       "run.too-small",
     ]);
