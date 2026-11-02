@@ -35,7 +35,7 @@ const escapeHtml = (text: string) =>
 const gradesOf = (game: TryGame) => gradeSpan([game]);
 
 export const pageWords = {
-  gridHeadline: "Try our math games. No sign-in needed.",
+  gridHeadline: "Fun math games for grades 3-5!",
   gridDescription: (games: readonly TryGame[]) =>
     `Free math games for ${gradeSpan(games)}. No sign-in needed: pick a game and a grade, and start playing.`,
 };
