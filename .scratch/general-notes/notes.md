@@ -7,6 +7,7 @@
 - need analytics in general so that we can track what teachers/students are doing, where things might be confusing, and how it all ties together
 - need email integration (resend) to handle marketing emails & transactional
 - need error handling & altering, so we can know what's going wrong behind the scenes
+- every game should have rounds (already do) that LEAD to something. ex. cargo line has 6 stops on a mountain, to get to the top. Fraction hop could have a mario-like overworld, where the final round gets them to a treasure. Crystal machine could be each round builds a fragment of a larger gem visualized in the UI. We'll also want to update the game-related skills to keep this in mind (likely design-game and build-game)
 
 ## Bingo Notes
 - demo class should just be a 3/4, NO 5 included
@@ -16,6 +17,7 @@
   - "what to work on next" should also be something different I think...maybe "what they could be struggling with"? something like that
 - "Recognise", when an option is already checked, should show "you have already recognised --- during this term for ---". currently, it shows the default text, which is "___  recognised for ____. They'll see a sticker in their locker."
 - thumbs up and thumbs down instead of smiley and sad for yes and no RE: modals. we should also make this consistent across all modals - ex. for the shell, the exit game uses a play button and a exit sign, which is very confusing
+- keepsakes should be earned through REPEATED plays of a game, not just a single one. maybe fragments of it can unlock as they play. may want to lock this to one a day or something so students can't spam their way through it
 
 ## Fraction Hop
 - the guided state doesn't really help at all - counting up to the fraction that it is adds literally no value. especially since that's not what they're inputting. I think we just scratch that, and say "I added the first hop for you". and then if they fail again, clear their board, and add the second hop, etc etc.
