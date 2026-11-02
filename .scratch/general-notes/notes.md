@@ -7,7 +7,7 @@
 - need analytics in general so that we can track what teachers/students are doing, where things might be confusing, and how it all ties together
 - need email integration (resend) to handle marketing emails & transactional
 - need error handling & altering, so we can know what's going wrong behind the scenes
-- every game should have rounds (already do) that LEAD to something. ex. cargo line has 6 stops on a mountain, to get to the top. Fraction hop could have a mario-like overworld, where the final round gets them to a treasure. Crystal machine could be each round builds a fragment of a larger gem visualized in the UI. We'll also want to update the game-related skills to keep this in mind (likely design-game and build-game)
+
 
 ## Bingo Notes
 - demo class should just be a 3/4, NO 5 included

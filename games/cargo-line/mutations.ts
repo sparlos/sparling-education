@@ -251,14 +251,14 @@ export const mutations = defineMutations([
   {
     name: "the climb starts before the opening's line is said",
     file: screen,
-    find: 'await hold(Promise.all([speak(["climb.goal"]), pause(minLineMs)]));',
+    find: 'await Promise.all([speak(["climb.goal"]), pause(minLineMs)]);',
     replace: 'void speak(["climb.goal"]);',
   },
   {
     name: "a lap is told before the camera arrives",
     file: screen,
-    find: "      await hold(moveMs(zoomMs));\n",
-    replace: "",
+    find: "      await moveMs(zoomMs);\n      setClimbing(false);",
+    replace: "      setClimbing(false);",
   },
   // The climb.
   {
@@ -282,8 +282,8 @@ export const mutations = defineMutations([
   {
     name: "the camera stays close between laps",
     file: screen,
-    find: "      setNear(false);\n      await hold(moveMs(pullMs));",
-    replace: "      await hold(moveMs(pullMs));",
+    find: "      setNear(false);\n      await moveMs(pullMs);",
+    replace: "      await moveMs(pullMs);",
   },
   {
     name: "the pad works while the camera moves",
@@ -292,10 +292,16 @@ export const mutations = defineMutations([
     replace: " && !demoing;",
   },
   {
-    name: "skip doesn't end the camera's move",
+    name: "the tutorial's skip waits for the camera",
     file: screen,
-    find: "    endHold.current?.();\n",
-    replace: "",
+    find: "skipped.current\n        ? Promise.resolve()",
+    replace: "false\n        ? Promise.resolve()",
+  },
+  {
+    name: "the camera's skip button comes back between laps",
+    file: screen,
+    find: 'onSkip={mode === "tutorial" ? skipTutorial : undefined}',
+    replace: "onSkip={skipTutorial}",
   },
   {
     name: "a skip carries over to the next climb",

@@ -68,7 +68,7 @@ export interface ClimbProps {
   Avatar: ComponentType<{ expression: AvatarExpression; size: number }>;
   /** Close on the stretch, or back on the whole mountain. */
   near: boolean;
-  /** The camera jumps instead of moving: the student skipped. */
+  /** The camera jumps instead of moving: the student skipped the tutorial. */
   jump: boolean;
   tiny: { x: number; y: number };
   /** Gates opened so far. */

@@ -19,6 +19,16 @@ Description: <one or two short sentences on the game's card on the try site: the
 
 <What the student does, step by step, and why getting better at it is getting better at the concept. What visibly fails when a wrong idea is applied.>
 
+## Journey
+
+Kind: going somewhere | building something.
+
+- **From the start:** <what the student sees they're heading for, and the voice line that says so>
+- **After each task:** <how the game's own world shows they're closer: the shell's "2/6" bar doesn't count. At most 4 seconds, with no voice line, nothing to tap and no skip. The next task arrives by itself, with its own line>
+- **The end:** <the big moment after the last task, about 5 seconds, with a voice line and no skip>
+
+<The journey is the same for every student, however much help they had, and starts fresh each play. Nothing from it is kept after the play. Record any founder's call that goes past these limits here, with the reason.>
+
 ## Tiers
 
 ### <tier id, e.g. g4>: Grade <n>

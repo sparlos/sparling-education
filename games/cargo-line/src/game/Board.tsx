@@ -40,11 +40,11 @@ export interface BoardProps {
   onKey(key: Key): void;
   onGo(): void;
   onHelp(): void;
-  /** The skip button: the tutorial's, or the camera's while it moves. */
+  /** The tutorial's skip button. */
   onSkip?: () => void;
   /** Close on the stretch, or back on the whole mountain. */
   near: boolean;
-  /** The camera jumps instead of moving: the student skipped. */
+  /** The camera jumps instead of moving: the student skipped the tutorial. */
   jump: boolean;
   tiny: { x: number; y: number };
   cleared: number;

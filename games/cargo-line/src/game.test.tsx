@@ -493,40 +493,26 @@ describe("the climb", () => {
     expect(screen.getByTestId("scene")).toHaveAttribute("data-camera", "1");
   });
 
-  it("can be skipped, and goes straight to the next stretch", async () => {
+  it("offers no skip in the opening or between laps", async () => {
     const { shell, laps } = playing("g3");
+    await shell.wait(100);
+    expect(screen.queryByTestId("skip")).not.toBeInTheDocument();
     await shell.wait(openWait);
     await solveFirst(shell, laps[0] as Lap);
-    await shell.tap(screen.getByTestId("skip"));
-    await shell.wait(10);
-    expect(screen.getByTestId("scene")).toHaveAttribute("data-camera", "2");
-    expect(screen.getByTestId("scene")).toHaveAttribute("data-jump", "true");
-    expect(shell.lastSaid()).toEqual(lapLines(laps[1] as Lap));
+    expect(screen.getByTestId("scene")).toHaveAttribute(
+      "data-camera",
+      "mountain",
+    );
     expect(screen.queryByTestId("skip")).not.toBeInTheDocument();
   });
 
-  it("can skip the opening, even mid-line", async () => {
-    const { voice } = heldVoice();
-    const shell = mountGame(game, {
-      tier: "g3",
-      voice,
-      random,
-      firstPlay: false,
-    });
-    await shell.wait(100);
+  it("moves the camera again after the tutorial's skip", async () => {
+    const shell = mountGame(game, { tier: "g3", random });
+    await shell.wait(500);
     await shell.tap(screen.getByTestId("skip"));
     await shell.wait(10);
-    expect(screen.getByTestId("scene")).toHaveAttribute("data-camera", "1");
-    expect(shell.lastSaid()).toEqual(lapLines(lapsFor("g3")[0] as Lap));
-  });
-
-  it("moves on again after a skip, with the camera moving", async () => {
-    const { shell, laps } = playing("g3");
-    await shell.wait(openWait);
-    await solveFirst(shell, laps[0] as Lap);
-    await shell.tap(screen.getByTestId("skip"));
-    await shell.wait(10);
-    await solveFirst(shell, laps[1] as Lap);
+    expect(screen.getByTestId("scene")).toHaveAttribute("data-jump", "true");
+    await solveFirst(shell, lapsFor("g3")[0] as Lap);
     expect(screen.getByTestId("scene")).not.toHaveAttribute("data-jump");
     expect(screen.getByTestId("scene")).toHaveAttribute(
       "data-camera",

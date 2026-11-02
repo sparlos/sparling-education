@@ -44,6 +44,7 @@ Then go through every check below. Each gets a verdict and its evidence: a test 
 
 ### Students
 
+- SPEC.md has a Journey section, and the tour's screenshots show its three parts in the game's own world. The moments between tasks hold to the section's limits, with no skip, and the ending has no branch on how the student did.
 - No free text: no `input`, `textarea` or `contenteditable` a student types into.
 - No score, coins, points, stars-as-count, combos, streaks or timers racing the student. Rewards follow effort, so nothing on screen rewards getting it right first time over fixing it.
 - Every interaction works by tap; drag is never the only way. Pointer Events, nothing hover-only. Targets at least 64 px for Grades 1–2 and 48 px after (the tour checks buttons; check other targets by eye).

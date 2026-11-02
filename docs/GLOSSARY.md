@@ -106,6 +106,10 @@ _Avoid_: Teacher guide, lesson plan
 One grade's worth of content within a game. A student plays the tier for their grade.
 _Avoid_: Level, difficulty, stage
 
+**Journey**:
+What the tasks of one play add up to: going somewhere (a train climbing a mountain) or building something (a gem, shard by shard). The student sees what they're heading for from the start, each finished task visibly brings them closer, and the last one ends in a big moment. It's the same for every student, however much help they had, and starts fresh each play. Every game has one.
+_Avoid_: Goal (one task's target in some games), quest, level, progress bar
+
 **Result**:
 The record of a student's play of a game, always including the tier it was played at. Captures both understanding and effort. What teachers use as assessment evidence. Students never see a result as a score.
 _Avoid_: Score, grade, mark

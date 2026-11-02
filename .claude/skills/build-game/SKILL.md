@@ -53,6 +53,7 @@ Done when the spec tests pass and every string in SPEC.md's table is in `strings
 `src/game/` wires the rules to taps, the voice and the shell; it holds no rules. Plain state that isn't rules (a bench, a plan) gets its own module and tests.
 
 - **Voice and screen take turns.** Say a line (a pointer may rest on what it's about), then act, then say the next: `await say(...)` before acting, and `useTimers().pause` only for beats between turns, never a timer guessed from a line's length. One moment is one `say(...)`: a new call cuts off the last, so a result and the next prompt go in one call.
+- **The journey follows the spec's Journey section.** The game's own picture carries it, on top of the shell's progress bar. Its moments are camera or art moves with no rules in them, off under reduced motion, and Hint and the main button stay off while they play. A built game getting its journey starts at this step, then does steps 6–8 and 10.
 - **The game starts after the shell's start tap,** so it opens with a spoken line and can rely on sound being allowed.
 - **Sound effects and music go through the shell:** `playSound` and `playMusic`, with the files in `audio/`. `packages/game-kit/README.md` has the steps.
 - **The game frame lays out every screen.** Build on `GameFrame` from `@repo/game-kit/frame`, and spread `frameStrings` from `@repo/game-kit/frame-strings` into the game's strings. It draws Hint or Skip, the main button, the caption and the ghost hand, and `NumberPad` is the only number pad. The game fills `info`, `stage`, and `side` or `deck`. Never draw these yourself, and if the frame can't do what the spec needs, change the frame for every game (ask the founder first). The kit's tests and the tour fail otherwise. `packages/game-kit/README.md` has the details.
@@ -71,7 +72,7 @@ Done when the fake-shell tests play every tier to the end, and the shell never r
 Tests that pass first time prove little: in every build so far, breaking rules on purpose found untested ones.
 
 1. List each key rule in `mutations.ts`: every misconception match, every generator invariant, every help threshold, the recorded `assisted`, and each `await say` that keeps voice and screen in turn. Run `pnpm mutate <slug>`. Each survivor gets a test, or `survives` with the reason it can't matter.
-2. Write `tour.ts` and run `pnpm tour <slug>`. It plays every tier at both sizes in headless Chrome through the real shell, and checks fit and target sizes. Play a miss and a solve on every task type. It catches what jsdom can't (pieces covered by controls, taps landing on the wrong thing, plugin failures). If it says the dev server "doesn't host <slug>", a stale server holds port 3003: kill it or pass `--url`.
+2. Write `tour.ts` and run `pnpm tour <slug>`. It plays every tier at both sizes in headless Chrome through the real shell, and checks fit and target sizes. Play a miss and a solve on every task type. It catches what jsdom can't (pieces covered by controls, taps landing on the wrong thing, plugin failures). Play through to the ending, with screenshots of the journey's start, a moment between tasks and the ending. If it says the dev server "doesn't host <slug>", a stale server holds port 3003: kill it or pass `--url`.
 3. Look at the tour's screenshots yourself.
 
 Done when every mutation is caught or marked `survives`, and the tour passes at every tier and both sizes.
@@ -88,7 +89,7 @@ Done when the founder has been asked, with the number of new lines.
 
 Then give the founder the game link (`/play/<slug>`), what isn't built yet, and your numbered **readings** of the spec for them to confirm, and tell them to run `pnpm install` on the host and restart `pnpm dev`. They play, ideally on a touchscreen, and give their calls. For each call: change the code, update SPEC.md, re-run steps 5–6, and say what changed. Visual polish the founder raises (motion, feedback moments, layout finesse) goes on a list for `polish-game`, unless it blocks play.
 
-**Bump `Version`** in SPEC.md and the manifest when what a tier evidences, or what its attempts record, changes. Records made under the old version still arrive days late, so add the old manifest, frozen, to `earlierManifests` in `apps/api/src/games.ts` (Fraction Hop's `src/manifest-v1.ts` is the shape).
+**Bump `Version`** in SPEC.md and the manifest when what a tier evidences, or what its attempts record, changes (a journey changes neither). Records made under the old version still arrive days late, so add the old manifest, frozen, to `earlierManifests` in `apps/api/src/games.ts` (Fraction Hop's `src/manifest-v1.ts` is the shape).
 
 Done when the game is on the dashboard and in students' homes, the founder accepts it as playable, every reading is confirmed or changed, and SPEC.md matches the game.
 

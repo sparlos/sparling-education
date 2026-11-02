@@ -120,37 +120,24 @@ export function CargoLine(props: GameProps<Manifest>) {
   const [hand, setHand] = useState<string | null>(null);
   const [tapping, setTapping] = useState(false);
 
-  // Every timer, cleared together on skip, on a new lap, and on unmount.
-  // A pause cut short this way never resumes, which ends whatever awaited it.
+  // Every timer, cleared together on the tutorial's skip, on a new lap, and on
+  // unmount. A pause cut short this way never resumes, which ends whatever
+  // awaited it.
   const { later, pause, clear: clearTimers } = useTimers();
 
-  // A skip ends the camera's move now, and every step after it on this climb.
+  // The tutorial's skip takes the camera straight to the first trip.
   const skipped = useRef(false);
-  const endHold = useRef<(() => void) | null>(null);
-  /** Waits for `work`, unless the student skips. */
-  const hold = useCallback(
-    (work: Promise<unknown>) =>
-      skipped.current
-        ? Promise.resolve()
-        : new Promise<void>((resolve) => {
-            endHold.current = resolve;
-            void work.then(() => resolve());
-          }),
-    [],
-  );
-  const skipMove = useCallback(() => {
-    skipped.current = true;
-    setJump(true);
-    endHold.current?.();
-  }, []);
-  /** Starts a new move of the camera, which moves unless it's been skipped. */
+  /** Lets the camera move again after the tutorial's skip. */
   const freshMove = useCallback(() => {
     skipped.current = false;
     setJump(false);
   }, []);
-  /** A pause for the camera, short with reduced motion. */
+  /** A pause for the camera, short with reduced motion, and none after a skip. */
   const moveMs = useCallback(
-    (ms: number) => pause(reducedMotion() ? Math.min(ms, 200) : ms),
+    (ms: number) =>
+      skipped.current
+        ? Promise.resolve()
+        : pause(reducedMotion() ? Math.min(ms, 200) : ms),
     [pause],
   );
 
@@ -264,9 +251,9 @@ export function CargoLine(props: GameProps<Manifest>) {
       setHand(null);
       setTapping(false);
       setNear(false);
-      await hold(moveMs(pullMs));
+      await moveMs(pullMs);
       setTiny(waitingFor(index));
-      await hold(moveMs(tinyMs));
+      await moveMs(tinyMs);
       commit(startLap(tier, index, lap));
       setTrain(atStart);
       setGateOpen(false);
@@ -278,12 +265,12 @@ export function CargoLine(props: GameProps<Manifest>) {
       setDemoing(false);
       setRunning(false);
       setNear(true);
-      await hold(moveMs(zoomMs));
+      await moveMs(zoomMs);
       setClimbing(false);
       setMood("thinking");
       void speak(lapLines(lap));
     },
-    [commit, hold, laps, moveMs, speak, tier],
+    [commit, laps, moveMs, speak, tier],
   );
 
   // The shell's progress bar: laps done out of the play's.
@@ -295,7 +282,7 @@ export function CargoLine(props: GameProps<Manifest>) {
     if (firstPlay) return;
     void (async () => {
       // With no sound, the line still holds the screen long enough to read.
-      await hold(Promise.all([speak(["climb.goal"]), pause(minLineMs)]));
+      await Promise.all([speak(["climb.goal"]), pause(minLineMs)]);
       await climbTo(1);
     })();
   }, []);
@@ -419,9 +406,9 @@ export function CargoLine(props: GameProps<Manifest>) {
     setClimbing(true);
     setCaption([]);
     setNear(false);
-    await hold(moveMs(pullMs));
+    await moveMs(pullMs);
     setTiny(summit);
-    await hold(moveMs(tinyMs));
+    await moveMs(tinyMs);
     setClimbing(false);
     setAtTop(true);
     await speak(["play.done"]);
@@ -454,7 +441,8 @@ export function CargoLine(props: GameProps<Manifest>) {
   /** The tutorial's skip: straight to the first trip, the camera jumping there. */
   const skipTutorial = () => {
     clearTimers();
-    skipMove();
+    skipped.current = true;
+    setJump(true);
     void climbTo(1);
   };
 
@@ -476,9 +464,7 @@ export function CargoLine(props: GameProps<Manifest>) {
       replay={replay}
       hand={hand}
       tapping={tapping}
-      onSkip={
-        mode === "tutorial" ? skipTutorial : climbing ? skipMove : undefined
-      }
+      onSkip={mode === "tutorial" ? skipTutorial : undefined}
       near={near}
       jump={jump}
       tiny={tiny}

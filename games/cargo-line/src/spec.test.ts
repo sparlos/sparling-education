@@ -90,12 +90,12 @@ describe("the rules match SPEC.md", () => {
 
 describe("the mountain matches SPEC.md", () => {
   it("has the parts and stops it names, in climbing order", () => {
-    const mechanic = spec.section("Mechanic");
+    const journey = spec.section("Journey");
     const rows = ["Green meadows", "Pine forest", "Rock and snow"].map(
       (name, i) =>
         `| ${name} | ${2 * i + 1}–${2 * i + 2} | the ${mountainParts[i]?.[0]}, the ${mountainParts[i]?.[1]} |`,
     );
-    for (const row of rows) expect(mechanic).toContain(row);
+    for (const row of rows) expect(journey).toContain(row);
   });
 
   it("has an at-the-stop string for every stop", () => {

@@ -24,19 +24,9 @@ Solving addition and subtraction problems where the missing number can be the en
 
 ## Mechanic
 
-**One play is one climb.** The play opens on the whole mountain: a tiny train in the valley, a dashed route up the mountain's face, six shut gates along it, and a flag at the summit. The voice says the goal ("Let's get this train to the top of the mountain."), and the camera zooms in on the first **stretch**. Each stretch is one **trip**, which is one task.
+Each stretch of the climb (see Journey) is one **trip**, which is one task.
 
 **A stretch** is a side view of the track sloping up from left to right. The train starts low on the left and the shut gate is high on the right. The student's avatar drives the engine, which pulls one wagon with crates on it and its load written just above.
-
-The mountain has three parts, two trips each, and the scenery and stops change as the train climbs:
-
-| Part | Trips | Stops |
-| --- | --- | --- |
-| Green meadows | 1–2 | the farm, the windmill |
-| Pine forest | 3–4 | the sawmill, the cabin |
-| Rock and snow | 5–6 | the quarry, the mine |
-
-A trip with one stop uses its part's two stops in turn. A trip with two stops uses both.
 
 Each trip is told by signs on posts beside the track:
 
@@ -55,15 +45,31 @@ The voice tells the trip as a story, and the caption shows the same words: "The 
 
    After a stall or a different number, the train holds still where it went wrong, for as long as the student needs. Their first key press rolls it gently backwards down to the start, with the red sign cleared. They finish changing the number and press Go again, as often as they like.
 
-**Between trips,** with no voice and nothing to tap, in about 3–4 seconds: the camera pulls back to the whole mountain, the gate just opened now shown green. The tiny train climbs part of the way to its next gate. The camera zooms in on the next stretch, and the voice tells the trip. While the camera moves, a **Skip** button takes the hint button's place, and Go is off. Skip jumps straight to the next stretch.
-
 **The load doesn't carry over.** Each stretch starts with its own load: the number on its leaving sign, or a ? when that's the missing one. Carrying it over would give away the trips whose start is missing, and couldn't turn crates into tonnes.
-
-**The end of the climb.** After trip 6, the camera pulls back one last time, the train reaches the summit, the flag turns green, the avatar cheers, and the voice says "You made it to the top! Great work!"
 
 **Why getting better at it is getting better at the concept:** to fill a missing start or change, the student has to see how the trip's numbers fit together, and undo the trip when the start is missing. Then they work out the sum: in their head, on paper, or in the notebook. The run checks every answer in front of them.
 
 **What visibly fails:** a wrong idea leaves the train stalled at a stop, or brings it to the gate with the wrong load under a red sign. See Misconceptions.
+
+## Journey
+
+Kind: going somewhere. One play is one climb, from the valley to the summit.
+
+- **From the start:** the play opens on the whole mountain: a tiny train in the valley, a dashed route up the mountain's face, six shut gates along it, and a flag at the summit. The voice says the goal ("Let's get this train to the top of the mountain."), and the camera zooms in on the first stretch.
+- **After each task:** in about 3–4 seconds, with no voice and nothing to tap, the camera pulls back to the whole mountain, the gate just opened now shown green. The tiny train climbs part of the way to its next gate. The camera zooms in on the next stretch, and the voice tells the trip. The hint button and Go are off while the camera moves.
+- **The end:** after trip 6, the camera pulls back one last time, the train reaches the summit, the flag turns green, the avatar cheers, and the voice says "You made it to the top! Great work!"
+
+The mountain has three parts, two trips each, and the scenery and stops change as the train climbs:
+
+| Part | Trips | Stops |
+| --- | --- | --- |
+| Green meadows | 1–2 | the farm, the windmill |
+| Pine forest | 3–4 | the sawmill, the cabin |
+| Rock and snow | 5–6 | the quarry, the mine |
+
+A trip with one stop uses its part's two stops in turn. A trip with two stops uses both.
+
+The climb is the same for every student, however much help they had, and starts again from the valley each play. Nothing from it is kept after the play.
 
 ## Tiers
 
@@ -185,7 +191,7 @@ Once help is on, it stays on until the end of that trip.
 
 ## Touch, reading and sound
 
-- **Touch only, tap only:** pad keys, Go, hint and Skip. No dragging. Every tap target is at least **64 px**.
+- **Touch only, tap only:** pad keys, Go, hint and the tutorial's Skip. No dragging. Every tap target is at least **64 px**.
 - **No reading:** signs tell the trip in pictures: a train leaving and a train arriving at a gate, arrows onto and off the train at stops, + and − beside their numbers, a glowing ? on the missing one. The only text a student needs is numerals and the sum's + − =. Every instruction is a caption and a voice line from the same string, and the trip's story is spoken when it arrives and can be heard again.
 - **No sound needed:** every result is on screen: the stalled train and its red stop sign, the red gate sign with the wagon's number and the trip's sum, or the gate opening. Without sound, the +/− on the signs, the crates, the sum and the highlighted gate sign show what each stop did and what's being checked. The mountain and the flag show the goal.
 - **Reduced motion:** the camera cuts between the mountain and a stretch instead of zooming, the train doesn't shudder, and it returns to the start without rolling.
