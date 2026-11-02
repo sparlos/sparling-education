@@ -8,6 +8,8 @@ import { strings } from "./strings.ts";
 
 export const manifest = {
   slug: "crystal-machine",
+  description:
+    "Drop crystals into the machine and watch every ten fuse into one giant crystal! Teaches place value.",
   version: 1,
   renderer: "dom",
   avatar: "character",

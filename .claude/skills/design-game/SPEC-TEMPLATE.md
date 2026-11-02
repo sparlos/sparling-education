@@ -5,6 +5,7 @@ Slug: <slug> (game link: /play/<slug>)
 Version: 1
 Renderer: dom | pixi | playcanvas (<justification if not dom>)
 Avatar: portrait | character
+Description: <one or two short sentences on the game's card on the try site: the fun first, in kid-friendly words, then "Teaches <concept>." Never spoken.>
 
 ## Why it's fun
 

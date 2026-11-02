@@ -6,6 +6,8 @@ import { strings } from "./strings.ts";
 
 export const manifest = {
   slug: "fraction-hop",
+  description:
+    "Plan your hops across the water, then press go and see where you land! Teaches fractions on a number line.",
   version: 2,
   renderer: "dom",
   avatar: "character",

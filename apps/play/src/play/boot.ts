@@ -3,9 +3,9 @@
 import type { GameRegistry, HostedGame } from "../games.ts";
 import {
   type DressedStudent,
+  type GamePlatform,
   type Membership,
   NoSuchClass,
-  type Platform,
   type Student,
 } from "../platform/ports.ts";
 import {
@@ -60,7 +60,7 @@ export type Boot =
 export async function boot(options: {
   url: URL;
   base: string;
-  platform: Platform;
+  platform: GamePlatform;
   games: GameRegistry;
   storage: KeyValueStore | null;
   newId: () => string;
@@ -156,7 +156,7 @@ export async function boot(options: {
 
 /** The class with this join code, after joining it; or null when there's none. */
 async function join(
-  platform: Platform,
+  platform: GamePlatform,
   joinCode: string,
 ): Promise<Membership | null> {
   try {

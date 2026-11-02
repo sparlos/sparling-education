@@ -21,6 +21,8 @@ const declared = <Id extends keyof typeof misconceptions>(id: Id) => ({
 
 export const manifest = {
   slug: "cargo-line",
+  description:
+    "Plan your train's stops, then watch its load go up and down at each station! Teaches adding and subtracting.",
   version: 1,
   renderer: "dom",
   avatar: "character",

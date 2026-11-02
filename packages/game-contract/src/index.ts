@@ -38,6 +38,15 @@ export interface GameManifest {
   /** The game link's path: /play/<slug>. */
   slug: string;
   /**
+   * One or two short sentences about the game for anyone deciding whether to
+   * play it: the fun first, in kid-friendly words, then what it teaches.
+   * Shown on the try site, and in its search results and link previews.
+   * Only ever read, so it isn't in `strings` and gets no voice line. Every
+   * current game has one: the try site's build fails without it. Only a frozen
+   * manifest of an old version leaves it out.
+   */
+  description?: string;
+  /**
    * Bump whenever what a tier evidences changes. Results keep the version
    * they were earned under, so old evidence stays accurate.
    */

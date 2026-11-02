@@ -318,6 +318,12 @@ export interface Platform {
   SignInButton?: ComponentType<SignInButtonProps>;
 }
 
+/** The parts of the platform a game needs, whichever site it's played on. */
+export type GamePlatform = Pick<
+  Platform,
+  "session" | "memberships" | "records" | "links"
+>;
+
 export interface SignInButtonProps {
   /** Called when sign-in can't be offered (e.g. Google's script didn't load). */
   onUnavailable(): void;

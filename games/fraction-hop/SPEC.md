@@ -5,6 +5,7 @@ Slug: fraction-hop (game link: /play/fraction-hop)
 Version: 2
 Renderer: dom
 Avatar: character
+Description: Plan your hops across the water, then press go and see where you land! Teaches fractions on a number line.
 
 ## Why it's fun
 

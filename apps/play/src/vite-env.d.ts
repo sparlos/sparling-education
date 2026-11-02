@@ -10,6 +10,12 @@ interface ImportMetaEnv {
   readonly VITE_GOOGLE_CLIENT_ID?: string;
   /** "stand-in" runs the shell on the stand-ins, without the API or Google. */
   readonly VITE_PLAY_PLATFORM?: string;
+  /** The try site's own address, with no trailing slash. */
+  readonly VITE_TRY_SITE_URL?: string;
+  /** "true" lets search engines list the try site. See .env.try. */
+  readonly VITE_TRY_INDEXABLE?: string;
+  /** The marketing site, which the try site's "Learn more" link opens. */
+  readonly VITE_PRODUCT_SITE_URL?: string;
 }
 
 declare module "virtual:voice-lines/*" {

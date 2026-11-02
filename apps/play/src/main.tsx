@@ -1,11 +1,7 @@
 // The composition root: the only file that knows which platform the shell
 // runs on: the platform's API, or the stand-ins with VITE_PLAY_PLATFORM=stand-in.
 // See src/platform/README.md.
-// Three weights, Latin only, to keep the shell light on Chromebooks.
-import "@fontsource/plus-jakarta-sans/latin-500.css";
-import "@fontsource/plus-jakarta-sans/latin-700.css";
-import "@fontsource/plus-jakarta-sans/latin-800.css";
-import "./ui/global.css";
+import "./ui/shell-styles.ts";
 import shellLines from "virtual:voice-lines/shell";
 import titleLines from "virtual:voice-titles";
 import { UIProvider } from "@repo/ui/provider";

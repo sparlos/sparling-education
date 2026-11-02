@@ -42,7 +42,7 @@ Done when every misconception in the spec has a test that detects it, every tier
 
 ## 4. Manifest, strings and spec tests
 
-Build the manifest's tiers and misconceptions from the rules' own tables, so what the game records and what it declares can't drift. Strings are whole sentences, with fragments only for families such as amounts (`frac.3-4`), typed with template literals. Give `strings` an explicit type: spreading template-literal keys drops them.
+Build the manifest's tiers and misconceptions from the rules' own tables, so what the game records and what it declares can't drift. Copy `description` from the spec's `Description:` line: the try site's build fails without it. Strings are whole sentences, with fragments only for families such as amounts (`frac.3-4`), typed with template literals. Give `strings` an explicit type: spreading template-literal keys drops them.
 
 Write `src/spec.test.ts` with `describeManifestSpec` from `@repo/game-kit/spec`, plus the game's own numbers, string families and Attempts table (rebuild each `asked`/`detail` row from the rules), so the tests read SPEC.md and fail when code and spec disagree.
 

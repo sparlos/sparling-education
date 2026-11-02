@@ -1,0 +1,13 @@
+{
+  // The try site: static files, from `pnpm --filter play build:try`. The
+  // student site isn't deployed from here. See README.md.
+  "name": "try-placeholder",
+  "compatibility_date": "2026-10-15",
+  "assets": {
+    "directory": "./out",
+    "not_found_handling": "404-page"
+  },
+  "routes": [
+    { "pattern": "tryplaceholder.sparlingeducation.ca", "custom_domain": true }
+  ]
+}

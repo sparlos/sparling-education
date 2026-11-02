@@ -5,6 +5,7 @@ Slug: crystal-machine (game link: /play/crystal-machine)
 Version: 1
 Renderer: dom
 Avatar: character
+Description: Drop crystals into the machine and watch every ten fuse into one giant crystal! Teaches place value.
 
 ## Why it's fun
 

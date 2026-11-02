@@ -13,11 +13,35 @@ const brandNameInHtml: Plugin = {
 
 const repoRoot = fileURLToPath(new URL("../..", import.meta.url));
 
-export default defineConfig({
-  // Served at /play/ on the same domain as the class world; see README.md.
-  base: "/play/",
-  plugins: [react(), brandNameInHtml, voiceLines({ root: repoRoot })],
+/** In development, every page of the try site is served from try.html. */
+const tryPagesInDev: Plugin = {
+  name: "try-pages-in-dev",
+  configureServer(server) {
+    server.middlewares.use((req, _res, next) => {
+      if (req.headers.accept?.includes("text/html")) req.url = "/try.html";
+      next();
+    });
+  },
+};
+
+export default defineConfig(({ mode }) => ({
+  // The try site (`--mode try`) is its own site, at the root of its address.
+  // The student site is served at /play/ on the same domain as the class
+  // world; see README.md.
+  base: mode === "try" ? "/" : "/play/",
+  plugins: [
+    react(),
+    brandNameInHtml,
+    voiceLines({ root: repoRoot }),
+    ...(mode === "try" ? [tryPagesInDev] : []),
+  ],
+  // Bundled whole for prerendering, so packages resolve from wherever they live.
+  ssr: { noExternal: true },
   build: {
+    ...(mode === "try" && {
+      outDir: "out",
+      rollupOptions: { input: "try.html" },
+    }),
     // Avatar art stays as files, fetched as it's drawn, rather than inlined
     // into the bundle: one avatar is a handful of its hundreds of layers.
     assetsInlineLimit: (file) =>
@@ -42,4 +66,4 @@ export default defineConfig({
     hookTimeout: 120_000,
     restoreMocks: true,
   },
-});
+}));

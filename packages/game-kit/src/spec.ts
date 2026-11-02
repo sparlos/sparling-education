@@ -79,6 +79,12 @@ export function describeManifestSpec(spec: Spec, manifest: GameManifest) {
       expect(spec.field("Avatar")).toBe(manifest.avatar);
     });
 
+    it("has its description for the try site", () => {
+      const line = /^Description: (.+)$/m.exec(spec.text)?.[1];
+      expect(line, "SPEC.md needs a Description: line").toBeDefined();
+      expect(manifest.description).toBe(line);
+    });
+
     it("has each tier's grade and expectations", () => {
       const tiers = subsections(spec.section("Tiers")).map(
         ({ heading, body }) => {

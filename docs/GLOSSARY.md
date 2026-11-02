@@ -90,6 +90,10 @@ _Avoid_: Hangout, playdate
 A self-contained curriculum activity where the concept being taught is the core mechanic. The heart of the platform. A game teaches one concept across a range of grades (e.g. fractions, Grades 3–8) and can be played on its own, without the class world. A teacher turns games on or off for their class.
 _Avoid_: Quiz, activity, minigame, level, unit
 
+**Try site**:
+The public site where anyone can play every game without signing in, to see what they're like. Nothing played there reaches the platform: no class, no results and no rewards.
+_Avoid_: Demo site, arcade, Demo class (which is a teacher's pretend class of simulated students)
+
 **Game spec**:
 The approved design of a game, written before it is built: its concept, tiers and the curriculum expectations each evidences, its core mechanic, the misconceptions the mechanic surfaces, what counts as an attempt, and how the avatar appears. A game is built only from an approved game spec.
 _Avoid_: Design doc, brief, GDD

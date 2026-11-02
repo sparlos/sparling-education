@@ -5,6 +5,7 @@ Slug: cargo-line (game link: /play/cargo-line)
 Version: 1
 Renderer: dom
 Avatar: character
+Description: Plan your train's stops, then watch its load go up and down at each station! Teaches adding and subtracting.
 
 ## Why it's fun
 

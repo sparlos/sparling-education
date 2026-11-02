@@ -6,6 +6,8 @@ import { strings } from "./strings.ts";
 
 export const manifest = {
   slug: "template-game",
+  description:
+    "Say what the player does, in words a child would enjoy, then what the game teaches. Teaches fractions.",
   version: 1,
   renderer: "dom",
   avatar: "portrait",

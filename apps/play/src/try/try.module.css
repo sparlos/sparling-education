@@ -1,0 +1,207 @@
+/* The try site's own pages. The shell never scrolls the page (global.css), so
+   each one scrolls itself, with its scrollbar at the screen's edge. */
+.page {
+  box-sizing: border-box;
+  height: 100dvh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  user-select: text;
+  color: var(--k-ink);
+}
+
+.column {
+  position: relative;
+  box-sizing: border-box;
+  max-width: 1120px;
+  min-height: 100%;
+  margin: 0 auto;
+  padding: var(--mantine-spacing-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-lg);
+}
+
+.column > main {
+  flex: 1;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+}
+
+.headline {
+  margin: 0 0 var(--mantine-spacing-lg);
+  font-size: clamp(1.5rem, 1.2rem + 1.5vw, 2.25rem);
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  gap: var(--mantine-spacing-lg);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: var(--mantine-radius-lg);
+  background-color: var(--k-surface-raised);
+  box-shadow: var(--k-shadow-card);
+}
+
+.cardLink {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+
+.cardLink:focus-visible,
+.grade:focus-visible,
+.link:focus-visible {
+  outline: 0.25rem solid var(--k-focus);
+  outline-offset: 0.125rem;
+}
+
+.picture,
+.bigPicture {
+  display: block;
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+  background-color: var(--k-accent-soft);
+}
+
+.bigPicture {
+  border-radius: var(--mantine-radius-lg);
+  box-shadow: var(--k-shadow-card);
+}
+
+.picture img,
+.picture svg,
+.bigPicture img,
+.bigPicture svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.name {
+  margin: var(--mantine-spacing-md) var(--mantine-spacing-md) 0;
+  font-size: 1.25rem;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.cardLink:hover .name {
+  text-decoration: underline;
+}
+
+.cardBody {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-md);
+  padding: var(--mantine-spacing-xs) var(--mantine-spacing-md)
+    var(--mantine-spacing-md);
+}
+
+.description {
+  flex: 1;
+  margin: 0;
+  line-height: 1.45;
+}
+
+.grades {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--mantine-spacing-xs);
+}
+
+.grade {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  min-height: 48px;
+  padding: 0 var(--mantine-spacing-md);
+  border-radius: var(--mantine-radius-md);
+  background-color: var(--k-accent-fill);
+  color: var(--k-on-accent, #fff);
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform var(--k-duration-fast) var(--k-ease-springy);
+}
+
+.grade:active {
+  transform: translateY(2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .grade {
+    transition: none;
+  }
+
+  .grade:active {
+    transform: none;
+  }
+}
+
+.blocked {
+  margin: 0;
+  font-weight: 700;
+}
+
+.details {
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--mantine-spacing-md);
+}
+
+.details .bigPicture {
+  width: 100%;
+}
+
+.detailsName {
+  margin: 0;
+  font-size: clamp(1.75rem, 1.4rem + 1.5vw, 2.5rem);
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.detailsDescription {
+  margin: 0;
+  font-size: 1.125rem;
+  line-height: 1.5;
+}
+
+.pick {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+.link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 48px;
+  color: var(--k-accent-text, var(--k-accent-fill));
+  font-weight: 700;
+}
+
+.footer {
+  text-align: center;
+}

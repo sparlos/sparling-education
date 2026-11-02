@@ -5,6 +5,7 @@ Slug: template-game (game link: /play/template-game)
 Version: 1
 Renderer: dom
 Avatar: portrait
+Description: Say what the player does, in words a child would enjoy, then what the game teaches. Teaches fractions.
 
 The starter kit's own example spec, in the `design-game` format, so the template's spec test has something to read. `pnpm new-game` never copies it: a new game keeps the SPEC.md its `design-game` session wrote. The game it describes is a placeholder that shows the kit's patterns, not a model mechanic.
 
