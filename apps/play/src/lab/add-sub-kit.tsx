@@ -107,10 +107,9 @@ export function NumberPad({
         opacity: disabled ? 0.5 : 1,
       }}
     >
-      {[...keys, dp > 0 ? "." : "", "0", "del"].map((k, i) =>
+      {[...keys, dp > 0 ? "." : "", "0", "del"].map((k) =>
         k === "" ? (
-          // biome-ignore lint/suspicious/noArrayIndexKey: fixed pad
-          <span key={i} />
+          <span key="blank" />
         ) : (
           <button
             key={k}

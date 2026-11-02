@@ -16,6 +16,7 @@ import {
   toUnits,
   wait,
 } from "../add-sub-kit.tsx";
+import { type Notebook, NotebookPiece } from "../notebook-kit.tsx";
 import type { PrototypeMeta, PrototypeProps } from "../prototype.ts";
 
 export const meta: PrototypeMeta = {
@@ -56,7 +57,7 @@ interface Stop {
   amount: number;
 }
 
-interface Job {
+export interface Job {
   kind: Kind;
   start: number;
   stops: Stop[];
@@ -143,9 +144,64 @@ const gateX = 860;
 const trackY = 300;
 const stopXs = (n: number) => (n === 1 ? [475] : [345, 605]);
 
-export default function CargoLine({ grade, Avatar, speak }: PrototypeProps) {
+/** The notebook's small picture of a job: the route's signs, in a strip. */
+function RouteStrip({ job }: { job: Job }) {
+  const dp = job.kind.dp;
+  const signs = [
+    {
+      title: "leaves with",
+      value: job.unknown === "start" ? "?" : fmt(job.start, dp),
+    },
+    ...job.stops.map((s, i) => ({
+      title: s.load ? "▲ load" : "▼ unload",
+      value: job.unknown === "change" && job.at === i ? "?" : fmt(s.amount, dp),
+    })),
+    {
+      title: "city needs",
+      value: job.unknown === "end" ? "?" : fmt(job.end, dp),
+    },
+  ];
+  return (
+    <div style={{ display: "flex", gap: 6 }}>
+      {signs.map((s) => {
+        const sign = (
+          <div
+            key={s.title}
+            style={{
+              padding: "2px 8px",
+              minWidth: 72,
+              textAlign: "center",
+              borderRadius: 8,
+              background: "white",
+              border: `2px solid ${palette.ink[4]}`,
+            }}
+          >
+            <div style={{ fontSize: 12, fontWeight: 700 }}>{s.title}</div>
+            <div style={{ fontSize: 20, fontWeight: 900 }}>{s.value}</div>
+          </div>
+        );
+        // The whole sign is the handle; only its number lands on the page.
+        return s.value === "?" ? (
+          <div key={s.title}>{sign}</div>
+        ) : (
+          <NotebookPiece key={s.title} digits={s.value}>
+            {sign}
+          </NotebookPiece>
+        );
+      })}
+    </div>
+  );
+}
+
+export default function CargoLine({
+  grade,
+  Avatar,
+  speak,
+  notebook,
+  firstJob,
+}: PrototypeProps & { notebook?: Notebook; firstJob?: Job }) {
   const [round, setRound] = useState(0);
-  const [job, setJob] = useState(() => makeJob(grade, 0));
+  const [job, setJob] = useState(() => firstJob ?? makeJob(grade, 0));
   const [entry, setEntry] = useState("");
   const [trainX, setTrainX] = useState(depotX);
   const [cargo, setCargo] = useState<number | null>(null);
@@ -169,12 +225,13 @@ export default function CargoLine({ grade, Avatar, speak }: PrototypeProps) {
     setTrainX(depotX);
     setCargo(null);
     setOutcome(null);
+    notebook?.task(job, <RouteStrip job={job} />);
     speak(
       round === 0
         ? `${story(job)} Type the missing number, then press Go.`
         : story(job),
     );
-  }, [job, round, speak]);
+  }, [job, round, speak, notebook]);
 
   const edit = (value: string) => {
     setEntry(value);
@@ -196,6 +253,7 @@ export default function CargoLine({ grade, Avatar, speak }: PrototypeProps) {
   const run = async () => {
     const typed = toUnits(entry, dp);
     if (typed === null || running) return;
+    notebook?.close();
     setRunning(true);
     setOutcome(null);
     setTrainX(depotX);
