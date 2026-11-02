@@ -23,6 +23,8 @@
 - we need to build the polish-game skill
 - improper or mixed fractions as an extension/enhancement - would need to tie it to curriculum
 
+## Cargo Line
+- instead of bird's eye, from the side like the original prototype. should make more of a journey. maybe it can climb a mountain or something? that would be neat. it needs to have a defined beginning and end
 ## Game polish
 - All games need music & punchy SFX, created by a human!
 - All art will need to be swapped with better art - probably AI for now, but then eventually would like to get a real artist to make the stuff
