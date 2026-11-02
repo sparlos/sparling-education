@@ -1,0 +1,7 @@
+/* The try site is a website people browse, so a sideways swipe on a touchpad
+   goes back and forward. The student site keeps it off (global.css). */
+html,
+body,
+#root {
+  overscroll-behavior-x: auto;
+}

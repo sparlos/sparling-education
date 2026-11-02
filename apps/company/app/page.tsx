@@ -13,6 +13,7 @@ import {
   contactEmail,
   productSiteUrl,
   site,
+  tryGamesUrl,
 } from "../content/site";
 import styles from "./page.module.css";
 
@@ -93,12 +94,20 @@ export default function Home() {
                 <p key={paragraph}>{paragraph}</p>
               ))}
               <p className={styles.facts}>{product.facts}</p>
-              <a href={productSiteUrl} className={styles.productButton}>
-                {product.action}
-                <span className={styles.arrow} aria-hidden="true">
-                  →
-                </span>
-              </a>
+              <div className={styles.productActions}>
+                <a href={productSiteUrl} className={styles.productButton}>
+                  {product.action}
+                  <span className={styles.arrow} aria-hidden="true">
+                    →
+                  </span>
+                </a>
+                <a href={tryGamesUrl} className={styles.productButtonOutline}>
+                  {product.tryAction}
+                  <span className={styles.arrow} aria-hidden="true">
+                    →
+                  </span>
+                </a>
+              </div>
             </div>
           </div>
         </section>

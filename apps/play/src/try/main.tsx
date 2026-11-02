@@ -1,6 +1,7 @@
 // The try site's composition root: anyone can play every game, with no sign-in
 // and nothing sent anywhere. See README.md.
 import "../ui/shell-styles.ts";
+import "./try-global.css";
 import shellLines from "virtual:voice-lines/shell";
 import { UIProvider } from "@repo/ui/provider";
 import { StrictMode } from "react";

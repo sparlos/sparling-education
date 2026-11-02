@@ -17,6 +17,9 @@ export const productSiteUrl = (
   process.env.NEXT_PUBLIC_PRODUCT_SITE_URL ?? "http://localhost:3000/educators"
 ).replace(/\/$/, "");
 
+/** The public site where anyone can try the games (apps/play). */
+export const tryGamesUrl = "https://tryplaceholder.sparlingeducation.ca/";
+
 export const site = {
   title: `${companyName}: learning games for Canadian classrooms`,
   description: `${companyName} makes learning games for Grades 1 to 8, built from the Ontario curriculum. Our first product is ${brandName}.`,
@@ -53,6 +56,7 @@ export const site = {
         "Fraction Hop, Grade 4. Students plan hops along a number line to land on a fraction.",
     },
     action: `Visit the ${brandName} website`,
+    tryAction: "Try the games",
   },
 
   principles: {

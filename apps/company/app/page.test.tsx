@@ -34,6 +34,9 @@ describe("the company site", () => {
         name: `Visit the ${brandName} website`,
       }),
     ).toHaveAttribute("href", productSiteUrl);
+    expect(
+      within(product).getByRole("link", { name: "Try the games" }),
+    ).toHaveAttribute("href", "https://tryplaceholder.sparlingeducation.ca/");
   });
 
   test("states what the company holds to", () => {

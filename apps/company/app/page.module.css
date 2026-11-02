@@ -232,32 +232,53 @@
   color: var(--product-soft);
 }
 
-.productButton {
+.productActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.productButton,
+.productButtonOutline {
   display: inline-flex;
   align-items: center;
   gap: 0.625rem;
   min-height: 48px;
   padding-inline: 1.375rem;
-  background: var(--k-ink-inverse);
-  color: var(--product-deep);
   font-weight: 600;
   text-decoration: none;
   transition: background-color 150ms ease;
+}
+
+.productButton {
+  background: var(--k-ink-inverse);
+  color: var(--product-deep);
 }
 
 .productButton:hover {
   background: var(--product-soft);
 }
 
+.productButtonOutline {
+  border: 1px solid var(--k-ink-inverse);
+  color: var(--k-ink-inverse);
+}
+
+.productButtonOutline:hover {
+  background: var(--product-mid);
+}
+
 .arrow {
   transition: transform 200ms var(--ease-out);
 }
 
-.productButton:hover .arrow {
+.productButton:hover .arrow,
+.productButtonOutline:hover .arrow {
   transform: translateX(4px);
 }
 
-.productButton:focus-visible {
+.productButton:focus-visible,
+.productButtonOutline:focus-visible {
   outline-color: var(--k-ink-inverse);
 }
 

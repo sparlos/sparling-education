@@ -4,7 +4,7 @@
   box-sizing: border-box;
   height: 100dvh;
   overflow-y: auto;
-  overscroll-behavior: contain;
+  overscroll-behavior-y: contain;
   user-select: text;
   color: var(--k-ink);
 }
