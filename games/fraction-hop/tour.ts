@@ -1,8 +1,9 @@
 // Fraction Hop's browser tour: `pnpm tour fraction-hop`. Every tier at
 // Chromebook sizes: new to the game at the widest size, where it watches the
 // whole tutorial once (Grade 3) or skips it, and returning (no tutorial) at
-// the others. Then on every task plays a miss, taps hint twice on task 2, and solves
-// (building task 3's plan by dragging).
+// the others, with reduced motion. Then on every task plays a miss, taps hint
+// twice on task 2, and solves (building task 3's plan by dragging). It follows
+// the treasure map from the opening to the open chest.
 // Checks the screen fits, the goal caption shows and targets are 64 px at
 // every step. See packages/game-kit/src/tour.ts.
 import { defineTour } from "@repo/game-kit/tour";
@@ -110,6 +111,7 @@ export default defineTour({
   // New to the game at the widest size, where the tutorial is looked at;
   // returning, so it starts at task 1, everywhere else.
   firstPlay: ({ first }) => first,
+  reducedMotion: ({ first }) => !first,
   async play({
     page,
     grade,
@@ -154,7 +156,13 @@ export default defineTour({
       await checkFit("tutorial");
       await page.getByRole("button", { name: "Skip" }).click();
     }
+    await page.waitForSelector(
+      '[data-testid="treasure-map"][data-view="wide"]',
+      { timeout: 90_000 },
+    );
     await page.waitForTimeout(300);
+    await checkFit("opening");
+    if (first) await screenshot("opening");
     for (let task = 1; task <= 6; task++) {
       await waitIdle(page);
       const c = await readCourse(page);
@@ -164,6 +172,19 @@ export default defineTour({
         return;
       }
       await checkFit(`task ${task}`);
+      // The founder's call: the zoom lands exactly on the course's character.
+      const off = await page.evaluate(() => {
+        const box = (s: string) =>
+          (document.querySelector(s) as Element).getBoundingClientRect();
+        const a = box('[data-testid="walker"] svg');
+        const b = box('[data-testid="hopper"] foreignObject svg');
+        return Math.max(
+          Math.abs(a.x - b.x),
+          Math.abs(a.y - b.y),
+          Math.abs(a.width - b.width),
+        );
+      });
+      if (off > 1.5) problem(`task ${task}: the zoom missed by ${off} px`);
       // A miss: the smallest block until the plan is full. On task 4, the
       // route with one hop that splashes instead, so solving is a "Nice fix!".
       const smallest = Math.max(...c.blocks);
@@ -243,7 +264,21 @@ export default defineTour({
       log(
         `task ${task}: goal ${c.shown}, ticks ${c.unit}, blocks ${c.blocks}, budget ${c.budget}, route ${r}; course ${Math.round(svg?.width ?? 0)}x${Math.round(svg?.height ?? 0)}`,
       );
-      if (task < 6) await page.waitForTimeout(2800);
+      await page.waitForSelector(
+        `[data-testid="treasure-map"][data-done="${task}"]`,
+        { timeout: 20_000 },
+      );
+      if (first && task === 3) {
+        await page.waitForTimeout(150);
+        await checkFit("between tasks");
+        await screenshot("between-tasks");
+      }
     }
+    await page.waitForSelector('[data-testid="ending-rays"]', {
+      timeout: 20_000,
+    });
+    await page.waitForTimeout(1000);
+    await checkFit("ending");
+    await screenshot("ending");
   },
 });

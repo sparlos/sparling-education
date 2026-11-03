@@ -63,6 +63,8 @@ export interface BoardProps {
   onHint(): void;
   /** The tutorial's skip button. */
   onSkip?: () => void;
+  /** The journey, laid over the whole board. */
+  overlay?: ReactNode;
 }
 
 export function Board(props: BoardProps) {
@@ -173,6 +175,7 @@ export function Board(props: BoardProps) {
             target={`slot-${props.sparkle.hop}`}
           />
         )}
+        {props.overlay}
       </GameFrame>
     </DragDropProvider>
   );

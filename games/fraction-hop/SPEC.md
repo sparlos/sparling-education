@@ -14,6 +14,7 @@ The founder played two prototypes in the lab on 2026-10-24 and picked **Hop Code
 - **What hooked them:** "plan a route, press the button, and see what happens". The plan, run and reveal loop is the game. It borrows from coding games (Lightbot: build a program, then watch it run) and from Mario's hops over pits. The plan is a puzzle; the run is the reveal, and a splash shows exactly which hop was wrong.
 - **How they played it:** by building a route one hop at a time and pressing play after each, until they reached the goal. That exploring is the intended way to play, and it never counts against a student (see Attempts).
 - **Rejected: Spring Run** (`lab/spring-run`, archived). The student put fraction cards on fixed springs. There was less to explore, and each spring starting from a different point on the number line was "kind of weird": it wasn't obvious what the fractions were doing. **Lesson kept:** every hop starts where the last one landed, building out from 0, so each fraction is a visible distance.
+- **The journey (2026-11-03):** the founder played three ways of heading for a treasure over a play and picked **Treasure: the big map** (`lab/hop-map-zoom`), their own idea of a Mario-style map, after asking for the zoom to land exactly on the avatar and for a slower zoom and fade. Not picked: **Treasure: the small map** (`lab/hop-map-strip`, archived), a small path in the top row, and **Treasure: island ahead** (`lab/hop-horizon`, archived), a treasure island growing on the horizon behind each course.
 - **Also rejected earlier:** Plank Bridge (cutting planks to fill bridge gaps), as "not fun, bad concept". Don't reuse it.
 
 ## Concept
@@ -38,6 +39,18 @@ The screen is a side view of a course over water: a number line from 0 to a few 
 **Why getting better at it is getting better at the concept:** reaching a goal at ³⁄₈ means knowing it's three one-eighth hops (G3), reaching ⁷⁄₄ means counting fourths past one whole (G4), and reaching ⅔ on a course ticked in twelfths with ⅓, ¼, ⅙ and 1⁄12 hops in a tight budget means seeing ⅔ as two thirds, or eight twelfths (G5).
 
 **What visibly fails:** a wrong idea sends the avatar into the water at a precise spot, or past the goal with its landing fraction shown beside the goal's. See Misconceptions.
+
+## Journey
+
+Kind: going somewhere. One play is one trip across a treasure map, from the first island to the chest.
+
+- **From the start:** the play opens on the whole map, filling the game's screen: six spots joined by a dotted path across the islands, the student's character on the first, and a shut chest on an X at the far end. The voice and a caption say the goal ("Let's hop across the islands to the treasure!"). The camera then zooms in on the character until it's exactly where and how big the course's character is, and the map fades into the course (0.8 s). On a first play this comes after the tutorial's "Now you try!". The tutorial doesn't show the map.
+- **After each task:** "You found the goal!" plays as the task ends. Then, in about 2.8 seconds, with no voice and nothing to tap: the map fades in as the camera pulls back from the character (0.8 s), the spot just finished and the path behind it turn gold, the character hops along the path to the next spot (1 s), and the camera zooms in on it again, onto the next course (0.8 s). The next task arrives by itself, with its own line. Hint, the blocks, the plan and Play are off throughout.
+- **The end:** after task 6, the same pull back, and the character hops to the chest. The screen darkens and the chest fills it, then opens, with rays and coins behind it. The avatar cheers beside it, and the voice and a caption say "You found the treasure! Great hopping!" It takes about 5.6 seconds in all, or longer if the line takes longer to say. The shell then takes over.
+
+The trip is the same for every student, however much help they had, and starts again from the first island each play. Nothing from it is kept after the play. With reduced motion, the map appears and goes without moving: the character is on its new spot for about a second, and the rays and coins hold still. Every part shows on screen, so no student needs to hear it. The map never shows anything about a course, so it can't give a goal away.
+
+**Sound:** none yet. Fraction Hop has no sound files; the journey's get made with the rest (see the general notes on music and sound).
 
 ## Tiers
 
@@ -148,8 +161,10 @@ Expressions:
 - `thinking`: while the student builds a plan,
 - `happy`: on each landing on grass,
 - `encouraging`: after a splash or an overshoot,
-- `cheering`: on reaching the goal, and at the end of the play.
+- `cheering`: on reaching the goal, and beside the chest at the end of the play.
 - `neutral` otherwise.
+
+The same portrait is the character on the treasure map (see Journey), in `neutral`.
 
 The contract's character API starts minimal: the portrait at any size, with an expression. Moving it along the course is the game's own job.
 
@@ -165,7 +180,7 @@ The contract's character API starts minimal: the portrait at any size, with an e
 
 ## Tutorial
 
-A scripted, in-code "video": the avatar and a ghost hand act out one course while the voice explains (strings `tutorial.*`). It opens with a welcome ("Welcome to Fraction Hop!"), then shows: the goal's fraction, dragging two blocks into the plan, pressing play, a hop splashing, fixing it by dragging the hops into the other order, and reaching the goal. It plays only on the student's first play of Fraction Hop, in any class and at any tier (founder's call; the shell's `firstPlay`), before task 1, and a skip button ends it at any time. A returning student starts at task 1. It's never recorded as help.
+A scripted, in-code "video": the avatar and a ghost hand act out one course while the voice explains (strings `tutorial.*`). It opens with a welcome ("Welcome to Fraction Hop!"), then shows: the goal's fraction, dragging two blocks into the plan, pressing play, a hop splashing, fixing it by dragging the hops into the other order, and reaching the goal. It plays only on the student's first play of Fraction Hop, in any class and at any tier (founder's call; the shell's `firstPlay`), before the journey opens, and a skip button ends it at any time. A returning student starts with the journey's opening, then task 1. It's never recorded as help.
 
 **The voice and the hand take turns, never both at once** (founder's call). A line is said first, and the hand may rest on what it's about while it's said. Then the hand acts. Each step waits for the voice to finish (the contract's `say` settles when it has), rather than guessing a line's length. The buttons the hand taps look enabled, though the student can't tap them. On the lower half of the screen, the hand points down from above.
 
@@ -182,6 +197,7 @@ Every string a student sees or hears; each becomes a voice line. Sentences are w
 | `tutorial.play` | Then press play, and watch your hops. |
 | `tutorial.splash` | Splash! That hop landed in the water. Change it, and try again. |
 | `tutorial.goal-found` | No hop landed in the water, and the last one landed on the goal. Now you try! |
+| `journey.goal` | Let's hop across the islands to the treasure! |
 | `ui.skip` | Skip |
 | `ui.play` | Play |
 | `ui.hint` | Hint |
@@ -207,8 +223,7 @@ Every string a student sees or hears; each becomes a voice line. Sentences are w
 | `guided.count` | Count to the goal: |
 | `guided.first-hop` | I'll add the first hop. You add the rest. |
 | `guided.one-more` | Here's one more hop. |
-| `task.next` | On to the next course! |
-| `play.done` | You reached every goal. Great hopping! |
+| `play.done` | You found the treasure! Great hopping! |
 | `hop.1` | One whole hop |
 | `hop.2` … `hop.12` | One half hop, One third hop, One fourth hop, One fifth hop, One sixth hop, One eighth hop, One tenth hop, One twelfth hop (`hop.<d>` for d = 2, 3, 4, 5, 6, 8, 10, 12) |
 | `amount.<n>-<d>` | The amount family: "one eighth", "three eighths", "eleven fourths", "thirty-six twelfths". d = 2, 3, 4, 5, 6, 8, 10, 12, and n = 1 to 3 × d (150 strings), generated in the manifest from English number and unit words. |
@@ -244,6 +259,11 @@ Placeholder SVG first, from the style kit, each in a fixed frame with an anchor.
 | `slot` | An empty plan slot |
 | `arc` | Hint 2's preview arc |
 | `sparkle` | The "Nice fix!" burst (polish) |
+| `map` | The whole treasure map: sea, islands and palms, with no path or spots |
+| `map-spot`, `map-spot-done` | A spot on the map, and one that's been finished, anchored at its centre |
+| `map-x` | The X the chest stands on, anchored at its centre |
+| `chest`, `chest-open` | The treasure chest, shut and open, anchored at the middle of its base |
+| `ending-ray`, `ending-coin` | A ray and a coin behind the open chest |
 
 ## Teacher card
 

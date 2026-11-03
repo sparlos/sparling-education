@@ -1,0 +1,158 @@
+/* The treasure map, over the whole game frame. It only ever shows: taps pass
+   through it, and the controls are off while it's in the way. */
+
+.layer {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.map {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity var(--fade-ms);
+}
+
+.layer[data-shown] .map {
+  opacity: 1;
+}
+
+.camera {
+  position: absolute;
+  inset: 0;
+  transform-origin: 0 0;
+}
+
+.layer[data-moving] .camera {
+  transition: transform var(--zoom-ms) ease-in-out;
+}
+
+.world {
+  position: absolute;
+}
+
+.mapArt {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.walker {
+  position: absolute;
+}
+
+/* It shrinks as the camera zooms in, so it lands at the course's size. */
+.walkerBody {
+  line-height: 0;
+  transform-origin: 50% 50%;
+}
+
+.layer[data-moving] .walkerBody {
+  transition: transform var(--zoom-ms) ease-in-out;
+}
+
+.layer[data-view="close"] .walkerBody {
+  transform: scale(var(--walker-close));
+}
+
+.ending {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--scrim);
+  animation: appear 300ms ease-out;
+}
+
+@keyframes appear {
+  from {
+    transform: scale(0.3);
+    opacity: 0;
+  }
+}
+
+.chest {
+  position: relative;
+  width: 340px;
+}
+
+.chestArt {
+  position: relative;
+  line-height: 0;
+}
+
+.rays {
+  position: absolute;
+  left: -50%;
+  top: -70%;
+  width: 200%;
+  animation: turn 9s linear infinite;
+}
+
+@keyframes turn {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.coin {
+  position: absolute;
+  left: 47%;
+  top: 30%;
+  line-height: 0;
+  transform: translate(var(--dx), var(--dy));
+  animation: fling 1500ms ease-out infinite;
+}
+
+@keyframes fling {
+  0% {
+    transform: translate(0, 0) scale(0.4);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--dx), var(--dy));
+    opacity: 0;
+  }
+}
+
+.cheer {
+  position: absolute;
+  right: 48px;
+  bottom: 48px;
+}
+
+.line {
+  position: absolute;
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
+  margin: 0;
+  padding: 6px 20px;
+  border-radius: 16px;
+  background: var(--scrim);
+  color: var(--k-ink-inverse);
+  font-size: 26px;
+  font-weight: 800;
+  text-align: center;
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .map,
+  .layer[data-moving] .camera,
+  .layer[data-moving] .walkerBody {
+    transition: none;
+  }
+  .ending,
+  .rays,
+  .coin {
+    animation: none;
+  }
+}

@@ -21,6 +21,7 @@ export const fixedStrings = {
     "Splash! That hop landed in the water. Change it, and try again.",
   "tutorial.goal-found":
     "No hop landed in the water, and the last one landed on the goal. Now you try!",
+  "journey.goal": "Let's hop across the islands to the treasure!",
   "ui.play": "Play",
   "ui.goal-at": "Goal at",
   "ui.plan": "Your plan",
@@ -42,8 +43,7 @@ export const fixedStrings = {
   "guided.count": "Count to the goal:",
   "guided.first-hop": "I'll add the first hop. You add the rest.",
   "guided.one-more": "Here's one more hop.",
-  "task.next": "On to the next course!",
-  "play.done": "You reached every goal. Great hopping!",
+  "play.done": "You found the treasure! Great hopping!",
 } as const;
 
 export type FixedId = keyof typeof fixedStrings;

@@ -384,7 +384,7 @@ describe("a game's first play", () => {
     expect(screen.getByTestId("first-play")).toHaveTextContent("first play");
   });
 
-  it("starts a returning student's Fraction Hop at task 1, with no tutorial", async () => {
+  it("opens a returning student's Fraction Hop on the journey, with no tutorial", async () => {
     const storage = memoryStorage();
     await playedBefore(storage, "fraction-hop");
     const withFractionHop: Student = {
@@ -404,8 +404,11 @@ describe("a game's first play", () => {
     expect(
       within(board).queryByRole("button", { name: "Skip" }),
     ).not.toBeInTheDocument();
-    // The tutorial's Play button can't be tapped; task 1's can.
-    expect(within(board).getByRole("button", { name: "Play" })).toBeEnabled();
+    // The tutorial never shows the map; a returning student opens on it.
+    expect(screen.getByTestId("treasure-map")).toHaveAttribute(
+      "data-view",
+      "wide",
+    );
   });
 
   it("plays a new student's Fraction Hop tutorial first", async () => {

@@ -1,4 +1,5 @@
-// The game: the tutorial (on the student's first play only), then six tasks. The rules live in ../rules; this
+// The game: the tutorial (on the student's first play only), then one trip
+// across the treasure map, over six tasks. The rules live in ../rules; this
 // file wires them to taps, the run's animation, the voice and the shell.
 import type { AvatarExpression, GameProps } from "@repo/game-contract";
 import { handMs, offerHint } from "@repo/game-kit/frame";
@@ -26,6 +27,20 @@ import type { StringId } from "../strings.ts";
 import { Board, type Carried } from "./Board.tsx";
 import { type Hopper, home, hopMs, sinkMs } from "./Course.tsx";
 import {
+  aimMs,
+  type ChestState,
+  chestOpenMs,
+  chestShutMs,
+  type MapCamera,
+  mapFadeMs,
+  settleMs,
+  stillHoldMs,
+  TreasureMap,
+  walkMs,
+  walkToChestMs,
+  zoomMs,
+} from "./TreasureMap.tsx";
+import {
   beatMs,
   minLineMs,
   type Tap,
@@ -34,10 +49,8 @@ import {
   tutorialScript,
 } from "./tutorial.ts";
 
-/** The pause after "You found the goal!" before the next course. */
-const solvedMs = 800;
-/** The pause after the last line of the play before the shell takes over. */
-const doneMs = 1500;
+/** The pause after "You found the goal!" before the map comes back. */
+const solvedMs = 500;
 /** How long the ghost hand points at a hop guided placed. */
 const pointMs = 1800;
 /** How long the "Nice fix!" sparkle lasts. */
@@ -50,7 +63,11 @@ export const runMs = (run: Run) =>
   run.landings.length * hopMs +
   (run.end.kind === "splash" ? sinkMs : 150);
 
-type Mode = "tutorial" | "play" | "done";
+type Mode = "tutorial" | "opening" | "play" | "moment" | "done";
+
+const reducedMotion = () =>
+  typeof window !== "undefined" &&
+  window.matchMedia?.("(prefers-reduced-motion: reduce)").matches === true;
 
 export function FractionHop(props: GameProps<Manifest>) {
   const { tier, firstPlay, t, say, onAttempt, onProgress, onFinish } = props;
@@ -59,7 +76,7 @@ export function FractionHop(props: GameProps<Manifest>) {
     [tier],
   );
   // The tutorial plays on a first play only; a returning student starts at task 1.
-  const [mode, setMode] = useState<Mode>(firstPlay ? "tutorial" : "play");
+  const [mode, setMode] = useState<Mode>(firstPlay ? "tutorial" : "opening");
   const [task, setTask] = useState(() => {
     const first = courses[0];
     return firstPlay || !first
@@ -88,6 +105,16 @@ export function FractionHop(props: GameProps<Manifest>) {
   const [sparkle, setSparkle] = useState<{ hop: number; key: number } | null>(
     null,
   );
+
+  // The journey: the treasure map.
+  const [mapShown, setMapShown] = useState(true);
+  const [camera, setCamera] = useState<MapCamera>({
+    view: "wide",
+    moving: false,
+  });
+  const [spot, setSpot] = useState(0);
+  const [done, setDone] = useState(0);
+  const [chest, setChest] = useState<ChestState>("none");
 
   // Every timer, cleared together on skip, on a new task, and on unmount.
   // A pause cut short this way never resumes, which ends whatever awaited it.
@@ -150,13 +177,13 @@ export function FractionHop(props: GameProps<Manifest>) {
     [later],
   );
 
-  const beginTask = useCallback(
+  /** Puts a course on the board, behind the map if it's up. */
+  const showCourse = useCallback(
     (index: number) => {
       clearTimers();
       const course = courses[index - 1];
       if (!course) return;
       commit(startTask(tier, index, course));
-      setMode("play");
       setHopper(home);
       setResult(null);
       setRunning(false);
@@ -164,23 +191,95 @@ export function FractionHop(props: GameProps<Manifest>) {
       setTapping(false);
       setCarrying(null);
       setSparkle(null);
-      setMood("thinking");
-      void speak([
-        ...(index > 1 ? (["task.next"] as const) : []),
-        ...introLines(course),
-      ]);
     },
-    [clearTimers, commit, courses, speak, tier],
+    [clearTimers, commit, courses, tier],
   );
+
+  /** The task on the board begins, with its own line. */
+  const beginTask = useCallback(
+    (index: number) => {
+      const course = courses[index - 1];
+      if (!course) return;
+      setMode("play");
+      setMood("thinking");
+      void speak(introLines(course));
+    },
+    [courses, speak],
+  );
+
+  /** A move of the camera or the map: none with reduced motion, where it cuts. */
+  const moved = useCallback(
+    (ms: number) => pause(reducedMotion() ? 0 : ms),
+    [pause],
+  );
+
+  /** The camera zooms in on the character, and the map fades into the course. */
+  const zoomIn = useCallback(async () => {
+    setCamera({ view: "close", moving: true });
+    await moved(zoomMs - mapFadeMs);
+    setMapShown(false);
+    await moved(mapFadeMs);
+  }, [moved]);
+
+  /**
+   * The map comes back as the camera pulls away from the course's character,
+   * then the character hops to the next place. No voice, and nothing to tap.
+   */
+  const pullBack = useCallback(
+    async (index: number) => {
+      setMode("moment");
+      setCaption([]);
+      setHand(null);
+      // Unseen: the camera finds the character where the course left it.
+      setCamera({ view: "close", moving: false });
+      await pause(aimMs);
+      setMapShown(true);
+      setCamera({ view: "wide", moving: true });
+      await moved(zoomMs);
+      setDone(index);
+      await moved(settleMs);
+      setSpot(index);
+      await pause(
+        reducedMotion()
+          ? stillHoldMs
+          : index < tasksPerPlay
+            ? walkMs
+            : walkToChestMs,
+      );
+    },
+    [moved, pause],
+  );
+
+  /** From the tutorial, or its skip, to the journey's opening on task 1. */
+  const open = useCallback(() => {
+    showCourse(1);
+    setMapShown(true);
+    setCamera({ view: "wide", moving: false });
+    setMode("opening");
+  }, [showCourse]);
 
   // The shell's progress bar: tasks solved out of the play's.
   useEffect(() => onProgress({ done: 0, total: tasksPerPlay }), [onProgress]);
 
-  // A returning student's first task is on screen already; say its goal.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: once, as the game opens
+  // The opening: the whole map, and the goal. The camera then zooms in on the
+  // character, and task 1 begins.
   useEffect(() => {
-    if (!firstPlay) beginTask(1);
-  }, []);
+    if (mode !== "opening") return;
+    let cancelled = false;
+    void (async () => {
+      setMood("neutral");
+      // With no sound, the line still holds the screen long enough to read.
+      await Promise.all([speak(["journey.goal"]), pause(minLineMs)]);
+      if (cancelled) return;
+      setCaption([]);
+      await zoomIn();
+      if (!cancelled) beginTask(1);
+    })();
+    return () => {
+      cancelled = true;
+      clearTimers();
+    };
+  }, [mode, speak, pause, zoomIn, beginTask, clearTimers]);
 
   // The tutorial: a fixed script on its own course, never recorded. Each cue
   // waits for the last, so the voice and the hand take turns.
@@ -242,7 +341,7 @@ export function FractionHop(props: GameProps<Manifest>) {
         } else if ("tap" in cue) {
           await doTap(cue.tap);
         } else if (!cancelled) {
-          beginTask(1);
+          open();
         }
       }
     })();
@@ -250,7 +349,7 @@ export function FractionHop(props: GameProps<Manifest>) {
       cancelled = true;
       clearTimers();
     };
-  }, [mode, pause, speak, commit, hop, beginTask, clearTimers]);
+  }, [mode, pause, speak, commit, hop, open, clearTimers]);
 
   /** Sends a run's attempt as it happens, so a student who leaves still leaves their tries. */
   const record = useCallback(
@@ -296,14 +395,22 @@ export function FractionHop(props: GameProps<Manifest>) {
     const cheer: StringId[] = fixed ? ["run.nice-fix"] : [];
     onProgress({ done: done.index, total: tasksPerPlay });
     console.info("[fraction-hop] tuning (local only)", tuningLog(done));
+    await speak([...cheer, "run.solved"]);
+    await pause(solvedMs);
+    await pullBack(done.index);
     if (done.index < tasksPerPlay) {
-      await speak([...cheer, "run.solved"]);
-      await pause(solvedMs);
+      showCourse(done.index + 1);
+      // The next course's character has to be on screen for the camera to find it.
+      await pause(aimMs);
+      await zoomIn();
       beginTask(done.index + 1);
     } else {
       setMode("done");
-      await speak([...cheer, "run.solved", "play.done"]);
-      await pause(doneMs);
+      setMood("cheering");
+      setChest("shut");
+      await pause(chestShutMs);
+      setChest("open");
+      await Promise.all([speak(["play.done"]), pause(chestOpenMs)]);
       onFinish();
     }
   };
@@ -320,7 +427,7 @@ export function FractionHop(props: GameProps<Manifest>) {
       hopper={hopper}
       result={result}
       running={running}
-      caption={caption}
+      caption={mode === "opening" || chest !== "none" ? [] : caption}
       t={t}
       Avatar={props.Avatar}
       expression={mood}
@@ -331,7 +438,24 @@ export function FractionHop(props: GameProps<Manifest>) {
       sparkle={sparkle}
       missed={missed}
       trail={trail}
-      onSkip={mode === "tutorial" ? () => beginTask(1) : undefined}
+      onSkip={mode === "tutorial" ? open : undefined}
+      overlay={
+        mode === "tutorial" ? undefined : (
+          <TreasureMap
+            shown={mapShown}
+            camera={camera}
+            spot={spot}
+            done={done}
+            chest={chest}
+            line={
+              mode === "opening" || chest === "open"
+                ? caption.map(t).join(" ")
+                : ""
+            }
+            Avatar={props.Avatar}
+          />
+        )
+      }
       onAdd={(d, at) => {
         const before = current.current;
         edit();

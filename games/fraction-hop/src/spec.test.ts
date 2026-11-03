@@ -8,6 +8,7 @@ import {
   subsections,
 } from "@repo/game-kit/spec";
 import { describe, expect, it } from "vitest";
+import { endingMs, momentMs, spots } from "./game/TreasureMap.tsx";
 import { manifest } from "./manifest.ts";
 import type { Course, Run } from "./rules/course.ts";
 import { distractors, g5Sets, tasksPerPlay } from "./rules/generate.ts";
@@ -126,6 +127,31 @@ describe("the rules match SPEC.md", () => {
       `After **${missesForHint2} misses** in all, at least one of them with hint 1 on`,
     );
     expect(effort).toContain(`After **${missesBeforeGuided} misses** in all`);
+  });
+});
+
+describe("the journey matches SPEC.md", () => {
+  const journey = section("Journey");
+
+  it("stays inside the limit between tasks, at the time it names", () => {
+    expect(momentMs).toBeLessThanOrEqual(4000);
+    expect(journey).toContain(
+      `in about ${(momentMs / 1000).toFixed(1)} seconds`,
+    );
+  });
+
+  it("ends at the length it names", () => {
+    expect(journey).toContain(`about ${(endingMs / 1000).toFixed(1)} seconds`);
+  });
+
+  it("has a spot for each task", () => {
+    expect(spots).toHaveLength(tasksPerPlay);
+    expect(journey).toContain("six spots");
+  });
+
+  it("says the lines it names", () => {
+    expect(journey).toContain(`"${strings["journey.goal"]}"`);
+    expect(journey).toContain(`"${strings["play.done"]}"`);
   });
 });
 

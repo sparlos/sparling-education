@@ -439,3 +439,14 @@ Polish (fuse motion and sound, crystals flying between tubes, a chute's drop ani
 
 - The glowing hint button swells forever, so Playwright never sees it "stable": the tour taps it with `force`.
 - `wrongWindows`/window order: the board lists places left to right (biggest first), so DOM order already reads as the number.
+
+## Fraction Hop's journey (built, awaiting the founder's play, 2026-11-03)
+
+One play is one trip across a treasure map. `games/fraction-hop/src/game/TreasureMap.tsx` is the map over the whole frame, with no rules in it; `FractionHop.tsx` says when the camera moves, when the character walks and when the chest opens. The prototype is `lab/hop-map-zoom`, archived with its two rivals.
+
+- **The zoom lands on the course's character, in place and size,** by measuring `[data-testid="hopper"] foreignObject` each time the camera goes close. The map's character is 48 px wide-angle and shrinks to 30 px at the map's scale as the camera zooms, so it can look bigger on the map and still land exactly. The tour checks this at every task.
+- **Gotcha: the camera has to find the character while it's really there.** Going out, it aims at the goal where the character stands, unseen, then fades in. Going in, the next course goes on the board first (it can resize the stage, since long plans wrap) with a beat before aiming.
+- **Gotcha: `mode` has a `moment`.** `task.solved` isn't enough to keep the controls off: the next course goes on the board, unsolved, while the map is still zooming in. A mutation covers it.
+- **Gotcha: the lab's root isn't the game's.** The shell's rail and strip make the game area narrower, 2.05:1 at 1366 and 1.92:1 at 1280 against the lab's 2.35:1, so filling it cropped the islands. The map now fits inside, with open sea around it.
+- **The tests' `avatar`:** the fake shell's Avatar appears in the hopper, the map and the ending, so tests ask inside `hopper`.
+- **Left open:** sounds (Fraction Hop has none), and real art for the map's slots.
