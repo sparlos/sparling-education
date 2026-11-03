@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 70 90" width="70" height="90">
+  <!-- Summit flag, once the train is at the top. Base at (11,88) on the peak. -->
+  <g stroke="#2b2350" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+    <rect x="8" y="6" width="7" height="82" rx="3" fill="#3a3456"/>
+    <path d="M15 8 q22-6 50 8 q-28 12-50 6 z" fill="#5cc98a"/>
+    <path d="M18 12 q16-3 34 4" fill="none" stroke="#a6e8c0" stroke-width="2.5"/>
+    <circle cx="11.5" cy="6" r="5" fill="#ffcc3d"/>
+  </g>
+</svg>

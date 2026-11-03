@@ -89,35 +89,18 @@
   }
 }
 
+/* The glow's file has the crystal's box 130 in from its top left. */
 .rays {
   position: absolute;
-  left: -50%;
-  top: -55%;
-  width: 200%;
+  left: calc(-130% / 5.4);
+  top: calc(-130% / 4.8);
+  width: calc(800% / 5.4);
   animation: turn 9s linear infinite;
 }
 
 @keyframes turn {
   to {
     transform: rotate(360deg);
-  }
-}
-
-.sparkle {
-  position: absolute;
-  width: 9%;
-  animation: twinkle 1400ms infinite;
-}
-
-@keyframes twinkle {
-  0%,
-  100% {
-    transform: scale(0.2);
-    opacity: 0;
-  }
-  50% {
-    transform: scale(1);
-    opacity: 1;
   }
 }
 
@@ -149,9 +132,6 @@
   .layer[data-ending] .gem,
   .shardGlow,
   .rays {
-    animation: none;
-  }
-  .sparkle {
     animation: none;
   }
 }

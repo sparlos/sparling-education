@@ -38,8 +38,6 @@ const mostWidth = 430;
 const heightShare = 0.82;
 /** How far from the machine's right edge its top-row place is, in px. */
 const seatInset = 12;
-const sparkles = 8;
-const rays = 12;
 
 export type CrystalPose = "big" | "seat";
 
@@ -137,46 +135,16 @@ function CrystalArt(props: { filled: number } | { only: number }) {
 }
 
 function Burst() {
-  const raysSlot = art["crystal-rays"];
-  const sparkle = art["crystal-sparkle"];
+  const glow = art["crystal-rays"];
   return (
-    <>
-      <svg
-        viewBox={`0 0 ${raysSlot.width} ${raysSlot.height}`}
-        className={styles.rays}
-        data-testid="crystal-rays"
-        aria-hidden="true"
-      >
-        {Array.from({ length: rays }, (_, i) => (
-          <g
-            // biome-ignore lint/suspicious/noArrayIndexKey: fixed rays
-            key={i}
-            transform={`rotate(${(i * 360) / rays} ${raysSlot.anchor.x} ${raysSlot.anchor.y})`}
-          >
-            {raysSlot.draw()}
-          </g>
-        ))}
-      </svg>
-      {Array.from({ length: sparkles }, (_, i) => {
-        const angle = (i / sparkles) * 2 * Math.PI;
-        return (
-          <svg
-            // biome-ignore lint/suspicious/noArrayIndexKey: fixed sparkles
-            key={i}
-            viewBox={`0 0 ${sparkle.width} ${sparkle.height}`}
-            className={styles.sparkle}
-            aria-hidden="true"
-            style={{
-              left: `${46 + 62 * Math.cos(angle)}%`,
-              top: `${42 + 62 * Math.sin(angle)}%`,
-              animationDelay: `${i * 170}ms`,
-            }}
-          >
-            {sparkle.draw()}
-          </svg>
-        );
-      })}
-    </>
+    <svg
+      viewBox={`0 0 ${glow.width} ${glow.height}`}
+      className={styles.rays}
+      data-testid="crystal-rays"
+      aria-hidden="true"
+    >
+      {glow.draw()}
+    </svg>
   );
 }
 

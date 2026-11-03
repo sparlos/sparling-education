@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 90" width="200" height="90">
+  <!-- Horizontally tileable water strip (period 200px). Crest line at y≈14. Animate background-position-x for drift. -->
+  <defs>
+    <linearGradient id="w" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#7ec8f2"/>
+      <stop offset="1" stop-color="#4f9fd6"/>
+    </linearGradient>
+  </defs>
+  <path d="M0 14 q25-10 50 0 t50 0 t50 0 t50 0 V90 H0 z" fill="url(#w)"/>
+  <path d="M0 14 q25-10 50 0 t50 0 t50 0 t50 0" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" opacity=".9"/>
+  <path d="M0 14 q25-10 50 0 t50 0 t50 0 t50 0" fill="none" stroke="#3d8cc4" stroke-width="2" transform="translate(0 4)" opacity=".35"/>
+  <g stroke="#ffffff" stroke-width="3" stroke-linecap="round" opacity=".45" fill="none">
+    <path d="M20 40 h22"/><path d="M118 34 h16"/><path d="M70 60 h28"/><path d="M160 66 h20"/><path d="M8 78 h14"/>
+  </g>
+</svg>

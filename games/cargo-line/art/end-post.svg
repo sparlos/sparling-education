@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 180" width="48" height="180">
+  <!-- Destination post. Base at (23,174) sits on the track; the train stops here. -->
+  <g stroke="#2b2350" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+    <rect x="18" y="0" width="10" height="40" fill="#5d5878"/>
+    <rect x="8" y="34" width="30" height="140" rx="15" fill="#fde9e4"/>
+    <path d="M8 66 h30 M8 104 h30 M8 142 h30" stroke="#ef5a45" stroke-width="9" stroke-linecap="butt"/>
+    <rect x="8" y="34" width="30" height="140" rx="15" fill="none"/>
+    <path d="M15 46 V160" stroke="#fff" stroke-width="3" opacity=".8"/>
+  </g>
+</svg>

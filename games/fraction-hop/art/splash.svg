@@ -1,0 +1,311 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1376 768" width="1376" height="768">
+<defs><clipPath id="frame"><rect width="1376" height="768"/></clipPath></defs>
+<g clip-path="url(#frame)"><svg x="0.0" y="0.0" width="1376.0" height="560.0" viewBox="0 0 1600 500" preserveAspectRatio="xMidYMid slice" overflow="visible">
+  
+  <defs>
+    <linearGradient id="a0_sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e3e6fb"/>
+      <stop offset="1" stop-color="#f1f6fd"/>
+    </linearGradient>
+    <linearGradient id="a0_far" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#cfe3d4"/><stop offset="1" stop-color="#dcebe0"/>
+    </linearGradient>
+    <linearGradient id="a0_near" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#bfdcb8"/><stop offset="1" stop-color="#d3e8cc"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="500" fill="url(#a0_sky)"/>
+  <circle cx="1380" cy="110" r="54" fill="#fff6d6"/>
+  <circle cx="1380" cy="110" r="76" fill="#fff6d6" opacity=".35"/>
+  <g fill="#ffffff" opacity=".9">
+    <path d="M180 140 q0-30 34-30 q12-24 44-18 q26-14 46 8 q30 0 30 24 q0 16-20 16 h-116 q-18 0-18-0z"/>
+    <path d="M760 90 q0-24 28-24 q10-20 36-14 q22-12 38 6 q26 0 26 20 q0 12-16 12 h-96 q-16 0-16 0z"/>
+    <path d="M1060 200 q0-20 22-20 q8-16 28-12 q18-10 30 4 q20 0 20 16 q0 10-12 10 h-76 q-12 0-12 2z" opacity=".8"/>
+  </g>
+  <path d="M0 360 q160-90 320-40 t360-20 t380 10 t340-40 t200 30 V500 H0 z" fill="url(#a0_far)"/>
+  <g fill="#b3d4b0">
+    <path d="M300 336 l14-40 14 40z"/><path d="M322 340 l12-32 12 32z"/>
+    <path d="M1180 318 l16-46 16 46z"/><path d="M1206 322 l12-34 12 34z"/>
+  </g>
+  <path d="M0 410 q200-50 420-20 t460 0 t440-10 t280 10 V500 H0 z" fill="url(#a0_near)"/>
+</svg><svg x="-60.0" y="490.0" width="300.0" height="225.0" viewBox="0 0 200 150" preserveAspectRatio="xMidYMid slice" overflow="visible">
+  
+  <defs>
+    <linearGradient id="a1_dirt" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#b8a07c"/>
+      <stop offset="1" stop-color="#8a7357"/>
+    </linearGradient>
+    <linearGradient id="a1_g2" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#7fd15a"/>
+      <stop offset="1" stop-color="#4e9a34"/>
+    </linearGradient>
+  </defs>
+  <g stroke="#2b2350" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M-4 36 h184 q12 0 12 12 q4 30-2 56 q-2 8 4 16 v34 h-198 z" fill="url(#a1_dirt)"/>
+    <path d="M10 70 q30-6 60 0 t70-2 M14 100 q40 6 80 0 t80 4" fill="none" stroke="#7a6550" stroke-width="2.5" opacity=".7"/>
+    <g stroke="none" fill="#d4c2a2" opacity=".8">
+      <ellipse cx="40" cy="84" rx="6" ry="3"/><ellipse cx="128" cy="58" rx="5" ry="2.5"/><ellipse cx="96" cy="118" rx="7" ry="3"/>
+    </g>
+    <path d="M-4 24 h182 q16 0 16 14 q-6 8-14 3 q-6 6-13 0 q-6 6-13 0 q-6 6-13 0 q-6 6-13 0 q-6 6-13 0 q-6 6-13 0 q-6 6-13 0 q-6 6-13 0 q-6 6-13 0 q-6 6-13 0 q-6 6-13 0 q-6 6-13 0 q-6 6-13 0 q-6 6-14 0 z" fill="url(#a1_g2)"/>
+    <path d="M6 30 h170" stroke="#a6e584" stroke-width="3" opacity=".9"/>
+    <path d="M40 24 l-3-9 M45 24 l2-8 M150 24 l-2-8 M155 24 l3-9" stroke="#4e9a34" stroke-width="2.5"/>
+    
+    <circle cx="20" cy="18" r="4.5" fill="#ffd34d" stroke-width="2"/>
+    <circle cx="168" cy="18" r="4.5" fill="#f58ab0" stroke-width="2"/>
+  </g>
+</svg><svg x="274.7" y="520.0" width="124.0" height="88.0" viewBox="0 0 140 100" preserveAspectRatio="xMidYMid slice" overflow="visible">
+  
+  <defs>
+    <linearGradient id="a2_rock" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#c2b296"/>
+      <stop offset=".6" stop-color="#a39275"/>
+      <stop offset="1" stop-color="#7d6f58"/>
+    </linearGradient>
+    <linearGradient id="a2_grass" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#7fd15a"/>
+      <stop offset="1" stop-color="#55a83a"/>
+    </linearGradient>
+  </defs>
+  <g stroke="#2b2350" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M10 30 q-4 0-4 8 l4 50 q2 8 12 8 h96 q10 0 12-8 l4-50 q0-8-4-8 z" fill="url(#a2_rock)"/>
+    <g stroke="none" fill="#7d6f58" opacity=".55">
+      <ellipse cx="34" cy="56" rx="7" ry="4"/>
+      <ellipse cx="96" cy="48" rx="9" ry="4.5"/>
+      <ellipse cx="70" cy="74" rx="6" ry="3"/>
+    </g>
+    <g stroke="none" fill="#d9cbb0" opacity=".7">
+      <ellipse cx="30" cy="52" rx="5" ry="2"/>
+      <ellipse cx="92" cy="44" rx="6" ry="2"/>
+    </g>
+    <path d="M6 30 q0-12 14-12 h100 q14 0 14 12 v2 q-6 6-12 2 q-6 5-12 0 q-6 5-12 0 q-6 5-12 0 q-6 5-12 0 q-6 5-12 0 q-6 5-12 0 q-6 5-12 0 q-6 5-12 0 q-6 5-12 0 q-6 4-12-2 z" fill="url(#a2_grass)"/>
+    <path d="M20 22 h96" stroke="#a6e584" stroke-width="3" opacity=".9"/>
+    <path d="M28 18 l-2-7 M32 18 l2-6 M104 18 l-2-6 M109 18 l3-7" stroke="#4e9a34" stroke-width="2.5"/>
+  </g>
+</svg><svg x="461.3" y="520.0" width="124.0" height="88.0" viewBox="0 0 140 100" preserveAspectRatio="xMidYMid slice" overflow="visible">
+  
+  <defs>
+    <linearGradient id="a3_rock" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#c2b296"/>
+      <stop offset=".6" stop-color="#a39275"/>
+      <stop offset="1" stop-color="#7d6f58"/>
+    </linearGradient>
+    <linearGradient id="a3_grass" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#7fd15a"/>
+      <stop offset="1" stop-color="#55a83a"/>
+    </linearGradient>
+  </defs>
+  <g stroke="#2b2350" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M10 30 q-4 0-4 8 l4 50 q2 8 12 8 h96 q10 0 12-8 l4-50 q0-8-4-8 z" fill="url(#a3_rock)"/>
+    <g stroke="none" fill="#7d6f58" opacity=".55">
+      <ellipse cx="34" cy="56" rx="7" ry="4"/>
+      <ellipse cx="96" cy="48" rx="9" ry="4.5"/>
+      <ellipse cx="70" cy="74" rx="6" ry="3"/>
+    </g>
+    <g stroke="none" fill="#d9cbb0" opacity=".7">
+      <ellipse cx="30" cy="52" rx="5" ry="2"/>
+      <ellipse cx="92" cy="44" rx="6" ry="2"/>
+    </g>
+    <path d="M6 30 q0-12 14-12 h100 q14 0 14 12 v2 q-6 6-12 2 q-6 5-12 0 q-6 5-12 0 q-6 5-12 0 q-6 5-12 0 q-6 5-12 0 q-6 5-12 0 q-6 5-12 0 q-6 5-12 0 q-6 5-12 0 q-6 4-12-2 z" fill="url(#a3_grass)"/>
+    <path d="M20 22 h96" stroke="#a6e584" stroke-width="3" opacity=".9"/>
+    <path d="M28 18 l-2-7 M32 18 l2-6 M104 18 l-2-6 M109 18 l3-7" stroke="#4e9a34" stroke-width="2.5"/>
+  </g>
+</svg><svg x="648.0" y="520.0" width="124.0" height="88.0" viewBox="0 0 140 100" preserveAspectRatio="xMidYMid slice" overflow="visible">
+  
+  <defs>
+    <linearGradient id="a4_rock" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#c2b296"/>
+      <stop offset=".6" stop-color="#a39275"/>
+      <stop offset="1" stop-color="#7d6f58"/>
+    </linearGradient>
+    <linearGradient id="a4_grass" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#7fd15a"/>
+      <stop offset="1" stop-color="#55a83a"/>
+    </linearGradient>
+  </defs>
+  <g stroke="#2b2350" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M10 30 q-4 0-4 8 l4 50 q2 8 12 8 h96 q10 0 12-8 l4-50 q0-8-4-8 z" fill="url(#a4_rock)"/>
+    <g stroke="none" fill="#7d6f58" opacity=".55">
+      <ellipse cx="34" cy="56" rx="7" ry="4"/>
+      <ellipse cx="96" cy="48" rx="9" ry="4.5"/>
+      <ellipse cx="70" cy="74" rx="6" ry="3"/>
+    </g>
+    <g stroke="none" fill="#d9cbb0" opacity=".7">
+      <ellipse cx="30" cy="52" rx="5" ry="2"/>
+      <ellipse cx="92" cy="44" rx="6" ry="2"/>
+    </g>
+    <path d="M6 30 q0-12 14-12 h100 q14 0 14 12 v2 q-6 6-12 2 q-6 5-12 0 q-6 5-12 0 q-6 5-12 0 q-6 5-12 0 q-6 5-12 0 q-6 5-12 0 q-6 5-12 0 q-6 5-12 0 q-6 5-12 0 q-6 4-12-2 z" fill="url(#a4_grass)"/>
+    <path d="M20 22 h96" stroke="#a6e584" stroke-width="3" opacity=".9"/>
+    <path d="M28 18 l-2-7 M32 18 l2-6 M104 18 l-2-6 M109 18 l3-7" stroke="#4e9a34" stroke-width="2.5"/>
+  </g>
+</svg><svg x="928.0" y="520.0" width="124.0" height="88.0" viewBox="0 0 140 100" preserveAspectRatio="xMidYMid slice" overflow="visible">
+  
+  <defs>
+    <linearGradient id="a5_rock" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#c2b296"/>
+      <stop offset=".6" stop-color="#a39275"/>
+      <stop offset="1" stop-color="#7d6f58"/>
+    </linearGradient>
+    <linearGradient id="a5_grass" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#7fd15a"/>
+      <stop offset="1" stop-color="#55a83a"/>
+    </linearGradient>
+  </defs>
+  <g stroke="#2b2350" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M10 30 q-4 0-4 8 l4 50 q2 8 12 8 h96 q10 0 12-8 l4-50 q0-8-4-8 z" fill="url(#a5_rock)"/>
+    <g stroke="none" fill="#7d6f58" opacity=".55">
+      <ellipse cx="34" cy="56" rx="7" ry="4"/>
+      <ellipse cx="96" cy="48" rx="9" ry="4.5"/>
+      <ellipse cx="70" cy="74" rx="6" ry="3"/>
+    </g>
+    <g stroke="none" fill="#d9cbb0" opacity=".7">
+      <ellipse cx="30" cy="52" rx="5" ry="2"/>
+      <ellipse cx="92" cy="44" rx="6" ry="2"/>
+    </g>
+    <path d="M6 30 q0-12 14-12 h100 q14 0 14 12 v2 q-6 6-12 2 q-6 5-12 0 q-6 5-12 0 q-6 5-12 0 q-6 5-12 0 q-6 5-12 0 q-6 5-12 0 q-6 5-12 0 q-6 5-12 0 q-6 5-12 0 q-6 4-12-2 z" fill="url(#a5_grass)"/>
+    <path d="M20 22 h96" stroke="#a6e584" stroke-width="3" opacity=".9"/>
+    <path d="M28 18 l-2-7 M32 18 l2-6 M104 18 l-2-6 M109 18 l3-7" stroke="#4e9a34" stroke-width="2.5"/>
+  </g>
+</svg><svg x="1208.0" y="520.0" width="124.0" height="88.0" viewBox="0 0 140 100" preserveAspectRatio="xMidYMid slice" overflow="visible">
+  
+  <defs>
+    <linearGradient id="a6_rock" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#c2b296"/>
+      <stop offset=".6" stop-color="#a39275"/>
+      <stop offset="1" stop-color="#7d6f58"/>
+    </linearGradient>
+    <linearGradient id="a6_grass" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#7fd15a"/>
+      <stop offset="1" stop-color="#55a83a"/>
+    </linearGradient>
+  </defs>
+  <g stroke="#2b2350" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M10 30 q-4 0-4 8 l4 50 q2 8 12 8 h96 q10 0 12-8 l4-50 q0-8-4-8 z" fill="url(#a6_rock)"/>
+    <g stroke="none" fill="#7d6f58" opacity=".55">
+      <ellipse cx="34" cy="56" rx="7" ry="4"/>
+      <ellipse cx="96" cy="48" rx="9" ry="4.5"/>
+      <ellipse cx="70" cy="74" rx="6" ry="3"/>
+    </g>
+    <g stroke="none" fill="#d9cbb0" opacity=".7">
+      <ellipse cx="30" cy="52" rx="5" ry="2"/>
+      <ellipse cx="92" cy="44" rx="6" ry="2"/>
+    </g>
+    <path d="M6 30 q0-12 14-12 h100 q14 0 14 12 v2 q-6 6-12 2 q-6 5-12 0 q-6 5-12 0 q-6 5-12 0 q-6 5-12 0 q-6 5-12 0 q-6 5-12 0 q-6 5-12 0 q-6 5-12 0 q-6 5-12 0 q-6 4-12-2 z" fill="url(#a6_grass)"/>
+    <path d="M20 22 h96" stroke="#a6e584" stroke-width="3" opacity=".9"/>
+    <path d="M28 18 l-2-7 M32 18 l2-6 M104 18 l-2-6 M109 18 l3-7" stroke="#4e9a34" stroke-width="2.5"/>
+  </g>
+</svg><svg x="0.0" y="550.0" width="200.0" height="90.0" viewBox="0 0 200 90" preserveAspectRatio="xMidYMid slice" overflow="visible">
+  
+  <defs>
+    <linearGradient id="a7_w" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#7ec8f2"/>
+      <stop offset="1" stop-color="#4f9fd6"/>
+    </linearGradient>
+  </defs>
+  <path d="M0 14 q25-10 50 0 t50 0 t50 0 t50 0 V90 H0 z" fill="url(#a7_w)"/>
+  <path d="M0 14 q25-10 50 0 t50 0 t50 0 t50 0" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" opacity=".9"/>
+  <path d="M0 14 q25-10 50 0 t50 0 t50 0 t50 0" fill="none" stroke="#3d8cc4" stroke-width="2" transform="translate(0 4)" opacity=".35"/>
+  <g stroke="#ffffff" stroke-width="3" stroke-linecap="round" opacity=".45" fill="none">
+    <path d="M20 40 h22"/><path d="M118 34 h16"/><path d="M70 60 h28"/><path d="M160 66 h20"/><path d="M8 78 h14"/>
+  </g>
+</svg><svg x="200.0" y="550.0" width="200.0" height="90.0" viewBox="0 0 200 90" preserveAspectRatio="xMidYMid slice" overflow="visible">
+  
+  <defs>
+    <linearGradient id="a8_w" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#7ec8f2"/>
+      <stop offset="1" stop-color="#4f9fd6"/>
+    </linearGradient>
+  </defs>
+  <path d="M0 14 q25-10 50 0 t50 0 t50 0 t50 0 V90 H0 z" fill="url(#a8_w)"/>
+  <path d="M0 14 q25-10 50 0 t50 0 t50 0 t50 0" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" opacity=".9"/>
+  <path d="M0 14 q25-10 50 0 t50 0 t50 0 t50 0" fill="none" stroke="#3d8cc4" stroke-width="2" transform="translate(0 4)" opacity=".35"/>
+  <g stroke="#ffffff" stroke-width="3" stroke-linecap="round" opacity=".45" fill="none">
+    <path d="M20 40 h22"/><path d="M118 34 h16"/><path d="M70 60 h28"/><path d="M160 66 h20"/><path d="M8 78 h14"/>
+  </g>
+</svg><svg x="400.0" y="550.0" width="200.0" height="90.0" viewBox="0 0 200 90" preserveAspectRatio="xMidYMid slice" overflow="visible">
+  
+  <defs>
+    <linearGradient id="a9_w" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#7ec8f2"/>
+      <stop offset="1" stop-color="#4f9fd6"/>
+    </linearGradient>
+  </defs>
+  <path d="M0 14 q25-10 50 0 t50 0 t50 0 t50 0 V90 H0 z" fill="url(#a9_w)"/>
+  <path d="M0 14 q25-10 50 0 t50 0 t50 0 t50 0" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" opacity=".9"/>
+  <path d="M0 14 q25-10 50 0 t50 0 t50 0 t50 0" fill="none" stroke="#3d8cc4" stroke-width="2" transform="translate(0 4)" opacity=".35"/>
+  <g stroke="#ffffff" stroke-width="3" stroke-linecap="round" opacity=".45" fill="none">
+    <path d="M20 40 h22"/><path d="M118 34 h16"/><path d="M70 60 h28"/><path d="M160 66 h20"/><path d="M8 78 h14"/>
+  </g>
+</svg><svg x="600.0" y="550.0" width="200.0" height="90.0" viewBox="0 0 200 90" preserveAspectRatio="xMidYMid slice" overflow="visible">
+  
+  <defs>
+    <linearGradient id="a10_w" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#7ec8f2"/>
+      <stop offset="1" stop-color="#4f9fd6"/>
+    </linearGradient>
+  </defs>
+  <path d="M0 14 q25-10 50 0 t50 0 t50 0 t50 0 V90 H0 z" fill="url(#a10_w)"/>
+  <path d="M0 14 q25-10 50 0 t50 0 t50 0 t50 0" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" opacity=".9"/>
+  <path d="M0 14 q25-10 50 0 t50 0 t50 0 t50 0" fill="none" stroke="#3d8cc4" stroke-width="2" transform="translate(0 4)" opacity=".35"/>
+  <g stroke="#ffffff" stroke-width="3" stroke-linecap="round" opacity=".45" fill="none">
+    <path d="M20 40 h22"/><path d="M118 34 h16"/><path d="M70 60 h28"/><path d="M160 66 h20"/><path d="M8 78 h14"/>
+  </g>
+</svg><svg x="800.0" y="550.0" width="200.0" height="90.0" viewBox="0 0 200 90" preserveAspectRatio="xMidYMid slice" overflow="visible">
+  
+  <defs>
+    <linearGradient id="a11_w" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#7ec8f2"/>
+      <stop offset="1" stop-color="#4f9fd6"/>
+    </linearGradient>
+  </defs>
+  <path d="M0 14 q25-10 50 0 t50 0 t50 0 t50 0 V90 H0 z" fill="url(#a11_w)"/>
+  <path d="M0 14 q25-10 50 0 t50 0 t50 0 t50 0" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" opacity=".9"/>
+  <path d="M0 14 q25-10 50 0 t50 0 t50 0 t50 0" fill="none" stroke="#3d8cc4" stroke-width="2" transform="translate(0 4)" opacity=".35"/>
+  <g stroke="#ffffff" stroke-width="3" stroke-linecap="round" opacity=".45" fill="none">
+    <path d="M20 40 h22"/><path d="M118 34 h16"/><path d="M70 60 h28"/><path d="M160 66 h20"/><path d="M8 78 h14"/>
+  </g>
+</svg><svg x="1000.0" y="550.0" width="200.0" height="90.0" viewBox="0 0 200 90" preserveAspectRatio="xMidYMid slice" overflow="visible">
+  
+  <defs>
+    <linearGradient id="a12_w" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#7ec8f2"/>
+      <stop offset="1" stop-color="#4f9fd6"/>
+    </linearGradient>
+  </defs>
+  <path d="M0 14 q25-10 50 0 t50 0 t50 0 t50 0 V90 H0 z" fill="url(#a12_w)"/>
+  <path d="M0 14 q25-10 50 0 t50 0 t50 0 t50 0" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" opacity=".9"/>
+  <path d="M0 14 q25-10 50 0 t50 0 t50 0 t50 0" fill="none" stroke="#3d8cc4" stroke-width="2" transform="translate(0 4)" opacity=".35"/>
+  <g stroke="#ffffff" stroke-width="3" stroke-linecap="round" opacity=".45" fill="none">
+    <path d="M20 40 h22"/><path d="M118 34 h16"/><path d="M70 60 h28"/><path d="M160 66 h20"/><path d="M8 78 h14"/>
+  </g>
+</svg><svg x="1200.0" y="550.0" width="200.0" height="90.0" viewBox="0 0 200 90" preserveAspectRatio="xMidYMid slice" overflow="visible">
+  
+  <defs>
+    <linearGradient id="a13_w" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#7ec8f2"/>
+      <stop offset="1" stop-color="#4f9fd6"/>
+    </linearGradient>
+  </defs>
+  <path d="M0 14 q25-10 50 0 t50 0 t50 0 t50 0 V90 H0 z" fill="url(#a13_w)"/>
+  <path d="M0 14 q25-10 50 0 t50 0 t50 0 t50 0" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" opacity=".9"/>
+  <path d="M0 14 q25-10 50 0 t50 0 t50 0 t50 0" fill="none" stroke="#3d8cc4" stroke-width="2" transform="translate(0 4)" opacity=".35"/>
+  <g stroke="#ffffff" stroke-width="3" stroke-linecap="round" opacity=".45" fill="none">
+    <path d="M20 40 h22"/><path d="M118 34 h16"/><path d="M70 60 h28"/><path d="M160 66 h20"/><path d="M8 78 h14"/>
+  </g>
+</svg><rect y="638" width="1376" height="768" fill="#f1edfb"/><line x1="150" x2="1270" y1="680" y2="680" stroke="#2b2350" stroke-width="5" stroke-linecap="round"/><line x1="150" x2="150" y1="662" y2="698" stroke="#2b2350" stroke-width="5" stroke-linecap="round"/><line x1="243" x2="243" y1="670" y2="690" stroke="#2b2350" stroke-width="5" stroke-linecap="round"/><line x1="337" x2="337" y1="670" y2="690" stroke="#2b2350" stroke-width="5" stroke-linecap="round"/><line x1="430" x2="430" y1="670" y2="690" stroke="#2b2350" stroke-width="5" stroke-linecap="round"/><line x1="523" x2="523" y1="670" y2="690" stroke="#2b2350" stroke-width="5" stroke-linecap="round"/><line x1="617" x2="617" y1="670" y2="690" stroke="#2b2350" stroke-width="5" stroke-linecap="round"/><line x1="710" x2="710" y1="662" y2="698" stroke="#2b2350" stroke-width="5" stroke-linecap="round"/><line x1="803" x2="803" y1="670" y2="690" stroke="#2b2350" stroke-width="5" stroke-linecap="round"/><line x1="897" x2="897" y1="670" y2="690" stroke="#2b2350" stroke-width="5" stroke-linecap="round"/><line x1="990" x2="990" y1="670" y2="690" stroke="#2b2350" stroke-width="5" stroke-linecap="round"/><line x1="1083" x2="1083" y1="670" y2="690" stroke="#2b2350" stroke-width="5" stroke-linecap="round"/><line x1="1177" x2="1177" y1="670" y2="690" stroke="#2b2350" stroke-width="5" stroke-linecap="round"/><line x1="1270" x2="1270" y1="662" y2="698" stroke="#2b2350" stroke-width="5" stroke-linecap="round"/><text x="150.0" y="740" text-anchor="middle" font-family="Fredoka, 'Fredoka One', Lexend, Nunito, 'Baloo 2', Inter, sans-serif" font-weight="700" font-size="38" fill="#2b2350">0</text><text x="710.0" y="740" text-anchor="middle" font-family="Fredoka, 'Fredoka One', Lexend, Nunito, 'Baloo 2', Inter, sans-serif" font-weight="700" font-size="38" fill="#2b2350">1</text><text x="1270.0" y="740" text-anchor="middle" font-family="Fredoka, 'Fredoka One', Lexend, Nunito, 'Baloo 2', Inter, sans-serif" font-weight="700" font-size="38" fill="#2b2350">2</text><path d="M150.0 500 Q243.33333333333331 330 336.66666666666663 500" fill="none" stroke="#6c5ce0" stroke-width="5" stroke-dasharray="4 13" stroke-linecap="round"/><path d="M336.66666666666663 500 Q429.99999999999994 330 523.3333333333333 500" fill="none" stroke="#6c5ce0" stroke-width="5" stroke-dasharray="4 13" stroke-linecap="round"/><path d="M523.3333333333333 500 Q616.6666666666666 330 710.0 500" fill="none" stroke="#6c5ce0" stroke-width="5" stroke-dasharray="4 13" stroke-linecap="round"/><rect x="220.83333333333331" y="272.5" width="45.0" height="75.0" rx="10.5" fill="#fdfbff" stroke="#2b2350" stroke-width="4"/><text x="243.33333333333331" y="305.5" text-anchor="middle" font-family="Fredoka, 'Fredoka One', Lexend, Nunito, 'Baloo 2', Inter, sans-serif" font-weight="700" font-size="30" fill="#2b2350">2</text><rect x="231.9333333333333" y="310" width="22.8" height="3.0" rx="1.5" fill="#2b2350"/><text x="243.33333333333331" y="337.6" text-anchor="middle" font-family="Fredoka, 'Fredoka One', Lexend, Nunito, 'Baloo 2', Inter, sans-serif" font-weight="700" font-size="30" fill="#2b2350">6</text><rect x="407.5" y="272.5" width="45.0" height="75.0" rx="10.5" fill="#fdfbff" stroke="#2b2350" stroke-width="4"/><text x="430.0" y="305.5" text-anchor="middle" font-family="Fredoka, 'Fredoka One', Lexend, Nunito, 'Baloo 2', Inter, sans-serif" font-weight="700" font-size="30" fill="#2b2350">2</text><rect x="418.6" y="310" width="22.8" height="3.0" rx="1.5" fill="#2b2350"/><text x="430.0" y="337.6" text-anchor="middle" font-family="Fredoka, 'Fredoka One', Lexend, Nunito, 'Baloo 2', Inter, sans-serif" font-weight="700" font-size="30" fill="#2b2350">6</text><rect x="594.1666666666667" y="272.5" width="45.0" height="75.0" rx="10.5" fill="#fdfbff" stroke="#2b2350" stroke-width="4"/><text x="616.6666666666667" y="305.5" text-anchor="middle" font-family="Fredoka, 'Fredoka One', Lexend, Nunito, 'Baloo 2', Inter, sans-serif" font-weight="700" font-size="30" fill="#2b2350">2</text><rect x="605.2666666666668" y="310" width="22.8" height="3.0" rx="1.5" fill="#2b2350"/><text x="616.6666666666667" y="337.6" text-anchor="middle" font-family="Fredoka, 'Fredoka One', Lexend, Nunito, 'Baloo 2', Inter, sans-serif" font-weight="700" font-size="30" fill="#2b2350">6</text><svg x="1242.0" y="410.0" width="96.0" height="156.0" viewBox="0 0 80 130" preserveAspectRatio="xMidYMid slice" overflow="visible">
+  
+  <g stroke="#2b2350" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+    <ellipse cx="20" cy="124" rx="12" ry="4" fill="#8a7357"/>
+    <rect x="16" y="14" width="8" height="111" rx="4" fill="#f5f1ff"/>
+    <path d="M24 18 q20-6 32 2 q8 6 20 2 v40 q-12 4-20-2 q-12-8-32-2 z" fill="#ffcc3d"/>
+    <path d="M28 22 q18-4 28 2" fill="none" stroke="#ffe79a" stroke-width="3"/>
+    <path d="M49 31 l3.2 6.5 7.2 1-5.2 5.1 1.2 7.1-6.4-3.4-6.4 3.4 1.2-7.1-5.2-5.1 7.2-1z" fill="#ef6b4f" stroke-width="2.5"/>
+    <circle cx="20" cy="10" r="7" fill="#ffcc3d"/>
+  </g>
+</svg><path d="M90 234 Q92.88 247.12 106 250 Q92.88 252.88 90 266 Q87.12 252.88 74 250 Q87.12 247.12 90 234 Z" fill="#ffcc3d" stroke="#2b2350" stroke-width="2.5" stroke-linejoin="round"/><path d="M1250 287 Q1252.34 297.66 1263 300 Q1252.34 302.34 1250 313 Q1247.66 302.34 1237 300 Q1247.66 297.66 1250 287 Z" fill="#ffcc3d" stroke="#2b2350" stroke-width="2.5" stroke-linejoin="round"/><path d="M1180 210 Q1181.8 218.2 1190 220 Q1181.8 221.8 1180 230 Q1178.2 221.8 1170 220 Q1178.2 218.2 1180 210 Z" fill="#ffcc3d" stroke="#2b2350" stroke-width="2.5" stroke-linejoin="round"/><path d="M640 239 Q641.98 248.02 651 250 Q641.98 251.98 640 261 Q638.02 251.98 629 250 Q638.02 248.02 640 239 Z" fill="#ffcc3d" stroke="#2b2350" stroke-width="2.5" stroke-linejoin="round"/><path d="M330 321 Q331.62 328.38 339 330 Q331.62 331.62 330 339 Q328.38 331.62 321 330 Q328.38 328.38 330 321 Z" fill="#ffcc3d" stroke="#2b2350" stroke-width="2.5" stroke-linejoin="round"/><g>
+  <rect x="364.0" y="56" width="648" height="138" rx="34" fill="#2b2350"/>
+  <rect x="364.0" y="46" width="648" height="136" rx="34" fill="#fdfbff" stroke="#2b2350" stroke-width="5"/>
+  <text x="688.0" y="142" text-anchor="middle" font-family="Fredoka, 'Fredoka One', Lexend, Nunito, 'Baloo 2', Inter, sans-serif" font-weight="700" font-size="84" fill="#2b2350" letter-spacing="1">Fraction Hop</text>
+  <rect x="577.0" y="24" width="222" height="44" rx="22" fill="#ef6b4f" stroke="#2b2350" stroke-width="4"/>
+  <text x="688.0" y="55" text-anchor="middle" font-family="Fredoka, 'Fredoka One', Lexend, Nunito, 'Baloo 2', Inter, sans-serif" font-weight="700" font-size="24" fill="#fff" letter-spacing="2">FRACTIONS</text>
+</g></g>
+</svg>

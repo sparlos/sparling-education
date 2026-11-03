@@ -6,6 +6,7 @@ import type { AvatarExpression } from "@repo/game-contract";
 import {
   type ComponentType,
   type CSSProperties,
+  memo,
   useEffect,
   useLayoutEffect,
   useRef,
@@ -13,16 +14,25 @@ import {
 } from "react";
 import { written } from "../rules/amounts.ts";
 import { type Lap, partOf } from "../rules/lap.ts";
-import { Art, type ArtSlot, sceneSlot, stationSlot } from "./art.tsx";
+import {
+  Art,
+  type ArtSlot,
+  cab,
+  sceneSlot,
+  signBoard,
+  stationSlot,
+} from "./art.tsx";
 import styles from "./game.module.css";
 import {
   gateAt,
   gateSign,
   gates,
   pointAt,
+  routeAngleAt,
   startSign,
   stopSign,
-  stretchAt,
+  stretchClose,
+  stretchFar,
   summit,
   trackY,
   viewBox,
@@ -135,6 +145,8 @@ function Sign(props: {
 }) {
   const { x, y } = props;
   const shown = `${props.prefix ?? ""}${props.text}`;
+  const double = props.slot === "sign-leaves" || props.slot === "sign-arrives";
+  const board = double ? signBoard.double : signBoard.single;
   return (
     <g
       data-testid={props.testId}
@@ -147,14 +159,14 @@ function Sign(props: {
       <Art slot="sign-post" x={x} y={trackY(x)} />
       <Art slot={props.slot} x={x} y={y} />
       {props.building && (
-        <Art slot={props.building} x={x - 48} y={y} scale={0.55} />
+        <Art slot={props.building} x={x - 62} y={y} scale={0.38} />
       )}
       {props.checking && (
         <rect
-          x={x - 90}
-          y={y - 47}
-          width={180}
-          height={94}
+          x={x - signBoard.width / 2 - 4}
+          y={y - board / 2 - 4}
+          width={signBoard.width + 8}
+          height={board + 8}
           rx={20}
           className={styles.checkRing}
           data-testid="check-ring"
@@ -162,17 +174,31 @@ function Sign(props: {
       )}
       {props.missing && (
         <g className={styles.missingGlow}>
-          <Art slot="sign-missing" x={x} y={y} />
+          <Art
+            slot="sign-missing"
+            x={x}
+            y={y}
+            scaleX={1}
+            scale={(board + 12) / 117}
+          />
         </g>
       )}
-      {props.wrong && <Art slot="sign-wrong" x={x} y={y} />}
+      {props.wrong && (
+        <Art
+          slot="sign-wrong"
+          x={x}
+          y={y}
+          scaleX={1}
+          scale={board / signBoard.double}
+        />
+      )}
       <text
-        x={x + 34}
+        x={x + (double ? 24 : 27)}
         y={y + 2}
         className={styles.signText}
         textAnchor="middle"
         dominantBaseline="central"
-        textLength={shown.length > 4 ? 88 : undefined}
+        textLength={shown.length > 4 ? 112 : undefined}
         lengthAdjust="spacingAndGlyphs"
       >
         {shown}
@@ -190,7 +216,13 @@ function Mountain(props: Pick<ClimbProps, "tiny" | "cleared" | "atTop">) {
       {gates.map((g, i) => (
         <Art
           key={g.x}
-          slot={i < props.cleared ? "mountain-gate-open" : "mountain-gate"}
+          slot={
+            i < props.cleared
+              ? "mountain-gate-open"
+              : i === props.cleared
+                ? "mountain-gate-next"
+                : "mountain-gate"
+          }
           x={g.x}
           y={g.y}
         />
@@ -207,7 +239,9 @@ function Mountain(props: Pick<ClimbProps, "tiny" | "cleared" | "atTop">) {
         data-testid="tiny-train"
         style={{ transform: `translate(${props.tiny.x}px, ${props.tiny.y}px)` }}
       >
-        <Art slot="mountain-train" x={0} y={0} />
+        <g transform={`rotate(${routeAngleAt(props.tiny)})`}>
+          <Art slot="mountain-train" x={0} y={0} />
+        </g>
       </g>
     </g>
   );
@@ -241,9 +275,6 @@ function Stretch(props: ClimbProps) {
 
   return (
     <>
-      <Art slot={sceneSlot(partOf(props.index))} x={0} y={0} />
-      <Art slot="track" x={0} y={0} />
-      <Art slot="sign-post" x={gate.x} y={gate.y} scale={0.8} />
       <g
         className={styles.gate}
         data-testid="gate"
@@ -291,12 +322,12 @@ function Stretch(props: ClimbProps) {
               building={stationSlot(s.place)}
             />
             {/* The way the crates go: down onto the train, or up off it. */}
-            <g
-              data-testid="station"
-              data-place={s.place}
-              transform={`translate(${p.x} ${p.y + 62}) rotate(${s.loads ? 90 : -90})`}
-            >
-              <Art slot={s.loads ? "arrow-load" : "arrow-unload"} x={0} y={0} />
+            <g data-testid="station" data-place={s.place}>
+              <Art
+                slot={s.loads ? "arrow-load" : "arrow-unload"}
+                x={p.x}
+                y={p.y + 60}
+              />
             </g>
           </g>
         );
@@ -340,7 +371,7 @@ function Stretch(props: ClimbProps) {
           transform={`translate(${engine.x} ${engine.y}) rotate(${engine.angle})`}
         >
           <Art slot="engine" x={0} y={0} />
-          <g ref={driverRef} transform="translate(-22 -66)">
+          <g ref={driverRef} transform={`translate(${cab.x} ${cab.y})`}>
             <g className={styles.driver}>
               <Art slot="driver" x={0} y={0} />
               <foreignObject x={-16} y={-16} width={32} height={32}>
@@ -401,10 +432,10 @@ function Stretch(props: ClimbProps) {
             );
           })}
           <rect
-            x={momentSign.x - 85}
-            y={momentSign.y - 42}
-            width={170}
-            height={84}
+            x={momentSign.x - signBoard.width / 2}
+            y={momentSign.y - signBoard.single / 2}
+            width={signBoard.width}
+            height={signBoard.single}
             rx={14}
             className={styles.amountPlate}
           />
@@ -429,42 +460,64 @@ function Stretch(props: ClimbProps) {
   );
 }
 
-export function Climb(props: ClimbProps) {
-  const { lap, index, near, jump } = props;
-  const at = stretchAt(index);
+/** The scenery and track: they never change during a stretch, so they're never redrawn. */
+const StretchBackdrop = memo(function StretchBackdrop({
+  part,
+}: {
+  part: number;
+}) {
   return (
     <svg
-      className={styles.scene}
+      className={styles.stretchBackdrop}
       viewBox={`0 0 ${viewBox.width} ${viewBox.height}`}
+      aria-hidden="true"
+    >
+      <Art slot={sceneSlot(part)} x={0} y={0} />
+      <Art slot="track" x={0} y={0} />
+    </svg>
+  );
+});
+
+// The mountain and the stretch are separate layers, moved in step, so the
+// browser paints each once at its full size and only slides them: the stretch
+// is sharp as soon as it arrives, and the move doesn't repaint their detail.
+export function Climb(props: ClimbProps) {
+  const { lap, index, near, jump } = props;
+  return (
+    <div
+      className={styles.scene}
       data-testid="scene"
       data-camera={near ? index : "mountain"}
       data-jump={jump || undefined}
       data-dp={lap.dp}
       aria-hidden="true"
     >
-      <g
+      <svg
         className={styles.camera}
+        viewBox={`0 0 ${viewBox.width} ${viewBox.height}`}
         style={{ transform: near ? zoomOn(index) : wholeMountain }}
+        aria-hidden="true"
       >
         <Mountain
           tiny={props.tiny}
           cleared={props.cleared}
           atTop={props.atTop}
         />
-        {/* The stretch sits on the mountain, and fades in as the camera arrives. */}
+      </svg>
+      <div
+        className={styles.stretch}
+        data-near={near || undefined}
+        style={{ transform: near ? stretchClose(index) : stretchFar(index) }}
+      >
+        <StretchBackdrop part={partOf(index)} />
         <svg
-          aria-hidden="true"
-          className={styles.stretch}
-          data-near={near || undefined}
-          x={at.x}
-          y={at.y}
-          width={at.width}
-          height={at.height}
+          className={styles.stretchFront}
           viewBox={`0 0 ${viewBox.width} ${viewBox.height}`}
+          aria-hidden="true"
         >
           <Stretch {...props} />
         </svg>
-      </g>
-    </svg>
+      </div>
+    </div>
   );
 }

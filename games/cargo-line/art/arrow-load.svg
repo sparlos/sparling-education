@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 68" width="60" height="68">
+  <!-- Crates join the train (plus): arrow points down to the track. Sits on the sign pole under the board. -->
+  <path d="M30 62 L54 36 H40 V6 H20 V36 H6 Z" fill="#5cc98a" stroke="#2b2350" stroke-width="3.5" stroke-linejoin="round"/>
+  <path d="M24 12 V36" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".6"/>
+</svg>

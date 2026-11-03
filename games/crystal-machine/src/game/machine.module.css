@@ -91,7 +91,7 @@
 }
 
 /* Everything but the chute's own panel: its crystal, count and lock. */
-.chute > :not([data-slot="chute"]) {
+.chute > :not([data-slot^="chute"]) {
   position: relative;
   z-index: 1;
 }
@@ -106,27 +106,6 @@
   cursor: default;
 }
 
-/* A closed chute's face: greyed and striped, under its lock. */
-.chute[data-closed] > svg:first-child {
-  filter: grayscale(1);
-  opacity: 0.6;
-}
-
-.chute[data-closed]::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: 12px;
-  pointer-events: none;
-  background: repeating-linear-gradient(
-    -45deg,
-    var(--stripe) 0 10px,
-    transparent 10px 20px
-  );
-  outline: 3px dashed var(--k-border-strong);
-  outline-offset: -3px;
-}
-
 .chute[data-locked] {
   outline: 4px double var(--crystal-dark);
 }
@@ -136,7 +115,7 @@
 }
 
 .count {
-  font-size: 34px;
+  font-size: 26px;
   font-weight: 800;
   line-height: 1;
   font-variant-numeric: tabular-nums;
@@ -169,12 +148,6 @@
 
 .lever {
   display: block;
-  transform-origin: 50% 88%;
-  transition: transform var(--k-duration-base) var(--k-ease-springy);
-}
-
-.operator[data-pulled] .lever {
-  transform: rotate(150deg);
 }
 
 .operator[data-pulled] .portrait {
@@ -248,30 +221,15 @@
 
 .window {
   width: 64px;
-  font-size: 38px;
+  font-size: 28px;
   color: var(--k-ink-inverse);
-  border-radius: 8px;
-}
-
-.window[data-wrong] {
-  outline: 4px solid var(--wrong);
-  color: var(--wrong-soft);
-}
-
-.window[data-wrong]::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: 8px;
-  background: var(--wrong);
-  opacity: 0.45;
+  padding-top: 4px;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .flash {
     animation: none;
   }
-  .lever,
   .portrait {
     transition: none;
   }

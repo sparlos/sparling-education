@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 120" width="300" height="120">
+  <!-- Digit readout above each tube. Draw the digit in code centred at (150,72). -->
+  <defs>
+    <linearGradient id="s" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f4f1ff"/><stop offset="1" stop-color="#ffffff"/>
+    </linearGradient>
+  </defs>
+  <g stroke="#2b2350" stroke-width="3" stroke-linejoin="round">
+    <rect x="3" y="3" width="294" height="114" rx="16" fill="#8e86c4"/>
+    <rect x="16" y="16" width="268" height="88" rx="10" fill="url(#s)"/>
+    <path d="M28 26 h120" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity=".9"/>
+    <circle cx="10" cy="60" r="0" fill="none"/>
+  </g>
+</svg>

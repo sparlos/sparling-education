@@ -245,10 +245,11 @@ Captions show fraction notation (³⁄₈) where an amount is spoken, so `amount
 
 ## Art
 
-Placeholder SVG first, from the style kit, each in a fixed frame with an anchor.
+The course's `backdrop`, `water`, `stone`, `start` and `goal`, and the map's sea, islands, spots, X and chests, are drawn from the files in `art/`. The others have no file yet, so they stay placeholder SVG from the style kit, each in a fixed frame with an anchor.
 
 | Slot | What it shows |
 | --- | --- |
+| `backdrop` | The hills behind the course, their bottom edge behind the water |
 | `hopper` | The avatar on the course (the portrait for now), anchored at its feet |
 | `water` | The water along the course, tiling |
 | `stone` | A grass stone at one tick position, anchored at its top centre |
@@ -259,8 +260,9 @@ Placeholder SVG first, from the style kit, each in a fixed frame with an anchor.
 | `slot` | An empty plan slot |
 | `arc` | Hint 2's preview arc |
 | `sparkle` | The "Nice fix!" burst (polish) |
-| `map` | The whole treasure map: sea, islands and palms, with no path or spots |
-| `map-spot`, `map-spot-done` | A spot on the map, and one that's been finished, anchored at its centre |
+| `map-ocean` | The sea under the treasure map |
+| `map` | The treasure map's islands and palms, with no path or spots |
+| `map-spot`, `map-spot-next`, `map-spot-current`, `map-spot-done` | A spot on the map: still to come, next, where the character is, and finished, anchored at its centre |
 | `map-x` | The X the chest stands on, anchored at its centre |
 | `chest`, `chest-open` | The treasure chest, shut and open, anchored at the middle of its base |
 | `ending-ray`, `ending-coin` | A ray and a coin behind the open chest |

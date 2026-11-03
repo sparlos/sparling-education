@@ -10,7 +10,13 @@ import { crystalsIn, type JobState } from "../rules/job.ts";
 import { windowDigits, wrongWindows } from "../rules/machine.ts";
 import { numeral } from "../rules/teacher.ts";
 import type { ChutePlace, Place, StringId } from "../strings.ts";
-import { crystalColours, crystalSlot, PanelArt, ScreenArt } from "./art.tsx";
+import {
+  crystalColours,
+  crystalSlot,
+  machineSlot,
+  PanelArt,
+  ScreenArt,
+} from "./art.tsx";
 import { captionText } from "./caption.ts";
 import { GemLayer, type Shown } from "./GemLayer.tsx";
 import type { GemEvents } from "./gems.ts";
@@ -118,7 +124,7 @@ export function Board(props: BoardProps) {
         onSkip={props.onSkip}
         stage={
           <section className={styles.machine} data-testid="machine">
-            <PanelArt slot="machine" />
+            <PanelArt slot={machineSlot(job.chutes + 1)} />
             <GemLayer shown={props.shown} events={props.gemEvents} />
             {places.map((p) => {
               const isExtra = p === job.chutes;
@@ -155,14 +161,14 @@ export function Board(props: BoardProps) {
                       disabled={busy}
                       onClick={() => props.onChoose(p)}
                     >
-                      <PanelArt slot="chute" />
+                      <PanelArt slot={closed ? "chute-locked" : "chute"} />
                       {closed ? (
                         <span className={styles.lock}>
                           <ScreenArt slot="chute-closed" size={56} />
                         </span>
                       ) : (
                         <>
-                          <ScreenArt slot={crystalSlot(p)} size={40} />
+                          <ScreenArt slot={crystalSlot(p)} size={32} />
                           <span className={styles.count} data-testid="count">
                             {state.plan[p] ?? 0}
                           </span>
@@ -179,7 +185,11 @@ export function Board(props: BoardProps) {
                     data-place={p}
                     data-count={props.shown.tubes[p] ?? 0}
                   >
-                    <PanelArt slot="tube" />
+                    <PanelArt
+                      slot={
+                        closed && !props.shown.tubes[p] ? "tube-sealed" : "tube"
+                      }
+                    />
                     {closed && !isExtra && state.hint >= 2 && (
                       <span className={styles.trade} data-testid="trade">
                         <ScreenArt slot="trade" size={72} />
@@ -205,7 +215,17 @@ export function Board(props: BoardProps) {
                     data-testid="window"
                     data-wrong={wrong?.[p] || undefined}
                   >
-                    <PanelArt slot="window" />
+                    <PanelArt
+                      slot={
+                        wrong?.[p]
+                          ? "window-wrong"
+                          : made !== null &&
+                              !props.running &&
+                              typeof windows[p] === "number"
+                            ? "window-right"
+                            : "window"
+                      }
+                    />
                     <span>{windows[p] ?? ""}</span>
                   </span>
                 </div>
@@ -259,7 +279,7 @@ function Operator(props: {
         {!props.away && <Avatar expression={props.expression} size={80} />}
       </span>
       <span className={styles.lever} data-testid="lever">
-        <ScreenArt slot="lever" size={28} />
+        <ScreenArt slot={props.pulled ? "lever-down" : "lever"} size={64} />
       </span>
     </div>
   );

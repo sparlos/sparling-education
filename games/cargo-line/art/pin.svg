@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 48" width="32" height="48">
+  <!-- Overview stop marker. Base at (16,46) on the path. -->
+  <g stroke="#2b2350" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+    <rect x="13" y="22" width="6" height="24" rx="2" fill="#3a3456"/>
+    <circle cx="16" cy="14" r="12" fill="#ef5a45"/>
+    
+  </g>
+</svg>

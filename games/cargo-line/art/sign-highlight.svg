@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 424 242" width="424" height="242" preserveAspectRatio="none">
+  <!-- Active-sign ring. Place 12px outside the board (stretch to fit either sign). -->
+  <rect x="4" y="4" width="416" height="234" rx="30" fill="none" stroke="#7b61ff" stroke-width="7" stroke-dasharray="20 12" stroke-linecap="round"/>
+</svg>

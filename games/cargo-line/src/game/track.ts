@@ -45,19 +45,20 @@ export const stopAt = (count: number, i: number) =>
 
 // ---- The mountain ----
 
-export const valley = { x: 94, y: 569 };
+// On the mountain's art: its trail runs from the valley to its peak.
+export const valley = { x: 96, y: 563 };
 /** The gate at the end of each trip's stretch, from the valley up. */
 export const gates = [
-  { x: 240, y: 512 },
-  { x: 385, y: 425 },
-  { x: 510, y: 356 },
-  { x: 625, y: 275 },
-  { x: 729, y: 187 },
-  { x: 807, y: 100 },
+  { x: 229, y: 509 },
+  { x: 360, y: 428 },
+  { x: 474, y: 363 },
+  { x: 578, y: 287 },
+  { x: 672, y: 204 },
+  { x: 743, y: 122 },
 ] as const;
-export const summit = { x: 833, y: 42 };
+export const summit = { x: 767, y: 68 };
 /** The end of the tutorial's practice track, at the foot of the mountain. */
-const practiceEnd = { x: 160, y: 543 };
+const practiceEnd = { x: 156, y: 538 };
 
 const lerp = (
   a: { x: number; y: number },
@@ -71,6 +72,19 @@ export const gateOf = (n: number) => gates[n - 1] ?? practiceEnd;
 /** Where the tiny train waits before the camera zooms in on trip n. */
 export const waitingFor = (n: number) =>
   lerp(n <= 1 ? valley : gateOf(n - 1), gateOf(n), 0.45);
+
+/**
+ * The way the route climbs at a point on it, in degrees: along the stretch
+ * heading on from there, so the tiny train lies on the line it's moving along.
+ */
+export function routeAngleAt(p: { x: number }): number {
+  const route = [valley, ...gates, summit];
+  const to = route.findIndex((q) => p.x < q.x);
+  const end = route[to === -1 ? route.length - 1 : to] ?? summit;
+  const start =
+    route[to === -1 ? route.length - 2 : Math.max(0, to - 1)] ?? valley;
+  return (Math.atan2(end.y - start.y, end.x - start.x) * 180) / Math.PI;
+}
 
 /** A stretch is drawn this small on the mountain. */
 export const stretchScale = 0.12;
@@ -89,20 +103,37 @@ export function stretchAt(n: number) {
 /** A touch past filling the picture, so no sliver of the mountain shows at its edge. */
 const overscan = 1.004;
 
-/** The camera's move that fills the screen with trip n's stretch. */
-export function zoomOn(n: number): string {
+/** Shares of the picture, for a layer's CSS move. */
+const move = (x: number, y: number, k: number) =>
+  `translate(${(x / viewBox.width) * 100}%, ${(y / viewBox.height) * 100}%) scale(${k})`;
+
+/** Where the camera puts trip n's stretch when it's close: filling the picture. */
+function closeOn(n: number) {
   const { x, y, width, height } = stretchAt(n);
   const k = (1 / stretchScale) * overscan;
   // Centred, so the overscan hides the mountain's edge on every side.
   const inX = (viewBox.width - width * k) / 2;
   const inY = (viewBox.height - height * k) / 2;
-  return `translate(${inX - x * k}px, ${inY - y * k}px) scale(${k})`;
+  return { x, y, k, inX, inY };
+}
+
+/** The mountain's move that fills the screen with trip n's stretch. */
+export function zoomOn(n: number): string {
+  const { x, y, k, inX, inY } = closeOn(n);
+  return move(inX - x * k, inY - y * k, k);
+}
+
+/** The stretch's own move when the camera's on it, in step with the mountain's. */
+export function stretchClose(n: number): string {
+  const { k, inX, inY } = closeOn(n);
+  return move(inX, inY, k * stretchScale);
+}
+
+/** The stretch's move when the camera's back: small, on the mountain's face. */
+export function stretchFar(n: number): string {
+  const { x, y } = stretchAt(n);
+  return move(x, y, stretchScale);
 }
 
 /** The camera's move that shows the whole mountain. */
-export const wholeMountain = "translate(0px, 0px) scale(1)";
-
-/** The mountain's outline, and where its parts meet. */
-export const mountainOutline = "42,600 833,25 1000,300 1000,600";
-export const forestLine = 418;
-export const rockLine = 268;
+export const wholeMountain = "translate(0%, 0%) scale(1)";

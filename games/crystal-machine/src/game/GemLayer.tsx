@@ -3,14 +3,11 @@
 // tubes hold after each frame of a run. Rebuilt when the layout changes.
 import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import type { Place } from "../strings.ts";
-import { art, Gem, gemShapes } from "./art.tsx";
+import { art, Gem, gemShapes, tubeInterior } from "./art.tsx";
 import { type GemEvents, GemTubes, type TubeRect } from "./gems.ts";
 import styles from "./machine.module.css";
 
 const svgNs = "http://www.w3.org/2000/svg";
-/** How far the gems keep from a tube's glass. */
-const inset = 5;
-
 export interface Shown {
   /** Each tube's gems, by place. */
   tubes: readonly number[];
@@ -60,10 +57,10 @@ export function GemLayer({
         .map((el) => {
           const r = el.getBoundingClientRect();
           return {
-            x: r.left - box.left + inset,
-            y: r.top - box.top + inset,
-            w: r.width - 2 * inset,
-            h: r.height - 2 * inset,
+            x: r.left - box.left + r.width * tubeInterior.x,
+            y: r.top - box.top + r.height * tubeInterior.y,
+            w: r.width * tubeInterior.width,
+            h: r.height * tubeInterior.height,
           };
         });
       // Nothing to lay out without real boxes (jsdom).

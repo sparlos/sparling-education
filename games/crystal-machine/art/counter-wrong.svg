@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 110 100" width="110" height="100">
+  <!-- Output counter under a tube (Wrong digit state). Draw the digit in code, centred at (55,56), light colour (#fdfbff). -->
+  <defs>
+    <linearGradient id="scr" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#8a3a30"/><stop offset="1" stop-color="#6e2a22"/>
+    </linearGradient>
+  </defs>
+  <g stroke="#2b2350" stroke-width="3" stroke-linejoin="round">
+    <rect x="3" y="3" width="104" height="94" rx="14" fill="#ef5a45"/>
+    <path d="M14 12 h82" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".55"/>
+    <rect x="13" y="18" width="84" height="70" rx="8" fill="url(#scr)"/>
+    <path d="M21 26 h30" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".18"/>
+    <path d="M13 53 h84" stroke="#000" stroke-width="1.5" opacity=".18"/>
+  </g>
+</svg>

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 218" width="400" height="218">
+  <!-- Two-row sign (400x218) for depart/arrive. Icon column x 30-100: top icon y 30-96, bottom icon y 96-162 (66px each). Number slot: x 120-376, centre (248,118) baseline, font-size 64. Post stub bottom centre (200,218). -->
+  <g stroke="#2b2350" stroke-width="3" stroke-linejoin="round">
+    <rect x="188.0" y="184" width="24" height="34" fill="#6e6788"/>
+    <rect x="4" y="4" width="392" height="182" rx="20" fill="#8e86c4" stroke-width="3.5"/>
+    <rect x="14" y="14" width="372" height="162" rx="13" fill="#fdfbff"/>
+    <path d="M28 25 h120" stroke="#ebe6ff" stroke-width="5" stroke-linecap="round"/>
+    <path d="M168 28 V162" stroke="#ebe6ff" stroke-width="0"/>
+  </g>
+</svg>

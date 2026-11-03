@@ -290,23 +290,23 @@ Captions show numerals where a number is spoken, written as on screen (57 903, 2
 
 ## Art
 
-A toy mountain from the side: soft greens, then deep pines, then grey rock and snow, with a warm wooden train and chunky signs. Readable at a glance and nothing like a coin or a score. Placeholder SVG first, from the style kit, each in a fixed frame with an anchor.
+A toy mountain from the side: soft greens, then deep pines, then grey rock and snow, with a warm wooden train and chunky signs. Readable at a glance and nothing like a coin or a score. Most slots are drawn from the files in `art/`. `stop-windmill`, `stop-cabin`, `stop-mine`, `driver`, `sign-post`, `sign-wrong`, `trip-bar` and the coloured crates have no file yet, so they stay placeholder SVG from the style kit.
 
 | Slot | What it shows |
 | --- | --- |
 | `mountain` | The whole mountain with its three parts, the valley and the sky |
 | `mountain-route` | The dashed route from the valley to the summit |
-| `mountain-gate`, `mountain-gate-open` | A small gate on the route: red while shut, green once opened |
+| `mountain-gate`, `mountain-gate-next`, `mountain-gate-open` | A pin on the route: red ahead, yellow for the next one, green once opened |
 | `mountain-train` | The tiny train |
 | `summit-flag`, `summit-flag-up` | The flag at the summit, before the train arrives (purple) and after (green) |
 | `scene-meadow`, `scene-forest`, `scene-rock` | A stretch's sky, hills and hillside for each part of the mountain |
-| `track` | The sloped track, drawn from the line the train follows |
-| `gate` | The stretch's gate, which swings up to open |
-| `sign-post` | The post under a sign, and the post the gate hangs from |
+| `track` | The sloped track, tiled along the line the train follows |
+| `gate` | The stretch's end post, which swings up to open |
+| `sign-post` | The post under a sign |
 | `stop-farm`, `stop-windmill`, `stop-sawmill`, `stop-cabin`, `stop-quarry`, `stop-mine` | Each stop's building, on its sign |
 | `sign-leaves`, `sign-arrives` | The start's and gate's signs: a train leaving a little platform, and a train arriving at a gate |
-| `sign-load`, `sign-unload` | A stop's sign: green for a pickup, blue for a drop-off |
-| `arrow-load`, `arrow-unload` | The chunky arrow between a stop's sign and the track |
+| `sign-load`, `sign-unload` | A stop's sign, the same for a pickup and a drop-off |
+| `arrow-load`, `arrow-unload` | The chunky arrow between a stop's sign and the track: green and down for a pickup, blue and up for a drop-off |
 | `sign-missing` | The dashed, glowing outline and ? of the missing number |
 | `sign-wrong` | The red state of a sign where the train stalled or arrived with the wrong load |
 | `engine` | The engine from the side, with an open cab |

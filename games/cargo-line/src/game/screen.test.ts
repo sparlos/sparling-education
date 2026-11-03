@@ -15,10 +15,13 @@ import {
   gateWaitAt,
   pastGateAt,
   pointAt,
+  routeAngleAt,
   startAt,
   stopAt,
   stopSign,
   stretchAt,
+  stretchClose,
+  stretchFar,
   summit,
   trackY,
   valley,
@@ -158,6 +161,18 @@ describe("the mountain", () => {
     }
   });
 
+  it("lies the tiny train along the stretch of route it's on", () => {
+    const angle = (a: { x: number; y: number }, b: { x: number; y: number }) =>
+      (Math.atan2(b.y - a.y, b.x - a.x) * 180) / Math.PI;
+    expect(routeAngleAt(valley)).toBeCloseTo(angle(valley, gateOf(1)));
+    expect(routeAngleAt(waitingFor(3))).toBeCloseTo(
+      angle(gateOf(2), gateOf(3)),
+    );
+    // At a gate it's about to head on up the next stretch.
+    expect(routeAngleAt(gateOf(3))).toBeCloseTo(angle(gateOf(3), gateOf(4)));
+    expect(routeAngleAt(summit)).toBeCloseTo(angle(gateOf(6), summit));
+  });
+
   it("waits partway to the next gate, past the last one", () => {
     expect(waitingFor(1).x).toBeGreaterThan(valley.x);
     expect(waitingFor(1).x).toBeLessThan(gateOf(1).x);
@@ -178,15 +193,34 @@ describe("the mountain", () => {
   it("zooms so the stretch just overfills the picture, on every side", () => {
     for (const n of [0, 1, 6]) {
       const at = stretchAt(n);
-      const found = /translate\((.+)px, (.+)px\) scale\((.+)\)/.exec(zoomOn(n));
-      const tx = Number(found?.[1]);
-      const ty = Number(found?.[2]);
+      const found = /translate\((.+)%, (.+)%\) scale\((.+)\)/.exec(zoomOn(n));
+      const tx = (Number(found?.[1]) / 100) * viewBox.width;
+      const ty = (Number(found?.[2]) / 100) * viewBox.height;
       const k = Number(found?.[3]);
       expect(tx + at.x * k).toBeLessThan(0);
       expect(ty + at.y * k).toBeLessThan(0);
       expect(tx + (at.x + at.width) * k).toBeGreaterThan(viewBox.width);
       expect(ty + (at.y + at.height) * k).toBeGreaterThan(viewBox.height);
       expect(k).toBeLessThan(1.01 / 0.12);
+    }
+  });
+
+  it("moves the stretch in step with the mountain, so it stays on the same spot", () => {
+    const parts = (move: string) =>
+      (/translate\((.+)%, (.+)%\) scale\((.+)\)/.exec(move) ?? [])
+        .slice(1)
+        .map(Number) as [number, number, number];
+    for (const n of [0, 1, 6]) {
+      const at = stretchAt(n);
+      const [mx, my, mk] = parts(zoomOn(n));
+      const [sx, sy, sk] = parts(stretchClose(n));
+      expect(sx).toBeCloseTo(mx + ((at.x * mk) / viewBox.width) * 100);
+      expect(sy).toBeCloseTo(my + ((at.y * mk) / viewBox.height) * 100);
+      expect(sk).toBeCloseTo(mk * 0.12);
+      const [fx, fy, fk] = parts(stretchFar(n));
+      expect(fx).toBeCloseTo((at.x / viewBox.width) * 100);
+      expect(fy).toBeCloseTo((at.y / viewBox.height) * 100);
+      expect(fk).toBeCloseTo(0.12);
     }
   });
 });

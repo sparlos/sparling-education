@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Crate. Stack freely; outline overlaps the neighbour by 2px when packed tight. -->
+  <g stroke="#2b2350" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+    <rect x="4" y="4" width="56" height="56" rx="5" fill="#f3c766"/>
+    <rect x="11" y="11" width="42" height="42" rx="2" fill="#e8b24a" stroke-width="2.5"/>
+    <path d="M13 13 L51 51 M51 13 L13 51" stroke-width="3"/>
+    <path d="M8 8 h48" stroke="#ffe7a6" stroke-width="2.5" opacity=".9"/>
+  </g>
+</svg>

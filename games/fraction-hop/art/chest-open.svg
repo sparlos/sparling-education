@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <!-- Treasure chest, open (win state). Same frame as chest-closed.svg. Pairs well with a scale-pop and the sparkles fading in. -->
+  <defs>
+    <linearGradient id="wood" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e2664c"/><stop offset="1" stop-color="#b8402c"/></linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe17a"/><stop offset="1" stop-color="#e8a92a"/></linearGradient>
+  </defs>
+  <g opacity=".9">
+    <path d="M100 70 L52 6 L148 6 Z" fill="#fff3c4" opacity=".55"/>
+    <path d="M100 70 L14 28 L28 10 Z M100 70 L186 28 L172 10 Z" fill="#fff3c4" opacity=".35"/>
+  </g>
+  <g stroke="#2b2350" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round">
+    <!-- lid, flipped open behind -->
+    <path d="M26 66 q-2-40 74-46 q76 6 74 46 l-4 12 h-140 z" fill="#a83a28"/>
+    <path d="M30 70 q4-34 70-38 q66 4 70 38" fill="none" stroke="#d4604a" stroke-width="3"/>
+    <rect x="22" y="70" width="156" height="12" fill="url(#gold)"/>
+    <rect x="28" y="82" width="144" height="26" fill="#5a2a22"/>
+    <ellipse cx="52" cy="100" rx="13" ry="9" fill="url(#gold)" stroke-width="2.5"/><ellipse cx="74" cy="92" rx="13" ry="9" fill="url(#gold)" stroke-width="2.5"/><ellipse cx="98" cy="96" rx="13" ry="9" fill="url(#gold)" stroke-width="2.5"/><ellipse cx="122" cy="90" rx="13" ry="9" fill="url(#gold)" stroke-width="2.5"/><ellipse cx="146" cy="98" rx="13" ry="9" fill="url(#gold)" stroke-width="2.5"/><ellipse cx="64" cy="84" rx="13" ry="9" fill="url(#gold)" stroke-width="2.5"/><ellipse cx="110" cy="80" rx="13" ry="9" fill="url(#gold)" stroke-width="2.5"/><ellipse cx="88" cy="76" rx="13" ry="9" fill="url(#gold)" stroke-width="2.5"/><ellipse cx="134" cy="82" rx="13" ry="9" fill="url(#gold)" stroke-width="2.5"/><ellipse cx="100" cy="66" rx="13" ry="9" fill="url(#gold)" stroke-width="2.5"/>
+    <path d="M140 74 L152 60 L164 74 L152 92 Z" fill="#7f63e8"/><path d="M146 74 h12" stroke-width="2"/>
+    <path d="M44 78 L52 66 L60 78 L52 90 Z" fill="#3fc1b0"/>
+    <ellipse cx="100" cy="186" rx="80" ry="10" fill="#2b2350" opacity=".18"/>
+    <rect x="22" y="104" width="156" height="78" rx="10" fill="url(#wood)"/>
+    <path d="M34 118 h132 M34 168 h132" stroke="#f08a73" stroke-width="3" opacity=".7"/>
+    <rect x="22" y="104" width="156" height="14" fill="url(#gold)"/>
+    <rect x="40" y="104" width="16" height="78" fill="url(#gold)"/><rect x="144" y="104" width="16" height="78" fill="url(#gold)"/>
+    <rect x="88" y="104" width="24" height="30" rx="5" fill="url(#gold)"/><circle cx="100" cy="116" r="3.5" fill="#2b2350"/><path d="M100 118 v8" stroke-width="3"/>
+  </g>
+  <g fill="#fff" stroke="#2b2350" stroke-width="2" stroke-linejoin="round">
+    <path d="M30 40 l3 8 8 3-8 3-3 8-3-8-8-3 8-3z" fill="#ffcc3d"/>
+    <path d="M172 34 l3 8 8 3-8 3-3 8-3-8-8-3 8-3z" fill="#ffcc3d"/>
+    <path d="M100 20 l2.4 6 6 2.4-6 2.4-2.4 6-2.4-6-6-2.4 6-2.4z"/>
+  </g>
+</svg>

@@ -11,7 +11,15 @@ import {
   useState,
 } from "react";
 import type { Course as CourseData, Plan, RunEnd } from "../rules/course.ts";
-import { Art, arcStroke, trailStroke } from "./art.tsx";
+import {
+  Art,
+  arcStroke,
+  Backdrop,
+  bankArtWidth,
+  stoneArtWidth,
+  trailStroke,
+  waterTileStep,
+} from "./art.tsx";
 import { SvgFrac } from "./Frac.tsx";
 import styles from "./hop.module.css";
 
@@ -214,6 +222,7 @@ export function Course(props: CourseProps) {
   const trail = chain.slice(0, props.trail);
   const landed = flying ?? props.trail;
   const trailId = useId();
+  const roundedId = useId();
 
   return (
     <svg
@@ -229,22 +238,20 @@ export function Course(props: CourseProps) {
       style={{ "--reveal-ms": `${revealMs}ms` } as CSSProperties}
     >
       <rect width={VW} height={VH} rx={18} fill={palette.sky[0]} />
-      <rect y={waterY} width={VW} height={44} fill={palette.sky[3]} />
-      {Array.from({ length: Math.ceil(VW / 40) }, (_, i) => (
-        <Art
-          // biome-ignore lint/suspicious/noArrayIndexKey: fixed tiles
-          key={i}
-          slot="water"
-          x={i * 40}
-          y={waterY}
-        />
-      ))}
+      <clipPath id={roundedId}>
+        <rect width={VW} height={VH} rx={18} />
+      </clipPath>
+      <Backdrop
+        width={VW}
+        height={waterY + 14}
+        clipPath={`url(#${roundedId})`}
+      />
       <g ref={dockRef} transform={atCentre} data-testid="dock">
         <Art
           slot="start"
           x={x(0) + stoneWidth / 2}
           y={groundY}
-          scaleX={(x(0) + stoneWidth / 2) / 60}
+          scaleX={(x(0) + stoneWidth / 2) / bankArtWidth}
         />
       </g>
       <g className={fading} data-testid="stones">
@@ -252,10 +259,24 @@ export function Course(props: CourseProps) {
           .filter((s) => s > 0)
           .map((s) => (
             <g key={s} data-stone={s}>
-              <Art slot="stone" x={x(s)} y={groundY} scaleX={stoneWidth / 40} />
+              <Art
+                slot="stone"
+                x={x(s)}
+                y={groundY}
+                scaleX={stoneWidth / stoneArtWidth}
+              />
             </g>
           ))}
       </g>
+      {Array.from({ length: Math.ceil(VW / waterTileStep) }, (_, i) => (
+        <Art
+          // biome-ignore lint/suspicious/noArrayIndexKey: fixed tiles
+          key={i}
+          slot="water"
+          x={i * waterTileStep}
+          y={waterY}
+        />
+      ))}
 
       {/* The number line */}
       <g className={fading} data-testid="number-line">

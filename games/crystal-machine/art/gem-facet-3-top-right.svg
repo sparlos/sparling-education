@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 540 480" width="540" height="480">
+  <!-- Facet 3 of 6. Same 540x480 box as gem-empty.svg. Fade/scale it in from its centre when a level completes. -->
+  <polygon points="397,14 530,172 362,172" fill="#8a70ee" stroke="#2b2350" stroke-width="5" stroke-linejoin="round"/>
+  
+</svg>

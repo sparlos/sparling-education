@@ -12,7 +12,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { mapArt, pathStroke } from "./art.tsx";
+import { mapArt, oceanArt, pathStroke } from "./art.tsx";
 import { revealMs, slideMs } from "./Course.tsx";
 import styles from "./treasure.module.css";
 
@@ -252,6 +252,14 @@ export function TreasureMap(props: TreasureMapProps) {
             transform: `translate(${aim.x}px, ${aim.y}px) scale(${aim.s})`,
           }}
         >
+          {/* biome-ignore lint/performance/noImgElement: not a Next.js app */}
+          <img
+            className={styles.ocean}
+            data-slot="map-ocean"
+            src={oceanArt}
+            alt=""
+            draggable={false}
+          />
           <div
             className={styles.world}
             style={{ left: map.x, top: map.y, width: map.w, height: map.h }}
@@ -279,7 +287,14 @@ export function TreasureMap(props: TreasureMapProps) {
                 />
               ))}
               {spots.map((at, i) => {
-                const id = i < done ? "map-spot-done" : "map-spot";
+                const id =
+                  i < done
+                    ? "map-spot-done"
+                    : i === spot
+                      ? "map-spot-current"
+                      : i === done
+                        ? "map-spot-next"
+                        : "map-spot";
                 return (
                   <SlotArt
                     key={at.x}

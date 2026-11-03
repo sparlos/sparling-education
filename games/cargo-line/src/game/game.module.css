@@ -18,25 +18,54 @@
 
 .scene {
   display: block;
+  position: relative;
   width: 100%;
   height: 100%;
   border-radius: 16px;
+  overflow: hidden;
 }
 
-/* The camera, moving between the whole mountain and one stretch. */
-.camera {
+/* The camera: the whole mountain and one stretch, each its own layer, moved in
+   step. will-change has each painted once at full size and only slid after. */
+.camera,
+.stretch {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   transform-origin: 0 0;
+  will-change: transform;
+}
+
+.camera {
   transition: transform 1200ms var(--k-ease-standard);
 }
 
 .stretch {
   opacity: 0;
-  transition: opacity 350ms var(--k-ease-standard);
+  transition:
+    transform 1200ms var(--k-ease-standard),
+    opacity 350ms var(--k-ease-standard);
 }
 
 .stretch[data-near] {
   opacity: 1;
-  transition: opacity 450ms var(--k-ease-standard) 750ms;
+  transition:
+    transform 1200ms var(--k-ease-standard),
+    opacity 450ms var(--k-ease-standard) 750ms;
+}
+
+.stretchBackdrop,
+.stretchFront {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Its own layer, so the train moving over it doesn't repaint it. */
+.stretchBackdrop {
+  will-change: transform;
 }
 
 .tiny {
@@ -55,7 +84,7 @@
 }
 
 .signText {
-  font-size: 38px;
+  font-size: 34px;
   font-weight: 800;
   fill: var(--sign-ink);
   font-variant-numeric: tabular-nums;

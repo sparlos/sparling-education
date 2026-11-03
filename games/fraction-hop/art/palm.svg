@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 150" width="120" height="150">
+  <!-- Palm tree. Base at (58,146): stand it on an island's grass or sand. -->
+  <g stroke="#2b2350" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+    <ellipse cx="58" cy="144" rx="20" ry="5" fill="#2b2350" opacity=".15" stroke="none"/>
+    <path d="M50 146 q4-50 12-92 h8 q-6 44-8 92 z" fill="#a8774a"/>
+    <path d="M55 120 h10 M57 96 h10 M60 74 h9" stroke-width="2" opacity=".6"/>
+    <path d="M64 50 q-30-20-58 2 q26-6 58 0z" fill="#4f9a3f"/>
+    <path d="M66 50 q32-22 50 6 q-24-10-50-4z" fill="#5cab49"/>
+    <path d="M64 48 q-14-30-42-36 q22 14 42 38z" fill="#5cab49"/>
+    <path d="M66 48 q16-30 44-30 q-26 10-44 32z" fill="#4f9a3f"/>
+    <path d="M65 50 q-2-30 6-44 q4 20-6 44z" fill="#6fbf5a"/>
+    <circle cx="60" cy="54" r="5" fill="#8a5a33"/><circle cx="70" cy="55" r="5" fill="#8a5a33"/>
+  </g>
+</svg>

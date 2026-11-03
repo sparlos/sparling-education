@@ -1,16 +1,39 @@
-// Art slots (SPEC.md's Art section): a crystal workshop, glowing faceted
-// gems, a shape and colour per place, on a machine of brass and glass.
-// Placeholder SVG from the style kit's tokens, each in a fixed frame with an
-// anchor. Real art registered under the same slot ID, with the same frame
-// and anchor, replaces it without code changes.
-import { type Slot, SlotImage } from "@repo/game-kit/art";
+// Art slots (SPEC.md's Art section): a crystal workshop, faceted gems, a shape
+// and colour per place, on a machine of glass tubes. The machine and gems are
+// drawn from the files in ../../art. Slots with no file yet draw placeholder
+// SVG from the style kit's tokens, each in a fixed frame with an anchor.
+import { fileSlot, type Slot, SlotImage } from "@repo/game-kit/art";
 import { palette } from "@repo/tokens";
+import counterFile from "../../art/counter.svg";
+import counterRight from "../../art/counter-right.svg";
+import counterWrong from "../../art/counter-wrong.svg";
+import crystal1 from "../../art/crystal-1.svg";
+import crystal10 from "../../art/crystal-10.svg";
+import crystal100 from "../../art/crystal-100.svg";
+import crystal1000 from "../../art/crystal-1000.svg";
+import crystal10000 from "../../art/crystal-10000.svg";
+import display from "../../art/display.svg";
+import gemGlow from "../../art/gem-complete-glow.svg";
+import gemEmpty from "../../art/gem-empty.svg";
+import facetTopLeft from "../../art/gem-facet-1-top-left.svg";
+import facetTopMiddle from "../../art/gem-facet-2-top-middle.svg";
+import facetTopRight from "../../art/gem-facet-3-top-right.svg";
+import facetBottomLeft from "../../art/gem-facet-4-bottom-left.svg";
+import facetBottomMiddle from "../../art/gem-facet-5-bottom-middle.svg";
+import facetBottomRight from "../../art/gem-facet-6-bottom-right.svg";
+import leverDown from "../../art/lever-down.svg";
+import leverUp from "../../art/lever-up.svg";
+import lockedSlot from "../../art/locked-slot.svg";
+import machineFive from "../../art/machine.svg";
+import machineFour from "../../art/machine-4.svg";
+import machineSix from "../../art/machine-6.svg";
+import padlock from "../../art/padlock.svg";
+import tubeFile from "../../art/tube.svg";
+import tubeDisabled from "../../art/tube-disabled.svg";
 import type { Place } from "../strings.ts";
 
 const ink = palette.ink[9];
 const brass = palette.sand[6];
-const brassDark = palette.sand[8];
-const glass = palette.sky[0];
 
 /** Each place's crystal colour: light, mid and dark, for its facets. */
 export const crystalColours: Record<Place, readonly [string, string, string]> =
@@ -34,7 +57,7 @@ export const gemShapes: Record<Place, { sides: number; size: number }> = {
   1: { sides: 3, size: 0.9 },
   2: { sides: 5, size: 0.92 },
   3: { sides: 6, size: 0.95 },
-  4: { sides: 8, size: 0.98 },
+  4: { sides: 7, size: 0.98 },
   5: { sides: 12, size: 1 },
 };
 
@@ -53,8 +76,39 @@ export function gemCorners(sides: number, r: number): [number, number][] {
 const pts = (corners: [number, number][]) =>
   corners.map(([x, y]) => `${x.toFixed(2)},${y.toFixed(2)}`).join(" ");
 
-/** A faceted gem centred on (0, 0): an outer ring of facets around a lighter table. */
+/**
+ * Each gem's file, in its 64 × 64 frame: its middle, how far its corners reach,
+ * and the turn that lines its corners up with its physics body's.
+ */
+const gemFiles: Partial<
+  Record<
+    Place,
+    { href: string; x: number; y: number; reach: number; turn: number }
+  >
+> = {
+  0: { href: crystal1, x: 32, y: 32, reach: 27, turn: 0 },
+  1: { href: crystal10, x: 32, y: 36, reach: 30, turn: 30 },
+  2: { href: crystal100, x: 32, y: 32, reach: 27, turn: -18 },
+  3: { href: crystal1000, x: 32, y: 32, reach: 27, turn: 0 },
+  4: { href: crystal10000, x: 32, y: 32, reach: 27, turn: 90 / 7 },
+};
+
+/** A gem centred on (0, 0), its corners `r` out. The hundred thousand has no file yet, so it's drawn. */
 export function Gem({ place, r }: { place: Place; r: number }) {
+  const file = gemFiles[place];
+  if (file) {
+    const k = r / file.reach;
+    return (
+      <image
+        href={file.href}
+        x={-file.x * k}
+        y={-file.y * k}
+        width={64 * k}
+        height={64 * k}
+        transform={`rotate(${file.turn})`}
+      />
+    );
+  }
   const [light, mid, dark] = crystalColours[place];
   const outer = gemCorners(gemShapes[place].sides, r);
   const inner = gemCorners(gemShapes[place].sides, r * 0.55);
@@ -139,108 +193,76 @@ const box = (
 );
 
 /** The giant crystal's frame: its outline and every shard are drawn in it. */
-export const shardFrame = { width: 100, height: 90 } as const;
+export const shardFrame = { width: 540, height: 480 } as const;
 
-/** The giant crystal's six pieces, from the tip up, with the top last. */
+const inCrystalFrame = (href: string) =>
+  fileSlot(href, { ...shardFrame, anchor: { x: 0, y: 0 } });
+
+/** The giant crystal's six pieces, in the order they land: from the tip up, the top last. */
 const shards = [
-  { points: "34,34 66,34 50,86", fill: palette.violet[5] },
-  { points: "4,34 34,34 50,86", fill: palette.violet[6] },
-  { points: "66,34 96,34 50,86", fill: palette.violet[7] },
-  { points: "4,34 28,6 34,34", fill: palette.violet[3] },
-  { points: "72,6 96,34 66,34", fill: palette.violet[4] },
-  { points: "28,6 72,6 66,34 34,34", fill: palette.violet[2] },
+  facetBottomMiddle,
+  facetBottomLeft,
+  facetBottomRight,
+  facetTopLeft,
+  facetTopRight,
+  facetTopMiddle,
 ] as const;
 
 export const shardCount = shards.length;
 
-const inCrystalFrame = (draw: () => ReturnType<Slot["draw"]>): Slot => ({
-  ...shardFrame,
-  anchor: { x: 0, y: 0 },
-  draw,
-});
+const machineBody = (href: string) =>
+  fileSlot(href, { width: 1520, height: 780, anchor: { x: 0, y: 0 } });
+const chuteFace = (href: string) =>
+  fileSlot(href, { width: 300, height: 120, anchor: { x: 0, y: 0 } });
+const tubeBody = (href: string) =>
+  fileSlot(href, { width: 170, height: 460, anchor: { x: 0, y: 0 } });
+const windowFace = (href: string) =>
+  fileSlot(href, { width: 110, height: 100, anchor: { x: 0, y: 0 } });
+const leverSlot = (href: string) =>
+  fileSlot(href, { width: 130, height: 140, anchor: { x: 65, y: 112 } });
 
-const shard = (i: 0 | 1 | 2 | 3 | 4 | 5): Slot =>
-  inCrystalFrame(() => (
-    <polygon
-      points={shards[i].points}
-      fill={shards[i].fill}
-      stroke={ink}
-      strokeWidth={1.5}
-      strokeLinejoin="round"
-    />
-  ));
+/** Where crystals can go inside a tube's art, as shares of its frame. */
+export const tubeInterior = {
+  x: 25 / 170,
+  y: 38 / 460,
+  width: 120 / 170,
+  height: 372 / 460,
+} as const;
 
 export const art = {
   /** The giant crystal's empty outline: six dashed pieces. */
-  "giant-crystal": inCrystalFrame(() => (
-    <>
-      {shards.map(({ points }) => (
-        <polygon
-          key={points}
-          points={points}
-          fill={palette.sand[0]}
-          stroke={palette.violet[7]}
-          strokeWidth={1.5}
-          strokeDasharray="4 3"
-          strokeLinejoin="round"
-        />
-      ))}
-    </>
-  )),
+  "giant-crystal": inCrystalFrame(gemEmpty),
   /** The crystal's pieces, each in the outline's frame, so it lands in place. */
-  "shard-0": shard(0),
-  "shard-1": shard(1),
-  "shard-2": shard(2),
-  "shard-3": shard(3),
-  "shard-4": shard(4),
-  "shard-5": shard(5),
-  /** One ray behind the finished crystal, from the centre up; turned for the rest. */
-  "crystal-rays": {
-    width: 200,
-    height: 200,
-    anchor: { x: 100, y: 100 },
-    draw: () => (
-      <polygon
-        points="93,100 107,100 100,0"
-        fill={palette.sunshine[3]}
-        opacity={0.45}
-      />
-    ),
-  },
-  /** A gold sparkle around the finished crystal, anchored at its centre. */
-  "crystal-sparkle": {
-    width: 20,
-    height: 20,
-    anchor: { x: 10, y: 10 },
-    draw: () => (
-      <path
-        d="M10 0 L12.5 7.5 L20 10 L12.5 12.5 L10 20 L7.5 12.5 L0 10 L7.5 7.5 Z"
-        fill={palette.sunshine[3]}
-      />
-    ),
-  },
-  /** The machine's body behind the chutes and tubes: brass. Stretched to its box. */
-  machine: panel(() => box(palette.sand[2], brassDark)),
+  "shard-0": inCrystalFrame(shards[0]),
+  "shard-1": inCrystalFrame(shards[1]),
+  "shard-2": inCrystalFrame(shards[2]),
+  "shard-3": inCrystalFrame(shards[3]),
+  "shard-4": inCrystalFrame(shards[4]),
+  "shard-5": inCrystalFrame(shards[5]),
+  /** The glow and sparkles behind the finished crystal, its middle on the crystal's. */
+  "crystal-rays": fileSlot(gemGlow, {
+    width: 800,
+    height: 740,
+    anchor: { x: 400, y: 370 },
+  }),
+  /** The machine's body behind the chutes and tubes, by its number of tubes. Stretched to its box. */
+  "machine-4": machineBody(machineFour),
+  machine: machineBody(machineFive),
+  "machine-6": machineBody(machineSix),
   /** An open chute's face. Stretched; its crystal and count are drawn over it. */
-  chute: panel(() => box(palette.sand[0], brass)),
+  chute: chuteFace(display),
+  /** A closed chute's hatched face. Stretched; its lock is drawn over it. */
+  "chute-locked": chuteFace(lockedSlot),
   /** A glass tube holding up to 9 crystals. Stretched. */
-  tube: panel(() =>
-    box(
-      glass,
-      palette.sky[5],
-      <rect
-        x="8"
-        y="4"
-        width="6"
-        height="92"
-        rx="3"
-        fill="white"
-        opacity="0.7"
-      />,
-    ),
-  ),
+  tube: tubeBody(tubeFile),
+  /** A tube with a closed chute and nothing in it yet: frosted and sealed. */
+  "tube-sealed": tubeBody(tubeDisabled),
   /** The digit window under a tube. Stretched; its digit is drawn over it. */
-  window: panel(() => box(ink, brassDark)),
+  window: windowFace(counterFile),
+  /** A window showing the digit the job asked for. */
+  "window-right": windowFace(counterRight),
+  /** A window showing the wrong digit. */
+  "window-wrong": windowFace(counterWrong),
   /** Hint 1's digit tag above a window. Stretched. */
   "hint-digit": panel(() => box(palette.violet[0], palette.violet[5])),
   /** The control panel the avatar stands at, behind the portrait. Stretched. */
@@ -270,33 +292,11 @@ export const art = {
     ),
   },
   /** A closed chute's lock, anchored at its centre. */
-  "chute-closed": {
-    width: 40,
-    height: 44,
-    anchor: { x: 20, y: 22 },
-    draw: () => (
-      <>
-        <path
-          d="M10 20 v-6 a10 10 0 0 1 20 0 v6"
-          fill="none"
-          stroke={brassDark}
-          strokeWidth="5"
-        />
-        <rect
-          x="4"
-          y="18"
-          width="32"
-          height="24"
-          rx="5"
-          fill={brass}
-          stroke={brassDark}
-          strokeWidth="3"
-        />
-        <circle cx="20" cy="28" r="3.5" fill={brassDark} />
-        <rect x="18.5" y="29" width="3" height="7" fill={brassDark} />
-      </>
-    ),
-  },
+  "chute-closed": fileSlot(padlock, {
+    width: 80,
+    height: 96,
+    anchor: { x: 40, y: 48 },
+  }),
   /** Hint 2: one crystal breaking into ten of the next place, with an arrow down-right into the chute below. Anchored at its top centre. */
   trade: {
     width: 80,
@@ -339,33 +339,10 @@ export const art = {
       </>
     ),
   },
-  /** The Run lever, up: anchored at its pivot. Down is the same art turned. */
-  lever: {
-    width: 40,
-    height: 90,
-    anchor: { x: 20, y: 80 },
-    draw: () => (
-      <>
-        <rect x="17" y="12" width="6" height="68" rx="3" fill={brassDark} />
-        <circle
-          cx="20"
-          cy="12"
-          r="11"
-          fill={palette.ember[5]}
-          stroke={palette.ember[8]}
-          strokeWidth="2"
-        />
-        <circle
-          cx="20"
-          cy="80"
-          r="9"
-          fill={brass}
-          stroke={brassDark}
-          strokeWidth="3"
-        />
-      </>
-    ),
-  },
+  /** The Run lever, up, anchored at its pivot. */
+  lever: leverSlot(leverUp),
+  /** The Run lever, pulled, in the same frame. */
+  "lever-down": leverSlot(leverDown),
   /** The crystal counter's icon: a faceted gem, anchored at its centre. */
   counter: {
     width: 36,
@@ -394,6 +371,10 @@ export const art = {
 } satisfies Record<string, Slot>;
 
 export type ArtSlot = keyof typeof art;
+
+/** The machine's body for this many tubes. */
+export const machineSlot = (tubes: number): ArtSlot =>
+  tubes === 4 ? "machine-4" : tubes === 6 ? "machine-6" : "machine";
 
 export const crystalSlot = (p: Place) => `crystal-${p}` as const;
 

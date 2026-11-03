@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-20 0 130 140" width="130" height="140">
+  <!-- Lever, up position. Pivot at (45,112) in a -20..110 wide viewBox. Swap lever-up / lever-down on Run. -->
+  <g stroke="#2b2350" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+    <g transform="rotate(-28 45 112)">
+      <rect x="40" y="26" width="10" height="88" rx="5" fill="#d9d4f2"/>
+      <path d="M43 34 V104" stroke="#fff" stroke-width="2.5" opacity=".8"/>
+      <circle cx="45" cy="24" r="15" fill="#ef5a45"/>
+      <circle cx="40" cy="19" r="4.5" fill="#ffb3a8" stroke="none"/>
+    </g>
+    <path d="M18 136 v-14 q0-16 27-16 q27 0 27 16 v14 z" fill="#6c63a6"/>
+    <circle cx="45" cy="112" r="7" fill="#c8c2ef"/>
+  </g>
+</svg>

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 178" width="400" height="178">
+  <!-- Single-icon sign (400x178). Icon slot: x 34-118, y 33-117 (84px square). Number slot: x 134-376, centre (255,99) baseline, font-size 64 fits "+4710" / "-9999". Post stub bottom centre (200,178). -->
+  <g stroke="#2b2350" stroke-width="3" stroke-linejoin="round">
+    <rect x="188.0" y="144" width="24" height="34" fill="#6e6788"/>
+    <rect x="4" y="4" width="392" height="142" rx="20" fill="#8e86c4" stroke-width="3.5"/>
+    <rect x="14" y="14" width="372" height="122" rx="13" fill="#fdfbff"/>
+    <path d="M28 25 h120" stroke="#ebe6ff" stroke-width="5" stroke-linecap="round"/>
+    <path d="M168 28 V122" stroke="#ebe6ff" stroke-width="0"/>
+  </g>
+</svg>

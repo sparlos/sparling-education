@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 540 480" width="540" height="480">
+  <!-- Giant gem, nothing filled. Stack gem-facet-*.svg on top in the same box as levels complete; keep this underneath. -->
+  <polygon points="143,14 397,14 530,172 270,466 10,172" fill="#fdfbff"/>
+  <g fill="none" stroke="#5b3fe0" stroke-width="7" stroke-dasharray="22 12" stroke-linejoin="round" stroke-linecap="round"><polygon points="143,14 397,14 530,172 270,466 10,172" fill="none"/><path d="M10 172 H530 M143 14 L178 172 L270 466 M397 14 L362 172 L270 466"/></g>
+</svg>

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Sign icon, 64x64. Draw it at the left of a sign with the number beside it. -->
+  <g stroke="#2b2350" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M4 34 H34 M26 26 l8 8 -8 8" fill="none" stroke-width="4.5"/>
+    <rect x="44" y="10" width="12" height="48" rx="6" fill="#fde9e4"/>
+    <path d="M44 22 h12 M44 34 h12 M44 46 h12" stroke="#ef5a45" stroke-width="4"/>
+    <rect x="44" y="10" width="12" height="48" rx="6" fill="none"/>
+  </g>
+</svg>

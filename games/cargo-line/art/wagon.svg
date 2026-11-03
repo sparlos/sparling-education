@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 210 120" width="210" height="120">
+  <!-- Cargo wagon. Crates stand on the bed at y=50 (x 10-200 holds three 60px crates). Wheels touch the rail at y=114. Couplers at (0,83) and (210,83). -->
+  <defs><linearGradient id="w" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#bfae92"/><stop offset="1" stop-color="#96866c"/></linearGradient></defs>
+  <g stroke="#2b2350" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+    <rect x="196" y="78" width="14" height="10" rx="3" fill="#8a84a8"/>
+    <rect x="0" y="78" width="14" height="10" rx="3" fill="#8a84a8"/>
+    <path d="M10 56 h190 v28 q0 8-8 8 h-174 q-8 0-8-8 z" fill="url(#w)"/>
+    <path d="M18 64 h174" stroke="#e0d3bc" stroke-width="3" opacity=".9"/>
+    <path d="M58 56 v36 M105 56 v36 M152 56 v36" stroke-width="2" opacity=".5"/>
+    <rect x="6" y="50" width="198" height="10" rx="4" fill="#7d6f58"/>
+    <circle cx="46" cy="98" r="16" fill="#2f2a45"/><circle cx="46" cy="98" r="8.8" fill="#4b4468" stroke-width="2"/><circle cx="46" cy="98" r="3.5" fill="#c8c2ef" stroke-width="2"/><circle cx="164" cy="98" r="16" fill="#2f2a45"/><circle cx="164" cy="98" r="8.8" fill="#4b4468" stroke-width="2"/><circle cx="164" cy="98" r="3.5" fill="#c8c2ef" stroke-width="2"/>
+  </g>
+</svg>

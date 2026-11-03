@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 160" width="240" height="160">
+  <!-- Locomotive, facing right. Wheels touch the rail at y=146. Cab window centre (54,63) is where the driver avatar goes. Rear coupler at (0,113). -->
+  <defs>
+    <linearGradient id="blue" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5a97e6"/><stop offset="1" stop-color="#3366b8"/></linearGradient>
+    <linearGradient id="boiler" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6aa6f0"/><stop offset=".55" stop-color="#3f7fd0"/><stop offset="1" stop-color="#2d5ca8"/></linearGradient>
+  </defs>
+  <g stroke="#2b2350" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+    <!-- chassis -->
+    <rect x="10" y="104" width="206" height="18" rx="5" fill="#3a3456"/>
+    <path d="M216 108 l18 18 h-22 z" fill="#ef6b4f"/>
+    <rect x="0" y="108" width="14" height="10" rx="3" fill="#8a84a8"/>
+    <!-- cab -->
+    <path d="M14 104 V34 q0-8 8-8 h66 q8 0 8 8 V104 z" fill="url(#blue)"/>
+    <path d="M8 30 q0-10 10-10 h76 q10 0 10 10 v6 h-96 z" fill="#2d5ca8"/>
+    <rect x="28" y="44" width="52" height="38" rx="10" fill="#e9f3ff"/>
+    <path d="M34 52 l10-6" stroke="#fff" stroke-width="3" opacity=".9"/>
+    <!-- boiler -->
+    <path d="M96 52 h96 q22 0 22 26 q0 26-22 26 h-96 z" fill="url(#boiler)"/>
+    <path d="M104 62 h82" stroke="#a9ccf7" stroke-width="4" opacity=".9"/>
+    <path d="M140 52 v52 M176 52 v52" stroke-width="2.5" opacity=".7"/>
+    <ellipse cx="212" cy="78" rx="6" ry="20" fill="#2d5ca8"/>
+    <!-- stack, dome, lamp -->
+    <path d="M182 52 V26 h-6 v-10 h30 v10 h-6 v26 z" fill="#3a3456"/>
+    <rect x="132" y="36" width="24" height="18" rx="8" fill="#ffcc3d"/>
+    <circle cx="222" cy="58" r="7" fill="#ffe17a"/>
+    <!-- wheels -->
+    <circle cx="46" cy="128" r="18" fill="#2f2a45"/><circle cx="46" cy="128" r="9.9" fill="#4b4468" stroke-width="2"/><circle cx="46" cy="128" r="4.0" fill="#c8c2ef" stroke-width="2"/><circle cx="132" cy="132" r="14" fill="#2f2a45"/><circle cx="132" cy="132" r="7.7" fill="#4b4468" stroke-width="2"/><circle cx="132" cy="132" r="3.1" fill="#c8c2ef" stroke-width="2"/><circle cx="178" cy="132" r="14" fill="#2f2a45"/><circle cx="178" cy="132" r="7.7" fill="#4b4468" stroke-width="2"/><circle cx="178" cy="132" r="3.1" fill="#c8c2ef" stroke-width="2"/>
+    <path d="M46 128 L178 132" stroke="#c8c2ef" stroke-width="4"/>
+  </g>
+  <g fill="#fff" opacity=".9"><circle cx="198" cy="10" r="0"/></g>
+</svg>

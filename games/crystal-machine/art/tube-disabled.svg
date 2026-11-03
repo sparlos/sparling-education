@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 170 460" width="170" height="460">
+  <!-- Disabled tube. Same frame and footprint as tube.svg so it swaps in place. Frosted, hatched, sealed with a band. -->
+  <defs>
+    <linearGradient id="frost" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#d9d6e4"/>
+      <stop offset=".3" stop-color="#e9e7f0"/>
+      <stop offset="1" stop-color="#cfcbdd"/>
+    </linearGradient>
+    <pattern id="hatch" width="22" height="22" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <rect width="9" height="22" fill="#c4bfd6" opacity=".55"/>
+    </pattern>
+    <linearGradient id="cap" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#b4b0c8"/><stop offset="1" stop-color="#928ca9"/>
+    </linearGradient>
+    <clipPath id="glassClip"><rect x="22" y="26" width="126" height="396" rx="22"/></clipPath>
+  </defs>
+  <g stroke="#5d5878" stroke-width="3" stroke-linejoin="round">
+    <rect x="22" y="26" width="126" height="396" rx="22" fill="url(#frost)"/>
+    <rect x="22" y="26" width="126" height="396" fill="url(#hatch)" stroke="none" clip-path="url(#glassClip)"/>
+    <path d="M38 48 V400" stroke="#fff" stroke-width="6" stroke-linecap="round" opacity=".5"/>
+    <rect x="22" y="26" width="126" height="396" rx="22" fill="none" stroke-dasharray="10 7"/>
+    <!-- caps -->
+    <rect x="10" y="6" width="150" height="30" rx="10" fill="url(#cap)"/>
+    <path d="M20 14 h130" stroke="#dedbea" stroke-width="3" opacity=".8"/>
+    <rect x="10" y="412" width="150" height="40" rx="10" fill="url(#cap)"/>
+    <path d="M20 420 h130" stroke="#dedbea" stroke-width="3" opacity=".8"/>
+    <circle cx="26" cy="432" r="4" fill="#dedbea" stroke-width="2"/>
+    <circle cx="144" cy="432" r="4" fill="#dedbea" stroke-width="2"/>
+    <!-- seal band with no-entry mark -->
+    <rect x="14" y="196" width="142" height="56" rx="10" fill="#a8a3bd"/>
+    <path d="M22 204 h126" stroke="#dedbea" stroke-width="3" opacity=".8"/>
+    <circle cx="85" cy="224" r="17" fill="#f3f1f8"/>
+    <path d="M74 224 h22" stroke-width="6" stroke-linecap="round"/>
+  </g>
+</svg>

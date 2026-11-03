@@ -120,9 +120,10 @@
   outline-offset: 0.25rem;
 }
 
+/* The splash art's own shape, so all of it shows. */
 .picture {
   display: block;
-  height: 7.5rem;
+  aspect-ratio: 1376 / 768;
   background-color: var(--k-accent-soft);
 }
 

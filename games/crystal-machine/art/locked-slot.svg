@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 120" width="300" height="120" preserveAspectRatio="none">
+  <!-- Overlay for a locked place-value slot. Stretches to the slot; the padlock is a separate file so it stays round. -->
+  <defs>
+    <pattern id="h" width="28" height="28" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <rect width="28" height="28" fill="#e6e2f2"/><rect width="12" height="28" fill="#d4cfe6"/>
+    </pattern>
+  </defs>
+  <rect x="2" y="2" width="296" height="116" rx="14" fill="url(#h)" stroke="#6c63a6" stroke-width="3" stroke-dasharray="9 7"/>
+</svg>

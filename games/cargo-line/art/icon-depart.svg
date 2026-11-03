@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Sign icon, 64x64. Draw it at the left of a sign with the number beside it. -->
+  <g transform="translate(32 30) scale(1.4) translate(-32 -32)" stroke="#2b2350" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round">
+    <rect x="4" y="26" width="30" height="16" rx="4" fill="#ede9f7"/>
+    <rect x="10" y="18" width="16" height="10" rx="3" fill="#ede9f7"/>
+    <path d="M36 34 H58 M50 26 l8 8 -8 8" fill="none" stroke-width="4.5"/>
+  </g>
+</svg>

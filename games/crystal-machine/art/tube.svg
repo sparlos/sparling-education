@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 170 460" width="170" height="460">
+  <!-- Glass tube. Interior (where crystals stack) spans x 25-145, y 38-410; crystals fill from the bottom up. -->
+  <defs>
+    <linearGradient id="glass" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#cfe6fb" stop-opacity=".9"/>
+      <stop offset=".25" stop-color="#eef7ff" stop-opacity=".7"/>
+      <stop offset=".75" stop-color="#e3f0fc" stop-opacity=".6"/>
+      <stop offset="1" stop-color="#b8d6f2" stop-opacity=".9"/>
+    </linearGradient>
+    <linearGradient id="brass" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#9a93c9"/><stop offset="1" stop-color="#6c63a6"/>
+    </linearGradient>
+  </defs>
+  <g stroke="#2b2350" stroke-width="3" stroke-linejoin="round">
+    <rect x="22" y="26" width="126" height="396" rx="22" fill="url(#glass)"/>
+    <path d="M38 48 V400" stroke="#fff" stroke-width="7" stroke-linecap="round" opacity=".8"/>
+    <path d="M52 52 V150" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".6"/>
+    <path d="M132 60 V390" stroke="#8fb6dc" stroke-width="3" stroke-linecap="round" opacity=".5"/>
+    <g stroke="#8fb6dc" stroke-width="2" opacity=".55">
+      <path d="M128 110 h12 M128 190 h12 M128 270 h12 M128 350 h12"/>
+    </g>
+    <!-- caps -->
+    <rect x="10" y="6" width="150" height="30" rx="10" fill="url(#brass)"/>
+    <path d="M20 14 h130" stroke="#c8c2ef" stroke-width="3" opacity=".8"/>
+    <rect x="10" y="412" width="150" height="40" rx="10" fill="url(#brass)"/>
+    <path d="M20 420 h130" stroke="#c8c2ef" stroke-width="3" opacity=".8"/>
+    <circle cx="26" cy="432" r="4" fill="#c8c2ef" stroke-width="2"/>
+    <circle cx="144" cy="432" r="4" fill="#c8c2ef" stroke-width="2"/>
+  </g>
+</svg>

@@ -237,26 +237,26 @@ Captions show numerals where a number is spoken, written as on screen (84 620), 
 
 ## Art
 
-A crystal workshop: glowing, faceted crystal in the base ten shapes, on a machine of brass and glass. It fits the brand's violet gem without being the logo, and the gold sparkle stays shapes only (DESIGN.md). Placeholder SVG first, from the style kit, each in a fixed frame with an anchor.
+A crystal workshop: glowing, faceted crystal in the base ten shapes, on a machine of brass and glass. It fits the brand's violet gem without being the logo, and the gold sparkle stays shapes only (DESIGN.md). The machine and crystals are drawn from the files in `art/`. `crystal-5`, `fuse`, `operator`, `counter`, `hint-digit` and `trade` have no file yet, so they stay placeholder SVG from the style kit.
 
 | Slot | What it shows |
 | --- | --- |
-| `machine` | The machine's body behind the chutes and tubes |
+| `machine-4`, `machine`, `machine-6` | The machine's body behind the chutes and tubes, for 4, 5 and 6 tubes |
 | `chute` | A place's chute, open, marked with its crystal's shape |
-| `chute-closed` | A closed chute, with a lock |
+| `chute-locked`, `chute-closed` | A closed chute's hatched face, and its lock |
 | `tube` | A glass tube holding up to 9 crystals |
-| `window` | The digit window under a tube |
+| `tube-sealed` | A closed chute's tube while it's empty; it clears when a crystal lands in it |
+| `window`, `window-right`, `window-wrong` | The digit window under a tube: before a run, then with the right or wrong digit |
 | `crystal-0` … `crystal-5` | The crystals: one (small cube), ten (rod), hundred (flat), thousand (big cube), ten thousand (long block), hundred thousand (Grade 5's extra tube only) |
 | `fuse` | The flash when ten crystals fuse into one |
 | `operator` | The avatar at the control panel (the portrait for now), anchored at its base |
-| `lever` | The Run lever, up and down |
+| `lever`, `lever-down` | The Run lever, up and pulled |
 | `counter` | The crystal counter, with its crystal icon |
 | `hint-digit` | Hint 1's digit tag above a window |
 | `trade` | Hint 2's picture: one crystal breaking into ten of the next place, with an arrow |
 | `giant-crystal` | The giant crystal's empty outline, six dashed pieces |
 | `shard-0` … `shard-5` | Its six pieces, in violet tones, each drawn in the outline's frame so it lands in place |
-| `crystal-rays` | The rays behind the finished crystal at the end |
-| `crystal-sparkle` | The gold sparkles around it (shapes only) |
+| `crystal-rays` | The glow and gold sparkles behind the finished crystal at the end (shapes only) |
 
 ## Teacher card
 

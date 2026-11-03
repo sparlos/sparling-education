@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <!-- Treasure chest, closed. Same frame as chest-open.svg: swap on the win. Base centre (100,186). -->
+  <defs>
+    <linearGradient id="wood" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e2664c"/><stop offset="1" stop-color="#b8402c"/></linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe17a"/><stop offset="1" stop-color="#e8a92a"/></linearGradient>
+  </defs>
+  <g stroke="#2b2350" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round">
+    <ellipse cx="100" cy="186" rx="80" ry="10" fill="#2b2350" opacity=".18"/>
+    <rect x="22" y="104" width="156" height="78" rx="10" fill="url(#wood)"/>
+    <path d="M34 118 h132 M34 168 h132" stroke="#f08a73" stroke-width="3" opacity=".7"/>
+    <rect x="22" y="104" width="156" height="14" fill="url(#gold)"/>
+    <rect x="40" y="104" width="16" height="78" fill="url(#gold)"/><rect x="144" y="104" width="16" height="78" fill="url(#gold)"/>
+    <path d="M22 104 V78 q0-40 78-40 q78 0 78 40 V104 z" fill="url(#wood)"/>
+    <path d="M40 104 V60 M144 104 V56" stroke-width="0"/>
+    <path d="M40 104 V56 q4-8 16-10 V104 z M144 104 V46 q12 2 16 10 V104 z" fill="url(#gold)"/>
+    <path d="M34 72 q66-30 132 0" fill="none" stroke="#f08a73" stroke-width="3" opacity=".8"/>
+    <rect x="22" y="94" width="156" height="14" fill="url(#gold)"/>
+    <rect x="88" y="104" width="24" height="30" rx="5" fill="url(#gold)"/><circle cx="100" cy="116" r="3.5" fill="#2b2350"/><path d="M100 118 v8" stroke-width="3"/>
+  </g>
+</svg>

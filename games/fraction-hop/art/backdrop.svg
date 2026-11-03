@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 500" width="1600" height="500" preserveAspectRatio="xMidYMax slice">
+  <!-- Scene backdrop. Low-contrast on purpose so the number line and stones stay the focus. Bottom edge sits behind the water. -->
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e3e6fb"/>
+      <stop offset="1" stop-color="#f1f6fd"/>
+    </linearGradient>
+    <linearGradient id="far" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#cfe3d4"/><stop offset="1" stop-color="#dcebe0"/>
+    </linearGradient>
+    <linearGradient id="near" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#bfdcb8"/><stop offset="1" stop-color="#d3e8cc"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="500" fill="url(#sky)"/>
+  <circle cx="1380" cy="110" r="54" fill="#fff6d6"/>
+  <circle cx="1380" cy="110" r="76" fill="#fff6d6" opacity=".35"/>
+  <g fill="#ffffff" opacity=".9">
+    <path d="M180 140 q0-30 34-30 q12-24 44-18 q26-14 46 8 q30 0 30 24 q0 16-20 16 h-116 q-18 0-18-0z"/>
+    <path d="M760 90 q0-24 28-24 q10-20 36-14 q22-12 38 6 q26 0 26 20 q0 12-16 12 h-96 q-16 0-16 0z"/>
+    <path d="M1060 200 q0-20 22-20 q8-16 28-12 q18-10 30 4 q20 0 20 16 q0 10-12 10 h-76 q-12 0-12 2z" opacity=".8"/>
+  </g>
+  <path d="M0 360 q160-90 320-40 t360-20 t380 10 t340-40 t200 30 V500 H0 z" fill="url(#far)"/>
+  <g fill="#b3d4b0">
+    <path d="M300 336 l14-40 14 40z"/><path d="M322 340 l12-32 12 32z"/>
+    <path d="M1180 318 l16-46 16 46z"/><path d="M1206 322 l12-34 12 34z"/>
+  </g>
+  <path d="M0 410 q200-50 420-20 t460 0 t440-10 t280 10 V500 H0 z" fill="url(#near)"/>
+</svg>
