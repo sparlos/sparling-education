@@ -13,12 +13,13 @@ import {
   useState,
 } from "react";
 import { mapArt, pathStroke } from "./art.tsx";
+import { revealMs, slideMs } from "./Course.tsx";
 import styles from "./treasure.module.css";
 
 /** The camera's move, in or out. */
 export const zoomMs = 800;
-/** The map's fade over the course, ending as the zoom in ends. */
-export const mapFadeMs = 350;
+/** The map's fade over the course, with the character still: after the zoom in, before the pull back. */
+export const mapFadeMs = 300;
 /** The beat before the character sets off, with its spot newly gold. */
 export const settleMs = 150;
 /** The character hopping from one spot to the next. */
@@ -34,10 +35,26 @@ export const chestShutMs = 450;
 /** The open chest, at least: longer if its line takes longer to say. */
 export const chestOpenMs = 3000;
 /** The whole moment between two tasks. */
-export const momentMs = aimMs + zoomMs + settleMs + walkMs + aimMs + zoomMs;
+export const momentMs =
+  aimMs +
+  mapFadeMs +
+  zoomMs +
+  settleMs +
+  walkMs +
+  aimMs +
+  zoomMs +
+  mapFadeMs +
+  slideMs +
+  revealMs;
 /** The whole ending, from the last task's "You found the goal!" and its pause. */
 export const endingMs =
-  aimMs + zoomMs + settleMs + walkToChestMs + chestShutMs + chestOpenMs;
+  aimMs +
+  mapFadeMs +
+  zoomMs +
+  settleMs +
+  walkToChestMs +
+  chestShutMs +
+  chestOpenMs;
 
 const mapW = mapArt.map.width;
 const mapH = mapArt.map.height;
@@ -64,10 +81,12 @@ const legs = [
 
 /** The character on the whole map, in px. */
 const walkerPx = 48;
-/** Its size at the map's scale once zoomed in, so it lands as the course's. */
-const landingPx = 30;
+/** How far the camera zooms in on the map. */
+const closeZoom = 4;
 /** Its middle, above the spot its feet stand on, in px. */
 const walkerRise = 20;
+/** Its feet, below the middle of the spot, in px. */
+const walkerFeet = walkerPx / 2 - walkerRise;
 const hopsPerWalk = 4;
 /** How high it hops along the path, in px. */
 const hopLift = 16;
@@ -91,6 +110,8 @@ export interface TreasureMapProps {
   /** How many spots are finished. */
   done: number;
   chest: ChestState;
+  /** The character's face, the same as on the course so nothing changes as they swap. */
+  expression: AvatarExpression;
   /** The line over the map or the chest, when the board's caption is covered. */
   line: string;
   Avatar: ComponentType<{ expression: AvatarExpression; size: number }>;
@@ -116,7 +137,7 @@ const reducedMotion = () =>
   window.matchMedia?.("(prefers-reduced-motion: reduce)").matches === true;
 
 export function TreasureMap(props: TreasureMapProps) {
-  const { shown, camera, spot, done, chest, line, Avatar } = props;
+  const { shown, camera, spot, done, chest, expression, line, Avatar } = props;
   const layer = useRef<HTMLDivElement>(null);
   const walker = useRef<HTMLDivElement>(null);
   const legPaths = useRef<(SVGPathElement | null)[]>([]);
@@ -124,6 +145,8 @@ export function TreasureMap(props: TreasureMapProps) {
   // A stand-in until measured (always, in jsdom).
   const [size, setSize] = useState({ w: mapW, h: mapH });
   const [aim, setAim] = useState({ x: 0, y: 0, s: 1 });
+  // How much the character shrinks against the map, to land at the course's size.
+  const [landing, setLanding] = useState(1);
   const map = fitMap(size);
 
   useLayoutEffect(() => {
@@ -139,7 +162,8 @@ export function TreasureMap(props: TreasureMapProps) {
     return () => watch.disconnect();
   }, []);
 
-  // Close up, the character lands exactly on the course's, in place and size.
+  // Close up, the map's character stands exactly on the course's, in place and
+  // size, feet on its spot. The course puts its character mid-screen for this.
   // biome-ignore lint/correctness/useExhaustiveDependencies: each new camera is a new aim
   useLayoutEffect(() => {
     const el = layer.current;
@@ -153,15 +177,12 @@ export function TreasureMap(props: TreasureMapProps) {
     }
     const box = el.getBoundingClientRect();
     const place = placeOf(spot);
-    const s = r.height / landingPx;
+    const s = closeZoom;
+    setLanding(r.height / (s * walkerPx));
     setAim({
       s,
       x: r.left - box.left + r.width / 2 - (map.x + place.x * map.k) * s,
-      y:
-        r.top -
-        box.top +
-        r.height / 2 -
-        (map.y + place.y * map.k - walkerRise) * s,
+      y: r.bottom - box.top - (map.y + place.y * map.k + walkerFeet) * s,
     });
   }, [camera, size]);
 
@@ -218,7 +239,7 @@ export function TreasureMap(props: TreasureMapProps) {
         {
           "--zoom-ms": `${zoomMs}ms`,
           "--fade-ms": `${mapFadeMs}ms`,
-          "--walker-close": landingPx / walkerPx,
+          "--walker-close": landing,
           // What darkens behind the chest and its line: ink at about five sixths.
           "--scrim": `${palette.ink[9]}d8`,
         } as CSSProperties
@@ -297,7 +318,7 @@ export function TreasureMap(props: TreasureMapProps) {
                 className={styles.walkerBody}
                 style={{ width: walkerPx, height: walkerPx }}
               >
-                <Avatar expression="neutral" size={walkerPx} />
+                <Avatar expression={expression} size={walkerPx} />
               </div>
             </div>
           </div>

@@ -25,7 +25,15 @@ import {
 } from "../rules/task.ts";
 import type { StringId } from "../strings.ts";
 import { Board, type Carried } from "./Board.tsx";
-import { type Hopper, home, hopMs, sinkMs } from "./Course.tsx";
+import {
+  type Arrival,
+  type Hopper,
+  home,
+  hopMs,
+  revealMs,
+  sinkMs,
+  slideMs,
+} from "./Course.tsx";
 import {
   aimMs,
   type ChestState,
@@ -108,6 +116,9 @@ export function FractionHop(props: GameProps<Manifest>) {
 
   // The journey: the treasure map.
   const [mapShown, setMapShown] = useState(true);
+  const [arrival, setArrival] = useState<Arrival | null>(
+    firstPlay ? null : "centre",
+  );
   const [camera, setCamera] = useState<MapCamera>({
     view: "wide",
     moving: false,
@@ -213,17 +224,25 @@ export function FractionHop(props: GameProps<Manifest>) {
     [pause],
   );
 
-  /** The camera zooms in on the character, and the map fades into the course. */
+  /**
+   * The camera zooms in on the character in the middle of the screen. The map
+   * fades to leave it on its dock in the water, it slides to the course's start,
+   * and only then does the rest of the course fade in.
+   */
   const zoomIn = useCallback(async () => {
     setCamera({ view: "close", moving: true });
-    await moved(zoomMs - mapFadeMs);
+    await moved(zoomMs);
     setMapShown(false);
     await moved(mapFadeMs);
+    setArrival("sliding");
+    await moved(slideMs);
+    setArrival(null);
+    await moved(revealMs);
   }, [moved]);
 
   /**
-   * The map comes back as the camera pulls away from the course's character,
-   * then the character hops to the next place. No voice, and nothing to tap.
+   * The map fades in around the course's character, the camera pulls away from
+   * it, then it hops to the next place. No voice, and nothing to tap.
    */
   const pullBack = useCallback(
     async (index: number) => {
@@ -234,6 +253,7 @@ export function FractionHop(props: GameProps<Manifest>) {
       setCamera({ view: "close", moving: false });
       await pause(aimMs);
       setMapShown(true);
+      await moved(mapFadeMs);
       setCamera({ view: "wide", moving: true });
       await moved(zoomMs);
       setDone(index);
@@ -253,6 +273,7 @@ export function FractionHop(props: GameProps<Manifest>) {
   /** From the tutorial, or its skip, to the journey's opening on task 1. */
   const open = useCallback(() => {
     showCourse(1);
+    setArrival("centre");
     setMapShown(true);
     setCamera({ view: "wide", moving: false });
     setMode("opening");
@@ -400,6 +421,8 @@ export function FractionHop(props: GameProps<Manifest>) {
     await pullBack(done.index);
     if (done.index < tasksPerPlay) {
       showCourse(done.index + 1);
+      setArrival("centre");
+      setMood("neutral");
       // The next course's character has to be on screen for the camera to find it.
       await pause(aimMs);
       await zoomIn();
@@ -439,6 +462,7 @@ export function FractionHop(props: GameProps<Manifest>) {
       missed={missed}
       trail={trail}
       onSkip={mode === "tutorial" ? open : undefined}
+      arrival={arrival}
       overlay={
         mode === "tutorial" ? undefined : (
           <TreasureMap
@@ -447,6 +471,7 @@ export function FractionHop(props: GameProps<Manifest>) {
             spot={spot}
             done={done}
             chest={chest}
+            expression={mood}
             line={
               mode === "opening" || chest === "open"
                 ? caption.map(t).join(" ")

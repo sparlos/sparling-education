@@ -44,9 +44,9 @@ The screen is a side view of a course over water: a number line from 0 to a few 
 
 Kind: going somewhere. One play is one trip across a treasure map, from the first island to the chest.
 
-- **From the start:** the play opens on the whole map, filling the game's screen: six spots joined by a dotted path across the islands, the student's character on the first, and a shut chest on an X at the far end. The voice and a caption say the goal ("Let's hop across the islands to the treasure!"). The camera then zooms in on the character until it's exactly where and how big the course's character is, and the map fades into the course (0.8 s). On a first play this comes after the tutorial's "Now you try!". The tutorial doesn't show the map.
-- **After each task:** "You found the goal!" plays as the task ends. Then, in about 2.8 seconds, with no voice and nothing to tap: the map fades in as the camera pulls back from the character (0.8 s), the spot just finished and the path behind it turn gold, the character hops along the path to the next spot (1 s), and the camera zooms in on it again, onto the next course (0.8 s). The next task arrives by itself, with its own line. Hint, the blocks, the plan and Play are off throughout.
-- **The end:** after task 6, the same pull back, and the character hops to the chest. The screen darkens and the chest fills it, then opens, with rays and coins behind it. The avatar cheers beside it, and the voice and a caption say "You found the treasure! Great hopping!" It takes about 5.6 seconds in all, or longer if the line takes longer to say. The shell then takes over.
+- **From the start:** the play opens on the whole map, filling the game's screen: six spots joined by a dotted path across the islands, the student's character on the first, and a shut chest on an X at the far end. The voice and a caption say the goal ("Let's hop across the islands to the treasure!"). The camera then zooms right in on the character, with them in the middle of the screen (0.8 s). The map fades away to leave just the character on their dock, in the water (0.3 s). The dock slides over to the left, to the start of the course (0.35 s), and the stones, the number line and the controls fade in (0.2 s). There's only ever one character on screen. On a first play this comes after the tutorial's "Now you try!". The tutorial doesn't show the map.
+- **After each task:** "You found the goal!" plays as the task ends. Then, in about 4.0 seconds, with no voice and nothing to tap: the map fades in around the character (0.3 s), the camera pulls back from it (0.8 s), the spot just finished and the path behind it turn gold, the character hops along the path to the next spot (1 s), and the next course arrives the same way as the first: the zoom, the fade to the dock, the slide and the fade in (1.65 s). The next task arrives by itself, with its own line. Hint, the blocks, the plan and Play are off throughout.
+- **The end:** after task 6, the same pull back, and the character hops to the chest. The screen darkens and the chest fills it, then opens, with rays and coins behind it. The avatar cheers beside it, and the voice and a caption say "You found the treasure! Great hopping!" It takes about 5.9 seconds in all, or longer if the line takes longer to say. The shell then takes over.
 
 The trip is the same for every student, however much help they had, and starts again from the first island each play. Nothing from it is kept after the play. With reduced motion, the map appears and goes without moving: the character is on its new spot for about a second, and the rays and coins hold still. Every part shows on screen, so no student needs to hear it. The map never shows anything about a course, so it can't give a goal away.
 
@@ -164,7 +164,7 @@ Expressions:
 - `cheering`: on reaching the goal, and beside the chest at the end of the play.
 - `neutral` otherwise.
 
-The same portrait is the character on the treasure map (see Journey), in `neutral`.
+The same portrait is the character on the treasure map (see Journey), with the same expression as on the course: still cheering as it hops to the next spot, then `neutral` once the next course is ready.
 
 The contract's character API starts minimal: the portrait at any size, with an expression. Moving it along the course is the game's own job.
 

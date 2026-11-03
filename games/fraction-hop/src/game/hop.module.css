@@ -133,6 +133,15 @@
   pointer-events: none;
 }
 
+/* A course coming on screen: its stones and number line wait for the dock. */
+.revealed {
+  transition: opacity var(--reveal-ms);
+}
+
+.unrevealed {
+  opacity: 0;
+}
+
 /* The planned hop in the air: lifted and outlined while it runs. */
 .hopping {
   outline: 4px solid var(--tone-fill);
@@ -262,6 +271,9 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .revealed {
+    transition: none;
+  }
   .fixed,
   .trailReveal,
   .trailLabel,

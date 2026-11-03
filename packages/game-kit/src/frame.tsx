@@ -130,6 +130,8 @@ export type GameFrameProps = {
   carrying?: ReactNode;
   /** Layers over the whole screen, out of its layout: effects, drag overlays. */
   children?: ReactNode;
+  /** Only the play area shows; everything else fades out, keeping its place. */
+  stageOnly?: boolean;
 } & (
   | { side?: ReactNode; deck?: undefined; deckTop?: undefined }
   | {
@@ -178,6 +180,7 @@ export function GameFrame(props: GameFrameProps) {
       data-testid="board"
       data-layout={hasSide ? "side" : "deck"}
       data-info={props.info !== undefined || undefined}
+      data-stage-only={props.stageOnly || undefined}
       // In the tutorial the controls are off but look on, so the hand's taps look real.
       data-demo={onSkip ? true : undefined}
     >

@@ -44,10 +44,11 @@
   position: absolute;
 }
 
-/* It shrinks as the camera zooms in, so it lands at the course's size. */
+/* It changes size about its feet as the camera zooms in, so it lands at the
+   course's size and still stands on its spot. */
 .walkerBody {
   line-height: 0;
-  transform-origin: 50% 50%;
+  transform-origin: 50% 100%;
 }
 
 .layer[data-moving] .walkerBody {

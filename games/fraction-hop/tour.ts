@@ -124,6 +124,38 @@ export default defineTour({
     spoken,
   }) {
     await page.waitForSelector('[data-testid="board"]');
+    // The character slides off once the camera has landed, so each landing is
+    // measured on its last frame before that.
+    await page.evaluate(() => {
+      const landed: number[] = [];
+      Object.assign(window, { __landed: landed });
+      let last: number | undefined;
+      const watch = () => {
+        const course = document.querySelector("svg[data-unit]") as SVGElement;
+        const map = document.querySelector<HTMLElement>(
+          '[data-testid="treasure-map"]',
+        );
+        if (
+          course?.dataset.arrival === "centre" &&
+          map?.dataset.view === "close"
+        ) {
+          const box = (s: string) =>
+            (document.querySelector(s) as Element).getBoundingClientRect();
+          const a = box('[data-testid="walker"] svg');
+          const b = box('[data-testid="hopper"] foreignObject svg');
+          last = Math.max(
+            Math.abs(a.x - b.x),
+            Math.abs(a.y - b.y),
+            Math.abs(a.width - b.width),
+          );
+        } else if (last !== undefined) {
+          landed.push(last);
+          last = undefined;
+        }
+        requestAnimationFrame(watch);
+      };
+      requestAnimationFrame(watch);
+    });
     if (!firstPlay) {
       // A returning student: no tutorial, straight to task 1.
       if (await page.getByRole("button", { name: "Skip" }).isVisible())
@@ -173,18 +205,13 @@ export default defineTour({
       }
       await checkFit(`task ${task}`);
       // The founder's call: the zoom lands exactly on the course's character.
-      const off = await page.evaluate(() => {
-        const box = (s: string) =>
-          (document.querySelector(s) as Element).getBoundingClientRect();
-        const a = box('[data-testid="walker"] svg');
-        const b = box('[data-testid="hopper"] foreignObject svg');
-        return Math.max(
-          Math.abs(a.x - b.x),
-          Math.abs(a.y - b.y),
-          Math.abs(a.width - b.width),
-        );
-      });
-      if (off > 1.5) problem(`task ${task}: the zoom missed by ${off} px`);
+      // With reduced motion there's no move to land, so only `first` checks it.
+      const off = await page.evaluate(
+        () =>
+          (window as unknown as { __landed: number[] }).__landed.at(-1) ?? 0,
+      );
+      if (first && off > 1.5)
+        problem(`task ${task}: the zoom missed by ${off} px`);
       // A miss: the smallest block until the plan is full. On task 4, the
       // route with one hop that splashes instead, so solving is a "Nice fix!".
       const smallest = Math.max(...c.blocks);

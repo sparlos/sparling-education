@@ -5,11 +5,12 @@ import { seeded } from "@repo/game-kit/random";
 import { heldVoice, mountGame, wait } from "@repo/game-kit/testing";
 import { screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { hopMs } from "./game/Course.tsx";
+import { hopMs, revealMs, slideMs } from "./game/Course.tsx";
 import { runMs } from "./game/FractionHop.tsx";
 import {
   chestShutMs,
   endingMs,
+  mapFadeMs,
   momentMs,
   zoomMs,
 } from "./game/TreasureMap.tsx";
@@ -28,7 +29,7 @@ import { askedFor, runDetail } from "./rules/teacher.ts";
 const seedFrom = 0.5;
 
 /** Long enough for the opening: the goal line held on screen, then the zoom. */
-const openingMs = minLineMs + zoomMs + 100;
+const openingMs = minLineMs + zoomMs + mapFadeMs + slideMs + revealMs + 100;
 const map = () => screen.getByTestId("treasure-map");
 /** The course's character: the map has its own, and the ending another. */
 const hopperMood = () =>
@@ -564,11 +565,44 @@ describe("the journey", () => {
       screen.queryByRole("button", { name: "Skip" }),
     ).not.toBeInTheDocument();
     finishLine();
-    await wait(zoomMs + 50);
-    expect(map()).not.toHaveAttribute("data-shown");
+    // The camera lands before the map starts to fade, so there's one character.
+    await wait(zoomMs - 50);
     expect(map()).toHaveAttribute("data-view", "close");
+    expect(map()).toHaveAttribute("data-shown", "true");
+    await wait(100);
+    expect(map()).not.toHaveAttribute("data-shown");
+    // Just the character on its dock in the water, in the middle...
+    const course = () => document.querySelector("svg[data-unit]") as SVGElement;
+    expect(course()).toHaveAttribute("data-arrival", "centre");
+    expect(screen.getByTestId("board")).toHaveAttribute("data-stage-only");
+    await wait(mapFadeMs);
+    // ...which slides over to the start...
+    expect(course()).toHaveAttribute("data-arrival", "sliding");
+    expect(screen.getByTestId("board")).toHaveAttribute("data-stage-only");
+    await wait(slideMs);
+    // ...and then the rest of the course and the controls come in.
+    expect(course()).not.toHaveAttribute("data-arrival");
+    expect(screen.getByTestId("board")).not.toHaveAttribute("data-stage-only");
+    await wait(revealMs);
     expect(screen.queryByTestId("map-line")).not.toBeInTheDocument();
     expect(playButton()).toBeEnabled();
+  });
+
+  it("fades the map in around the character before the camera pulls back", async () => {
+    const { user, courses } = returning();
+    await wait(openingMs);
+    await solve(user, (courses as [Course])[0]);
+    let ms = 0;
+    while (!map().dataset.shown) {
+      await wait(10);
+      ms += 10;
+      if (ms > 6000) throw new Error("The map never came back");
+    }
+    expect(map()).toHaveAttribute("data-view", "close");
+    await wait(mapFadeMs - 50);
+    expect(map()).toHaveAttribute("data-view", "close");
+    await wait(100);
+    expect(map()).toHaveAttribute("data-view", "wide");
   });
 
   it("holds the line long enough to read with no sound", async () => {

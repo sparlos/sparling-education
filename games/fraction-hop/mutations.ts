@@ -242,14 +242,44 @@ export const mutations = defineMutations([
   {
     name: "the map doesn't come back between tasks",
     file: "src/game/FractionHop.tsx",
-    find: '      setMapShown(true);\n      setCamera({ view: "wide", moving: true });',
-    replace: '      setCamera({ view: "wide", moving: true });',
+    find: "      setMapShown(true);\n      await moved(mapFadeMs);",
+    replace: "      await moved(mapFadeMs);",
   },
   {
     name: "the map stays up over the next task",
     file: "src/game/FractionHop.tsx",
-    find: "    await moved(zoomMs - mapFadeMs);\n    setMapShown(false);",
-    replace: "    await moved(zoomMs - mapFadeMs);",
+    find: "    await moved(zoomMs);\n    setMapShown(false);",
+    replace: "    await moved(zoomMs);",
+  },
+  {
+    name: "the map fades before the camera has landed",
+    file: "src/game/FractionHop.tsx",
+    find: "    await moved(zoomMs);\n    setMapShown(false);",
+    replace: "    await moved(zoomMs - mapFadeMs);\n    setMapShown(false);",
+  },
+  {
+    name: "the camera pulls back before the map has faded in",
+    file: "src/game/FractionHop.tsx",
+    find: "      setMapShown(true);\n      await moved(mapFadeMs);\n",
+    replace: "      setMapShown(true);\n",
+  },
+  {
+    name: "the course's stones and controls never come in",
+    file: "src/game/FractionHop.tsx",
+    find: "    setArrival(null);\n",
+    replace: "",
+  },
+  {
+    name: "the dock never slides over",
+    file: "src/game/FractionHop.tsx",
+    find: '    setArrival("sliding");\n    await moved(slideMs);\n',
+    replace: "",
+  },
+  {
+    name: "the character keeps cheering onto the next course",
+    file: "src/game/FractionHop.tsx",
+    find: '      setMood("neutral");\n      // The next course',
+    replace: "      // The next course",
   },
   {
     name: "the character never moves",

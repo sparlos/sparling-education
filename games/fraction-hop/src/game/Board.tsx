@@ -27,7 +27,7 @@ import type { RunEnd } from "../rules/course.ts";
 import type { TaskState } from "../rules/task.ts";
 import { parseAmount, type StringId } from "../strings.ts";
 import { ScreenArt } from "./art.tsx";
-import { Course, type Hopper } from "./Course.tsx";
+import { type Arrival, Course, type Hopper } from "./Course.tsx";
 import { Frac } from "./Frac.tsx";
 import styles from "./hop.module.css";
 
@@ -65,6 +65,8 @@ export interface BoardProps {
   onSkip?: () => void;
   /** The journey, laid over the whole board. */
   overlay?: ReactNode;
+  /** Set while the course comes on screen, with the controls hidden. */
+  arrival?: Arrival | null;
 }
 
 export function Board(props: BoardProps) {
@@ -83,6 +85,7 @@ export function Board(props: BoardProps) {
     >
       <GameFrame
         t={t}
+        stageOnly={Boolean(props.arrival)}
         info={
           <div className={styles.goal} data-hand="goal">
             <span>{t("ui.goal-at")}</span>
@@ -111,6 +114,7 @@ export function Board(props: BoardProps) {
               trail={props.trail}
               Avatar={props.Avatar}
               expression={props.expression}
+              arrival={props.arrival}
               label={`${t("ui.goal-at")} ${goal.n}/${goal.d}`}
             />
           </div>

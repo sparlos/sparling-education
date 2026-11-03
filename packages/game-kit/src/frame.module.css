@@ -275,7 +275,30 @@
   transform: translate(-50%, -50%);
 }
 
+.info,
+.corner,
+.caption,
+.rail,
+.deck {
+  transition: opacity var(--k-duration-fast);
+}
+
+.frame[data-stage-only] > .info,
+.frame[data-stage-only] > .corner,
+.frame[data-stage-only] > .caption,
+.frame[data-stage-only] > .rail,
+.frame[data-stage-only] > .deck {
+  opacity: 0;
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .info,
+  .corner,
+  .caption,
+  .rail,
+  .deck {
+    transition: none;
+  }
   .button[data-glow],
   .button[data-glow]::after {
     animation: none;

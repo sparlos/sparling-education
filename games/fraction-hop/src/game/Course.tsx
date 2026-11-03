@@ -4,6 +4,7 @@ import type { AvatarExpression } from "@repo/game-contract";
 import { motion, palette } from "@repo/tokens";
 import {
   type ComponentType,
+  type CSSProperties,
   useId,
   useLayoutEffect,
   useRef,
@@ -59,6 +60,19 @@ const lerp = (a: [number, number], b: [number, number], t: number) =>
 export const hopMs = 620;
 /** How long the hopper takes to sink after a splash, in ms. */
 export const sinkMs = 520;
+/** The dock and the character sliding from the middle to the course's start. */
+export const slideMs = 350;
+/** The stones and the number line fading in, once the dock has arrived. */
+export const revealMs = 200;
+
+/**
+ * A course coming on screen: first only the water, with the dock and the
+ * character in the middle of it, then those two sliding to the start.
+ */
+export type Arrival = "centre" | "sliding";
+
+const easeInOut = (p: number) =>
+  p < 0.5 ? 2 * p * p : 1 - (-2 * p + 2) ** 2 / 2;
 
 export interface CourseProps {
   course: CourseData;
@@ -76,6 +90,8 @@ export interface CourseProps {
   Avatar: ComponentType<{ expression: AvatarExpression; size: number }>;
   expression: AvatarExpression;
   label: string;
+  /** Set while the course comes on screen, after which everything shows. */
+  arrival?: Arrival | null;
 }
 
 /**
@@ -155,6 +171,33 @@ export function Course(props: CourseProps) {
     };
   }, [flightKey, x0, x1, arc]);
 
+  // Frame by frame too, for the same reason as a hop.
+  const slide = VW / 2 - x(0);
+  const dockRef = useRef<SVGGElement>(null);
+  const carriedRef = useRef<SVGGElement>(null);
+  const sliding = props.arrival === "sliding";
+  useLayoutEffect(() => {
+    const parts = [dockRef.current, carriedRef.current];
+    if (!sliding || matchMedia("(prefers-reduced-motion: reduce)").matches)
+      return;
+    let frame = 0;
+    const start = performance.now();
+    const step = (now: number) => {
+      const p = Math.min(1, (now - start) / slideMs);
+      const at = `translate(${slide * (1 - easeInOut(p))} 0)`;
+      for (const part of parts) part?.setAttribute("transform", at);
+      if (p < 1) frame = requestAnimationFrame(step);
+    };
+    step(start);
+    return () => {
+      cancelAnimationFrame(frame);
+      for (const part of parts) part?.removeAttribute("transform");
+    };
+  }, [sliding, slide]);
+  const atCentre =
+    props.arrival === "centre" ? `translate(${slide} 0)` : undefined;
+  const fading = props.arrival ? styles.unrevealed : styles.revealed;
+
   // The plan's hops chained from 0: hint 2's arcs, and the run's trail.
   const chain: { from: number; to: number; d: number }[] = [];
   let reach = 0;
@@ -182,6 +225,8 @@ export function Course(props: CourseProps) {
       aria-label={props.label}
       data-unit={unit}
       data-end={end}
+      data-arrival={props.arrival ?? undefined}
+      style={{ "--reveal-ms": `${revealMs}ms` } as CSSProperties}
     >
       <rect width={VW} height={VH} rx={18} fill={palette.sky[0]} />
       <rect y={waterY} width={VW} height={44} fill={palette.sky[3]} />
@@ -194,66 +239,72 @@ export function Course(props: CourseProps) {
           y={waterY}
         />
       ))}
-      <Art
-        slot="start"
-        x={x(0) + stoneWidth / 2}
-        y={groundY}
-        scaleX={(x(0) + stoneWidth / 2) / 60}
-      />
-      {course.stones
-        .filter((s) => s > 0)
-        .map((s) => (
-          <g key={s} data-stone={s}>
-            <Art slot="stone" x={x(s)} y={groundY} scaleX={stoneWidth / 40} />
-          </g>
-        ))}
+      <g ref={dockRef} transform={atCentre} data-testid="dock">
+        <Art
+          slot="start"
+          x={x(0) + stoneWidth / 2}
+          y={groundY}
+          scaleX={(x(0) + stoneWidth / 2) / 60}
+        />
+      </g>
+      <g className={fading} data-testid="stones">
+        {course.stones
+          .filter((s) => s > 0)
+          .map((s) => (
+            <g key={s} data-stone={s}>
+              <Art slot="stone" x={x(s)} y={groundY} scaleX={stoneWidth / 40} />
+            </g>
+          ))}
+      </g>
 
       {/* The number line */}
-      <line
-        x1={x(0)}
-        x2={x(end)}
-        y1={lineY}
-        y2={lineY}
-        stroke={palette.ink[9]}
-        strokeWidth={3}
-      />
-      {ticks.map((t) => {
-        const whole = t % unit === 0;
-        return (
-          <g key={t}>
-            <line
-              x1={x(t)}
-              x2={x(t)}
-              y1={lineY - (whole ? 14 : 8)}
-              y2={lineY + (whole ? 14 : 8)}
-              stroke={palette.ink[9]}
-              strokeWidth={whole ? 4 : 2}
-            />
-            {props.labels && t > 0 && (
-              <SvgFrac
-                n={t}
-                d={unit}
-                x={x(t)}
-                y={lineY + 16}
-                size={Math.min(17, tick * 0.62)}
-                fill={palette.ink[8]}
+      <g className={fading} data-testid="number-line">
+        <line
+          x1={x(0)}
+          x2={x(end)}
+          y1={lineY}
+          y2={lineY}
+          stroke={palette.ink[9]}
+          strokeWidth={3}
+        />
+        {ticks.map((t) => {
+          const whole = t % unit === 0;
+          return (
+            <g key={t}>
+              <line
+                x1={x(t)}
+                x2={x(t)}
+                y1={lineY - (whole ? 14 : 8)}
+                y2={lineY + (whole ? 14 : 8)}
+                stroke={palette.ink[9]}
+                strokeWidth={whole ? 4 : 2}
               />
-            )}
-            {whole && (
-              <text
-                x={x(t)}
-                y={VH - 8}
-                textAnchor="middle"
-                fontSize={26}
-                fontWeight={800}
-                fill={palette.ink[9]}
-              >
-                {t / unit}
-              </text>
-            )}
-          </g>
-        );
-      })}
+              {props.labels && t > 0 && (
+                <SvgFrac
+                  n={t}
+                  d={unit}
+                  x={x(t)}
+                  y={lineY + 16}
+                  size={Math.min(17, tick * 0.62)}
+                  fill={palette.ink[8]}
+                />
+              )}
+              {whole && (
+                <text
+                  x={x(t)}
+                  y={VH - 8}
+                  textAnchor="middle"
+                  fontSize={26}
+                  fontWeight={800}
+                  fill={palette.ink[9]}
+                >
+                  {t / unit}
+                </text>
+              )}
+            </g>
+          );
+        })}
+      </g>
 
       {arcs.map(({ from, to }, i) => (
         <path
@@ -357,22 +408,24 @@ export function Course(props: CourseProps) {
         </g>
       )}
 
-      <g
-        ref={hopperRef}
-        transform={landing}
-        data-testid="hopper"
-        data-at={hopper.at}
-      >
-        <g ref={squashRef}>
-          <g className={hopper.sunk ? styles.sunk : undefined}>
-            <foreignObject
-              x={-hopperSize / 2}
-              y={-hopperSize}
-              width={hopperSize}
-              height={hopperSize}
-            >
-              <props.Avatar expression={props.expression} size={hopperSize} />
-            </foreignObject>
+      <g ref={carriedRef} transform={atCentre}>
+        <g
+          ref={hopperRef}
+          transform={landing}
+          data-testid="hopper"
+          data-at={hopper.at}
+        >
+          <g ref={squashRef}>
+            <g className={hopper.sunk ? styles.sunk : undefined}>
+              <foreignObject
+                x={-hopperSize / 2}
+                y={-hopperSize}
+                width={hopperSize}
+                height={hopperSize}
+              >
+                <props.Avatar expression={props.expression} size={hopperSize} />
+              </foreignObject>
+            </g>
           </g>
         </g>
       </g>
