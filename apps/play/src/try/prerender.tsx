@@ -3,7 +3,7 @@
 import { UIProvider } from "@repo/ui/provider";
 import { StrictMode } from "react";
 import { renderToString } from "react-dom/server";
-import { splashArt } from "../ui/splash-art.ts";
+import { shareArt } from "../ui/splash-art.ts";
 import { catalogue, type TryGame } from "./catalogue.ts";
 import {
   headTags,
@@ -38,7 +38,7 @@ export function buildSite(options: {
 } {
   const { site, productSiteUrl, size } = options;
   const image = (slug: string | undefined): ShareImage | undefined => {
-    const path = slug && splashArt[slug];
+    const path = slug && shareArt[slug];
     return path ? { path, ...size(path) } : undefined;
   };
   const head = (page: TryPage, slug?: string) =>

@@ -7,10 +7,23 @@ const files = import.meta.glob<string>(
   { eager: true, query: "?url", import: "default" },
 );
 
-/** Each game's splash image URL, by slug. */
-export const splashArt: Readonly<Record<string, string>> = Object.fromEntries(
-  Object.entries(files).map(([path, url]) => [
-    path.split("/").at(-3) ?? "",
-    url,
-  ]),
+// Its picture for link previews: `games/<slug>/art/share.png`, the splash as a
+// PNG, since the sites that show previews don't show SVGs.
+const shareFiles = import.meta.glob<string>(
+  "../../../../games/*/art/share.png",
+  { eager: true, query: "?url", import: "default" },
 );
+
+const bySlug = (urls: Record<string, string>): Record<string, string> =>
+  Object.fromEntries(
+    Object.entries(urls).map(([path, url]) => [
+      path.split("/").at(-3) ?? "",
+      url,
+    ]),
+  );
+
+/** Each game's splash image URL, by slug. */
+export const splashArt: Readonly<Record<string, string>> = bySlug(files);
+
+/** Each game's link preview image URL, by slug. */
+export const shareArt: Readonly<Record<string, string>> = bySlug(shareFiles);

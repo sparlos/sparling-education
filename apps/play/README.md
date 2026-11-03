@@ -30,7 +30,7 @@ cd apps/play && npx wrangler deploy   # uploads out/, per wrangler.jsonc
 ```
 
 - A game on the student site appears here at the next deploy, from its manifest. A missing `description` stops the build.
-- The build writes each page as real HTML with its search and share tags (`src/try/head.ts`), plus `robots.txt` and `sitemap.xml`. Each game's splash image is its share image.
+- The build writes each page as real HTML with its search and share tags (`src/try/head.ts`), plus `robots.txt` and `sitemap.xml`. Each game's share image is `games/<slug>/art/share.png`, its splash as a PNG, because link previews don't show SVGs. Re-export it when the splash changes.
 - Settings are in `.env.try`. **At launch, set `VITE_TRY_INDEXABLE=true`**: until then every page tells search engines not to list it. Set `VITE_PRODUCT_SITE_URL` for the "Learn more" link, and change `VITE_TRY_SITE_URL` and the route in `wrangler.jsonc` when the product has its real name.
 
 ## Layout

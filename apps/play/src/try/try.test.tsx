@@ -15,7 +15,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { hosted, games as hostedGames } from "../games.ts";
 import { memoryStorage } from "../test/memory-storage.ts";
 import { GamePage } from "../ui/GamePage.tsx";
-import { splashArt } from "../ui/splash-art.ts";
+import { shareArt, splashArt } from "../ui/splash-art.ts";
 import {
   catalogue,
   catalogueOf,
@@ -36,7 +36,7 @@ const game: TryGame = {
   grades: [3, 4, 5],
 };
 const site = { url: "https://try.example", indexable: true };
-const image = { path: "/assets/splash.jpeg", width: 1376, height: 768 };
+const image = { path: "/assets/share.png", width: 1376, height: 768 };
 
 const manifest = {
   slug: "a-game",
@@ -64,6 +64,7 @@ describe("the catalogue", () => {
       // Long ones get cut off in search results.
       expect(g.description.length).toBeLessThanOrEqual(160);
       expect(splashArt[g.slug], g.slug).toBeTruthy();
+      expect(shareArt[g.slug], g.slug).toBeTruthy();
     }
   });
 
@@ -202,7 +203,7 @@ describe("what search engines and link previews read", () => {
       image,
     });
 
-  it("describes a game's page, with its splash as the share image", () => {
+  it("describes a game's page, with its share image", () => {
     const head = tags({ kind: "game", game });
     expect(head).toContain(
       "<title>Crystal Machine: a free math game for Grades 3 to 5",
@@ -212,7 +213,7 @@ describe("what search engines and link previews read", () => {
     );
     expect(head).toContain('property="og:title"');
     expect(head).toContain(`content="${game.description}"`);
-    expect(head).toContain('content="https://try.example/assets/splash.jpeg"');
+    expect(head).toContain('content="https://try.example/assets/share.png"');
     expect(head).toContain('property="og:image:width" content="1376"');
     expect(head).toContain('content="summary_large_image"');
     expect(head).toContain("application/ld+json");
