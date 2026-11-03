@@ -90,7 +90,8 @@
   cursor: pointer;
 }
 
-.chute > :not(svg) {
+/* Everything but the chute's own panel: its crystal, count and lock. */
+.chute > :not([data-slot="chute"]) {
   position: relative;
   z-index: 1;
 }

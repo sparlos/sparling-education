@@ -6,6 +6,7 @@ import {
   stringRows,
 } from "@repo/game-kit/spec";
 import { describe, expect, it } from "vitest";
+import { endingMs, momentMs } from "./game/GiantCrystal.tsx";
 import { manifest } from "./manifest.ts";
 import {
   missesBeforeGuided,
@@ -90,6 +91,26 @@ describe("the rules match SPEC.md", () => {
         new RegExp(`Recorded after \\*\\*${m.threshold}\\*\\* match`),
       );
     }
+  });
+});
+
+describe("the journey matches SPEC.md", () => {
+  const journey = spec.section("Journey");
+
+  it("stays inside the limit between jobs, at the time it names", () => {
+    expect(momentMs).toBeLessThanOrEqual(4000);
+    expect(journey).toContain(
+      `in about ${(momentMs / 1000).toFixed(1)} seconds`,
+    );
+  });
+
+  it("ends at the length it names", () => {
+    expect(journey).toContain(`for about ${endingMs / 1000} seconds`);
+  });
+
+  it("says the lines it names", () => {
+    expect(journey).toContain(`"${strings["journey.goal"]}"`);
+    expect(journey).toContain(`"${strings["play.done"]}"`);
   });
 });
 

@@ -5,7 +5,7 @@
 import type { AvatarExpression } from "@repo/game-contract";
 import { GameFrame, NumberPad } from "@repo/game-kit/frame";
 import { palette } from "@repo/tokens";
-import type { ComponentType, CSSProperties } from "react";
+import type { ComponentType, CSSProperties, ReactNode } from "react";
 import { crystalsIn, type JobState } from "../rules/job.ts";
 import { windowDigits, wrongWindows } from "../rules/machine.ts";
 import { numeral } from "../rules/teacher.ts";
@@ -41,6 +41,10 @@ export interface BoardProps {
   onHint(): void;
   /** The tutorial's skip button. */
   onSkip?: () => void;
+  /** What lies over the whole screen: the journey's crystal. */
+  overlay?: ReactNode;
+  /** The ending has the avatar, so the control panel's stands empty. */
+  operatorAway?: boolean;
 }
 
 export function Board(props: BoardProps) {
@@ -73,6 +77,8 @@ export function Board(props: BoardProps) {
           "--wrong-ink": palette.ember[8],
           // Closed columns' stripes: ink at about a sixth.
           "--stripe": `${palette.ink[9]}29`,
+          // What darkens behind the giant crystal: ink at about seven eighths.
+          "--scrim": `${palette.ink[9]}e0`,
         } as CSSProperties
       }
     >
@@ -214,6 +220,7 @@ export function Board(props: BoardProps) {
               Avatar={props.Avatar}
               expression={props.expression}
               pulled={props.running}
+              away={props.operatorAway ?? false}
             />
             <NumberPad
               disabled={busy}
@@ -226,7 +233,9 @@ export function Board(props: BoardProps) {
         main={{ label: t("ui.run"), onTap: props.onRun, disabled: busy }}
         hand={props.hand}
         tapping={props.tapping}
-      />
+      >
+        {props.overlay}
+      </GameFrame>
     </div>
   );
 }
@@ -236,6 +245,7 @@ function Operator(props: {
   Avatar: BoardProps["Avatar"];
   expression: AvatarExpression;
   pulled: boolean;
+  away: boolean;
 }) {
   const { Avatar } = props;
   return (
@@ -246,7 +256,7 @@ function Operator(props: {
     >
       <PanelArt slot="operator" />
       <span className={styles.portrait}>
-        <Avatar expression={props.expression} size={80} />
+        {!props.away && <Avatar expression={props.expression} size={80} />}
       </span>
       <span className={styles.lever} data-testid="lever">
         <ScreenArt slot="lever" size={28} />

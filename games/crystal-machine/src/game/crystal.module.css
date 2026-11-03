@@ -1,0 +1,157 @@
+/* The giant crystal, over the whole game frame. It only ever shows: taps pass
+   through it, and the controls are off while it's in the way. */
+
+.layer {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.scrim {
+  position: absolute;
+  border-radius: 20px;
+  background: var(--scrim);
+  opacity: 0;
+  transition: opacity var(--grow-ms);
+}
+
+.layer[data-ending] .scrim {
+  border-radius: 0;
+}
+
+.scrim[data-shown] {
+  opacity: 1;
+}
+
+.crystal,
+.shard {
+  position: absolute;
+  transform-origin: 0 0;
+}
+
+.crystal {
+  transition: transform var(--grow-ms) ease-in-out;
+}
+
+.art {
+  display: block;
+  width: 100%;
+  overflow: visible;
+}
+
+.gem {
+  position: relative;
+}
+
+.gem[data-pulsing] {
+  animation: pulse var(--land-ms) ease-out;
+}
+
+.layer[data-ending] .gem {
+  animation: breathe 1600ms ease-in-out infinite;
+}
+
+@keyframes pulse {
+  40% {
+    transform: scale(1.14);
+    filter: brightness(1.35);
+  }
+}
+
+@keyframes breathe {
+  50% {
+    transform: scale(1.06);
+    filter: brightness(1.25);
+  }
+}
+
+/* The shard starts small over the machine, then flies out to its place. */
+.shard {
+  transform-origin: 50% 50%;
+  transform: scale(0.5);
+  transition: transform var(--flight-ms) ease-in-out;
+}
+
+.shard[data-flying] {
+  transform: none;
+}
+
+.shardGlow {
+  filter: drop-shadow(0 0 12px var(--k-sparkle));
+  animation: rise var(--rise-ms) ease-out;
+}
+
+@keyframes rise {
+  from {
+    transform: scale(0.2);
+    opacity: 0;
+  }
+}
+
+.rays {
+  position: absolute;
+  left: -50%;
+  top: -55%;
+  width: 200%;
+  animation: turn 9s linear infinite;
+}
+
+@keyframes turn {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.sparkle {
+  position: absolute;
+  width: 9%;
+  animation: twinkle 1400ms infinite;
+}
+
+@keyframes twinkle {
+  0%,
+  100% {
+    transform: scale(0.2);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.cheer {
+  position: absolute;
+  right: 48px;
+  bottom: 48px;
+}
+
+.line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 20px;
+  margin: 0;
+  color: var(--k-ink-inverse);
+  font-size: 28px;
+  font-weight: 800;
+  text-align: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .crystal,
+  .shard,
+  .scrim {
+    transition: none;
+  }
+  .gem[data-pulsing],
+  .layer[data-ending] .gem,
+  .shardGlow,
+  .rays {
+    animation: none;
+  }
+  .sparkle {
+    animation: none;
+  }
+}

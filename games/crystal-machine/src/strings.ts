@@ -19,6 +19,7 @@ export const fixedStrings = {
   "tutorial.run": "Then press Run, and watch the crystals fall.",
   "tutorial.fuse": "Ten crystals fuse into one bigger crystal.",
   "tutorial.your-turn": "Now it's your turn!",
+  "journey.goal": "Let's build a giant crystal!",
   "ui.run": "Run",
   "job.make": "Make",
   "job.with": "with",
@@ -35,8 +36,7 @@ export const fixedStrings = {
   "run.made": "The machine made",
   "run.job-is": "The job is",
   "run.solved": "Job done!",
-  "job.next": "Here's the next job.",
-  "play.done": "You did every job. Great work!",
+  "play.done": "You made the giant crystal! Great work!",
   "hint.digits": "Now each tube shows the digit it should end up with.",
   "hint.trade":
     "A closed chute's crystal can come in as ten smaller crystals, down the next chute.",

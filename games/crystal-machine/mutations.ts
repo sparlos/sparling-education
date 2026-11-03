@@ -150,8 +150,8 @@ export const mutations = defineMutations([
   {
     name: "the next job doesn't wait for 'Job done!'",
     file: "src/game/CrystalMachine.tsx",
-    find: '      await speak(["run.solved"]);',
-    replace: '      void speak(["run.solved"]);',
+    find: '    await speak(["run.solved"]);',
+    replace: '    void speak(["run.solved"]);',
   },
   {
     name: "the tutorial's hand doesn't wait for its line",
@@ -164,6 +164,80 @@ export const mutations = defineMutations([
     file: "src/game/CrystalMachine.tsx",
     find: "      await speak(step.say.slice(0, -1));",
     replace: "      void speak(step.say.slice(0, -1));",
+  },
+  {
+    name: "the crystal moves before the goal is said",
+    file: "src/game/CrystalMachine.tsx",
+    find: 'await Promise.all([speak(["journey.goal"]), pause(minLineMs)]);',
+    replace: 'void speak(["journey.goal"]);\n      await pause(minLineMs);',
+  },
+  // The journey.
+  {
+    name: "a job adds no shard",
+    file: "src/game/CrystalMachine.tsx",
+    find: "        setShard(null);\n        setFilled(index);",
+    replace: "        setShard(null);",
+  },
+  {
+    name: "the shard never flies",
+    file: "src/game/CrystalMachine.tsx",
+    find: "        setShard({ index: shardAt, flying: true });",
+    replace: "",
+  },
+  {
+    name: "the crystal doesn't grow between jobs",
+    file: "src/game/CrystalMachine.tsx",
+    find: '      setHand(null);\n      setPose("big");\n      setDimmed(true);\n      await moved();',
+    replace: "      setHand(null);",
+  },
+  {
+    name: "the crystal stays grown after a job",
+    file: "src/game/CrystalMachine.tsx",
+    find: '    if (done.index < jobsPerPlay) {\n      setPose("seat");\n      setDimmed(false);',
+    replace: "    if (done.index < jobsPerPlay) {",
+  },
+  {
+    name: "the machine can be used during the moment",
+    file: "src/game/CrystalMachine.tsx",
+    find: 'const playing = mode === "play" && !state.solved;',
+    replace: 'const playing = mode === "play";',
+  },
+  {
+    name: "the moment is voiced",
+    file: "src/game/CrystalMachine.tsx",
+    find: "      setCaption([]);\n      setHand(null);\n      setPose",
+    replace:
+      '      void speak(["run.solved"]);\n      setHand(null);\n      setPose',
+  },
+  {
+    name: "reduced motion still flies the shard",
+    file: "src/game/CrystalMachine.tsx",
+    find: "      if (reducedMotion()) {\n        setFilled(index);",
+    replace: "      if (false) {\n        setFilled(index);",
+  },
+  {
+    name: "the crystal is shown in the tutorial",
+    file: "src/game/CrystalMachine.tsx",
+    find: 'mode === "tutorial" ? undefined : (',
+    replace: 'mode === "never" ? undefined : (',
+  },
+  {
+    name: "the ending is cut short",
+    file: "src/game/CrystalMachine.tsx",
+    find: 'await Promise.all([speak(["play.done"]), pause(endingMs)]);',
+    replace: 'await speak(["play.done"]);',
+  },
+  {
+    name: "no ending",
+    file: "src/game/CrystalMachine.tsx",
+    find: "      setEnding(true);\n",
+    replace: "",
+  },
+  {
+    name: "the moment goes past the limit",
+    file: "src/game/GiantCrystal.tsx",
+    find: "export const flightMs = 850;",
+    replace: "export const flightMs = 2850;",
   },
   // The screen.
   {

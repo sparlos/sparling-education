@@ -5,7 +5,8 @@ import { seeded } from "@repo/game-kit/random";
 import { heldVoice, mountGame } from "@repo/game-kit/testing";
 import { screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { tutorialJobs } from "./game/tutorial.ts";
+import { endingMs, growMs, momentMs } from "./game/GiantCrystal.tsx";
+import { minLineMs, tutorialJobs } from "./game/tutorial.ts";
 import game from "./index.tsx";
 import { jobLines } from "./rules/job.ts";
 import {
@@ -36,6 +37,10 @@ const key = (d: number | "del") =>
 const windows = () => screen.getAllByTestId("window").map((w) => w.textContent);
 const caption = () => screen.getByTestId("caption").textContent;
 const mood = () => screen.getByTestId("avatar").getAttribute("data-expression");
+
+/** Long enough for the opening: the goal line held on screen, then the crystal's move. */
+const openingMs = minLineMs + growMs + 100;
+const crystal = () => screen.getByTestId("giant-crystal");
 
 /** Sets every open chute that isn't locked to `plan`'s count, by taps. */
 async function setPlan(shell: Shell, job: Job, plan: readonly number[]) {
@@ -81,11 +86,11 @@ afterEach(() => {
 });
 
 describe("the opening", () => {
-  it("a returning student starts at job 1, with its job said", async () => {
+  it("a returning student hears the goal, then job 1", async () => {
     const shell = mountGame(game, { tier: "g3", random, firstPlay: false });
-    await shell.wait(100);
+    await shell.wait(openingMs);
     const first = jobsFor("g3")[0] as Job;
-    expect(shell.said[0]).toEqual(jobLines(first));
+    expect(shell.said).toEqual([["journey.goal"], jobLines(first)]);
     expect(caption()).toBe(
       `Make ${first.number} with ${first.count} crystals.`,
     );
@@ -140,6 +145,7 @@ describe("the tutorial", () => {
   it("acts out two jobs, records nothing, then starts job 1", async () => {
     const shell = mountGame(game, { tier: "g4", random });
     await shell.wait(60_000);
+    await shell.wait(openingMs);
     const said = shell.said.map((ids) => ids[0]);
     expect(said).toContain("tutorial.fuse");
     expect(said).toContain("tutorial.your-turn");
@@ -153,6 +159,8 @@ describe("the tutorial", () => {
     const shell = mountGame(game, { tier: "g3", random });
     await shell.wait(2000);
     await shell.tap(screen.getByText("Skip"));
+    await shell.wait(openingMs);
+    expect(shell.said.at(-2)).toEqual(["journey.goal"]);
     expect(shell.lastSaid()).toEqual(jobLines(jobsFor("g3")[0] as Job));
     await shell.wait(30_000);
     expect(shell.said.some((ids) => ids[0] === "tutorial.your-turn")).toBe(
@@ -164,7 +172,7 @@ describe("the tutorial", () => {
 describe.each(["g3", "g4", "g5"] as const)("a %s play", (tier) => {
   it("a miss and a solve on every job, then it finishes", async () => {
     const shell = mountGame(game, { tier, random, firstPlay: false });
-    await shell.wait(100);
+    await shell.wait(openingMs);
     const jobs = jobsFor(tier);
     for (const job of jobs) {
       await setPlan(shell, job, mistake(job));
@@ -197,9 +205,9 @@ describe.each(["g3", "g4", "g5"] as const)("a %s play", (tier) => {
     expect(shell.progress()).toEqual(
       [0, 1, 2, 3, 4, 5, 6].map((done) => ({ done, total: 6 })),
     );
-    expect(shell.lastSaid()).toEqual(["run.solved", "play.done"]);
+    expect(shell.lastSaid()).toEqual(["play.done"]);
     expect(mood()).toBe("cheering");
-    await shell.wait(3000);
+    await shell.wait(endingMs);
     expect(shell.finished()).toBe(1);
   });
 });
@@ -207,7 +215,7 @@ describe.each(["g3", "g4", "g5"] as const)("a %s play", (tier) => {
 describe("a run", () => {
   it("shows the number made in the windows, and says it against the job", async () => {
     const shell = mountGame(game, { tier: "g3", random, firstPlay: false });
-    await shell.wait(100);
+    await shell.wait(openingMs);
     const job = jobsFor("g3")[0] as Job;
     await setPlan(shell, job, withoutZerosPlan(job));
     await shell.tap(screen.getByTestId("main"));
@@ -237,7 +245,7 @@ describe("a run", () => {
 
   it("goes happy on a chain of two fuses, and encouraging after the miss", async () => {
     const shell = mountGame(game, { tier: "g3", random, firstPlay: false });
-    await shell.wait(100);
+    await shell.wait(openingMs);
     const jobs = jobsFor("g3");
     for (const job of jobs.slice(0, 3)) {
       await setPlan(shell, job, job.answer);
@@ -260,7 +268,7 @@ describe("a run", () => {
 
   it("is refused with too many crystals or none: no try, and a reminder", async () => {
     const shell = mountGame(game, { tier: "g3", random, firstPlay: false });
-    await shell.wait(100);
+    await shell.wait(openingMs);
     const first = jobsFor("g3")[0] as Job;
     await shell.tap(screen.getByTestId("main"));
     expect(shell.lastSaid()).toEqual(["run.empty"]);
@@ -286,7 +294,7 @@ describe("a run", () => {
 
   it("a closed chute can't be chosen", async () => {
     const shell = mountGame(game, { tier: "g3", random, firstPlay: false });
-    await shell.wait(100);
+    await shell.wait(openingMs);
     const jobs = jobsFor("g3");
     // Make the first three jobs to reach a closed one.
     for (const job of jobs.slice(0, 3)) {
@@ -323,7 +331,7 @@ describe("the help ladder", () => {
 
   it("offers the hint after 2 misses, then hint 2, then guides at 4", async () => {
     const shell = mountGame(game, { tier: "g3", random, firstPlay: false });
-    await shell.wait(100);
+    await shell.wait(openingMs);
     const job = await toClosedJob(shell);
     await setPlan(shell, job, slip(job, 1));
     await run(shell);
@@ -379,7 +387,9 @@ describe("voice and screen take turns", () => {
       voice,
       firstPlay: false,
     });
-    await shell.wait(100);
+    await shell.wait(openingMs);
+    finishLine();
+    await shell.wait(openingMs);
     finishLine();
     const job = jobsFor("g3")[0] as Job;
     const short = job.answer.map((n, p) => (p === 2 ? n - 1 : n));
@@ -417,7 +427,9 @@ describe("voice and screen take turns", () => {
       voice,
       firstPlay: false,
     });
-    await shell.wait(100);
+    await shell.wait(openingMs);
+    finishLine();
+    await shell.wait(openingMs);
     finishLine();
     const [first, second] = jobsFor("g3") as [Job, Job];
     await setPlan(shell, first, first.answer);
@@ -427,7 +439,190 @@ describe("voice and screen take turns", () => {
     await shell.wait(5000);
     expect(screen.getByTestId("job")).toHaveTextContent(String(first.number));
     finishLine();
-    await shell.wait(2000);
+    await shell.wait(momentMs + 1000);
     expect(screen.getByTestId("job")).toHaveTextContent(String(second.number));
+  });
+});
+
+describe("the journey", () => {
+  /** Plays a job through, stopping as the machine stops. */
+  async function solve(shell: Shell, job: Job) {
+    await setPlan(shell, job, job.answer);
+    await shell.tap(screen.getByTestId("main"));
+    while (
+      screen.getByTestId("lever").parentElement?.hasAttribute("data-pulled")
+    )
+      await shell.wait(50);
+  }
+
+  it("opens on the empty crystal, and holds it there until the goal has been said", async () => {
+    const { voice, finishLine } = heldVoice();
+    const shell = mountGame(game, {
+      tier: "g3",
+      random,
+      voice,
+      firstPlay: false,
+    });
+    await shell.wait(minLineMs * 3);
+    expect(shell.said).toEqual([["journey.goal"]]);
+    expect(crystal()).toHaveAttribute("data-pose", "big");
+    expect(crystal()).toHaveAttribute("data-dimmed", "true");
+    expect(crystal()).toHaveAttribute("data-filled", "0");
+    expect(screen.getByTestId("main")).toBeDisabled();
+    expect(screen.queryByTestId("skip")).not.toBeInTheDocument();
+    finishLine();
+    await shell.wait(growMs + 50);
+    expect(crystal()).toHaveAttribute("data-pose", "seat");
+    expect(crystal()).not.toHaveAttribute("data-dimmed");
+    expect(screen.getByTestId("main")).toBeEnabled();
+  });
+
+  it("isn't shown in the tutorial, and opens after it", async () => {
+    const shell = mountGame(game, { tier: "g3", random });
+    await shell.wait(2000);
+    expect(screen.queryByTestId("giant-crystal")).not.toBeInTheDocument();
+    await shell.wait(60_000);
+    await shell.wait(openingMs);
+    const said = shell.said.map((ids) => ids[0]);
+    expect(said.indexOf("journey.goal")).toBe(
+      said.indexOf("tutorial.your-turn") + 1,
+    );
+    expect(crystal()).toHaveAttribute("data-pose", "seat");
+  });
+
+  it("puts in a shard between jobs, with no voice, nothing to tap and no skip", async () => {
+    const shell = mountGame(game, { tier: "g3", random, firstPlay: false });
+    await shell.wait(openingMs);
+    const [first, second] = jobsFor("g3") as [Job, Job];
+    await solve(shell, first);
+    await shell.wait(0);
+    expect(shell.lastSaid()).toEqual(["run.solved"]);
+    const saidBefore = shell.said.length;
+    const seen = { shard: false, flying: false, big: false };
+    let ms = 0;
+    while (screen.getByTestId("job").dataset.number !== String(second.number)) {
+      expect(screen.getByTestId("main")).toBeDisabled();
+      expect(screen.getByTestId("hint")).toBeDisabled();
+      expect(screen.queryByTestId("skip")).not.toBeInTheDocument();
+      expect(shell.said).toHaveLength(saidBefore);
+      await shell.wait(50);
+      ms += 50;
+      const shard = screen.queryByTestId("shard");
+      if (shard) seen.shard = true;
+      if (shard?.dataset.flying) seen.flying = true;
+      if (crystal().dataset.pose === "big") seen.big = true;
+      if (ms > 6000) throw new Error("The next job never came");
+    }
+    expect(seen).toEqual({ shard: true, flying: true, big: true });
+    expect(crystal()).toHaveAttribute("data-filled", "1");
+    expect(crystal()).toHaveAttribute("data-pose", "seat");
+    expect(crystal()).not.toHaveAttribute("data-dimmed");
+    // Only the next job's own line.
+    expect(shell.said.slice(saidBefore)).toEqual([jobLines(second)]);
+    expect(screen.queryByTestId("shard")).not.toBeInTheDocument();
+  });
+
+  it("the shard waits for 'Job done!' to be said", async () => {
+    const { voice, finishLine } = heldVoice();
+    const shell = mountGame(game, {
+      tier: "g3",
+      random,
+      voice,
+      firstPlay: false,
+    });
+    await shell.wait(openingMs);
+    finishLine();
+    await shell.wait(openingMs);
+    finishLine();
+    await solve(shell, jobsFor("g3")[0] as Job);
+    await shell.wait(momentMs * 2);
+    expect(shell.lastSaid()).toEqual(["run.solved"]);
+    expect(crystal()).toHaveAttribute("data-pose", "seat");
+    expect(crystal()).toHaveAttribute("data-filled", "0");
+  });
+
+  it("each job adds one shard, and the last ends on the whole crystal", async () => {
+    const shell = mountGame(game, { tier: "g3", random, firstPlay: false });
+    await shell.wait(openingMs);
+    const jobs = jobsFor("g3");
+    for (const [i, job] of jobs.entries()) {
+      await setPlan(shell, job, job.answer);
+      await run(shell);
+      await shell.wait(3000);
+      expect(crystal()).toHaveAttribute("data-filled", String(i + 1));
+    }
+    expect(crystal()).toHaveAttribute("data-ending", "true");
+    expect(crystal()).toHaveAttribute("data-pose", "big");
+    expect(screen.getByTestId("crystal-rays")).toBeInTheDocument();
+    expect(screen.getByTestId("ending-line")).toHaveTextContent(
+      "You made the giant crystal! Great work!",
+    );
+    // One avatar, cheering, in front of the darkened screen.
+    expect(mood()).toBe("cheering");
+    expect(shell.finished()).toBe(0);
+    expect(screen.queryByTestId("skip")).not.toBeInTheDocument();
+    await shell.wait(endingMs);
+    expect(shell.finished()).toBe(1);
+  });
+
+  it("ends the same for a student who needed every kind of help", async () => {
+    const shell = mountGame(game, { tier: "g3", random, firstPlay: false });
+    await shell.wait(openingMs);
+    for (const job of jobsFor("g3")) {
+      const top = openChutes(job)[0] as number;
+      for (const short of [1, 2, 3, 4]) {
+        await setPlan(
+          shell,
+          job,
+          job.answer.map((n, p) => (p === top ? Math.max(0, n - short) : n)),
+        );
+        await run(shell);
+      }
+      await setPlan(shell, job, job.answer);
+      await run(shell);
+      await shell.wait(3000);
+    }
+    expect(shell.attempts().some((a) => a.assisted === "guided")).toBe(true);
+    expect(crystal()).toHaveAttribute("data-filled", "6");
+    expect(crystal()).toHaveAttribute("data-ending", "true");
+    expect(screen.getByTestId("ending-line")).toHaveTextContent(
+      "You made the giant crystal! Great work!",
+    );
+  });
+
+  describe("with reduced motion", () => {
+    const real = window.matchMedia;
+    beforeEach(() => {
+      window.matchMedia = ((query: string) => ({
+        matches: query.includes("reduce"),
+        media: query,
+      })) as unknown as typeof window.matchMedia;
+    });
+    afterEach(() => {
+      window.matchMedia = real;
+    });
+
+    it("the shard appears in its place without flying", async () => {
+      const shell = mountGame(game, { tier: "g3", random, firstPlay: false });
+      await shell.wait(openingMs);
+      const [first, second] = jobsFor("g3") as [Job, Job];
+      await solve(shell, first);
+      let flew = false;
+      let grown = false;
+      for (let ms = 0; ms < 3000; ms += 50) {
+        await shell.wait(50);
+        if (screen.queryByTestId("shard")) flew = true;
+        if (
+          crystal().dataset.pose === "big" &&
+          crystal().dataset.filled === "1"
+        )
+          grown = true;
+      }
+      expect(flew).toBe(false);
+      expect(grown).toBe(true);
+      expect(screen.getByTestId("job")).toHaveTextContent(
+        String(second.number),
+      );
+    });
   });
 });

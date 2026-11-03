@@ -138,7 +138,87 @@ const box = (
   </>
 );
 
+/** The giant crystal's frame: its outline and every shard are drawn in it. */
+export const shardFrame = { width: 100, height: 90 } as const;
+
+/** The giant crystal's six pieces, from the tip up, with the top last. */
+const shards = [
+  { points: "34,34 66,34 50,86", fill: palette.violet[5] },
+  { points: "4,34 34,34 50,86", fill: palette.violet[6] },
+  { points: "66,34 96,34 50,86", fill: palette.violet[7] },
+  { points: "4,34 28,6 34,34", fill: palette.violet[3] },
+  { points: "72,6 96,34 66,34", fill: palette.violet[4] },
+  { points: "28,6 72,6 66,34 34,34", fill: palette.violet[2] },
+] as const;
+
+export const shardCount = shards.length;
+
+const inCrystalFrame = (draw: () => ReturnType<Slot["draw"]>): Slot => ({
+  ...shardFrame,
+  anchor: { x: 0, y: 0 },
+  draw,
+});
+
+const shard = (i: 0 | 1 | 2 | 3 | 4 | 5): Slot =>
+  inCrystalFrame(() => (
+    <polygon
+      points={shards[i].points}
+      fill={shards[i].fill}
+      stroke={ink}
+      strokeWidth={1.5}
+      strokeLinejoin="round"
+    />
+  ));
+
 export const art = {
+  /** The giant crystal's empty outline: six dashed pieces. */
+  "giant-crystal": inCrystalFrame(() => (
+    <>
+      {shards.map(({ points }) => (
+        <polygon
+          key={points}
+          points={points}
+          fill={palette.sand[0]}
+          stroke={palette.violet[7]}
+          strokeWidth={1.5}
+          strokeDasharray="4 3"
+          strokeLinejoin="round"
+        />
+      ))}
+    </>
+  )),
+  /** The crystal's pieces, each in the outline's frame, so it lands in place. */
+  "shard-0": shard(0),
+  "shard-1": shard(1),
+  "shard-2": shard(2),
+  "shard-3": shard(3),
+  "shard-4": shard(4),
+  "shard-5": shard(5),
+  /** One ray behind the finished crystal, from the centre up; turned for the rest. */
+  "crystal-rays": {
+    width: 200,
+    height: 200,
+    anchor: { x: 100, y: 100 },
+    draw: () => (
+      <polygon
+        points="93,100 107,100 100,0"
+        fill={palette.sunshine[3]}
+        opacity={0.45}
+      />
+    ),
+  },
+  /** A gold sparkle around the finished crystal, anchored at its centre. */
+  "crystal-sparkle": {
+    width: 20,
+    height: 20,
+    anchor: { x: 10, y: 10 },
+    draw: () => (
+      <path
+        d="M10 0 L12.5 7.5 L20 10 L12.5 12.5 L10 20 L7.5 12.5 L0 10 L7.5 7.5 Z"
+        fill={palette.sunshine[3]}
+      />
+    ),
+  },
   /** The machine's body behind the chutes and tubes: brass. Stretched to its box. */
   machine: panel(() => box(palette.sand[2], brassDark)),
   /** An open chute's face. Stretched; its crystal and count are drawn over it. */
@@ -316,6 +396,8 @@ export const art = {
 export type ArtSlot = keyof typeof art;
 
 export const crystalSlot = (p: Place) => `crystal-${p}` as const;
+
+export const shardSlot = (i: number) => `shard-${i}` as "shard-0";
 
 export function ScreenArt({ slot, size }: { slot: ArtSlot; size: number }) {
   return <SlotImage id={slot} slot={art[slot]} size={size} />;

@@ -15,6 +15,7 @@ The founder played two prototypes in the lab on 2026-10-31 and picked **Ten Mach
 - **Puzzling is fine; confusing isn't.** A hard job is welcome, as long as it's obvious what to do.
 - **What it still needs:** an art direction beyond columns moving into each other. Settled here: a crystal workshop (see Art). The polish pass does the rest.
 - **Rejected: Bundle Crate** (`lab/bundle-crate`, archived). The student dragged chains of ten blocks to merge them, held a block to smash it, and filled a crate to an order like "606 in 12 blocks". "It was just confusing on what I was actually supposed to do." Merging was interesting; breaking blocks apart was weird. Crystal Machine was "way easier to grasp more quickly".
+- **The journey (2026-11-02):** the founder played three ways of building a giant crystal over a play, and picked **Gem: grows between jobs** (`lab/gem-pull-back`): "it gives a clear separation between rounds." Rejected: **Gem: on a stand** (`lab/gem-case`, archived), a large crystal beside the machine: "takes up too much UI space." Not picked: **Gem: small, up top** (`lab/gem-strip`, archived), the same small crystal with no growing moment.
 - **Never reuse:** Plank Bridge (cutting planks to fill bridge gaps), rejected as "not fun, bad concept".
 
 ## Concept
@@ -36,6 +37,18 @@ The screen is a crystal machine, run by the student's avatar. Across it, from le
 **Why getting better at it is getting better at the concept:** a student who knows each digit's place sets 607 as 6 hundreds, 0 tens and 7 ones. A student who can trade a place down sees that 160 with the hundreds closed is 16 tens. The fusing shows every run that ten of a unit is one of the next.
 
 **What visibly fails:** a wrong idea makes a wrong number in the windows, beside the job's number, with the wrong places in red. See Misconceptions.
+
+## Journey
+
+Kind: building something. One play builds one giant crystal, a shard per job.
+
+- **From the start:** the play opens on the giant crystal's empty outline, six dashed pieces, large over the darkened machine. The voice says the goal ("Let's build a giant crystal!"). The outline then shrinks to its place at the right end of the top row, beside the Hint button, about 66 px wide, and stays there through every job. On a first play this comes after the tutorial's "Now it's your turn!". The tutorial doesn't show the crystal.
+- **After each task:** "Job done!" plays as the job ends. Then, in about 2.6 seconds, with no voice and nothing to tap: the machine darkens and the crystal grows over it (0.5 s), the tubes empty and a glowing shard rises from the machine and flies into its place in the crystal (about 1.1 s), the crystal pulses as it lands (0.5 s), and it shrinks back as the machine lights up again (0.5 s). The next job arrives by itself, with its own line. The hint button, the pad and Run are off throughout. Shards go in from the tip up, and the top piece is last.
+- **The end:** after job 6's shard lands, the crystal stays large and the whole screen darkens around it for about 5 seconds: it glows, with rays and sparkles behind it. The avatar cheers beside it, and the voice says "You made the giant crystal! Great work!" The shell then takes over.
+
+The journey is the same for every student, however much help they had, and starts fresh each play. Nothing from it is kept after the play. With reduced motion, the crystal and shard appear in their places without travelling, and the rays and sparkles hold still. Every part shows on screen, so no student needs to hear it.
+
+**Sound:** the shard rising and landing use `crystal-merge`, lower as it rises, and a little higher with each shard as it lands. The ending starts on it too, lower still. No new sound files.
 
 ## Tiers
 
@@ -158,7 +171,7 @@ A scripted, in-code demonstration: the avatar and a ghost hand act out two short
 2. "Tap a chute, then tap how many crystals it drops." The hand taps the tens chute and 3 on the pad, then the ones chute and 4. The counter reads 7 / 7.
 3. "Then press Run, and watch the crystals fall." The hand presses Run. Three rods and four cubes drop, and the windows read 3 4.
 4. The job: "Make 20 with 20 crystals. The tens chute is closed." The hand taps the ones chute, then 2 and 0, and presses Run. "Ten crystals fuse into one bigger crystal." The cubes drop. At ten they flash and fuse into a rod, which flies into the tens tube, and again at twenty. The windows read 2 0.
-5. "Now it's your turn!" Job 1 begins.
+5. "Now it's your turn!" The journey opens (see Journey), then job 1 begins.
 
 ## Strings
 
@@ -173,6 +186,7 @@ Every string a student sees or hears. Each one also becomes a voice line. Senten
 | `tutorial.run` | Then press Run, and watch the crystals fall. |
 | `tutorial.fuse` | Ten crystals fuse into one bigger crystal. |
 | `tutorial.your-turn` | Now it's your turn! |
+| `journey.goal` | Let's build a giant crystal! |
 | `ui.run` | Run |
 | `ui.hint` | Hint |
 | `ui.skip` | Skip |
@@ -192,8 +206,7 @@ Every string a student sees or hears. Each one also becomes a voice line. Senten
 | `run.made` | The machine made |
 | `run.job-is` | The job is |
 | `run.solved` | Job done! |
-| `job.next` | Here's the next job. |
-| `play.done` | You did every job. Great work! |
+| `play.done` | You made the giant crystal! Great work! |
 | `hint.ready` | Want a hint? Tap the hint button. |
 | `hint.ready-again` | Want another hint? Tap the hint button again. |
 | `hint.digits` | Now each tube shows the digit it should end up with. |
@@ -240,6 +253,10 @@ A crystal workshop: glowing, faceted crystal in the base ten shapes, on a machin
 | `counter` | The crystal counter, with its crystal icon |
 | `hint-digit` | Hint 1's digit tag above a window |
 | `trade` | Hint 2's picture: one crystal breaking into ten of the next place, with an arrow |
+| `giant-crystal` | The giant crystal's empty outline, six dashed pieces |
+| `shard-0` … `shard-5` | Its six pieces, in violet tones, each drawn in the outline's frame so it lands in place |
+| `crystal-rays` | The rays behind the finished crystal at the end |
+| `crystal-sparkle` | The gold sparkles around it (shapes only) |
 
 ## Teacher card
 

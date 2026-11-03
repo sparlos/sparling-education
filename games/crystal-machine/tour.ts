@@ -1,9 +1,10 @@
 // Crystal Machine's browser tour: `pnpm tour crystal-machine`. Every tier at
 // Chromebook sizes: new to the game at the widest size, where it watches
 // the whole tutorial at Grade 3 and skips it at the others, and returning
-// (no tutorial) at the rest. On every job it plays a miss, then the
-// answer; on job 4 it also takes both hints. Checks the screen fits, the
-// job and machine show, and every target is 64 px, at every step. See
+// (no tutorial, reduced motion) at the rest. On every job it plays a miss,
+// then the answer; on job 4 it also takes both hints. It follows the giant
+// crystal from the opening to the ending. Checks the screen fits, the job
+// and machine show, and every target is 64 px, at every step. See
 // packages/game-kit/src/tour.ts.
 import { defineTour } from "@repo/game-kit/tour";
 import type { Page } from "playwright-core";
@@ -83,7 +84,8 @@ async function run(page: Page) {
   await page.waitForFunction(
     () => !document.querySelector("[data-pulled]"),
     null,
-    { timeout: 10_000 },
+    // Six browsers at once slow a big run down.
+    { timeout: 30_000 },
   );
 }
 
@@ -97,7 +99,8 @@ export default defineTour({
     '[data-testid="main"]',
   ],
   firstPlay: ({ first }) => first,
-  async play({ page, grade, firstPlay, checkFit, screenshot, log }) {
+  reducedMotion: ({ first }) => !first,
+  async play({ page, grade, first, firstPlay, checkFit, screenshot, log }) {
     if (firstPlay) {
       await page.waitForSelector('[data-testid="board"]');
       await checkFit("tutorial");
@@ -105,12 +108,18 @@ export default defineTour({
         // Mid-tutorial, then the fuse: watch it to the end.
         await page.waitForTimeout(9000);
         await screenshot("tutorial");
-        // The whole tutorial is two jobs' worth of voice and runs.
-        await waitIdle(page, 180_000);
       } else {
         await tap(page, "button:has-text('Skip')");
       }
     }
+    // The whole tutorial is two jobs' worth of voice and runs.
+    await page.waitForSelector(
+      '[data-testid="giant-crystal"][data-pose="big"]',
+      { timeout: 180_000 },
+    );
+    await page.waitForTimeout(300);
+    await checkFit("opening");
+    if (first) await screenshot("opening");
     for (let i = 1; i <= 6; i++) {
       await waitIdle(page);
       const o = await readJob(page);
@@ -141,10 +150,28 @@ export default defineTour({
       await waitIdle(page);
       await setPlan(page, o, right);
       if (i === 6) await screenshot("planned");
-      await run(page);
+      await tap(page, '[data-testid="main"]');
+      if (first && i === 3) {
+        await page.waitForSelector('[data-testid="shard"][data-flying]', {
+          timeout: 20_000,
+        });
+        await page.waitForTimeout(500);
+        await checkFit("a shard flying");
+        await screenshot("shard");
+      }
+      await page.waitForSelector(
+        `[data-testid="giant-crystal"][data-filled="${i}"]`,
+        { timeout: 20_000 },
+      );
       log(
         `job ${i}: ${o.number} with ${o.count}${o.closed.length ? `, closed ${o.closed.join(" ")}` : ""}`,
       );
     }
+    await page.waitForSelector('[data-testid="giant-crystal"][data-ending]', {
+      timeout: 10_000,
+    });
+    await page.waitForTimeout(2000);
+    await checkFit("ending");
+    await screenshot("ending");
   },
 });
