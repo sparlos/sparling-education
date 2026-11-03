@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <!-- Thousands crate: a big shipping container cube (200x200). Purple = thousands colour. Bottom y=190; it alone fills a wagon. -->
+  <g stroke="#2b2350" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M40 30 h150 l-34 34 h-150 z" fill="#c9b8ff"/>
+    <path d="M156 64 l34-34 v126 l-34 34 z" fill="#6a52c8"/>
+    <rect x="6" y="64" width="150" height="126" rx="6" fill="#8f7bdc"/>
+    <path d="M21 70 v114" stroke="#b6a8f0" stroke-width="3"/><path d="M36 70 v114" stroke="#b6a8f0" stroke-width="3"/><path d="M51 70 v114" stroke="#b6a8f0" stroke-width="3"/><path d="M66 70 v114" stroke="#b6a8f0" stroke-width="3"/><path d="M81 70 v114" stroke="#b6a8f0" stroke-width="3"/><path d="M96 70 v114" stroke="#b6a8f0" stroke-width="3"/><path d="M111 70 v114" stroke="#b6a8f0" stroke-width="3"/><path d="M126 70 v114" stroke="#b6a8f0" stroke-width="3"/><path d="M141 70 v114" stroke="#b6a8f0" stroke-width="3"/>
+    <rect x="6" y="64" width="150" height="126" rx="6" fill="none"/>
+    <path d="M10 70 h142" stroke="#d9cfff" stroke-width="3"/>
+    <rect x="62" y="104" width="38" height="44" rx="5" fill="#fdfbff"/>
+    <path d="M70 116 h22 M70 126 h22 M70 136 h14" stroke-width="2.5"/>
+    <circle cx="20" cy="76" r="3" fill="#d9cfff" stroke-width="1.5"/><circle cx="142" cy="76" r="3" fill="#d9cfff" stroke-width="1.5"/>
+  </g>
+</svg>

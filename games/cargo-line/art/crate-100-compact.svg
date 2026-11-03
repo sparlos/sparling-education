@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Compact hundreds crate for replay cells: 64x64, a flat slab on a pallet. -->
+  <g stroke="#2b2350" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M4 56 h56 v5 h-56 z" fill="#a8774a" stroke-width="2"/>
+    <path d="M14 22 h46 l-8 10 h-48 z" fill="#f6d27f"/>
+    <path d="M52 32 l8-10 v22 l-8 12 z" fill="#d49a36"/>
+    <rect x="4" y="32" width="48" height="24" rx="2" fill="#f3c766"/>
+    <path d="M8.8 32 v24" stroke-width="1.1" opacity=".45"/><path d="M13.6 32 v24" stroke-width="1.1" opacity=".45"/><path d="M18.4 32 v24" stroke-width="1.1" opacity=".45"/><path d="M23.2 32 v24" stroke-width="1.1" opacity=".45"/><path d="M28.0 32 v24" stroke-width="1.1" opacity=".45"/><path d="M32.8 32 v24" stroke-width="1.1" opacity=".45"/><path d="M37.6 32 v24" stroke-width="1.1" opacity=".45"/><path d="M42.4 32 v24" stroke-width="1.1" opacity=".45"/><path d="M47.2 32 v24" stroke-width="1.1" opacity=".45"/>
+    <path d="M4 36.8 h48" stroke-width="1.1" opacity=".45"/><path d="M4 41.6 h48" stroke-width="1.1" opacity=".45"/><path d="M4 46.4 h48" stroke-width="1.1" opacity=".45"/><path d="M4 51.2 h48" stroke-width="1.1" opacity=".45"/>
+    <rect x="23" y="30" width="8" height="28" rx="2" fill="#2fb67a" stroke-width="2"/>
+  </g>
+</svg>

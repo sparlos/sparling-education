@@ -16,6 +16,7 @@ import {
   machineSlot,
   PanelArt,
   ScreenArt,
+  tradeOf,
 } from "./art.tsx";
 import { captionText } from "./caption.ts";
 import { GemLayer, type Shown } from "./GemLayer.tsx";
@@ -190,11 +191,15 @@ export function Board(props: BoardProps) {
                         closed && !props.shown.tubes[p] ? "tube-sealed" : "tube"
                       }
                     />
-                    {closed && !isExtra && state.hint >= 2 && (
-                      <span className={styles.trade} data-testid="trade">
-                        <ScreenArt slot="trade" size={72} />
-                      </span>
-                    )}
+                    {/* Clear of a run, so the crystals landing here are seen. */}
+                    {closed &&
+                      !isExtra &&
+                      state.hint >= 2 &&
+                      !props.running && (
+                        <span className={styles.trade} data-testid="trade">
+                          <ScreenArt slot={tradeOf(p)} size={86} />
+                        </span>
+                      )}
                   </div>
                   <span
                     className={styles.hintDigit}
@@ -276,7 +281,7 @@ function Operator(props: {
     >
       <PanelArt slot="operator" />
       <span className={styles.portrait}>
-        {!props.away && <Avatar expression={props.expression} size={80} />}
+        {!props.away && <Avatar expression={props.expression} size={60} />}
       </span>
       <span className={styles.lever} data-testid="lever">
         <ScreenArt slot={props.pulled ? "lever-down" : "lever"} size={64} />

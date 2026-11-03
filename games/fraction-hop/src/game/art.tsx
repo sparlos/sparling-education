@@ -7,11 +7,15 @@ import backdrop from "../../art/backdrop.jpg";
 import bank from "../../art/bank.svg";
 import chestClosed from "../../art/chest-closed.svg";
 import chestOpen from "../../art/chest-open.svg";
+import coinFile from "../../art/coin.svg";
+import coinEdge from "../../art/coin-edge.svg";
+import endingRays from "../../art/ending-rays.svg";
 import goalFlag from "../../art/goal-flag.svg";
 import islandLarge from "../../art/island-large.svg";
 import islandMedium from "../../art/island-medium.svg";
 import islandMedium2 from "../../art/island-medium-2.svg";
 import islandSmall from "../../art/island-small.svg";
+import niceFix from "../../art/nice-fix-sparkle.svg";
 import ocean from "../../art/ocean.jpg";
 import palm from "../../art/palm.svg";
 import stoneFile from "../../art/stone.svg";
@@ -21,7 +25,6 @@ import stopLocked from "../../art/stop-locked.svg";
 import stopOpen from "../../art/stop-open.svg";
 import waterTile from "../../art/water-tile.svg";
 import xMark from "../../art/x-mark.svg";
-
 
 /** Course art, drawn inside the course's SVG. */
 export const courseArt = {
@@ -227,35 +230,24 @@ export const mapArt = {
   chest: chestSlot(chestClosed),
   /** The open chest, full of gold. Same frame as `chest`. */
   "chest-open": chestSlot(chestOpen),
-  /** One ray behind the open chest, anchored where the rays meet. */
-  "ending-ray": {
-    width: 200,
-    height: 200,
-    anchor: { x: 100, y: 100 },
-    draw: () => (
-      <polygon
-        points="93,100 107,100 100,0"
-        fill={palette.sunshine[3]}
-        opacity={0.45}
-      />
-    ),
-  },
+  /** The sunburst behind the open chest, anchored at its centre. */
+  "ending-rays": fileSlot(endingRays, {
+    width: 1000,
+    height: 1000,
+    anchor: { x: 500, y: 500 },
+  }),
   /** A coin flying out of the open chest. */
-  "ending-coin": {
-    width: 24,
-    height: 24,
-    anchor: { x: 12, y: 12 },
-    draw: () => (
-      <circle
-        cx={12}
-        cy={12}
-        r={10}
-        fill={palette.sunshine[4]}
-        stroke={palette.sunshine[7]}
-        strokeWidth={2}
-      />
-    ),
-  },
+  "ending-coin": fileSlot(coinFile, {
+    width: 64,
+    height: 64,
+    anchor: { x: 32, y: 32 },
+  }),
+  /** The same coin edge-on, for the middle of its spin. */
+  "ending-coin-edge": fileSlot(coinEdge, {
+    width: 16,
+    height: 64,
+    anchor: { x: 8, y: 32 },
+  }),
 } satisfies Record<string, Slot>;
 
 /** The sea under the map, moving with its camera. */
@@ -297,21 +289,12 @@ export function Art({
 
 /** Screen art, drawn as small standalone SVGs. */
 export const screenArt = {
-  /** The "Nice fix!" burst (polish). */
-  sparkle: {
-    width: 48,
-    height: 48,
-    anchor: { x: 24, y: 24 },
-    draw: () => (
-      <path
-        d="M24 2 l5 17 l17 5 l-17 5 l-5 17 l-5 -17 l-17 -5 l17 -5 z"
-        fill={palette.sunshine[5]}
-        stroke={palette.sunshine[8]}
-        strokeWidth="3"
-        strokeLinejoin="round"
-      />
-    ),
-  },
+  /** The "Nice fix!" burst (polish), anchored at its centre. */
+  sparkle: fileSlot(niceFix, {
+    width: 220,
+    height: 220,
+    anchor: { x: 110, y: 110 },
+  }),
 } satisfies Record<string, Slot>;
 
 export type ScreenSlot = keyof typeof screenArt;

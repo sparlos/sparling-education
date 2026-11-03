@@ -1,10 +1,11 @@
 // Art slots (SPEC.md's Art section): a crystal workshop, faceted gems, a shape
-// and colour per place, on a machine of glass tubes. The machine and gems are
-// drawn from the files in ../../art. Slots with no file yet draw placeholder
-// SVG from the style kit's tokens, each in a fixed frame with an anchor.
+// and colour per place, on a machine of glass tubes. Every slot is drawn from
+// a file in ../../art, in a fixed frame with an anchor.
 import { fileSlot, type Slot, SlotImage } from "@repo/game-kit/art";
 import { palette } from "@repo/tokens";
+import controlPanel from "../../art/control-panel.svg";
 import counterFile from "../../art/counter.svg";
+import counterIcon from "../../art/counter-icon.svg";
 import counterRight from "../../art/counter-right.svg";
 import counterWrong from "../../art/counter-wrong.svg";
 import crystal1 from "../../art/crystal-1.svg";
@@ -12,7 +13,9 @@ import crystal10 from "../../art/crystal-10.svg";
 import crystal100 from "../../art/crystal-100.svg";
 import crystal1000 from "../../art/crystal-1000.svg";
 import crystal10000 from "../../art/crystal-10000.svg";
+import crystal100000 from "../../art/crystal-100000.svg";
 import display from "../../art/display.svg";
+import fuseFlash from "../../art/fuse-flash.svg";
 import gemGlow from "../../art/gem-complete-glow.svg";
 import gemEmpty from "../../art/gem-empty.svg";
 import facetTopLeft from "../../art/gem-facet-1-top-left.svg";
@@ -21,6 +24,11 @@ import facetTopRight from "../../art/gem-facet-3-top-right.svg";
 import facetBottomLeft from "../../art/gem-facet-4-bottom-left.svg";
 import facetBottomMiddle from "../../art/gem-facet-5-bottom-middle.svg";
 import facetBottomRight from "../../art/gem-facet-6-bottom-right.svg";
+import hintTag from "../../art/hint-tag.svg";
+import trade10 from "../../art/hint-trade-10-to-1.svg";
+import trade100 from "../../art/hint-trade-100-to-10.svg";
+import trade1000 from "../../art/hint-trade-1000-to-100.svg";
+import trade10000 from "../../art/hint-trade-10000-to-1000.svg";
 import leverDown from "../../art/lever-down.svg";
 import leverUp from "../../art/lever-up.svg";
 import lockedSlot from "../../art/locked-slot.svg";
@@ -32,9 +40,6 @@ import tubeFile from "../../art/tube.svg";
 import tubeDisabled from "../../art/tube-disabled.svg";
 import type { Place } from "../strings.ts";
 
-const ink = palette.ink[9];
-const brass = palette.sand[6];
-
 /** Each place's crystal colour: light, mid and dark, for its facets. */
 export const crystalColours: Record<Place, readonly [string, string, string]> =
   {
@@ -43,7 +48,7 @@ export const crystalColours: Record<Place, readonly [string, string, string]> =
     2: [palette.teal[2], palette.teal[4], palette.teal[7]],
     3: [palette.berry[2], palette.berry[4], palette.berry[7]],
     4: [palette.ember[2], palette.ember[4], palette.ember[7]],
-    5: [palette.leaf[2], palette.leaf[4], palette.leaf[7]],
+    5: [palette.sunshine[2], palette.sunshine[4], palette.sunshine[7]],
   };
 
 /**
@@ -58,96 +63,38 @@ export const gemShapes: Record<Place, { sides: number; size: number }> = {
   2: { sides: 5, size: 0.92 },
   3: { sides: 6, size: 0.95 },
   4: { sides: 7, size: 0.98 },
-  5: { sides: 12, size: 1 },
+  5: { sides: 8, size: 1 },
 };
-
-/**
- * A regular polygon's corners about its centre, as matter-js builds
- * `Bodies.polygon`: corner i at angle (i + ½) × 2π / sides.
- */
-export function gemCorners(sides: number, r: number): [number, number][] {
-  const step = (2 * Math.PI) / sides;
-  return Array.from({ length: sides }, (_, i) => {
-    const a = step * i + step / 2;
-    return [r * Math.cos(a), r * Math.sin(a)];
-  });
-}
-
-const pts = (corners: [number, number][]) =>
-  corners.map(([x, y]) => `${x.toFixed(2)},${y.toFixed(2)}`).join(" ");
 
 /**
  * Each gem's file, in its 64 × 64 frame: its middle, how far its corners reach,
  * and the turn that lines its corners up with its physics body's.
  */
-const gemFiles: Partial<
-  Record<
-    Place,
-    { href: string; x: number; y: number; reach: number; turn: number }
-  >
+const gemFiles: Record<
+  Place,
+  { href: string; x: number; y: number; reach: number; turn: number }
 > = {
   0: { href: crystal1, x: 32, y: 32, reach: 27, turn: 0 },
   1: { href: crystal10, x: 32, y: 36, reach: 30, turn: 30 },
   2: { href: crystal100, x: 32, y: 32, reach: 27, turn: -18 },
   3: { href: crystal1000, x: 32, y: 32, reach: 27, turn: 0 },
   4: { href: crystal10000, x: 32, y: 32, reach: 27, turn: 90 / 7 },
+  5: { href: crystal100000, x: 32, y: 32, reach: 27, turn: 0 },
 };
 
-/** A gem centred on (0, 0), its corners `r` out. The hundred thousand has no file yet, so it's drawn. */
+/** A gem centred on (0, 0), its corners `r` out. */
 export function Gem({ place, r }: { place: Place; r: number }) {
   const file = gemFiles[place];
-  if (file) {
-    const k = r / file.reach;
-    return (
-      <image
-        href={file.href}
-        x={-file.x * k}
-        y={-file.y * k}
-        width={64 * k}
-        height={64 * k}
-        transform={`rotate(${file.turn})`}
-      />
-    );
-  }
-  const [light, mid, dark] = crystalColours[place];
-  const outer = gemCorners(gemShapes[place].sides, r);
-  const inner = gemCorners(gemShapes[place].sides, r * 0.55);
+  const k = r / file.reach;
   return (
-    <>
-      <polygon
-        points={pts(outer)}
-        fill={mid}
-        stroke={dark}
-        strokeWidth={1.5}
-        strokeLinejoin="round"
-      />
-      {outer.map(([x, y], i) => (
-        <line
-          // biome-ignore lint/suspicious/noArrayIndexKey: fixed facets
-          key={i}
-          x1={x}
-          y1={y}
-          x2={(inner[i] as [number, number])[0]}
-          y2={(inner[i] as [number, number])[1]}
-          stroke={dark}
-          strokeWidth={0.8}
-          opacity={0.6}
-        />
-      ))}
-      <polygon
-        points={pts(inner)}
-        fill={light}
-        stroke={dark}
-        strokeWidth={0.8}
-      />
-      <circle
-        cx={-r * 0.25}
-        cy={-r * 0.25}
-        r={Math.max(1.5, r * 0.12)}
-        fill="white"
-        opacity={0.85}
-      />
-    </>
+    <image
+      href={file.href}
+      x={-file.x * k}
+      y={-file.y * k}
+      width={64 * k}
+      height={64 * k}
+      transform={`rotate(${file.turn})`}
+    />
   );
 }
 
@@ -162,35 +109,6 @@ const crystal = (place: Place): Slot => ({
     </g>
   ),
 });
-
-/** A panel that stretches to its box: drawn in a 100 × 100 frame, strokes kept their width. */
-const panel = (draw: () => ReturnType<Slot["draw"]>): Slot => ({
-  width: 100,
-  height: 100,
-  anchor: { x: 0, y: 0 },
-  draw,
-});
-
-const box = (
-  fill: string,
-  stroke: string,
-  extra?: ReturnType<Slot["draw"]>,
-) => (
-  <>
-    <rect
-      x="1.5"
-      y="1.5"
-      width="97"
-      height="97"
-      rx="6"
-      fill={fill}
-      stroke={stroke}
-      strokeWidth="3"
-      vectorEffect="non-scaling-stroke"
-    />
-    {extra}
-  </>
-);
 
 /** The giant crystal's frame: its outline and every shard are drawn in it. */
 export const shardFrame = { width: 540, height: 480 } as const;
@@ -218,6 +136,8 @@ const tubeBody = (href: string) =>
   fileSlot(href, { width: 170, height: 460, anchor: { x: 0, y: 0 } });
 const windowFace = (href: string) =>
   fileSlot(href, { width: 110, height: 100, anchor: { x: 0, y: 0 } });
+const tradeSlot = (href: string) =>
+  fileSlot(href, { width: 96, height: 256, anchor: { x: 48, y: 0 } });
 const leverSlot = (href: string) =>
   fileSlot(href, { width: 130, height: 140, anchor: { x: 65, y: 112 } });
 
@@ -264,9 +184,17 @@ export const art = {
   /** A window showing the wrong digit. */
   "window-wrong": windowFace(counterWrong),
   /** Hint 1's digit tag above a window. Stretched. */
-  "hint-digit": panel(() => box(palette.violet[0], palette.violet[5])),
+  "hint-digit": fileSlot(hintTag, {
+    width: 130,
+    height: 110,
+    anchor: { x: 65, y: 100 },
+  }),
   /** The control panel the avatar stands at, behind the portrait. Stretched. */
-  operator: panel(() => box(palette.sand[1], brass)),
+  operator: fileSlot(controlPanel, {
+    width: 202,
+    height: 112,
+    anchor: { x: 0, y: 0 },
+  }),
   /** Each place's gem: one (0) to hundred thousand (5), Grade 5's extra tube only. */
   "crystal-0": crystal(0),
   "crystal-1": crystal(1),
@@ -275,99 +203,32 @@ export const art = {
   "crystal-4": crystal(4),
   "crystal-5": crystal(5),
   /** The flash when ten fuse into one, anchored at its centre. */
-  fuse: {
-    width: 80,
-    height: 80,
-    anchor: { x: 40, y: 40 },
-    draw: () => (
-      <>
-        <circle cx="40" cy="40" r="22" fill="white" opacity="0.8" />
-        <path
-          d="M40 2 l7 30 l31 8 l-31 8 l-7 30 l-7 -30 l-31 -8 l31 -8 z"
-          fill={palette.violet[1]}
-          stroke={palette.violet[5]}
-          strokeWidth="2"
-        />
-      </>
-    ),
-  },
+  fuse: fileSlot(
+    fuseFlash,
+    { width: 200, height: 200, anchor: { x: 100, y: 100 } },
+    0.4,
+  ),
   /** A closed chute's lock, anchored at its centre. */
   "chute-closed": fileSlot(padlock, {
     width: 80,
     height: 96,
     anchor: { x: 40, y: 48 },
   }),
-  /** Hint 2: one crystal breaking into ten of the next place, with an arrow down-right into the chute below. Anchored at its top centre. */
-  trade: {
-    width: 80,
-    height: 64,
-    anchor: { x: 40, y: 0 },
-    draw: () => (
-      <>
-        <rect
-          x="22"
-          y="4"
-          width="20"
-          height="20"
-          rx="3"
-          fill={palette.violet[3]}
-          stroke={palette.violet[7]}
-          strokeWidth="2"
-        />
-        {Array.from({ length: 10 }, (_, i) => (
-          <rect
-            // biome-ignore lint/suspicious/noArrayIndexKey: fixed pieces
-            key={i}
-            x={6 + (i % 5) * 11}
-            y={34 + Math.floor(i / 5) * 11}
-            width="9"
-            height="9"
-            rx="2"
-            fill={palette.violet[2]}
-            stroke={palette.violet[7]}
-            strokeWidth="1.5"
-          />
-        ))}
-        <path
-          d="M46 14 h18 q8 0 8 8 v30 l-6 -6 m6 6 l6 -6"
-          fill="none"
-          stroke={ink}
-          strokeWidth="3"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </>
-    ),
-  },
+  /** Hint 2, by the closed place: one of its crystals breaking into ten of the place below. */
+  "trade-1": tradeSlot(trade10),
+  "trade-2": tradeSlot(trade100),
+  "trade-3": tradeSlot(trade1000),
+  "trade-4": tradeSlot(trade10000),
   /** The Run lever, up, anchored at its pivot. */
   lever: leverSlot(leverUp),
   /** The Run lever, pulled, in the same frame. */
   "lever-down": leverSlot(leverDown),
-  /** The crystal counter's icon: a faceted gem, anchored at its centre. */
-  counter: {
-    width: 36,
-    height: 36,
-    anchor: { x: 18, y: 18 },
-    draw: () => (
-      <>
-        <path
-          d="M18 3 L32 14 L18 33 L4 14 Z"
-          fill={palette.violet[4]}
-          stroke={palette.violet[8]}
-          strokeWidth="2"
-          strokeLinejoin="round"
-        />
-        <path
-          d="M4 14 H32 M18 3 L12 14 L18 33 L24 14 Z"
-          fill="none"
-          stroke={palette.violet[8]}
-          strokeWidth="1.5"
-          strokeLinejoin="round"
-        />
-        <path d="M18 3 L12 14 H4 Z" fill={palette.violet[2]} />
-      </>
-    ),
-  },
+  /** The crystal counter's icon, anchored at its centre. */
+  counter: fileSlot(counterIcon, {
+    width: 48,
+    height: 48,
+    anchor: { x: 24, y: 24 },
+  }),
 } satisfies Record<string, Slot>;
 
 export type ArtSlot = keyof typeof art;
@@ -377,6 +238,9 @@ export const machineSlot = (tubes: number): ArtSlot =>
   tubes === 4 ? "machine-4" : tubes === 6 ? "machine-6" : "machine";
 
 export const crystalSlot = (p: Place) => `crystal-${p}` as const;
+
+/** Hint 2's picture for a closed place, 1 or above. */
+export const tradeOf = (p: number) => `trade-${p}` as "trade-1";
 
 export const shardSlot = (i: number) => `shard-${i}` as "shard-0";
 

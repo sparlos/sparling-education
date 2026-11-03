@@ -13,7 +13,6 @@ import {
   useDroppable,
 } from "@dnd-kit/react";
 import type { AvatarExpression } from "@repo/game-contract";
-import { Burst } from "@repo/game-kit/burst";
 import { GameFrame } from "@repo/game-kit/frame";
 import {
   type ComponentType,
@@ -401,9 +400,13 @@ function Sparkle({ target }: { target: string }) {
     // Laid over the whole board, out of its grid, so it never takes a row.
     <span ref={ref} className={styles.layer}>
       {at && (
-        <Burst x={at.x} y={at.y} count={12} spread={80} duration={800}>
-          <ScreenArt slot="sparkle" size={34} />
-        </Burst>
+        <span
+          className={styles.fixPop}
+          data-testid="burst"
+          style={{ left: at.x, top: at.y }}
+        >
+          <ScreenArt slot="sparkle" size={120} />
+        </span>
       )}
     </span>
   );

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Compact thousands crate for replay cells: 64x64 container cube. -->
+  <g stroke="#2b2350" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M16 6 h44 l-12 12 h-44 z" fill="#c9b8ff"/>
+    <path d="M48 18 l12-12 v40 l-12 14 z" fill="#6a52c8"/>
+    <rect x="4" y="18" width="44" height="42" rx="3" fill="#8f7bdc"/>
+    <path d="M12.8 22 v34" stroke="#b6a8f0" stroke-width="2"/><path d="M21.6 22 v34" stroke="#b6a8f0" stroke-width="2"/><path d="M30.4 22 v34" stroke="#b6a8f0" stroke-width="2"/><path d="M39.2 22 v34" stroke="#b6a8f0" stroke-width="2"/>
+    <rect x="4" y="18" width="44" height="42" rx="3" fill="none"/>
+    <rect x="18" y="30" width="16" height="18" rx="2.5" fill="#fdfbff" stroke-width="2"/>
+  </g>
+</svg>

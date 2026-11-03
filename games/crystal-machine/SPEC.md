@@ -237,7 +237,7 @@ Captions show numerals where a number is spoken, written as on screen (84 620), 
 
 ## Art
 
-A crystal workshop: glowing, faceted crystal in the base ten shapes, on a machine of brass and glass. It fits the brand's violet gem without being the logo, and the gold sparkle stays shapes only (DESIGN.md). The machine and crystals are drawn from the files in `art/`. `crystal-5`, `fuse`, `operator`, `counter`, `hint-digit` and `trade` have no file yet, so they stay placeholder SVG from the style kit.
+A crystal workshop: glowing, faceted crystal in the base ten shapes, on a machine of brass and glass. It fits the brand's violet gem without being the logo, and the gold sparkle stays shapes only (DESIGN.md). Every slot is drawn from a file in `art/`.
 
 | Slot | What it shows |
 | --- | --- |
@@ -247,13 +247,13 @@ A crystal workshop: glowing, faceted crystal in the base ten shapes, on a machin
 | `tube` | A glass tube holding up to 9 crystals |
 | `tube-sealed` | A closed chute's tube while it's empty; it clears when a crystal lands in it |
 | `window`, `window-right`, `window-wrong` | The digit window under a tube: before a run, then with the right or wrong digit |
-| `crystal-0` … `crystal-5` | The crystals: one (small cube), ten (rod), hundred (flat), thousand (big cube), ten thousand (long block), hundred thousand (Grade 5's extra tube only) |
+| `crystal-0` … `crystal-5` | The crystals, each with its own shape and colour: one, ten, hundred, thousand, ten thousand, hundred thousand (Grade 5's extra tube only) |
 | `fuse` | The flash when ten crystals fuse into one |
 | `operator` | The avatar at the control panel (the portrait for now), anchored at its base |
 | `lever`, `lever-down` | The Run lever, up and pulled |
 | `counter` | The crystal counter, with its crystal icon |
 | `hint-digit` | Hint 1's digit tag above a window |
-| `trade` | Hint 2's picture: one crystal breaking into ten of the next place, with an arrow |
+| `trade-1` … `trade-4` | Hint 2's picture for each closed place: one crystal breaking into ten of the next place, with an arrow. Hidden during a run, and crystals show in front of it |
 | `giant-crystal` | The giant crystal's empty outline, six dashed pieces |
 | `shard-0` … `shard-5` | Its six pieces, in violet tones, each drawn in the outline's frame so it lands in place |
 | `crystal-rays` | The glow and gold sparkles behind the finished crystal at the end (shapes only) |

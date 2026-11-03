@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 64" width="256" height="64">
+  <!-- Tens crate: a rod of ten ones (256x64, four times a ones crate is 64). Blue straps = tens colour. Bottom edge y=60. -->
+  <g stroke="#2b2350" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+    <rect x="4" y="4" width="248" height="56" rx="6" fill="#f3c766"/>
+    <rect x="10" y="10" width="236" height="44" rx="3" fill="#e8b24a" stroke-width="2.5"/>
+    <path d="M32 10 V54" stroke-width="2" opacity=".55"/><path d="M56 10 V54" stroke-width="2" opacity=".55"/><path d="M80 10 V54" stroke-width="2" opacity=".55"/><path d="M104 10 V54" stroke-width="2" opacity=".55"/><path d="M128 10 V54" stroke-width="2" opacity=".55"/><path d="M152 10 V54" stroke-width="2" opacity=".55"/><path d="M176 10 V54" stroke-width="2" opacity=".55"/><path d="M200 10 V54" stroke-width="2" opacity=".55"/><path d="M224 10 V54" stroke-width="2" opacity=".55"/>
+    <path d="M8 9 h240" stroke="#ffe7a6" stroke-width="2.5"/>
+    <rect x="58" y="2" width="16" height="60" rx="3" fill="#5b7ff0"/><rect x="182" y="2" width="16" height="60" rx="3" fill="#5b7ff0"/>
+  </g>
+</svg>

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48">
+  <!-- Cab porthole, drawn for ~44px. Inner window r=18.5 of 24, so a 30-32px avatar fits inside the ring at 44px. Centre it on the locomotive cab window (54,63). -->
+  <circle cx="24" cy="24" r="22" fill="#2d5ca8" stroke="#2b2350" stroke-width="2.5"/>
+  <circle cx="24" cy="24" r="18.5" fill="#eef6ff" stroke="#2b2350" stroke-width="2"/>
+  <path d="M12 18 a13 13 0 0 1 8-7" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
+</svg>

@@ -157,7 +157,17 @@ function Sign(props: {
       data-loads={props.loads}
     >
       <Art slot="sign-post" x={x} y={trackY(x)} />
-      <Art slot={props.slot} x={x} y={y} />
+      <Art
+        slot={
+          !props.wrong
+            ? props.slot
+            : double
+              ? "sign-arrives-wrong"
+              : "sign-stop-wrong"
+        }
+        x={x}
+        y={y}
+      />
       {props.building && (
         <Art slot={props.building} x={x - 62} y={y} scale={0.38} />
       )}
@@ -182,15 +192,6 @@ function Sign(props: {
             scale={(board + 12) / 117}
           />
         </g>
-      )}
-      {props.wrong && (
-        <Art
-          slot="sign-wrong"
-          x={x}
-          y={y}
-          scaleX={1}
-          scale={board / signBoard.double}
-        />
       )}
       <text
         x={x + (double ? 24 : 27)}

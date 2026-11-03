@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Compact tens crate for replay cells: same 64x64 box as crate.svg, so up to 9 pack the same way. Standing rod of ten. -->
+  <g stroke="#2b2350" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+    <rect x="20" y="2" width="24" height="60" rx="4" fill="#f3c766"/>
+    <rect x="24" y="6" width="16" height="52" rx="2" fill="#e8b24a" stroke-width="2"/>
+    <path d="M24 11.2 h16" stroke-width="1.4" opacity=".55"/><path d="M24 16.4 h16" stroke-width="1.4" opacity=".55"/><path d="M24 21.6 h16" stroke-width="1.4" opacity=".55"/><path d="M24 26.8 h16" stroke-width="1.4" opacity=".55"/><path d="M24 32.0 h16" stroke-width="1.4" opacity=".55"/><path d="M24 37.2 h16" stroke-width="1.4" opacity=".55"/><path d="M24 42.4 h16" stroke-width="1.4" opacity=".55"/><path d="M24 47.6 h16" stroke-width="1.4" opacity=".55"/><path d="M24 52.8 h16" stroke-width="1.4" opacity=".55"/>
+    <rect x="18" y="16" width="28" height="6" rx="2" fill="#5b7ff0" stroke-width="2"/><rect x="18" y="42" width="28" height="6" rx="2" fill="#5b7ff0" stroke-width="2"/>
+  </g>
+</svg>

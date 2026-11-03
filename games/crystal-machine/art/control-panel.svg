@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 202 112" width="202" height="112">
+  <!-- Control panel drawn at its in-game size, 202x112. Avatar window x 14-90, y 14-90 (76px, centre 52,52) fits a 60px avatar. Lever slot centre (158,94): put the lever's pivot there. Lights are fixed colours. -->
+  <defs><linearGradient id="b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f6f2ea"/><stop offset="1" stop-color="#e7e0d2"/></linearGradient></defs>
+  <g stroke="#2b2350" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+    <rect x="3" y="9" width="196" height="100" rx="16" fill="#6c63a6"/>
+    <rect x="3" y="3" width="196" height="100" rx="16" fill="url(#b)"/>
+    <rect x="9" y="9" width="86" height="86" rx="12" fill="#ddd4c2" stroke-width="2.5"/>
+    <rect x="14" y="14" width="76" height="76" rx="9" fill="#fdfbff" stroke-width="2.5"/>
+    <path d="M108 12 h80" stroke="#fff" stroke-width="4"/>
+    <circle cx="112" cy="30" r="4.5" fill="#4cc38a" stroke-width="2"/><circle cx="112" cy="48" r="4.5" fill="#ffcc3d" stroke-width="2"/><circle cx="112" cy="66" r="4.5" fill="#ef5a45" stroke-width="2"/>
+    <rect x="128" y="86" width="60" height="16" rx="5" fill="#6c63a6" stroke-width="2.5"/>
+    <path d="M138 94 h40" stroke="#2f2a45" stroke-width="5"/>
+  </g>
+</svg>

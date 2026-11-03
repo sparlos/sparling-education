@@ -162,6 +162,30 @@
   animation: pop 420ms var(--k-ease-springy);
 }
 
+/* "Nice fix!": one burst, popping on the hop that was fixed. */
+.fixPop {
+  position: absolute;
+  translate: -50% -50%;
+  line-height: 0;
+  opacity: 0;
+  animation: fixPop 800ms ease-out;
+}
+
+@keyframes fixPop {
+  0% {
+    transform: scale(0.4);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+
 @keyframes pop {
   40% {
     transform: scale(1.18);
@@ -280,6 +304,10 @@
   .splash {
     animation: none;
   }
+  /* Still there for its moment, with no pop. */
+  .fixPop {
+    animation: fixPopStill 800ms linear;
+  }
   /* Lit, not lifted. */
   .hopping {
     transform: none;
@@ -288,5 +316,15 @@
   .sunk {
     animation: none;
     opacity: 0.35;
+  }
+}
+
+@keyframes fixPopStill {
+  0%,
+  60% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
   }
 }

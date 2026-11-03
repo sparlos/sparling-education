@@ -103,9 +103,9 @@
 .rays {
   position: absolute;
   left: -50%;
-  top: -70%;
+  top: -50%;
   width: 200%;
-  animation: turn 9s linear infinite;
+  animation: turn 20s linear infinite;
 }
 
 @keyframes turn {
@@ -121,6 +121,45 @@
   line-height: 0;
   transform: translate(var(--dx), var(--dy));
   animation: fling 1500ms ease-out infinite;
+}
+
+/* A spin: the face squashes to nothing, the edge shows, and the face comes back. */
+.coinFace {
+  display: block;
+  animation: coinFace 500ms linear infinite;
+}
+
+.coinEdge {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  translate: -50% 0;
+  opacity: 0;
+  animation: coinEdge 500ms linear infinite;
+}
+
+@keyframes coinFace {
+  0%,
+  100% {
+    transform: scaleX(1);
+  }
+  45%,
+  55% {
+    transform: scaleX(0);
+  }
+}
+
+@keyframes coinEdge {
+  0%,
+  42%,
+  58%,
+  100% {
+    opacity: 0;
+  }
+  45%,
+  55% {
+    opacity: 1;
+  }
 }
 
 @keyframes fling {
@@ -167,7 +206,9 @@
   }
   .ending,
   .rays,
-  .coin {
+  .coin,
+  .coinFace,
+  .coinEdge {
     animation: none;
   }
 }

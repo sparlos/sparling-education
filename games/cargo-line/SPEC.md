@@ -290,7 +290,7 @@ Captions show numerals where a number is spoken, written as on screen (57 903, 2
 
 ## Art
 
-A toy mountain from the side: soft greens, then deep pines, then grey rock and snow, with a warm wooden train and chunky signs. Readable at a glance and nothing like a coin or a score. Most slots are drawn from the files in `art/`. `stop-windmill`, `stop-cabin`, `stop-mine`, `driver`, `sign-post`, `sign-wrong`, `trip-bar` and the coloured crates have no file yet, so they stay placeholder SVG from the style kit.
+A toy mountain from the side: soft greens, then deep pines, then grey rock and snow, with a warm wooden train and chunky signs. Readable at a glance and nothing like a coin or a score. Most slots are drawn from the files in `art/`. `crate-4`, `crate-tenth` and `crate-hundredth` have no file yet, so they stay placeholder SVG from the style kit. `trip-bar` is drawn in code on purpose: each part's width has to follow its number.
 
 | Slot | What it shows |
 | --- | --- |
@@ -308,9 +308,9 @@ A toy mountain from the side: soft greens, then deep pines, then grey rock and s
 | `sign-load`, `sign-unload` | A stop's sign, the same for a pickup and a drop-off |
 | `arrow-load`, `arrow-unload` | The chunky arrow between a stop's sign and the track: green and down for a pickup, blue and up for a drop-off |
 | `sign-missing` | The dashed, glowing outline and ? of the missing number |
-| `sign-wrong` | The red state of a sign where the train stalled or arrived with the wrong load |
+| `sign-stop-wrong`, `sign-arrives-wrong` | The red sign where the train stalled or arrived with the wrong load |
 | `engine` | The engine from the side, with an open cab |
-| `driver` | The avatar in the cab (the portrait for now), anchored at its base |
+| `driver` | The porthole in the cab, with the avatar in it (the portrait for now), anchored at its centre |
 | `wagon` | The wagon with crates on it, and its load's number just above |
 | `crate-0` … `crate-4` | The replay's place-value crates: one, ten, hundred, thousand, ten thousand |
 | `crate-tenth`, `crate-hundredth` | The replay's crates for tenths and hundredths |

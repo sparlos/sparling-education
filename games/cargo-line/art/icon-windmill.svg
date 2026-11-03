@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Sign icon, 64x64, same style as icon-barn. Put it in the icon slot of sign-single.svg. -->
+  <g transform="translate(32 34) scale(1.18) translate(-32 -32)" stroke="#2b2350" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M24 60 L28 26 H36 L40 60 Z" fill="#f1e6cc"/>
+    <path d="M22 28 Q32 16 42 28 Z" fill="#e0543e"/>
+    <rect x="29" y="44" width="6" height="16" rx="2" fill="#a8774a" stroke-width="2"/>
+    <g transform="rotate(20 32 24)">
+      <path d="M32 24 L32 4 L38 6 L36 22 Z M32 24 L52 24 L50 30 L34 28 Z M32 24 L32 44 L26 42 L28 26 Z M32 24 L12 24 L14 18 L30 20 Z" fill="#fdfbff"/>
+      <path d="M33 8 l3 12 M48 25 l-12 3 M31 40 l-3-12 M16 23 l12-3" stroke-width="1.5" opacity=".5"/>
+    </g>
+    <circle cx="32" cy="24" r="4" fill="#ffcc3d"/>
+  </g>
+</svg>

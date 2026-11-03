@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 64" width="16" height="64">
+  <!-- Coin edge-on (16x64), the mid-spin frame for coin.svg. -->
+  <rect x="3" y="5" width="10" height="56" rx="5" fill="#e8a92a" stroke="#2b2350" stroke-width="3"/>
+  <path d="M6 12 V54" stroke="#ffe98f" stroke-width="2" stroke-linecap="round"/>
+</svg>

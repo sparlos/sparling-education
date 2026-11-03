@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 120" width="220" height="120">
+  <!-- Hundreds crate: a flat 10x10 slab on a pallet (220x120). Green strap = hundreds colour. Bottom y=116. -->
+  <g stroke="#2b2350" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M4 108 h212 v8 h-212 z" fill="#a8774a"/>
+    <path d="M14 108 v8 M106 108 v8 M200 108 v8" stroke-width="2"/>
+    <path d="M24 28 h192 l-20 24 h-192 z" fill="#f6d27f"/>
+    <path d="M196 52 l20-24 v54 l-20 24 z" fill="#d49a36"/>
+    <rect x="4" y="52" width="192" height="54" rx="4" fill="#f3c766"/>
+    <path d="M4 70 h192 M4 88 h192" stroke-width="2" opacity=".55"/>
+    <path d="M23.2 52 v54" stroke-width="1.6" opacity=".4"/><path d="M42.4 52 v54" stroke-width="1.6" opacity=".4"/><path d="M61.6 52 v54" stroke-width="1.6" opacity=".4"/><path d="M80.8 52 v54" stroke-width="1.6" opacity=".4"/><path d="M100.0 52 v54" stroke-width="1.6" opacity=".4"/><path d="M119.2 52 v54" stroke-width="1.6" opacity=".4"/><path d="M138.4 52 v54" stroke-width="1.6" opacity=".4"/><path d="M157.6 52 v54" stroke-width="1.6" opacity=".4"/><path d="M176.8 52 v54" stroke-width="1.6" opacity=".4"/>
+    <path d="M43.2 28 l-20 24" stroke-width="1.6" opacity=".4"/><path d="M62.4 28 l-20 24" stroke-width="1.6" opacity=".4"/><path d="M81.6 28 l-20 24" stroke-width="1.6" opacity=".4"/><path d="M100.8 28 l-20 24" stroke-width="1.6" opacity=".4"/><path d="M120.0 28 l-20 24" stroke-width="1.6" opacity=".4"/><path d="M139.2 28 l-20 24" stroke-width="1.6" opacity=".4"/><path d="M158.4 28 l-20 24" stroke-width="1.6" opacity=".4"/><path d="M177.6 28 l-20 24" stroke-width="1.6" opacity=".4"/><path d="M196.8 28 l-20 24" stroke-width="1.6" opacity=".4"/>
+    <rect x="86" y="50" width="20" height="58" rx="3" fill="#2fb67a"/>
+    <path d="M106 28 l-20 24 h20 l20-24 z" fill="#2fb67a"/>
+  </g>
+</svg>

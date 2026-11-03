@@ -90,8 +90,8 @@ const walkerFeet = walkerPx / 2 - walkerRise;
 const hopsPerWalk = 4;
 /** How high it hops along the path, in px. */
 const hopLift = 16;
-const rays = 12;
 const coins = 14;
+const coinPx = 28;
 
 export interface MapCamera {
   /** The whole map, or close on the character. */
@@ -368,25 +368,18 @@ export function TreasureMap(props: TreasureMapProps) {
 }
 
 function Burst() {
-  const ray = mapArt["ending-ray"];
+  const rays = mapArt["ending-rays"];
   const coin = mapArt["ending-coin"];
+  const edge = mapArt["ending-coin-edge"];
   return (
     <>
       <svg
-        viewBox={`0 0 ${ray.width} ${ray.height}`}
+        viewBox={`0 0 ${rays.width} ${rays.height}`}
         className={styles.rays}
         data-testid="ending-rays"
         aria-hidden="true"
       >
-        {Array.from({ length: rays }, (_, i) => (
-          <g
-            // biome-ignore lint/suspicious/noArrayIndexKey: fixed rays
-            key={i}
-            transform={`rotate(${(i * 360) / rays} ${ray.anchor.x} ${ray.anchor.y})`}
-          >
-            {ray.draw()}
-          </g>
-        ))}
+        {rays.draw()}
       </svg>
       {Array.from({ length: coins }, (_, i) => {
         const angle = (Math.PI * (i + 0.5)) / coins;
@@ -403,7 +396,16 @@ function Burst() {
               } as CSSProperties
             }
           >
-            <SlotImage id="ending-coin" slot={coin} size={coin.width} />
+            <span className={styles.coinFace}>
+              <SlotImage id="ending-coin" slot={coin} size={coinPx} />
+            </span>
+            <span className={styles.coinEdge}>
+              <SlotImage
+                id="ending-coin-edge"
+                slot={edge}
+                size={(coinPx * edge.width) / coin.width}
+              />
+            </span>
           </span>
         );
       })}

@@ -1,0 +1,128 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 256" width="96" height="256">
+  <!-- Hint 2: one closed-chute 10 crystal (top, cracked) breaks into ten 1s (bottom) for the chute below. 96x256: scale to the tube height (~230px tall, ~86px wide); the ten crystals stay about 25px each. No text; the hint is spoken. -->
+  <rect x="2.5" y="2.5" width="91" height="251" rx="14" fill="#fdfbff" stroke="#2b2350" stroke-width="3"/>
+  <circle cx="48" cy="44" r="32" fill="#ffe17a" opacity=".35"/><svg x="20.0" y="16.0" width="56.0" height="56.0" viewBox="0 0 64 64">
+  
+  <g stroke="#2b2350" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+    <polygon points="32.0,6.0 58.0,51.0 6.0,51.0" fill="#9b6cf2"/>
+    <polygon points="32.0,6.0 58.0,51.0 46.3,44.2 32.0,19.5" fill="#d6c4ff" opacity=".9" stroke="none"/><polygon points="58.0,51.0 6.0,51.0 17.7,44.2 46.3,44.2" fill="#6a3fc4" opacity=".9" stroke="none"/><polygon points="6.0,51.0 32.0,6.0 32.0,19.5 17.7,44.2" fill="#d6c4ff" opacity=".9" stroke="none"/>
+    <g stroke-width="1.6" opacity=".55"><path d="M32.0 6.0 L32.0 19.5"/><path d="M58.0 51.0 L46.3 44.2"/><path d="M6.0 51.0 L17.7 44.2"/></g>
+    <polygon points="32.0,6.0 58.0,51.0 6.0,51.0" fill="none"/>
+    <polygon points="32.0,19.5 46.3,44.2 17.7,44.2" fill="#d6c4ff" stroke-width="2"/>
+  </g>
+  <circle cx="32.0" cy="27.8" r="2.6" fill="#fff" opacity=".95"/>
+  <circle cx="32.0" cy="40.1" r="1.3" fill="#fff" opacity=".7"/>
+</svg><path d="M44 26 l6 8 -5 6 7 10" fill="none" stroke="#2b2350" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M44 26 l6 8 -5 6 7 10" fill="none" stroke="#fff" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M48 80 v24 m-11 -11 l11 11 11 -11" fill="none" stroke="#2b2350" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="9" y="114" width="78" height="134" rx="10" fill="#f3f0fb"/><svg x="16.0" y="116.0" width="28.0" height="28.0" viewBox="0 0 64 64">
+  
+  <g stroke="#2b2350" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+    <polygon points="51.1,12.9 51.1,51.1 12.9,51.1 12.9,12.9" fill="#4b9fe6"/>
+    <polygon points="51.1,12.9 51.1,51.1 42.5,42.5 42.5,21.5" fill="#a9dcff" opacity=".9" stroke="none"/><polygon points="51.1,51.1 12.9,51.1 21.5,42.5 42.5,42.5" fill="#4b9fe6" opacity="0" stroke="none"/><polygon points="12.9,51.1 12.9,12.9 21.5,21.5 21.5,42.5" fill="#2b6fb0" opacity=".9" stroke="none"/><polygon points="12.9,12.9 51.1,12.9 42.5,21.5 21.5,21.5" fill="#a9dcff" opacity=".9" stroke="none"/>
+    <g stroke-width="1.6" opacity=".55"><path d="M51.1 12.9 L42.5 21.5"/><path d="M51.1 51.1 L42.5 42.5"/><path d="M12.9 51.1 L21.5 42.5"/><path d="M12.9 12.9 L21.5 21.5"/></g>
+    <polygon points="51.1,12.9 51.1,51.1 12.9,51.1 12.9,12.9" fill="none"/>
+    <polygon points="42.5,21.5 42.5,42.5 21.5,42.5 21.5,21.5" fill="#a9dcff" stroke-width="2"/>
+  </g>
+  <circle cx="26.7" cy="26.7" r="2.6" fill="#fff" opacity=".95"/>
+  <circle cx="34.6" cy="34.6" r="1.3" fill="#fff" opacity=".7"/>
+</svg><svg x="52.0" y="116.0" width="28.0" height="28.0" viewBox="0 0 64 64">
+  
+  <g stroke="#2b2350" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+    <polygon points="51.1,12.9 51.1,51.1 12.9,51.1 12.9,12.9" fill="#4b9fe6"/>
+    <polygon points="51.1,12.9 51.1,51.1 42.5,42.5 42.5,21.5" fill="#a9dcff" opacity=".9" stroke="none"/><polygon points="51.1,51.1 12.9,51.1 21.5,42.5 42.5,42.5" fill="#4b9fe6" opacity="0" stroke="none"/><polygon points="12.9,51.1 12.9,12.9 21.5,21.5 21.5,42.5" fill="#2b6fb0" opacity=".9" stroke="none"/><polygon points="12.9,12.9 51.1,12.9 42.5,21.5 21.5,21.5" fill="#a9dcff" opacity=".9" stroke="none"/>
+    <g stroke-width="1.6" opacity=".55"><path d="M51.1 12.9 L42.5 21.5"/><path d="M51.1 51.1 L42.5 42.5"/><path d="M12.9 51.1 L21.5 42.5"/><path d="M12.9 12.9 L21.5 21.5"/></g>
+    <polygon points="51.1,12.9 51.1,51.1 12.9,51.1 12.9,12.9" fill="none"/>
+    <polygon points="42.5,21.5 42.5,42.5 21.5,42.5 21.5,21.5" fill="#a9dcff" stroke-width="2"/>
+  </g>
+  <circle cx="26.7" cy="26.7" r="2.6" fill="#fff" opacity=".95"/>
+  <circle cx="34.6" cy="34.6" r="1.3" fill="#fff" opacity=".7"/>
+</svg><svg x="16.0" y="142.0" width="28.0" height="28.0" viewBox="0 0 64 64">
+  
+  <g stroke="#2b2350" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+    <polygon points="51.1,12.9 51.1,51.1 12.9,51.1 12.9,12.9" fill="#4b9fe6"/>
+    <polygon points="51.1,12.9 51.1,51.1 42.5,42.5 42.5,21.5" fill="#a9dcff" opacity=".9" stroke="none"/><polygon points="51.1,51.1 12.9,51.1 21.5,42.5 42.5,42.5" fill="#4b9fe6" opacity="0" stroke="none"/><polygon points="12.9,51.1 12.9,12.9 21.5,21.5 21.5,42.5" fill="#2b6fb0" opacity=".9" stroke="none"/><polygon points="12.9,12.9 51.1,12.9 42.5,21.5 21.5,21.5" fill="#a9dcff" opacity=".9" stroke="none"/>
+    <g stroke-width="1.6" opacity=".55"><path d="M51.1 12.9 L42.5 21.5"/><path d="M51.1 51.1 L42.5 42.5"/><path d="M12.9 51.1 L21.5 42.5"/><path d="M12.9 12.9 L21.5 21.5"/></g>
+    <polygon points="51.1,12.9 51.1,51.1 12.9,51.1 12.9,12.9" fill="none"/>
+    <polygon points="42.5,21.5 42.5,42.5 21.5,42.5 21.5,21.5" fill="#a9dcff" stroke-width="2"/>
+  </g>
+  <circle cx="26.7" cy="26.7" r="2.6" fill="#fff" opacity=".95"/>
+  <circle cx="34.6" cy="34.6" r="1.3" fill="#fff" opacity=".7"/>
+</svg><svg x="52.0" y="142.0" width="28.0" height="28.0" viewBox="0 0 64 64">
+  
+  <g stroke="#2b2350" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+    <polygon points="51.1,12.9 51.1,51.1 12.9,51.1 12.9,12.9" fill="#4b9fe6"/>
+    <polygon points="51.1,12.9 51.1,51.1 42.5,42.5 42.5,21.5" fill="#a9dcff" opacity=".9" stroke="none"/><polygon points="51.1,51.1 12.9,51.1 21.5,42.5 42.5,42.5" fill="#4b9fe6" opacity="0" stroke="none"/><polygon points="12.9,51.1 12.9,12.9 21.5,21.5 21.5,42.5" fill="#2b6fb0" opacity=".9" stroke="none"/><polygon points="12.9,12.9 51.1,12.9 42.5,21.5 21.5,21.5" fill="#a9dcff" opacity=".9" stroke="none"/>
+    <g stroke-width="1.6" opacity=".55"><path d="M51.1 12.9 L42.5 21.5"/><path d="M51.1 51.1 L42.5 42.5"/><path d="M12.9 51.1 L21.5 42.5"/><path d="M12.9 12.9 L21.5 21.5"/></g>
+    <polygon points="51.1,12.9 51.1,51.1 12.9,51.1 12.9,12.9" fill="none"/>
+    <polygon points="42.5,21.5 42.5,42.5 21.5,42.5 21.5,21.5" fill="#a9dcff" stroke-width="2"/>
+  </g>
+  <circle cx="26.7" cy="26.7" r="2.6" fill="#fff" opacity=".95"/>
+  <circle cx="34.6" cy="34.6" r="1.3" fill="#fff" opacity=".7"/>
+</svg><svg x="16.0" y="168.0" width="28.0" height="28.0" viewBox="0 0 64 64">
+  
+  <g stroke="#2b2350" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+    <polygon points="51.1,12.9 51.1,51.1 12.9,51.1 12.9,12.9" fill="#4b9fe6"/>
+    <polygon points="51.1,12.9 51.1,51.1 42.5,42.5 42.5,21.5" fill="#a9dcff" opacity=".9" stroke="none"/><polygon points="51.1,51.1 12.9,51.1 21.5,42.5 42.5,42.5" fill="#4b9fe6" opacity="0" stroke="none"/><polygon points="12.9,51.1 12.9,12.9 21.5,21.5 21.5,42.5" fill="#2b6fb0" opacity=".9" stroke="none"/><polygon points="12.9,12.9 51.1,12.9 42.5,21.5 21.5,21.5" fill="#a9dcff" opacity=".9" stroke="none"/>
+    <g stroke-width="1.6" opacity=".55"><path d="M51.1 12.9 L42.5 21.5"/><path d="M51.1 51.1 L42.5 42.5"/><path d="M12.9 51.1 L21.5 42.5"/><path d="M12.9 12.9 L21.5 21.5"/></g>
+    <polygon points="51.1,12.9 51.1,51.1 12.9,51.1 12.9,12.9" fill="none"/>
+    <polygon points="42.5,21.5 42.5,42.5 21.5,42.5 21.5,21.5" fill="#a9dcff" stroke-width="2"/>
+  </g>
+  <circle cx="26.7" cy="26.7" r="2.6" fill="#fff" opacity=".95"/>
+  <circle cx="34.6" cy="34.6" r="1.3" fill="#fff" opacity=".7"/>
+</svg><svg x="52.0" y="168.0" width="28.0" height="28.0" viewBox="0 0 64 64">
+  
+  <g stroke="#2b2350" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+    <polygon points="51.1,12.9 51.1,51.1 12.9,51.1 12.9,12.9" fill="#4b9fe6"/>
+    <polygon points="51.1,12.9 51.1,51.1 42.5,42.5 42.5,21.5" fill="#a9dcff" opacity=".9" stroke="none"/><polygon points="51.1,51.1 12.9,51.1 21.5,42.5 42.5,42.5" fill="#4b9fe6" opacity="0" stroke="none"/><polygon points="12.9,51.1 12.9,12.9 21.5,21.5 21.5,42.5" fill="#2b6fb0" opacity=".9" stroke="none"/><polygon points="12.9,12.9 51.1,12.9 42.5,21.5 21.5,21.5" fill="#a9dcff" opacity=".9" stroke="none"/>
+    <g stroke-width="1.6" opacity=".55"><path d="M51.1 12.9 L42.5 21.5"/><path d="M51.1 51.1 L42.5 42.5"/><path d="M12.9 51.1 L21.5 42.5"/><path d="M12.9 12.9 L21.5 21.5"/></g>
+    <polygon points="51.1,12.9 51.1,51.1 12.9,51.1 12.9,12.9" fill="none"/>
+    <polygon points="42.5,21.5 42.5,42.5 21.5,42.5 21.5,21.5" fill="#a9dcff" stroke-width="2"/>
+  </g>
+  <circle cx="26.7" cy="26.7" r="2.6" fill="#fff" opacity=".95"/>
+  <circle cx="34.6" cy="34.6" r="1.3" fill="#fff" opacity=".7"/>
+</svg><svg x="16.0" y="194.0" width="28.0" height="28.0" viewBox="0 0 64 64">
+  
+  <g stroke="#2b2350" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+    <polygon points="51.1,12.9 51.1,51.1 12.9,51.1 12.9,12.9" fill="#4b9fe6"/>
+    <polygon points="51.1,12.9 51.1,51.1 42.5,42.5 42.5,21.5" fill="#a9dcff" opacity=".9" stroke="none"/><polygon points="51.1,51.1 12.9,51.1 21.5,42.5 42.5,42.5" fill="#4b9fe6" opacity="0" stroke="none"/><polygon points="12.9,51.1 12.9,12.9 21.5,21.5 21.5,42.5" fill="#2b6fb0" opacity=".9" stroke="none"/><polygon points="12.9,12.9 51.1,12.9 42.5,21.5 21.5,21.5" fill="#a9dcff" opacity=".9" stroke="none"/>
+    <g stroke-width="1.6" opacity=".55"><path d="M51.1 12.9 L42.5 21.5"/><path d="M51.1 51.1 L42.5 42.5"/><path d="M12.9 51.1 L21.5 42.5"/><path d="M12.9 12.9 L21.5 21.5"/></g>
+    <polygon points="51.1,12.9 51.1,51.1 12.9,51.1 12.9,12.9" fill="none"/>
+    <polygon points="42.5,21.5 42.5,42.5 21.5,42.5 21.5,21.5" fill="#a9dcff" stroke-width="2"/>
+  </g>
+  <circle cx="26.7" cy="26.7" r="2.6" fill="#fff" opacity=".95"/>
+  <circle cx="34.6" cy="34.6" r="1.3" fill="#fff" opacity=".7"/>
+</svg><svg x="52.0" y="194.0" width="28.0" height="28.0" viewBox="0 0 64 64">
+  
+  <g stroke="#2b2350" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+    <polygon points="51.1,12.9 51.1,51.1 12.9,51.1 12.9,12.9" fill="#4b9fe6"/>
+    <polygon points="51.1,12.9 51.1,51.1 42.5,42.5 42.5,21.5" fill="#a9dcff" opacity=".9" stroke="none"/><polygon points="51.1,51.1 12.9,51.1 21.5,42.5 42.5,42.5" fill="#4b9fe6" opacity="0" stroke="none"/><polygon points="12.9,51.1 12.9,12.9 21.5,21.5 21.5,42.5" fill="#2b6fb0" opacity=".9" stroke="none"/><polygon points="12.9,12.9 51.1,12.9 42.5,21.5 21.5,21.5" fill="#a9dcff" opacity=".9" stroke="none"/>
+    <g stroke-width="1.6" opacity=".55"><path d="M51.1 12.9 L42.5 21.5"/><path d="M51.1 51.1 L42.5 42.5"/><path d="M12.9 51.1 L21.5 42.5"/><path d="M12.9 12.9 L21.5 21.5"/></g>
+    <polygon points="51.1,12.9 51.1,51.1 12.9,51.1 12.9,12.9" fill="none"/>
+    <polygon points="42.5,21.5 42.5,42.5 21.5,42.5 21.5,21.5" fill="#a9dcff" stroke-width="2"/>
+  </g>
+  <circle cx="26.7" cy="26.7" r="2.6" fill="#fff" opacity=".95"/>
+  <circle cx="34.6" cy="34.6" r="1.3" fill="#fff" opacity=".7"/>
+</svg><svg x="16.0" y="220.0" width="28.0" height="28.0" viewBox="0 0 64 64">
+  
+  <g stroke="#2b2350" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+    <polygon points="51.1,12.9 51.1,51.1 12.9,51.1 12.9,12.9" fill="#4b9fe6"/>
+    <polygon points="51.1,12.9 51.1,51.1 42.5,42.5 42.5,21.5" fill="#a9dcff" opacity=".9" stroke="none"/><polygon points="51.1,51.1 12.9,51.1 21.5,42.5 42.5,42.5" fill="#4b9fe6" opacity="0" stroke="none"/><polygon points="12.9,51.1 12.9,12.9 21.5,21.5 21.5,42.5" fill="#2b6fb0" opacity=".9" stroke="none"/><polygon points="12.9,12.9 51.1,12.9 42.5,21.5 21.5,21.5" fill="#a9dcff" opacity=".9" stroke="none"/>
+    <g stroke-width="1.6" opacity=".55"><path d="M51.1 12.9 L42.5 21.5"/><path d="M51.1 51.1 L42.5 42.5"/><path d="M12.9 51.1 L21.5 42.5"/><path d="M12.9 12.9 L21.5 21.5"/></g>
+    <polygon points="51.1,12.9 51.1,51.1 12.9,51.1 12.9,12.9" fill="none"/>
+    <polygon points="42.5,21.5 42.5,42.5 21.5,42.5 21.5,21.5" fill="#a9dcff" stroke-width="2"/>
+  </g>
+  <circle cx="26.7" cy="26.7" r="2.6" fill="#fff" opacity=".95"/>
+  <circle cx="34.6" cy="34.6" r="1.3" fill="#fff" opacity=".7"/>
+</svg><svg x="52.0" y="220.0" width="28.0" height="28.0" viewBox="0 0 64 64">
+  
+  <g stroke="#2b2350" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+    <polygon points="51.1,12.9 51.1,51.1 12.9,51.1 12.9,12.9" fill="#4b9fe6"/>
+    <polygon points="51.1,12.9 51.1,51.1 42.5,42.5 42.5,21.5" fill="#a9dcff" opacity=".9" stroke="none"/><polygon points="51.1,51.1 12.9,51.1 21.5,42.5 42.5,42.5" fill="#4b9fe6" opacity="0" stroke="none"/><polygon points="12.9,51.1 12.9,12.9 21.5,21.5 21.5,42.5" fill="#2b6fb0" opacity=".9" stroke="none"/><polygon points="12.9,12.9 51.1,12.9 42.5,21.5 21.5,21.5" fill="#a9dcff" opacity=".9" stroke="none"/>
+    <g stroke-width="1.6" opacity=".55"><path d="M51.1 12.9 L42.5 21.5"/><path d="M51.1 51.1 L42.5 42.5"/><path d="M12.9 51.1 L21.5 42.5"/><path d="M12.9 12.9 L21.5 21.5"/></g>
+    <polygon points="51.1,12.9 51.1,51.1 12.9,51.1 12.9,12.9" fill="none"/>
+    <polygon points="42.5,21.5 42.5,42.5 21.5,42.5 21.5,21.5" fill="#a9dcff" stroke-width="2"/>
+  </g>
+  <circle cx="26.7" cy="26.7" r="2.6" fill="#fff" opacity=".95"/>
+  <circle cx="34.6" cy="34.6" r="1.3" fill="#fff" opacity=".7"/>
+</svg>
+</svg>

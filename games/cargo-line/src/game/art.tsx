@@ -10,14 +10,21 @@ import arrowUnload from "../../art/arrow-unload.svg";
 import bgForest from "../../art/bg-forest.jpg";
 import bgMeadow from "../../art/bg-meadow.jpg";
 import bgQuarry from "../../art/bg-quarry.jpg";
+import cabCircle from "../../art/cab-circle.svg";
 import crateFile from "../../art/crate.svg";
+import crate10 from "../../art/crate-10-compact.svg";
+import crate100 from "../../art/crate-100-compact.svg";
+import crate1000 from "../../art/crate-1000-compact.svg";
 import endPost from "../../art/end-post.svg";
 import iconArrive from "../../art/icon-arrive.svg";
 import iconBarn from "../../art/icon-barn.svg";
+import iconCabin from "../../art/icon-cabin.svg";
 import iconDepart from "../../art/icon-depart.svg";
+import iconMine from "../../art/icon-mine.svg";
 import iconQuarry from "../../art/icon-quarry.svg";
 import iconSawmill from "../../art/icon-sawmill.svg";
 import iconTrain from "../../art/icon-train.svg";
+import iconWindmill from "../../art/icon-windmill.svg";
 import locomotive from "../../art/locomotive.svg";
 import miniTrain from "../../art/mini-train.svg";
 import overviewMountain from "../../art/overview-mountain.jpg";
@@ -25,16 +32,17 @@ import pin from "../../art/pin.svg";
 import pinCurrent from "../../art/pin-current.svg";
 import pinDone from "../../art/pin-done.svg";
 import signDouble from "../../art/sign-double.svg";
+import signDoubleWrong from "../../art/sign-double-wrong.svg";
 import signHighlight from "../../art/sign-highlight.svg";
+import signPost from "../../art/sign-post.svg";
 import signSingle from "../../art/sign-single.svg";
+import signSingleWrong from "../../art/sign-single-wrong.svg";
 import summitFlagFile from "../../art/summit-flag.svg";
 import summitFlagUp from "../../art/summit-flag-up.svg";
 import trackTile from "../../art/track.svg";
 import wagonFile from "../../art/wagon.svg";
 import type { StationPlace } from "../rules/lap.ts";
 import { gates, pointAt, summit, trackY, valley, viewBox } from "./track.ts";
-
-const ink = palette.ink[9];
 
 /** A crate from the side, centred on (0, 0). */
 function Crate({
@@ -68,6 +76,8 @@ function Crate({
   );
 }
 
+const ink = palette.ink[9];
+
 /** How big a sign is drawn, against its file. */
 const signScale = 0.5;
 
@@ -79,7 +89,7 @@ export const signBoard = {
 } as const;
 
 /** The two-row sign, with its two icons in the file's icon column. */
-const doubleSign = (bottomIcon: string): Slot => {
+const doubleSign = (bottomIcon: string, board = signDouble): Slot => {
   const width = 400 * signScale;
   const height = 218 * signScale;
   const icon = 66 * signScale;
@@ -90,7 +100,7 @@ const doubleSign = (bottomIcon: string): Slot => {
     anchor: { x: width / 2, y: 95 * signScale },
     draw: () => (
       <g>
-        <image href={signDouble} width={width} height={height} />
+        <image href={board} width={width} height={height} />
         <image
           href={iconTrain}
           x={x}
@@ -110,9 +120,9 @@ const doubleSign = (bottomIcon: string): Slot => {
   };
 };
 
-const singleSign = () =>
+const singleSign = (board = signSingle) =>
   fileSlot(
-    signSingle,
+    board,
     { width: 400, height: 178, anchor: { x: 200, y: 75 } },
     signScale,
   );
@@ -179,14 +189,10 @@ const building = (draw: ReactNode): Slot => ({
 const stopIcon = (href: string) =>
   building(<image href={href} x="5" width="110" height="110" />);
 
-/** Each place's crate colour in the replay: light and dark. */
+/** The crate colours of the places with no file yet: light and dark. */
 export const crateColours: Record<number, readonly [string, string]> = {
   [-2]: [palette.berry[2], palette.berry[7]],
   [-1]: [palette.violet[2], palette.violet[7]],
-  0: [palette.sand[3], palette.sand[8]],
-  1: [palette.sky[3], palette.sky[7]],
-  2: [palette.teal[3], palette.teal[7]],
-  3: [palette.sunshine[3], palette.sunshine[7]],
   4: [palette.ember[2], palette.ember[7]],
 };
 
@@ -203,6 +209,10 @@ const crate = (place: number): Slot => {
     ),
   };
 };
+
+/** A crate from a file: they all share a 64 × 64 box, so they pack the same way. */
+const crateFrom = (href: string) =>
+  fileSlot(href, { width: 64, height: 64, anchor: { x: 32, y: 32 } }, 20 / 64);
 
 /** The tiles of track: their rail's top is what the wheels run on. */
 const trackTileSize = { width: 60, height: 20, railTop: 3 };
@@ -319,20 +329,12 @@ export const art = {
     ),
   },
   /** The post under a sign, its foot on the track. */
-  "sign-post": {
-    width: 12,
-    height: 160,
-    anchor: { x: 6, y: 160 },
-    draw: () => (
-      <rect
-        width="12"
-        height="160"
-        fill={palette.ink[6]}
-        stroke={ink}
-        strokeWidth="1.5"
-      />
-    ),
-  },
+  "sign-post": fileSlot(
+    signPost,
+    { width: 40, height: 420, anchor: { x: 20, y: 416 } },
+    0.75,
+    160 / 416,
+  ),
   /** The post across the track, shut, its foot on the track. It swings up to open. */
   gate: fileSlot(
     endPost,
@@ -342,87 +344,11 @@ export const art = {
   /** A red barn. */
   "stop-farm": stopIcon(iconBarn),
   /** A windmill. */
-  "stop-windmill": building(
-    <>
-      <path
-        d="M42 104 L50 48 H70 L78 104 Z"
-        fill={palette.sand[3]}
-        stroke={ink}
-        strokeWidth="5"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M60 44 L60 4 M60 44 L60 84 M60 44 L20 44 M60 44 L100 44"
-        stroke={palette.sky[6]}
-        strokeWidth="14"
-        strokeLinecap="round"
-      />
-      <circle cx="60" cy="44" r="9" fill={ink} />
-    </>,
-  ),
-  /** A log cabin with a chimney. */
-  "stop-cabin": building(
-    <>
-      <rect
-        x="78"
-        y="14"
-        width="16"
-        height="36"
-        fill={palette.slate[5]}
-        stroke={ink}
-        strokeWidth="4"
-      />
-      <path
-        d="M8 58 L60 16 L112 58 Z"
-        fill={palette.ember[7]}
-        stroke={ink}
-        strokeWidth="5"
-        strokeLinejoin="round"
-      />
-      <rect
-        x="16"
-        y="56"
-        width="88"
-        height="48"
-        fill={palette.sand[5]}
-        stroke={ink}
-        strokeWidth="5"
-      />
-      <path
-        d="M16 72 H104 M16 88 H104"
-        stroke={palette.sand[8]}
-        strokeWidth="4"
-      />
-      <rect
-        x="50"
-        y="70"
-        width="20"
-        height="34"
-        fill={palette.sand[8]}
-        stroke={ink}
-        strokeWidth="4"
-      />
-    </>,
-  ),
-  /** A mine: a timber doorway into the rock. */
-  "stop-mine": building(
-    <>
-      <path
-        d="M4 104 L28 34 L60 14 L94 36 L116 104 Z"
-        fill={palette.slate[5]}
-        stroke={ink}
-        strokeWidth="5"
-        strokeLinejoin="round"
-      />
-      <rect x="38" y="56" width="44" height="48" fill={ink} />
-      <path
-        d="M36 104 V52 H84 V104"
-        fill="none"
-        stroke={palette.sand[6]}
-        strokeWidth="9"
-      />
-    </>,
-  ),
+  "stop-windmill": stopIcon(iconWindmill),
+  /** A log cabin. */
+  "stop-cabin": stopIcon(iconCabin),
+  /** A mine. */
+  "stop-mine": stopIcon(iconMine),
   /** A sawmill. */
   "stop-sawmill": stopIcon(iconSawmill),
   /** A quarry. */
@@ -445,45 +371,22 @@ export const art = {
     { width: 424, height: 242, anchor: { x: 212, y: 121 } },
     signScale,
   ),
-  /** A sign where the train stalled or arrived with the wrong load: red. Stretched to its height. */
-  "sign-wrong": {
-    width: signBoard.width,
-    height: signBoard.double,
-    anchor: { x: signBoard.width / 2, y: signBoard.double / 2 },
-    draw: () => (
-      <rect
-        width={signBoard.width}
-        height={signBoard.double}
-        rx="11"
-        fill={palette.ember[6]}
-        fillOpacity="0.28"
-        stroke={palette.ember[7]}
-        strokeWidth="6"
-      />
-    ),
-  },
+  /** A stop's sign where the train stalled: red. Its building and number go on top. */
+  "sign-stop-wrong": singleSign(signSingleWrong),
+  /** The gate's sign when the train arrived with the wrong load: red. */
+  "sign-arrives-wrong": doubleSign(iconArrive, signDoubleWrong),
   /** The engine from the side, facing right. Anchored on the track. */
   engine: fileSlot(
     locomotive,
     { width: 240, height: 160, anchor: engineAnchor },
     trainScale,
   ),
-  /** The avatar in the cab; the portrait goes in at its base. */
-  driver: {
-    width: 36,
-    height: 36,
-    anchor: { x: 18, y: 18 },
-    draw: () => (
-      <circle
-        cx="18"
-        cy="18"
-        r="17"
-        fill={palette.sand[1]}
-        stroke={ink}
-        strokeWidth="2"
-      />
-    ),
-  },
+  /** The porthole in the cab; the avatar goes in the middle of it. */
+  driver: fileSlot(
+    cabCircle,
+    { width: 48, height: 48, anchor: { x: 24, y: 24 } },
+    44 / 48,
+  ),
   /** The wagon from the side with crates on it, anchored on the track. Its load's number floats above. */
   wagon: {
     width: wagonSize.width,
@@ -509,14 +412,10 @@ export const art = {
       </g>
     ),
   },
-  "crate-0": fileSlot(
-    crateFile,
-    { width: 64, height: 64, anchor: { x: 32, y: 32 } },
-    20 / 64,
-  ),
-  "crate-1": crate(1),
-  "crate-2": crate(2),
-  "crate-3": crate(3),
+  "crate-0": crateFrom(crateFile),
+  "crate-1": crateFrom(crate10),
+  "crate-2": crateFrom(crate100),
+  "crate-3": crateFrom(crate1000),
   "crate-4": crate(4),
   "crate-tenth": crate(-1),
   "crate-hundredth": crate(-2),

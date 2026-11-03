@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 420" width="40" height="420">
+  <!-- Sign post. Board sits on the cap at y=2; base at (20,416) goes on the ground. Scale on y only to change height. -->
+  <g stroke="#2b2350" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+    <rect x="12" y="10" width="16" height="396" rx="4" fill="#6e6788"/>
+    <path d="M16 18 V398" stroke="#9a93c9" stroke-width="3"/>
+    <rect x="8" y="2" width="24" height="14" rx="4" fill="#8e86c4"/>
+    <path d="M4 416 h32 l-6-14 h-20 z" fill="#5d5878"/>
+  </g>
+</svg>

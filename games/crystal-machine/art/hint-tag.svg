@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130 110" width="130" height="110">
+  <!-- Hint digit tag. Draw the digit in code centred at (65,54), ~44px, colour #2b2350. Pointer tip at (65,100): aim it at the display it refers to. -->
+  <g stroke="#2b2350" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M14 6 h102 q10 0 10 10 v52 q0 10-10 10 h-38 l-13 22 -13-22 h-38 q-10 0-10-10 v-52 q0-10 10-10 z" fill="#2b2350" transform="translate(0 6)"/>
+    <path d="M14 6 h102 q10 0 10 10 v52 q0 10-10 10 h-38 l-13 22 -13-22 h-38 q-10 0-10-10 v-52 q0-10 10-10 z" fill="#ffcc3d" stroke-width="4"/>
+    <path d="M18 14 h40" stroke="#fff3c4" stroke-width="4"/>
+  </g>
+</svg>
