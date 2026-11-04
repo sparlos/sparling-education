@@ -16,6 +16,7 @@
   "dependencies": {
     "@games/cargo-line": "workspace:*",
     "@games/crystal-machine": "workspace:*",
+    "@games/dart-towers": "workspace:*",
     "@games/fraction-hop": "workspace:*",
     "@hono/node-server": "2.1.5",
     "@hono/zod-openapi": "1.6.3",

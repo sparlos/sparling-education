@@ -42,6 +42,10 @@ export function hosted<M extends GameManifest>(
 }
 
 export const games: GameRegistry = {
+  "dart-towers": hosted(
+    () => import("@games/dart-towers"),
+    () => import("virtual:voice-lines/dart-towers"),
+  ),
   "cargo-line": hosted(
     () => import("@games/cargo-line"),
     () => import("virtual:voice-lines/cargo-line"),

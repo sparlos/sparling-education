@@ -1,0 +1,8 @@
+<!-- sun.svg | 80 x 80 | anchor: middle (40,40). Disc r26 with soft stepped halo to r38.5; shown up to 1.6x -->
+<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80" stroke-linejoin="round" stroke-linecap="round">
+<defs><linearGradient id="suns" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe48a"/><stop offset="1" stop-color="#ffc83a"/></linearGradient></defs>
+<circle cx="40" cy="40" r="38.5" fill="#fff2bd" opacity=".35"/>
+<circle cx="40" cy="40" r="33" fill="#fff2bd" opacity=".5"/>
+<circle cx="40" cy="40" r="26" fill="url(#suns)"/>
+<path d="M22.8 32 A19 19 0 0 1 32 22.8" fill="none" stroke="#fff" stroke-width="3" opacity=".75"/>
+</svg>

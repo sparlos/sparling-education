@@ -7,6 +7,8 @@ import { manifest as cargoLine } from "@games/cargo-line/manifest";
 import { simulate as simulateCargoLine } from "@games/cargo-line/simulate";
 import { manifest as crystalMachine } from "@games/crystal-machine/manifest";
 import { simulate as simulateCrystalMachine } from "@games/crystal-machine/simulate";
+import { manifest as dartTowers } from "@games/dart-towers/manifest";
+import { simulate as simulateDartTowers } from "@games/dart-towers/simulate";
 import { manifest as fractionHop } from "@games/fraction-hop/manifest";
 import { manifestV1 as fractionHopV1 } from "@games/fraction-hop/manifest-v1";
 import { simulate as simulateFractionHop } from "@games/fraction-hop/simulate";
@@ -45,6 +47,7 @@ const games = [
   hosted(fractionHop, simulateFractionHop),
   hosted(crystalMachine, simulateCrystalMachine),
   hosted(cargoLine, simulateCargoLine),
+  hosted(dartTowers, simulateDartTowers),
 ];
 const manifests: readonly GameManifest[] = games.map((g) => g.manifest);
 

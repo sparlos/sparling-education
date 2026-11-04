@@ -32,6 +32,11 @@ export const math2020 = {
       "Solves story problems that add or subtract whole numbers with totals up to 1000, whether the unknown is the result, the change or the start, using tools, models such as number lines and bar models, and written methods.",
     link: "https://www.dcp.edu.gov.on.ca/en/curriculum/elementary-mathematics/grades/g3-math/strand-b/b2#b2-5",
   },
+  "math-2020.g3.B2.6": {
+    description:
+      "Builds and draws times facts as far as 10 × 10, and sharing as far as 100 ÷ 10, with counters, number lines and rows and columns, connecting the picture to the number sentence.",
+    link: "https://www.dcp.edu.gov.on.ca/en/curriculum/elementary-mathematics/grades/g3-math/strand-b/b2#b2-6",
+  },
   "math-2020.g3.B2.8": {
     description:
       "Shows with tools, drawings and fraction notation that the numerator counts unit fractions: three fifths is one fifth added three times.",
@@ -62,6 +67,11 @@ export const math2020 = {
       "Solves story problems that add or subtract whole numbers with totals up to 10 000, and decimals in tenths, choosing tools and strategies, the column method included.",
     link: "https://www.dcp.edu.gov.on.ca/en/curriculum/elementary-mathematics/grades/g4-math/strand-b/b2#b2-4",
   },
+  "math-2020.g4.B2.5": {
+    description:
+      "Solves problems that multiply a two- or three-digit number by a one-digit number, or by 10, 100 or 1000, with tools such as arrays split into easy parts.",
+    link: "https://www.dcp.edu.gov.on.ca/en/curriculum/elementary-mathematics/grades/g4-math/strand-b/b2#b2-5",
+  },
   "math-2020.g5.B1.1": {
     description:
       "Reads and shows whole numbers to 100 000 in many forms, expanded notation included, builds them up and splits them apart in different ways (10 620 as 106 hundreds and 20 ones), and talks about where people use numbers every day.",
@@ -81,6 +91,11 @@ export const math2020 = {
     description:
       "Solves story problems that add or subtract whole numbers with totals up to 100 000, and decimals to hundredths, choosing tools and strategies, the column method included.",
     link: "https://www.dcp.edu.gov.on.ca/en/curriculum/elementary-mathematics/grades/g5-math/strand-b/b2#b2-4",
+  },
+  "math-2020.g5.B2.6": {
+    description:
+      "Solves problems that multiply two two-digit numbers, with a rectangle split into parts and with a written method, and shows how the parts match the method's steps.",
+    link: "https://www.dcp.edu.gov.on.ca/en/curriculum/elementary-mathematics/grades/g5-math/strand-b/b2#b2-6",
   },
   "math-2020.g5.B2.5": {
     description:

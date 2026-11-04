@@ -1,0 +1,62 @@
+<!-- wall-hit.svg | 56 x 424 | anchor: top left (0,0). Identical frame to wall.svg, red -->
+<svg xmlns="http://www.w3.org/2000/svg" width="56" height="424" viewBox="0 0 56 424" stroke-linejoin="round" stroke-linecap="round">
+<defs><linearGradient id="wallhst" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f5a08c"/><stop offset="1" stop-color="#e2604c"/></linearGradient></defs>
+<path d="M1.5 422.5 L1.5 4 Q1.5 1.5 4 1.5 L19 1.5 Q21.5 1.5 21.5 4 L21.5 20 L34.5 20 L34.5 4 Q34.5 1.5 37 1.5 L52 1.5 Q54.5 1.5 54.5 4 L54.5 422.5 Z" fill="#b8402e"/>
+<rect x="4.00" y="4.00" width="15.00" height="14.50" rx="4.5" fill="url(#wallhst)"/>
+<rect x="37.00" y="4.00" width="15.00" height="14.50" rx="4.5" fill="url(#wallhst)"/>
+<path d="M40.50 8.00 L48.00 8.00" stroke="#fff" stroke-width="2" opacity=".55"/>
+<rect x="4.10" y="21.60" width="22.30" height="21.96" rx="4.5" fill="url(#wallhst)"/>
+<rect x="29.60" y="21.60" width="22.30" height="21.96" rx="4.5" fill="url(#wallhst)"/>
+<rect x="4.10" y="46.76" width="12.30" height="21.96" rx="4.5" fill="url(#wallhst)"/>
+<path d="M7.60 50.76 L12.40 50.76" stroke="#fff" stroke-width="2" opacity=".55"/>
+<rect x="19.60" y="46.76" width="16.80" height="21.96" rx="4.5" fill="url(#wallhst)"/>
+<rect x="39.60" y="46.76" width="12.30" height="21.96" rx="4.5" fill="url(#wallhst)"/>
+<rect x="4.10" y="71.91" width="22.30" height="21.96" rx="4.5" fill="url(#wallhst)"/>
+<path d="M7.60 75.91 L15.10 75.91" stroke="#fff" stroke-width="2" opacity=".55"/>
+<rect x="29.60" y="71.91" width="22.30" height="21.96" rx="4.5" fill="url(#wallhst)"/>
+<rect x="4.10" y="97.07" width="12.30" height="21.96" rx="4.5" fill="url(#wallhst)"/>
+<rect x="19.60" y="97.07" width="16.80" height="21.96" rx="4.5" fill="url(#wallhst)"/>
+<path d="M23.10 101.07 L30.60 101.07" stroke="#fff" stroke-width="2" opacity=".55"/>
+<rect x="39.60" y="97.07" width="12.30" height="21.96" rx="4.5" fill="url(#wallhst)"/>
+<rect x="4.10" y="122.22" width="22.30" height="21.96" rx="4.5" fill="url(#wallhst)"/>
+<rect x="29.60" y="122.22" width="22.30" height="21.96" rx="4.5" fill="url(#wallhst)"/>
+<path d="M33.10 126.22 L40.60 126.22" stroke="#fff" stroke-width="2" opacity=".55"/>
+<rect x="4.10" y="147.38" width="12.30" height="21.96" rx="4.5" fill="url(#wallhst)"/>
+<rect x="19.60" y="147.38" width="16.80" height="21.96" rx="4.5" fill="url(#wallhst)"/>
+<rect x="39.60" y="147.38" width="12.30" height="21.96" rx="4.5" fill="url(#wallhst)"/>
+<path d="M43.10 151.38 L47.90 151.38" stroke="#fff" stroke-width="2" opacity=".55"/>
+<rect x="4.10" y="172.54" width="22.30" height="21.96" rx="4.5" fill="url(#wallhst)"/>
+<rect x="29.60" y="172.54" width="22.30" height="21.96" rx="4.5" fill="url(#wallhst)"/>
+<rect x="4.10" y="197.69" width="12.30" height="21.96" rx="4.5" fill="url(#wallhst)"/>
+<path d="M7.60 201.69 L12.40 201.69" stroke="#fff" stroke-width="2" opacity=".55"/>
+<rect x="19.60" y="197.69" width="16.80" height="21.96" rx="4.5" fill="url(#wallhst)"/>
+<rect x="39.60" y="197.69" width="12.30" height="21.96" rx="4.5" fill="url(#wallhst)"/>
+<rect x="4.10" y="222.85" width="22.30" height="21.96" rx="4.5" fill="url(#wallhst)"/>
+<path d="M7.60 226.85 L15.10 226.85" stroke="#fff" stroke-width="2" opacity=".55"/>
+<rect x="29.60" y="222.85" width="22.30" height="21.96" rx="4.5" fill="url(#wallhst)"/>
+<rect x="4.10" y="248.01" width="12.30" height="21.96" rx="4.5" fill="url(#wallhst)"/>
+<rect x="19.60" y="248.01" width="16.80" height="21.96" rx="4.5" fill="url(#wallhst)"/>
+<path d="M23.10 252.01 L30.60 252.01" stroke="#fff" stroke-width="2" opacity=".55"/>
+<rect x="39.60" y="248.01" width="12.30" height="21.96" rx="4.5" fill="url(#wallhst)"/>
+<rect x="4.10" y="273.16" width="22.30" height="21.96" rx="4.5" fill="url(#wallhst)"/>
+<rect x="29.60" y="273.16" width="22.30" height="21.96" rx="4.5" fill="url(#wallhst)"/>
+<path d="M33.10 277.16 L40.60 277.16" stroke="#fff" stroke-width="2" opacity=".55"/>
+<rect x="4.10" y="298.32" width="12.30" height="21.96" rx="4.5" fill="url(#wallhst)"/>
+<rect x="19.60" y="298.32" width="16.80" height="21.96" rx="4.5" fill="url(#wallhst)"/>
+<rect x="39.60" y="298.32" width="12.30" height="21.96" rx="4.5" fill="url(#wallhst)"/>
+<path d="M43.10 302.32 L47.90 302.32" stroke="#fff" stroke-width="2" opacity=".55"/>
+<rect x="4.10" y="323.48" width="22.30" height="21.96" rx="4.5" fill="url(#wallhst)"/>
+<rect x="29.60" y="323.48" width="22.30" height="21.96" rx="4.5" fill="url(#wallhst)"/>
+<rect x="4.10" y="348.63" width="12.30" height="21.96" rx="4.5" fill="url(#wallhst)"/>
+<path d="M7.60 352.63 L12.40 352.63" stroke="#fff" stroke-width="2" opacity=".55"/>
+<rect x="19.60" y="348.63" width="16.80" height="21.96" rx="4.5" fill="url(#wallhst)"/>
+<rect x="39.60" y="348.63" width="12.30" height="21.96" rx="4.5" fill="url(#wallhst)"/>
+<rect x="4.10" y="373.79" width="22.30" height="21.96" rx="4.5" fill="url(#wallhst)"/>
+<path d="M7.60 377.79 L15.10 377.79" stroke="#fff" stroke-width="2" opacity=".55"/>
+<rect x="29.60" y="373.79" width="22.30" height="21.96" rx="4.5" fill="url(#wallhst)"/>
+<rect x="4.10" y="398.94" width="12.30" height="21.96" rx="4.5" fill="url(#wallhst)"/>
+<rect x="19.60" y="398.94" width="16.80" height="21.96" rx="4.5" fill="url(#wallhst)"/>
+<path d="M23.10 402.94 L30.60 402.94" stroke="#fff" stroke-width="2" opacity=".55"/>
+<rect x="39.60" y="398.94" width="12.30" height="21.96" rx="4.5" fill="url(#wallhst)"/>
+<path d="M1.5 422.5 L1.5 4 Q1.5 1.5 4 1.5 L19 1.5 Q21.5 1.5 21.5 4 L21.5 20 L34.5 20 L34.5 4 Q34.5 1.5 37 1.5 L52 1.5 Q54.5 1.5 54.5 4 L54.5 422.5 Z" fill="none" stroke="#2b2350" stroke-width="3"/>
+</svg>

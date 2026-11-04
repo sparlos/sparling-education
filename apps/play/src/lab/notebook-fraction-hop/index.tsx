@@ -24,6 +24,7 @@ export const meta: PrototypeMeta = {
     },
   ],
   fun: "This one tests comfort, not fun: can a student get the notebook out of the way and still read it?",
+  isArchived: true,
 };
 
 interface Fraction {

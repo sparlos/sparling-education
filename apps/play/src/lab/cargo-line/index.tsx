@@ -44,6 +44,7 @@ export const meta: PrototypeMeta = {
   sampleTask:
     "math-2020.g3.B2.5's change situations where the start, the change or the result is unknown (taking 58 away from 867, the unknown part of 600), and math-2020.g4.B2.4's sample task of problems with the start, change or total unknown. math-2020.g5.B2.4's 9.31 − 6.8 for decimals.",
   fun: "Railbound and Train Valley's loop: set up the line, press go, and watch the train run it. Each stop is a little reveal as the load ticks up or down, and the city's gate is the payoff, or the train stalls at the stop where the plan went wrong.",
+  isArchived: true,
 };
 
 const jobsPerRound = 6;

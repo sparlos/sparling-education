@@ -1,0 +1,19 @@
+<!-- sun-rays.svg | 240 x 240 | anchor: middle (120,120). Rays from r54 outward, centre empty for the sun; grows to 1.3x -->
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="240" viewBox="0 0 240 240" stroke-linejoin="round" stroke-linecap="round">
+<polygon points="118.1,66.0 108.6,6.6 131.4,6.6 121.9,66.0" fill="#ffe17a" stroke="#ffe17a" stroke-width="5" opacity=".7"/>
+<polygon points="138.9,69.4 148.5,30.4 163.2,36.5 142.4,70.9" fill="#fff0b3" stroke="#fff0b3" stroke-width="5" opacity=".8"/>
+<polygon points="156.8,80.5 192.2,31.7 208.3,47.8 159.5,83.2" fill="#ffe17a" stroke="#ffe17a" stroke-width="5" opacity=".7"/>
+<polygon points="169.1,97.6 203.5,76.8 209.6,91.5 170.6,101.1" fill="#fff0b3" stroke="#fff0b3" stroke-width="5" opacity=".8"/>
+<polygon points="174.0,118.1 233.4,108.6 233.4,131.4 174.0,121.9" fill="#ffe17a" stroke="#ffe17a" stroke-width="5" opacity=".7"/>
+<polygon points="170.6,138.9 209.6,148.5 203.5,163.2 169.1,142.4" fill="#fff0b3" stroke="#fff0b3" stroke-width="5" opacity=".8"/>
+<polygon points="159.5,156.8 208.3,192.2 192.2,208.3 156.8,159.5" fill="#ffe17a" stroke="#ffe17a" stroke-width="5" opacity=".7"/>
+<polygon points="142.4,169.1 163.2,203.5 148.5,209.6 138.9,170.6" fill="#fff0b3" stroke="#fff0b3" stroke-width="5" opacity=".8"/>
+<polygon points="121.9,174.0 131.4,233.4 108.6,233.4 118.1,174.0" fill="#ffe17a" stroke="#ffe17a" stroke-width="5" opacity=".7"/>
+<polygon points="101.1,170.6 91.5,209.6 76.8,203.5 97.6,169.1" fill="#fff0b3" stroke="#fff0b3" stroke-width="5" opacity=".8"/>
+<polygon points="83.2,159.5 47.8,208.3 31.7,192.2 80.5,156.8" fill="#ffe17a" stroke="#ffe17a" stroke-width="5" opacity=".7"/>
+<polygon points="70.9,142.4 36.5,163.2 30.4,148.5 69.4,138.9" fill="#fff0b3" stroke="#fff0b3" stroke-width="5" opacity=".8"/>
+<polygon points="66.0,121.9 6.6,131.4 6.6,108.6 66.0,118.1" fill="#ffe17a" stroke="#ffe17a" stroke-width="5" opacity=".7"/>
+<polygon points="69.4,101.1 30.4,91.5 36.5,76.8 70.9,97.6" fill="#fff0b3" stroke="#fff0b3" stroke-width="5" opacity=".8"/>
+<polygon points="80.5,83.2 31.7,47.8 47.8,31.7 83.2,80.5" fill="#ffe17a" stroke="#ffe17a" stroke-width="5" opacity=".7"/>
+<polygon points="97.6,70.9 76.8,36.5 91.5,30.4 101.1,69.4" fill="#fff0b3" stroke="#fff0b3" stroke-width="5" opacity=".8"/>
+</svg>

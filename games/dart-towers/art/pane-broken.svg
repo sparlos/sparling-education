@@ -1,0 +1,10 @@
+<!-- pane-broken.svg | 36 x 36 | anchor: top left (0,0). Same frame as pane.svg; centre is open -->
+<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 36 36" stroke-linejoin="round" stroke-linecap="round">
+<path d="M1 1 L17 1 L13 6.5 L8 5 L5 12 L1 16 Z" fill="#eaf6fd" fill-opacity=".95" stroke="#2b2350" stroke-width="1.5"/>
+<path d="M22 1 L35 1 L35 13 L30 10 L27 4 Z" fill="#eaf6fd" fill-opacity=".95" stroke="#2b2350" stroke-width="1.5"/>
+<path d="M35 18.5 L35 26 L30.5 22 Z" fill="#eaf6fd" fill-opacity=".95" stroke="#2b2350" stroke-width="1.5"/>
+<path d="M35 30 L35 35 L20 35 L25 29.5 L30 32 Z" fill="#eaf6fd" fill-opacity=".95" stroke="#2b2350" stroke-width="1.5"/>
+<path d="M1 21.5 L6.5 27 L5 31 L12.5 35 L1 35 Z" fill="#eaf6fd" fill-opacity=".95" stroke="#2b2350" stroke-width="1.5"/>
+<path d="M13 6.5 L17.5 10.5 M30 10 L25.5 14 M6.5 27 L11 24.5 M25 29.5 L23 25" stroke="#2b2350" stroke-width="1.2" opacity=".75"/>
+<path d="M3.5 5 L8 3.5" stroke="#fff" stroke-width="1.5"/>
+</svg>

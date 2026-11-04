@@ -33,6 +33,7 @@ export const meta: PrototypeMeta = {
   sampleTask:
     "math-2020.g5.B1.1's example of 10 620 as 106 hundreds and 20 ones, math-2020.g4.B1.1's 8621 as 7 thousands + 16 hundreds + 2 tens + 1 one, and math-2020.g3.B1.1, sample task 2's clue \"my number has 16 tens and 16 ones\".",
   fun: "Fraction Hop's plan-then-watch loop with a chain-reaction payoff, like 2048 merges or a Rube Goldberg machine: you set it up, press go, and the fusing cascades. 999 + 1 sets off every tube at once.",
+  isArchived: true,
 };
 
 const ordersPerRound = 6;

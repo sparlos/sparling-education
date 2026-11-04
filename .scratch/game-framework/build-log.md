@@ -450,3 +450,51 @@ One play is one trip across a treasure map. `games/fraction-hop/src/game/Treasur
 - **Gotcha: the lab's root isn't the game's.** The shell's rail and strip make the game area narrower, 2.05:1 at 1366 and 1.92:1 at 1280 against the lab's 2.35:1, so filling it cropped the islands. The map now fits inside, with open sea around it.
 - **The tests' `avatar`:** the fake shell's Avatar appears in the hopper, the map and the ending, so tests ask inside `hopper`.
 - **Left open:** sounds (Fraction Hop has none), and real art for the map's slots.
+
+## Dart Towers (accepted as playable, 2026-11-04)
+
+`games/dart-towers`, registered in `apps/play`, hosted in `apps/api` (turned on in every class, in the demo class). Playable at `/play/dart-towers`. The founder accepted it with no changes.
+
+### What's where
+
+- `src/rules/`: `parts.ts` (a wave and its parts), `waves.ts` (kinds per tier, `isFair`, the generator), `judge.ts` (the four misconceptions as predictions), `volley.ts` (what's left and what's broken after any number of darts), `wave.ts` (the pad, Fire, Try again, the hint, each attempt, the lines), `teacher.ts`, `simulate.ts`.
+- `src/game/`: `DartTowers.tsx` (wiring), `Board.tsx` (the frame), `Field.tsx` (the picture), `swarm.ts` (bugs or blocks, what's standing, label placing), `night.ts`, `caption.ts`, `art.tsx`, `tutorial.ts`.
+- `art/splash.svg` and `share.png`: a stand-in drawn to `asset-gen/STYLE.md`. The try site's test needs both for every hosted game.
+- 116 game tests; 45 mutations, all caught; the tour is clean at all tiers and both sizes. API (288) and play shell (525) tests pass.
+
+### Decisions
+
+- **Swarms are tiled SVG patterns, not an element a bug,** with at most two rectangles a part (the part-eaten column and the full ones behind it), so 1000 bugs cost almost nothing.
+- **No contract or frame change.**
+- **The generator gives up with an error after 1000 picks** rather than looping: a mutation that made a kind unfair hung Vitest for its full 10 minutes.
+- **No sounds yet.** The spec names none.
+
+### Readings (for the founder)
+
+The founder accepted the game without changing any of the 13 readings, so all are in SPEC.md as built: the goal line on a first play, the tutorial's hand and the order of its second round, easiest first within a kind, the number ranges, avoiding waves where wrong ideas collide, one extra breaking one pane, Try again's line, the pad after a miss, the hint's glow and answers in labels, the swarm marching as one, five towers, and the morning line on the field.
+
+### Where the founder stepped in
+
+None during the build. They asked for a list of the art to replace the placeholders (21 files; not started).
+
+### Polish (2026-11-04)
+
+The founder's ask: "firing of the bullets & killing of bugs needs to be a bit more punchy", then every item on the list, plus wiring the art, the share image from the splash, and the scene looking like the splash with its sun and hills in code.
+
+- **Art wired:** every file in `art/` through `fileSlot`. `share.png` rendered from `splash.svg` (1376 × 768).
+- **Scene rebuilt from the splash:** bigger sky (`area` is now 332 tall, was 396, so a wave of 24 or more lanes draws as blocks, was 29), gradient sky and field, two lines of hills with pines, stars, drifting clouds, and the wall and greenhouse standing on the grass. Each colour list has one stop per wave, so the sky doesn't mix through grey. `stop-color`, `fill`, `color` and `opacity` all transition, for 5 s during the sunrise.
+- **`Effects.tsx`:** fixed pools animated with Web Animations on `transform` and `opacity`. Darts leave `flightMs` before their bug goes down, so the counter starts when the first lands; the volley's total length is unchanged. `bugAt` in `swarm.ts` is where dart n lands, tested against `standing`.
+- **Also:** glass smash, wall charge and thud (the wall now turns red on arrival, not as the swarm sets off), march-in and shuffle, swarm centred, wave-clear moment (`clearMs` before the voice), sunrise glow and uncut rays, labels sliding clear of the towers, cleared patches under labels. Hint ripple made smaller in `@repo/game-kit`, for every game, since it was cut off by the screen's edge.
+- **Sounds:** five stand-ins synthesised by `audio/synth.mjs`. The founder should replace or tune them by ear.
+- **Left:** the avatar is still a portrait with a pasted-on arm. No slow-motion on the last bug, since the counter has to run at one speed.
+
+### Gotchas
+
+- **Never copy files back from the scratch copy while `pnpm mutate` runs there.** A copy-back caught a mutation mid-run and put it in the repo (`offByAZero` lost its "too small" case). A test caught it on the next run. Stopping `mutate` with `pkill -f` from a shell whose own command line matches kills that shell too.
+- **Vitest's file cache keeps `import.meta.glob` results.** `splash-art.ts` didn't see a new `art/splash.svg` until `node_modules/.vitest-cache` was deleted, so the try test failed on a file that existed.
+- **`heldVoice` only settles the latest line,** but the real shell settles a line when it's cut off. A test of "the student moved on while it was said" needs its own voice that settles the old line, or the code under test never resumes.
+- `apps/play/src/ui/App.test.tsx(734)` has a type error in `tsc`, from before this build.
+
+### Polish list
+
+Real art for every slot; sound effects and music; bugs marching in on arrival; the sun, rays and greenhouse's light at the end; a hit moment on each broken pane.

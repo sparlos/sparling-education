@@ -75,6 +75,12 @@ describe("creating a class", () => {
           on: true,
           path: `/play/cargo-line?join=${created.joinCode}`,
         },
+        {
+          slug: "dart-towers",
+          name: "Dart Towers",
+          on: true,
+          path: `/play/dart-towers?join=${created.joinCode}`,
+        },
       ],
     });
   });

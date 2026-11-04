@@ -1,0 +1,265 @@
+/* Dart Towers' picture and its dart counter. Motion here is the journey's and
+   the volley's; `prefers-reduced-motion` turns all of it off. */
+
+.scene {
+  width: 100%;
+  height: 100%;
+  display: block;
+  border-radius: 16px;
+  touch-action: manipulation;
+}
+
+/* The night's colours move from one to the next as the sky lightens, and
+   over the whole sunrise at the end. */
+.fade {
+  transition:
+    fill 1.5s linear,
+    color 1.5s linear,
+    stop-color 1.5s linear,
+    opacity 1.5s linear;
+}
+
+.sun {
+  transition: transform 1.5s ease-in-out;
+}
+
+.scene[data-ending] .fade {
+  transition-duration: 5s;
+}
+
+.scene[data-ending] .sun {
+  transition-duration: 5s;
+}
+
+.horizon {
+  transition: transform 5s ease-in-out;
+}
+
+.rays {
+  animation: raysIn 5s ease-out both;
+  transform-origin: 0 0;
+}
+
+@keyframes raysIn {
+  from {
+    opacity: 0;
+    transform: scale(0.4) rotate(-30deg);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1.3) rotate(0deg);
+  }
+}
+
+/* The clouds wander slowly. */
+.cloud {
+  animation: drift 40s ease-in-out infinite alternate;
+}
+
+@keyframes drift {
+  to {
+    transform: translateX(70px);
+  }
+}
+
+/* What's left comes back quickly on Try again, and charges the wall. */
+.swarm {
+  transition: transform 0.25s ease-out;
+}
+
+.swarm[data-marched] {
+  transition: transform 0.65s cubic-bezier(0.6, 0, 0.95, 0.5);
+}
+
+/* The bugs march in from the far side, and shuffle as they wait. */
+.marchIn {
+  animation: marchIn 0.7s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+
+@keyframes marchIn {
+  from {
+    opacity: 0;
+    transform: translateX(150px);
+  }
+}
+
+.bob {
+  animation: bob 0.9s ease-in-out infinite alternate;
+}
+
+@keyframes bob {
+  to {
+    transform: translateY(-3px);
+  }
+}
+
+/* A charge is a scramble; a swarm at the wall holds still, and bounces once. */
+.swarm[data-marched] .bob {
+  animation-duration: 0.14s;
+}
+
+.swarm[data-hit] .bob {
+  animation: bounced 0.25s ease-out both;
+}
+
+@keyframes bounced {
+  from {
+    transform: translateX(-10px);
+  }
+  40% {
+    transform: translateX(14px);
+  }
+  to {
+    transform: none;
+  }
+}
+
+.labelIn {
+  animation: arrive 0.5s ease-out 0.25s both;
+}
+
+@keyframes arrive {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Only as the swarm charges: a label that grows with a hint just moves. */
+.swarm[data-marched]:not([data-hit]) .labelSlide {
+  transition: transform 0.65s ease-in;
+}
+
+/* Pooled effects stay hidden until they're played. */
+.pooled {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.sparkle {
+  animation: sparkle 0.5s ease-out both;
+}
+
+@keyframes sparkle {
+  from {
+    opacity: 0;
+    transform: scale(0.2) rotate(-40deg);
+  }
+  45% {
+    opacity: 1;
+    transform: scale(1.4) rotate(0deg);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.7) rotate(25deg);
+  }
+}
+
+.hop {
+  animation: hop 0.35s ease-in-out 2;
+}
+
+@keyframes hop {
+  50% {
+    transform: translateY(-14px);
+  }
+}
+
+/* The greenhouse catches the sun. */
+.glow {
+  animation: glow 3s ease-out 1s both;
+}
+
+@keyframes glow {
+  from {
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.55;
+  }
+  to {
+    opacity: 0.22;
+  }
+}
+
+.twinkle {
+  animation: sparkle 1s ease-out both;
+}
+
+.scatter {
+  animation: run 3s ease-in both;
+}
+
+@keyframes run {
+  to {
+    opacity: 0;
+    transform: translate(var(--run-x), var(--run-y));
+  }
+}
+
+.labelText {
+  font-size: 20px;
+  font-weight: 800;
+  fill: var(--k-ink);
+  pointer-events: none;
+}
+
+.endLine {
+  font-size: 40px;
+  font-weight: 800;
+  fill: var(--k-ink);
+  paint-order: stroke;
+  stroke: white;
+  stroke-width: 8px;
+  stroke-linejoin: round;
+}
+
+.counter {
+  min-height: 56px;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 12px;
+  border: 3px solid var(--k-border-strong);
+  background: white;
+  font-size: 34px;
+  font-weight: 800;
+  line-height: 44px;
+  font-variant-numeric: tabular-nums;
+}
+
+.counter small {
+  font-size: 16px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fade,
+  .sun,
+  .horizon,
+  .swarm,
+  .swarm[data-marched],
+  .swarm[data-marched]:not([data-hit]) .labelSlide,
+  .scene[data-ending] .fade,
+  .scene[data-ending] .sun {
+    transition: none;
+  }
+  .rays,
+  .cloud,
+  .marchIn,
+  .bob,
+  .swarm[data-marched] .bob,
+  .swarm[data-hit] .bob,
+  .labelIn,
+  .sparkle,
+  .hop,
+  .twinkle,
+  .scatter {
+    animation: none;
+  }
+  /* At its strongest, with no change. */
+  .glow {
+    animation: none;
+    opacity: 0.22;
+  }
+}

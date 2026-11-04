@@ -85,6 +85,13 @@ describe("the dashboard", () => {
           link: expectation("math-2020.g4.B2.4").link,
         },
         {
+          id: "math-2020.g4.B2.5",
+          grade: 4,
+          code: "B2.5",
+          description: expectation("math-2020.g4.B2.5").description,
+          link: expectation("math-2020.g4.B2.5").link,
+        },
+        {
           id: "math-2020.g5.B1.1",
           grade: 5,
           code: "B1.1",
@@ -104,6 +111,13 @@ describe("the dashboard", () => {
           code: "B2.4",
           description: expectation("math-2020.g5.B2.4").description,
           link: expectation("math-2020.g5.B2.4").link,
+        },
+        {
+          id: "math-2020.g5.B2.6",
+          grade: 5,
+          code: "B2.6",
+          description: expectation("math-2020.g5.B2.6").description,
+          link: expectation("math-2020.g5.B2.6").link,
         },
       ],
       students: [],

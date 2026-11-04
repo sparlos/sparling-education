@@ -20,6 +20,7 @@ export const meta: PrototypeMeta = {
   sampleTask:
     "math-2020.g5.B2.4: adding and subtracting whole numbers up to 100 000 with appropriate tools, strategies and algorithms.",
   fun: "This one tests comfort, not fun: is writing a sum with a finger good enough that a student would reach for it instead of paper?",
+  isArchived: true,
 };
 
 const firstJob: Job = {

@@ -37,6 +37,7 @@ export const meta: PrototypeMeta = {
   sampleTask:
     "math-2020.g3.B2.5's change situations where the start, the change or the result is unknown, and math-2020.g4.B2.4's sample task of problems with the start, change or total unknown.",
   fun: "The same plan-then-watch loop as Cargo Line, with a journey around it: the gates opening one by one and the train getting higher are a reason to keep going, and the summit is a finish line.",
+  isArchived: true,
 };
 
 const tripsPerClimb = 6;
