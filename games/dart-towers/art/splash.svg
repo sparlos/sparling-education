@@ -1,4 +1,4 @@
-<!-- splash.svg | 1376 x 768 | card / start-screen art. No text; top centre left clear for a title -->
+<!-- splash.svg | 1376 x 768 | card / start-screen art. Title "Dart Towers" + tag "MULTIPLICATION" as live text in Fredoka (falls back if not installed) -->
 <svg xmlns="http://www.w3.org/2000/svg" width="1376" height="768" viewBox="0 0 1376 768" stroke-linejoin="round" stroke-linecap="round">
 <defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7d79c6"/><stop offset=".45" stop-color="#c4b6e8"/><stop offset=".72" stop-color="#ffd9c2"/><stop offset="1" stop-color="#ffe9cf"/></linearGradient><linearGradient id="field" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8dc979"/><stop offset="1" stop-color="#6fb85a"/></linearGradient><linearGradient id="sus" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe48a"/><stop offset="1" stop-color="#ffc83a"/></linearGradient><linearGradient id="ghi" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#eef8ea"/><stop offset="1" stop-color="#cfe5c8"/></linearGradient><linearGradient id="ghr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e2f2fb"/><stop offset="1" stop-color="#bfdff2"/></linearGradient><linearGradient id="wlst" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d6c9ae"/><stop offset="1" stop-color="#b9a785"/></linearGradient><linearGradient id="cmg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe17a"/><stop offset="1" stop-color="#e8a92a"/></linearGradient><linearGradient id="cmw" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c8935f"/><stop offset="1" stop-color="#9c6c3e"/></linearGradient><linearGradient id="tww" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c8935f"/><stop offset="1" stop-color="#9c6c3e"/></linearGradient><linearGradient id="twc" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f58a6e"/><stop offset="1" stop-color="#e0573c"/></linearGradient><linearGradient id="twb" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9d95d2"/><stop offset="1" stop-color="#6c63a6"/></linearGradient><linearGradient id="dtt" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff3c4" stop-opacity="0"/><stop offset="1" stop-color="#ffe17a" stop-opacity=".95"/></linearGradient><linearGradient id="bg1b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ec7c67"/><stop offset="1" stop-color="#c23e25"/></linearGradient><linearGradient id="bg2b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#61a7da"/><stop offset="1" stop-color="#1f71ad"/></linearGradient><linearGradient id="bg3b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e7bb5a"/><stop offset="1" stop-color="#bc8816"/></linearGradient><linearGradient id="bg4b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#958abb"/><stop offset="1" stop-color="#5c4f88"/></linearGradient><linearGradient id="bgstragglerb" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7d7998"/><stop offset="1" stop-color="#403b5f"/></linearGradient></defs>
 <rect width="1376" height="768" fill="url(#sky)"/>
@@ -16,7 +16,7 @@
 <circle cx="980" cy="90" r="2" fill="#fff" opacity=".7"/>
 <circle cx="1220" cy="150" r="2" fill="#fff" opacity=".7"/>
 <circle cx="60" cy="170" r="2" fill="#fff" opacity=".7"/>
-<g transform="translate(1050 270) scale(1.3) translate(-120 -120)"><polygon points="118.1,66.0 108.6,6.6 131.4,6.6 121.9,66.0" fill="#ffe17a" stroke="#ffe17a" stroke-width="5" opacity=".7"/>
+<g transform="translate(1090 310) scale(1.3) translate(-120 -120)"><polygon points="118.1,66.0 108.6,6.6 131.4,6.6 121.9,66.0" fill="#ffe17a" stroke="#ffe17a" stroke-width="5" opacity=".7"/>
 <polygon points="138.9,69.4 148.5,30.4 163.2,36.5 142.4,70.9" fill="#fff0b3" stroke="#fff0b3" stroke-width="5" opacity=".8"/>
 <polygon points="156.8,80.5 192.2,31.7 208.3,47.8 159.5,83.2" fill="#ffe17a" stroke="#ffe17a" stroke-width="5" opacity=".7"/>
 <polygon points="169.1,97.6 203.5,76.8 209.6,91.5 170.6,101.1" fill="#fff0b3" stroke="#fff0b3" stroke-width="5" opacity=".8"/>
@@ -32,12 +32,12 @@
 <polygon points="69.4,101.1 30.4,91.5 36.5,76.8 70.9,97.6" fill="#fff0b3" stroke="#fff0b3" stroke-width="5" opacity=".8"/>
 <polygon points="80.5,83.2 31.7,47.8 47.8,31.7 83.2,80.5" fill="#ffe17a" stroke="#ffe17a" stroke-width="5" opacity=".7"/>
 <polygon points="97.6,70.9 76.8,36.5 91.5,30.4 101.1,69.4" fill="#fff0b3" stroke="#fff0b3" stroke-width="5" opacity=".8"/></g>
-<g transform="translate(1050 270) scale(1.6) translate(-40 -40)"><circle cx="40" cy="40" r="38.5" fill="#fff2bd" opacity=".35"/>
+<g transform="translate(1090 310) scale(1.6) translate(-40 -40)"><circle cx="40" cy="40" r="38.5" fill="#fff2bd" opacity=".35"/>
 <circle cx="40" cy="40" r="33" fill="#fff2bd" opacity=".5"/>
 <circle cx="40" cy="40" r="26" fill="url(#sus)"/>
 <path d="M22.8 32 A19 19 0 0 1 32 22.8" fill="none" stroke="#fff" stroke-width="3" opacity=".75"/></g>
 <g transform="translate(60 300) scale(1)" fill="#fff" opacity=".75"><circle cx="0" cy="0" r="26"/><circle cx="34" cy="-12" r="34"/><circle cx="72" cy="0" r="24"/><rect x="-26" y="0" width="122" height="24" rx="12"/></g>
-<g transform="translate(560 240) scale(0.8)" fill="#fff" opacity=".75"><circle cx="0" cy="0" r="26"/><circle cx="34" cy="-12" r="34"/><circle cx="72" cy="0" r="24"/><rect x="-26" y="0" width="122" height="24" rx="12"/></g>
+<g transform="translate(500 280) scale(0.8)" fill="#fff" opacity=".75"><circle cx="0" cy="0" r="26"/><circle cx="34" cy="-12" r="34"/><circle cx="72" cy="0" r="24"/><rect x="-26" y="0" width="122" height="24" rx="12"/></g>
 <path d="M0 470 C200 400 380 430 560 450 S900 380 1100 420 S1300 440 1376 410 L1376 768 L0 768 Z" fill="#cbbfe8"/>
 <path d="M0 540 C250 495 450 520 700 535 S1100 495 1376 520 L1376 768 L0 768 Z" fill="#a9cca3"/>
 <polygon points="560,482 579,528 541,528" fill="#93bf8d"/>
@@ -544,4 +544,10 @@
 <circle cx="24.2" cy="22" r="3" fill="#2b2350"/>
 <circle cx="12.2" cy="20.6" r="1.1" fill="#fff"/>
 <circle cx="23.2" cy="20.6" r="1.1" fill="#fff"/></g>
+<rect x="353.0" y="56" width="670" height="134" rx="24" fill="#2b2350"/>
+<rect x="353.0" y="46" width="670" height="134" rx="24" fill="#fdfbff" stroke="#2b2350" stroke-width="5"/>
+<path d="M381.0 64 H503.0" stroke="#ece8fa" stroke-width="6"/>
+<text x="688" y="148" text-anchor="middle" font-family="Fredoka, Lexend, Nunito, 'Arial Rounded MT Bold', 'Helvetica Neue', Arial, sans-serif" font-weight="700" font-size="84" fill="#2b2350">Dart Towers</text>
+<rect x="532.0" y="23" width="312" height="46" rx="23" fill="#ef6b4f" stroke="#2b2350" stroke-width="4"/>
+<text x="688" y="55" text-anchor="middle" font-family="Fredoka, Lexend, Nunito, 'Arial Rounded MT Bold', 'Helvetica Neue', Arial, sans-serif" font-weight="700" font-size="24" letter-spacing="2.5" fill="#fdfbff">MULTIPLICATION</text>
 </svg>
