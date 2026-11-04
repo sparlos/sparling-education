@@ -118,7 +118,9 @@ export function Board(props: BoardProps) {
             />
           </div>
         }
-        caption={<Caption ids={props.caption} t={t} />}
+        caption={
+          props.caption.length > 0 ? <Caption ids={props.caption} t={t} /> : ""
+        }
         deckTop={
           <section className={styles.plan} aria-label={t("ui.plan")}>
             <span className={styles.label}>{t("ui.plan")}</span>

@@ -15,6 +15,10 @@ export interface Voice {
   stop(): void;
   /** The lines of the last instruction, if any. */
   readonly last: readonly string[] | null;
+  /** Whether an instruction is being said now. */
+  readonly speaking: boolean;
+  /** Hears `speaking` change. Returns its unlistening. */
+  listen(onChange: () => void): () => void;
 }
 
 /** A recording that's playing. */
@@ -116,6 +120,15 @@ export function createVoice(options: VoiceOptions): Voice {
   let stopCurrent: (() => void) | null = null;
   let settleCurrent: (() => void) | null = null;
   let generation = 0;
+  let speaking = false;
+  let instruction = 0;
+  const listeners = new Set<() => void>();
+
+  function setSpeaking(next: boolean) {
+    if (next === speaking) return;
+    speaking = next;
+    for (const listener of listeners) listener();
+  }
 
   function stop() {
     generation += 1;
@@ -185,6 +198,13 @@ export function createVoice(options: VoiceOptions): Voice {
     const undo = options.duck?.();
     const said = play(ids);
     if (undo) void said.then(undo);
+    // An instruction cut off by the next one mustn't end the next one's turn.
+    instruction += 1;
+    const mine = instruction;
+    setSpeaking(true);
+    void said.then(() => {
+      if (mine === instruction) setSpeaking(false);
+    });
     return said;
   }
 
@@ -200,6 +220,13 @@ export function createVoice(options: VoiceOptions): Voice {
     stop,
     get last() {
       return last;
+    },
+    get speaking() {
+      return speaking;
+    },
+    listen(onChange) {
+      listeners.add(onChange);
+      return () => listeners.delete(onChange);
     },
   };
 }

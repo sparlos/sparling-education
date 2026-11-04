@@ -9,6 +9,7 @@ import type {
   GameProps,
   Progress,
 } from "@repo/game-contract";
+import { SkippableLineContext } from "@repo/game-contract/skippable-line";
 import { ClassColourScope } from "@repo/ui/class-colour-scope";
 import { Icon } from "@repo/ui/icon";
 import { IconButton } from "@repo/ui/icon-button";
@@ -21,6 +22,7 @@ import {
   useMemo,
   useRef,
   useState,
+  useSyncExternalStore,
 } from "react";
 import type { GameRegistry } from "../games.ts";
 import {
@@ -369,7 +371,9 @@ function PlayScreen({
             }
           >
             {started ? (
-              <game.Component {...props} />
+              <SkippableLines voice={voice}>
+                <game.Component {...props} />
+              </SkippableLines>
             ) : (
               <StartScreen
                 look={student.look}
@@ -394,6 +398,32 @@ function PlayScreen({
       )}
       {ending && <Message text={shellT("saving")} busy overlay />}
     </ClassColourScope>
+  );
+}
+
+/**
+ * Tells the game frame when there's a line to skip. The state lives here so
+ * that a line starting or ending re-renders the frame, not the whole game.
+ */
+function SkippableLines({
+  voice,
+  children,
+}: {
+  voice: Voice;
+  children: ReactNode;
+}) {
+  const speaking = useSyncExternalStore(voice.listen, () => voice.speaking);
+  const line = useMemo(
+    () =>
+      speaking
+        ? { skip: () => voice.stop(), label: shellT("skip-line") }
+        : null,
+    [speaking, voice],
+  );
+  return (
+    <SkippableLineContext.Provider value={line}>
+      {children}
+    </SkippableLineContext.Provider>
   );
 }
 

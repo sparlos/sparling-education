@@ -89,7 +89,7 @@ function setUp({
   // The stand-in classes join codes name; every one has shell-check on.
   classes = standInClasses(standInGames(["shell-check"])) as StandInClasses,
   // This browser's storage, kept between visits.
-  storage = memoryStorage(),
+  storage = memoryStorage() as KeyValueStore,
   // In place of the stand-in's answer to whether they've played the game before.
   played = undefined as ((game: string) => Promise<boolean>) | undefined,
 } = {}) {
@@ -610,6 +610,22 @@ describe("playing", () => {
       "Tap a button to send an attempt.",
       "Tap a button to send an attempt.",
     ]);
+  });
+
+  it("offers to skip a line only while it's being said", async () => {
+    const { user, cutOff } = setUp();
+    await game();
+    expect(screen.queryByRole("button", { name: "Skip ahead" })).toBeNull();
+
+    await user.click(
+      screen.getByRole("button", { name: "Tap a button to send an attempt." }),
+    );
+    await user.click(screen.getByRole("button", { name: "Skip ahead" }));
+
+    expect(cutOff).toEqual(["Tap a button to send an attempt."]);
+    await waitFor(() =>
+      expect(screen.queryByRole("button", { name: "Skip ahead" })).toBeNull(),
+    );
   });
 });
 

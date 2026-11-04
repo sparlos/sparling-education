@@ -198,6 +198,12 @@
   white-space: nowrap;
 }
 
+.lineSkip {
+  position: absolute;
+  right: 16px;
+  bottom: 12px;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .map,
   .layer[data-moving] .camera,

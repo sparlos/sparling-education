@@ -5,6 +5,7 @@
 
 import type { AvatarExpression } from "@repo/game-contract";
 import { SlotArt } from "@repo/game-kit/art";
+import { SkipLine } from "@repo/game-kit/frame";
 import {
   type ComponentType,
   type CSSProperties,
@@ -242,6 +243,7 @@ export function GiantCrystal(props: GiantCrystalProps) {
           >
             {line}
           </p>
+          <SkipLine className={styles.lineSkip} />
         </>
       )}
     </div>

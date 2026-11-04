@@ -4,16 +4,19 @@
 //
 // - Hint (or Skip, during the tutorial) in the top-right corner
 // - the main button (Play, Run, Go) in the bottom-right corner
-// - the caption directly under the play area
+// - the caption directly under the play area, with a button to skip what's
+//   being said at its end
 // - the ghost hand, and the number pad wherever a game has one
 //
 // Give `side` for controls in a column on the right, or `deck` for controls in
 // a panel along the bottom. The shell's progress strip and rail sit outside.
+import { SkippableLineContext } from "@repo/game-contract/skippable-line";
 import { palette } from "@repo/tokens";
 import {
   type Dispatch,
   type ReactNode,
   type SetStateAction,
+  useContext,
   useLayoutEffect,
   useRef,
   useState,
@@ -48,6 +51,21 @@ export const frameArt = {
     height: 32,
     anchor: { x: 16, y: 16 },
     draw: () => <path d="M9 5 L27 16 L9 27 Z" fill="currentColor" />,
+  },
+  /** The fast-forward arrows, on the button that skips what's being said. */
+  "icon-skip-line": {
+    width: 32,
+    height: 32,
+    anchor: { x: 16, y: 16 },
+    draw: () => (
+      <path
+        d="M4 7 L16 16 L4 25 Z M16 7 L28 16 L16 25 Z"
+        fill="currentColor"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinejoin="round"
+      />
+    ),
   },
   /** The pointing hand, its fingertip at the anchor. */
   "ghost-hand": {
@@ -152,6 +170,31 @@ export type GameFrameProps = {
       }
   );
 
+/**
+ * Skips what's being said, and is there only while something is. The frame
+ * draws one by its caption. A game that writes a line over the frame instead
+ * draws one by that line, positioned by `className`.
+ */
+export function SkipLine({ className }: { className?: string }) {
+  const line = useContext(SkippableLineContext);
+  if (!line) return null;
+  return (
+    <button
+      type="button"
+      className={`${styles.skipLine} ${className ?? ""}`}
+      aria-label={line.label}
+      onClick={line.skip}
+      data-testid="skip-line"
+    >
+      <SlotImage
+        id="icon-skip-line"
+        slot={frameArt["icon-skip-line"]}
+        size={24}
+      />
+    </button>
+  );
+}
+
 export function GameFrame(props: GameFrameProps) {
   const { hint, main, onSkip, t } = props;
   const hasSide = props.side !== undefined;
@@ -218,6 +261,10 @@ export function GameFrame(props: GameFrameProps) {
       <p className={styles.caption} aria-live="polite" data-testid="caption">
         {props.caption}
       </p>
+      {/* A stage-only ending writes its line in the stage, with no caption. */}
+      {(props.caption || props.stageOnly) && (
+        <SkipLine className={styles.captionSkip} />
+      )}
       {hasSide && (
         <section className={styles.rail}>
           <div className={styles.side}>{props.side}</div>

@@ -122,6 +122,12 @@
   text-align: center;
 }
 
+.lineSkip {
+  position: absolute;
+  right: 16px;
+  bottom: 12px;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .crystal,
   .shard,

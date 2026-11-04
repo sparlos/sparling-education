@@ -4,6 +4,7 @@
 // done, and the game says when each of those changes.
 import type { AvatarExpression } from "@repo/game-contract";
 import { SlotArt, SlotImage } from "@repo/game-kit/art";
+import { SkipLine } from "@repo/game-kit/frame";
 import { palette } from "@repo/tokens";
 import {
   type ComponentType,
@@ -359,9 +360,12 @@ export function TreasureMap(props: TreasureMapProps) {
       )}
 
       {line && (
-        <p className={styles.line} aria-live="polite" data-testid="map-line">
-          {line}
-        </p>
+        <>
+          <p className={styles.line} aria-live="polite" data-testid="map-line">
+            {line}
+          </p>
+          <SkipLine className={styles.lineSkip} />
+        </>
       )}
     </div>
   );

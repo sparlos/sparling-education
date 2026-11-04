@@ -64,6 +64,77 @@ describe("lowering the music", () => {
   });
 });
 
+describe("skipping what's being said", () => {
+  function setUpLines() {
+    const spoken: string[] = [];
+    const stops: string[] = [];
+    const voice = createVoice({
+      text,
+      locale: "en-CA",
+      speak: (said) => {
+        spoken.push(said);
+        return () => stops.push(said);
+      },
+    });
+    return { voice, spoken, stops };
+  }
+
+  it("moves on to the line a game was waiting to say", async () => {
+    const { voice, spoken, stops } = setUpLines();
+    const game = (async () => {
+      await voice.say("a");
+      await voice.say("b");
+    })();
+    expect(spoken).toEqual(["text of a"]);
+    voice.stop();
+    await vi.waitFor(() => expect(spoken).toEqual(["text of a", "text of b"]));
+    expect(stops).toEqual(["text of a"]);
+    voice.stop();
+    await game;
+  });
+
+  it("just stops when nothing comes after it", async () => {
+    const { voice, spoken } = setUpLines();
+    const said = voice.say("a");
+    voice.stop();
+    await said;
+    expect(spoken).toEqual(["text of a"]);
+    expect(voice.speaking).toBe(false);
+  });
+
+  it("still lets the line be heard again", () => {
+    const { voice, spoken } = setUpLines();
+    void voice.say("a");
+    voice.stop();
+    voice.again();
+    expect(spoken).toEqual(["text of a", "text of a"]);
+  });
+
+  it("knows a line is being said from its start until it settles", async () => {
+    const { voice } = setUpLines();
+    const heard = vi.fn();
+    voice.listen(heard);
+    expect(voice.speaking).toBe(false);
+    const said = voice.say("a");
+    expect(voice.speaking).toBe(true);
+    expect(heard).toHaveBeenCalledOnce();
+    voice.stop();
+    await said;
+    await Promise.resolve();
+    expect(voice.speaking).toBe(false);
+    expect(heard).toHaveBeenCalledTimes(2);
+  });
+
+  it("stays speaking when one line cuts off another", async () => {
+    const { voice } = setUpLines();
+    const first = voice.say("a");
+    void voice.say("b");
+    await first;
+    await Promise.resolve();
+    expect(voice.speaking).toBe(true);
+  });
+});
+
 describe("the gate's listeners", () => {
   it("hear it close and open, until they stop listening", () => {
     const gate = createVoiceGate();

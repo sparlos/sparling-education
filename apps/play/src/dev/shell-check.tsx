@@ -2,7 +2,8 @@
 // checking the shell by hand (/play/shell-check in dev) and in the shell's
 // tests. It teaches nothing; it isn't a model for real games.
 import { defineGame, type GameProps } from "@repo/game-contract";
-import { useEffect, useState } from "react";
+import { SkippableLineContext } from "@repo/game-contract/skippable-line";
+import { useContext, useEffect, useState } from "react";
 
 export const manifest = {
   slug: "shell-check",
@@ -57,6 +58,7 @@ function ShellCheck(props: GameProps<typeof manifest>) {
     tier,
     firstPlay,
   } = props;
+  const skippable = useContext(SkippableLineContext);
   // Two tasks: each right answer finishes one.
   const [done, setDone] = useState(0);
   useEffect(() => onProgress({ done, total: 2 }), [done, onProgress]);
@@ -83,6 +85,11 @@ function ShellCheck(props: GameProps<typeof manifest>) {
       <button type="button" onClick={() => say("intro")}>
         {t("intro")}
       </button>
+      {skippable && (
+        <button type="button" onClick={skippable.skip}>
+          {skippable.label}
+        </button>
+      )}
       <button type="button" onClick={() => attempt(true)}>
         {t("right")}
       </button>

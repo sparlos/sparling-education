@@ -1,5 +1,6 @@
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, resolve } from "node:path";
+import { SkippableLineContext } from "@repo/game-contract/skippable-line";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { GameFrame, NumberPad, type PadKey } from "./frame.tsx";
@@ -44,6 +45,59 @@ describe("GameFrame", () => {
     render(<GameFrame stage={<div />} caption="Press Go." />);
     expect(screen.getByTestId("caption")).toHaveTextContent("Press Go.");
     expect(screen.getByTestId("ghost-hand")).not.toHaveAttribute("data-target");
+  });
+
+  describe("the button that skips what's being said", () => {
+    const skip = vi.fn();
+    const speaking = { skip, label: "Skip ahead" };
+
+    it("is there while a line is said, and skips it", () => {
+      const { rerender } = render(
+        <SkippableLineContext.Provider value={null}>
+          <GameFrame {...base} />
+        </SkippableLineContext.Provider>,
+      );
+      expect(screen.queryByRole("button", { name: "Skip ahead" })).toBeNull();
+
+      rerender(
+        <SkippableLineContext.Provider value={speaking}>
+          <GameFrame {...base} />
+        </SkippableLineContext.Provider>,
+      );
+      fireEvent.click(screen.getByRole("button", { name: "Skip ahead" }));
+      expect(skip).toHaveBeenCalledOnce();
+    });
+
+    it("stays out of the caption's words, which screen readers announce", () => {
+      render(
+        <SkippableLineContext.Provider value={speaking}>
+          <GameFrame {...base} />
+        </SkippableLineContext.Provider>,
+      );
+      expect(screen.getByTestId("caption")).not.toContainElement(
+        screen.getByRole("button", { name: "Skip ahead" }),
+      );
+    });
+
+    it("waits for a caption, since a line written elsewhere has its own", () => {
+      render(
+        <SkippableLineContext.Provider value={speaking}>
+          <GameFrame {...base} caption="" />
+        </SkippableLineContext.Provider>,
+      );
+      expect(screen.queryByRole("button", { name: "Skip ahead" })).toBeNull();
+    });
+
+    it("stays when only the stage shows, with the caption faded out", () => {
+      render(
+        <SkippableLineContext.Provider value={speaking}>
+          <GameFrame {...base} caption="" stageOnly />
+        </SkippableLineContext.Provider>,
+      );
+      expect(
+        screen.getByRole("button", { name: "Skip ahead" }),
+      ).toBeInTheDocument();
+    });
   });
 });
 
