@@ -67,6 +67,8 @@ export const momentMs = 1500;
 const stillMomentMs = 500;
 /** The end: the view tilting up and the sun rising. */
 export const endingMs = 5000;
+/** How loud the sound of a stopped wave plays, here and at sunrise. */
+const waveClearVolume = 0.6;
 
 type Mode = "tutorial" | "opening" | "play" | "moment" | "ending";
 
@@ -271,7 +273,7 @@ export function DartTowers(props: GameProps<Manifest>) {
     setMood("cheering");
     if (!reducedMotion()) {
       setClearing(true);
-      playSound("wave-clear");
+      playSound("wave-clear", { volume: waveClearVolume });
       await pause(clearMs);
       setClearing(false);
     }
@@ -287,7 +289,7 @@ export function DartTowers(props: GameProps<Manifest>) {
     } else {
       setMode("ending");
       setMood("cheering");
-      playSound("wave-clear", { rate: 0.75 });
+      playSound("wave-clear", { rate: 0.75, volume: waveClearVolume });
       await Promise.all([
         speak(["play.done"]),
         pause(reducedMotion() ? minLineMs : endingMs),
