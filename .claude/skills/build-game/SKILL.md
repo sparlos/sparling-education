@@ -53,7 +53,7 @@ Done when the spec tests pass and every string in SPEC.md's table is in `strings
 `src/game/` wires the rules to taps, the voice and the shell; it holds no rules. Plain state that isn't rules (a bench, a plan) gets its own module and tests.
 
 - **Voice and screen take turns.** Say a line (a pointer may rest on what it's about), then act, then say the next: `await say(...)` before acting, and `useTimers().pause` only for beats between turns, never a timer guessed from a line's length. One moment is one `say(...)`: a new call cuts off the last, so a result and the next prompt go in one call.
-- **The journey follows the spec's Journey section.** The game's own picture carries it, on top of the shell's progress bar. Its moments are camera or art moves with no rules in them, off under reduced motion, and Hint and the main button stay off while they play. A built game getting its journey starts at this step, then does steps 6–8 and 10.
+- **The journey follows the spec's Journey section.** The game's own picture carries it, on top of the shell's progress bar. Its moments are camera or art moves with no rules in them, off under reduced motion, and Hint and the main button stay off while they play. A built game getting its journey starts at this step, then does steps 6–9 and 11.
 - **The game starts after the shell's start tap,** so it opens with a spoken line and can rely on sound being allowed.
 - **Sound effects and music go through the shell:** `playSound` and `playMusic`, with the files in `audio/`. `packages/game-kit/README.md` has the steps.
 - **The game frame lays out every screen.** Build on `GameFrame` from `@repo/game-kit/frame`, and spread `frameStrings` from `@repo/game-kit/frame-strings` into the game's strings. It draws Hint or Skip, the main button, the caption and the ghost hand, and `NumberPad` is the only number pad. The game fills `info`, `stage`, and `side` or `deck`. Never draw these yourself, and if the frame can't do what the spec needs, change the frame for every game (ask the founder first). The kit's tests and the tour fail otherwise. `packages/game-kit/README.md` has the details.
@@ -85,7 +85,7 @@ Done when the founder has been asked, with the number of new lines.
 
 ## 8. The founder plays
 
-**Host it in the API first**, so the founder finds it where teachers and students will: on the dashboard (turned on in every class) and in students' homes. The game link alone reaches neither. Add `hosted(manifest, simulate)` to `games` in `apps/api/src/games.ts` and the game to `apps/api/package.json`'s dependencies (install in the scratch copy and copy back `pnpm-lock.yaml`). New teachers' demo classes then play it, with its own misconceptions. Then run the API's tests: the ones that list a class's games, its expectations or the demo's misconceptions grow by the new game, so update them to match.
+**Host it in the API first**, so the founder finds it where teachers and students will: on the dashboard (turned on in every class) and in students' homes. The game link alone reaches neither. Add `hosted(manifest, simulate)` to `games` in `apps/api/src/games.ts` and the game to `apps/api/package.json`'s dependencies (install in the scratch copy and copy back `pnpm-lock.yaml`). New teachers' demo classes then play it, with its own misconceptions. Then run the API's tests: the ones that list a class's games, its expectations or the demo's misconceptions grow by the new game, so update them to match. The try site's test needs `art/splash.svg` and `art/share.png` for every hosted game, so draw a stand-in splash to `asset-gen/STYLE.md` and render it to a 1376 × 768 PNG.
 
 Then give the founder the game link (`/play/<slug>`), what isn't built yet, and your numbered **readings** of the spec for them to confirm, and tell them to run `pnpm install` on the host and restart `pnpm dev`. They play, ideally on a touchscreen, and give their calls. For each call: change the code, update SPEC.md, re-run steps 5–6, and say what changed. Visual polish the founder raises (motion, feedback moments, layout finesse) goes on a list for `polish-game`, unless it blocks play.
 
@@ -93,12 +93,24 @@ Then give the founder the game link (`/play/<slug>`), what isn't built yet, and 
 
 Done when the game is on the dashboard and in students' homes, the founder accepts it as playable, every reading is confirmed or changed, and SPEC.md matches the game.
 
-## 9. Record and review
+## 9. Asset inventory
+
+Write `games/<slug>/ASSETS.md` from `ASSETS-TEMPLATE.md`, beside this skill: every visual asset the game needs, ready to send to an image generation AI that has never seen the game. Write it now because the founder's calls change what art the game needs. Its source is `src/game/art.tsx` and the files in `art/`, not only SPEC.md's Art table, which is shorter.
+
+- **Everything the game needs:** the splash, the share image and every slot. A slot drawn in code because the game recolours or animates its shape goes under "Don't generate", with the reason. So does anything the shell supplies, such as the avatar.
+- **Context from the real screen:** run `pnpm tour <slug> --out <scratchpad>/assets` and copy the screenshots of the journey's start, a moment between tasks and the ending into `games/<slug>/art-reference/`, at 1366 × 650. Add one for any screen with art those miss. Take each asset's position, size and anchor from the code, and name the pixel points where it has to line up with something else.
+- **Every prompt stands alone:** an image AI knows only what it's sent. Use no game or platform terms in the prompts without explaining them, and describe what the thing looks like, not what it does in the rules.
+- **Files that must match go in one block:** states that swap in the same frame (`wall`, `wall-hit`), and families that differ only in colour (`bug-1` … `bug-4`). Give the exact hex each one needs.
+- **When a build changes the art,** whether a journey or a spec change, update the inventory and its screenshots to match.
+
+Done when every file in `art/` and every slot in `art.tsx` is in ASSETS.md exactly once, each asset has its size, anchor, place on screen and prompt, and the founder has the path.
+
+## 10. Record and review
 
 Add the build's entry to `.scratch/game-framework/build-log.md`: what's where, decisions, readings, the founder's calls, gotchas, what's left open and the polish list. Then run `review-game` on the game in a fresh session, and fix what it finds.
 
 Done when the build-log entry is written and `review-game` reports no failing check.
 
-## 10. Retro
+## 11. Retro
 
 Run the retro in `docs/agents/skill-retro.md` on this run. Done when it says it is.
