@@ -50,7 +50,7 @@ Kind: going somewhere. One play is one trip across a treasure map, from the firs
 
 The trip is the same for every student, however much help they had, and starts again from the first island each play. Nothing from it is kept after the play. With reduced motion, the map appears and goes without moving: the character is on its new spot for about a second, and the rays and coins hold still. Every part shows on screen, so no student needs to hear it. The map never shows anything about a course, so it can't give a goal away.
 
-**Sound:** none yet. Fraction Hop has no sound files; the journey's get made with the rest (see the general notes on music and sound).
+**Sound:** the character's small hops along the path land with soft, rising taps. At the end, the lid creaks as the shut chest fills the screen, then the coins jingle, many at once at different pitches, and a fanfare plays as it opens. See Touch, reading and sound.
 
 ## Tiers
 
@@ -173,6 +173,7 @@ The contract's character API starts minimal: the portrait at any size, with an e
 - **Touch only, drag or tap:** drag a block into the plan, drag planned blocks to reorder them or back to the hops to remove them, and tap play, hint and skip. Every drag also has a tap: tap a block to add it to the end, tap a planned block to remove it, so a student who can't drag can still play everything but reordering, which removing and re-adding covers (founder's call, polish pass). A drag starts after 8 px of movement, so a tap stays a tap. Every tap target is at least **64 px**. Ticks and stones are never tapped, so twelfths can be as narrow as the course needs.
 - **No reading:** the only text a student needs is fraction notation (the goal and the blocks), and that notation is what's being taught. Every instruction is a caption and a voice line from the same string. The goal is spoken at the start of each task, a block when it's tapped, and the landing after each run. The tutorial shows every move.
 - **No sound needed:** every result shows on screen: the splash at the exact spot, the landing fraction on the course and the goal's in the caption, the goal revealed when it's reached, and the hint labels and arcs.
+- **Sound effects:** `block-drop` as a block snaps into the plan or moves in it (lower as one comes out, and as guided places a hop), `hop-takeoff` as each hop leaves the ground (deeper for a longer hop), `hop-land` on each landing on grass, `splash` when a hop lands in water, `goal-found` when the last hop lands on the goal, and `chest-open`, `coins` and `treasure-fanfare` at the end (see Journey). Every repeated sound changes its pitch a little each time, so it never sounds canned.
 - **A start tap before any sound:** browsers block audio until the page is tapped, so the shell shows a start button before every game. The game's first line comes after it.
 - **The game always fits the screen,** with no page scrolling or zooming, at 1366 × 650 and 1280 × 650 (a Chromebook window with browser chrome) and larger. The goal's caption is never cut off. The browser tour checks this.
 - **Progress:** a progression-based game (`progress` in the manifest): the shell's thin bar above the game shows tasks solved, from 0/6 to 6/6. Feedback that the student is getting somewhere, never a score.

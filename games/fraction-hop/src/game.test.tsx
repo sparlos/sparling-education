@@ -330,6 +330,46 @@ describe("a task", () => {
     expect(screen.getAllByTestId("empty-slot")).toHaveLength(1);
   });
 
+  it("snaps blocks in and out, and sounds each hop: takeoff, then a landing or a splash", async () => {
+    const { user, courses, shell } = setUp("g4");
+    await skipTutorial(user);
+    const course = courses[0] as Course;
+    const splash = splashPlan(course);
+    const sounds = () => shell.sounds.splice(0);
+    await enter(user, splash);
+    expect(sounds()).toEqual(splash.map(() => "block-drop"));
+    await play(user);
+    const hops = splash.map(() => "hop-takeoff");
+    expect(sounds().filter((id) => id === "hop-takeoff")).toEqual(hops);
+    const route = shortestRoute(course) as Plan;
+    await enter(user, route);
+    // Each planned block comes out with the same snap, then each goes in.
+    expect(sounds()).toEqual([
+      ...splash.map(() => "block-drop"),
+      ...route.map(() => "block-drop"),
+    ]);
+    await user.click(screen.getByRole("button", { name: "Play" }));
+    await wait(runMs(runPlan(course, route)) + 10);
+    const heard = sounds();
+    expect(heard.filter((id) => id === "hop-land")).toHaveLength(route.length);
+    expect(heard).not.toContain("splash");
+    expect(heard.at(-1)).toBe("goal-found");
+  });
+
+  it("splashes on the hop that lands in water, instead of landing", async () => {
+    const { user, courses, shell } = setUp("g4");
+    await skipTutorial(user);
+    const course = courses[0] as Course;
+    const splash = splashPlan(course);
+    await enter(user, splash);
+    shell.sounds.splice(0);
+    await play(user);
+    expect(shell.sounds.filter((id) => id !== "hop-takeoff")).toEqual([
+      ...splash.slice(1).map(() => "hop-land"),
+      "splash",
+    ]);
+  });
+
   it('cheers "Nice fix!" with a sparkle when a run after a splash gets further, dry', async () => {
     const { user, said, courses } = setUp("g4");
     await skipTutorial(user);
@@ -726,6 +766,10 @@ describe("the journey", () => {
     expect(playButton()).toBeDisabled();
     await wait(endingMs);
     expect(shell.finished()).toBe(1);
+    // The lid creaks, then a shower of coins at once, with the fanfare.
+    const ending = shell.sounds.slice(shell.sounds.indexOf("chest-open"));
+    expect(ending.slice(0, 2)).toEqual(["chest-open", "treasure-fanfare"]);
+    expect(ending.filter((id) => id === "coins").length).toBeGreaterThan(4);
   });
 
   it("holds the ending until its line has been said", async () => {

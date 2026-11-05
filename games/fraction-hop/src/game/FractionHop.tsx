@@ -34,6 +34,7 @@ import {
   sinkMs,
   slideMs,
 } from "./Course.tsx";
+import { coinShower, sounds } from "./sfx.ts";
 import {
   aimMs,
   type ChestState,
@@ -44,6 +45,7 @@ import {
   settleMs,
   stillHoldMs,
   TreasureMap,
+  walkHops,
   walkMs,
   walkToChestMs,
   zoomMs,
@@ -79,6 +81,13 @@ const reducedMotion = () =>
 
 export function FractionHop(props: GameProps<Manifest>) {
   const { tier, firstPlay, t, say, onAttempt, onProgress, onFinish } = props;
+  // Through a ref, so a new `playSound` from the shell never restarts the tutorial.
+  const playSound = useRef(props.playSound);
+  playSound.current = props.playSound;
+  const sfx = useMemo(
+    () => sounds((id, options) => playSound.current(id, options)),
+    [],
+  );
   const courses = useMemo(
     () => generatePlay(tier, seeded(Math.floor(Math.random() * 2 ** 31))),
     [tier],
@@ -147,7 +156,7 @@ export function FractionHop(props: GameProps<Manifest>) {
 
   /** Plays a run's hops; settles when the run has ended. */
   const hop = useCallback(
-    (run: Run) =>
+    (run: Run, unit: number) =>
       new Promise<void>((done) => {
         setRunning(true);
         setResult(null);
@@ -155,12 +164,20 @@ export function FractionHop(props: GameProps<Manifest>) {
         setHopper(home);
         setMood("happy");
         let from = 0;
+        const last = run.landings.length - 1;
         for (const [key, to] of run.landings.entries()) {
           const start = from;
           later(takeoffMs + key * hopMs, () => {
             setHopper({ at: to, flight: { from: start, key }, sunk: false });
             setTrail(key + 1);
+            sfx.takeoff((to - start) / unit);
           });
+          // Every landing on grass thumps; the run's last one may splash.
+          later(takeoffMs + (key + 1) * hopMs, () =>
+            key === last && run.end.kind === "splash"
+              ? sfx.splash()
+              : sfx.land(),
+          );
           from = to;
         }
         const landed = takeoffMs + run.landings.length * hopMs;
@@ -175,6 +192,7 @@ export function FractionHop(props: GameProps<Manifest>) {
           setRunning(false);
           setResult(run.end);
           setMissed(run.end.kind === "splash" ? run.end.hop : null);
+          if (run.end.kind === "goal") sfx.goal();
           setMood(
             run.end.kind === "goal"
               ? "cheering"
@@ -185,7 +203,7 @@ export function FractionHop(props: GameProps<Manifest>) {
           done();
         });
       }),
-    [later],
+    [later, sfx],
   );
 
   /** Puts a course on the board, behind the map if it's up. */
@@ -259,6 +277,12 @@ export function FractionHop(props: GameProps<Manifest>) {
       setDone(index);
       await moved(settleMs);
       setSpot(index);
+      // The path's small hops: TreasureMap's hopsPerWalk, landing evenly over the walk.
+      if (!reducedMotion()) {
+        const ms = index < tasksPerPlay ? walkMs : walkToChestMs;
+        for (let n = 1; n <= walkHops; n++)
+          later((ms * n) / walkHops, () => sfx.step(n));
+      }
       await pause(
         reducedMotion()
           ? stillHoldMs
@@ -267,7 +291,7 @@ export function FractionHop(props: GameProps<Manifest>) {
             : walkToChestMs,
       );
     },
-    [moved, pause],
+    [moved, pause, later, sfx],
   );
 
   /** From the tutorial, or its skip, to the journey's opening on task 1. */
@@ -323,6 +347,7 @@ export function FractionHop(props: GameProps<Manifest>) {
         setTapping(false);
         setCarrying(null);
         setHopper(home);
+        sfx.drop();
         const state = current.current;
         commit(
           from === undefined
@@ -336,10 +361,12 @@ export function FractionHop(props: GameProps<Manifest>) {
       const state = current.current;
       if ("play" in tap) {
         const run = runPlan(state.course, state.plan);
-        await hop(run);
+        await hop(run, state.course.unit);
         commit(finishRun(current.current, run).state);
       } else {
         setHopper(home);
+        if ("add" in tap) sfx.drop();
+        else sfx.lift();
         commit(
           "add" in tap
             ? addBlock(state, tap.add).state
@@ -370,7 +397,7 @@ export function FractionHop(props: GameProps<Manifest>) {
       cancelled = true;
       clearTimers();
     };
-  }, [mode, pause, speak, commit, hop, open, clearTimers]);
+  }, [mode, pause, speak, commit, hop, open, clearTimers, sfx]);
 
   /** Sends a run's attempt as it happens, so a student who leaves still leaves their tries. */
   const record = useCallback(
@@ -396,6 +423,7 @@ export function FractionHop(props: GameProps<Manifest>) {
       commit(step.state);
       record(step.attempt);
       if (step.state.locked > before.locked) {
+        sfx.drop();
         setHand(`slot-${step.state.locked - 1}`);
         later(pointMs, () => setHand(null));
       }
@@ -409,7 +437,7 @@ export function FractionHop(props: GameProps<Manifest>) {
       await speak(step.say.slice(0, -1));
       await offerHint({ say: () => speak([offer]), pause, setHand });
     },
-    [commit, record, speak, later, pause],
+    [commit, record, speak, later, pause, sfx],
   );
 
   const solved = async (done: TaskState, fixed: boolean) => {
@@ -431,8 +459,13 @@ export function FractionHop(props: GameProps<Manifest>) {
       setMode("done");
       setMood("cheering");
       setChest("shut");
+      // The lid creaks as it's about to open; the coins and the fanfare burst out with it.
+      sfx.chest();
       await pause(chestShutMs);
       setChest("open");
+      sfx.fanfare();
+      for (const { ms, loudness } of coinShower)
+        later(ms, () => sfx.coin(loudness));
       await Promise.all([speak(["play.done"]), pause(chestOpenMs)]);
       onFinish();
     }
@@ -484,15 +517,21 @@ export function FractionHop(props: GameProps<Manifest>) {
       onAdd={(d, at) => {
         const before = current.current;
         edit();
-        void apply(before, addBlock(before, d, at));
+        const step = addBlock(before, d, at);
+        if (step.state.plan.length > before.plan.length) sfx.drop();
+        void apply(before, step);
       }}
       onMove={(from, to) => {
         edit();
-        commit(moveBlock(current.current, from, to));
+        const next = moveBlock(current.current, from, to);
+        if (next.plan !== current.current.plan) sfx.drop();
+        commit(next);
       }}
       onRemove={(i) => {
         edit();
-        commit(removeAt(current.current, i));
+        const next = removeAt(current.current, i);
+        if (next.plan !== current.current.plan) sfx.lift();
+        commit(next);
       }}
       onHint={() => {
         setHand(null);
@@ -501,7 +540,7 @@ export function FractionHop(props: GameProps<Manifest>) {
       onPlay={async () => {
         const pressed = pressPlay(current.current);
         if ("say" in pressed) return void speak(pressed.say);
-        await hop(pressed.run);
+        await hop(pressed.run, current.current.course.unit);
         const before = current.current;
         const step = finishRun(before, pressed.run);
         // The fixed hop sparkles as the run ends, before the cheer is said.

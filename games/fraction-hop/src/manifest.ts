@@ -12,6 +12,16 @@ export const manifest = {
   renderer: "dom",
   avatar: "character",
   progress: true,
+  sounds: [
+    "block-drop",
+    "hop-takeoff",
+    "hop-land",
+    "splash",
+    "goal-found",
+    "chest-open",
+    "coins",
+    "treasure-fanfare",
+  ],
   tiers: {
     g3: { grade: 3, expectations: ["math-2020.g3.B2.8"] },
     g4: { grade: 4, expectations: ["math-2020.g4.B1.6"] },

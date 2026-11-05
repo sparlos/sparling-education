@@ -88,7 +88,8 @@ const closeZoom = 4;
 const walkerRise = 20;
 /** Its feet, below the middle of the spot, in px. */
 const walkerFeet = walkerPx / 2 - walkerRise;
-const hopsPerWalk = 4;
+/** How many small hops the character takes along the path. */
+export const walkHops = 4;
 /** How high it hops along the path, in px. */
 const hopLift = 16;
 const coins = 14;
@@ -209,7 +210,7 @@ export function TreasureMap(props: TreasureMapProps) {
       const point = path.getPointAtLength(length * p);
       el.style.left = left(point.x);
       el.style.top = top(point.y);
-      el.style.transform = `translateY(${-Math.abs(Math.sin(Math.PI * hopsPerWalk * p)) * hopLift}px)`;
+      el.style.transform = `translateY(${-Math.abs(Math.sin(Math.PI * walkHops * p)) * hopLift}px)`;
       if (p < 1) frame = requestAnimationFrame(step);
     };
     step(start);
