@@ -2,41 +2,52 @@ import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
-import { color } from "@repo/tokens";
-import { contrastRatio } from "@repo/tokens/color";
-import { sheetShapeUrls } from "./generated/shape-urls.ts";
-import {
-  isItem,
-  items,
-  layerOrder,
-  paletteRamps,
-  type Ramp,
-  rampLookup,
-  rampStops,
-  rampTables,
-  shapes,
-} from "./parts.ts";
+import { fitMasksSource, fitsSource, isPiece, parseFits } from "./fit-file.ts";
+import { fitMaskUrls } from "./fit-masks.ts";
+import { fits } from "./fits.ts";
+import { avatarItemUrls } from "./generated/item-urls.ts";
+import { isItem, items, layerOrder } from "./parts.ts";
 
-test("every shape has a PNG for each of its layers", () => {
-  for (const shape of shapes.values()) {
-    const urls = sheetShapeUrls[shape.id] ?? {};
-    assert.deepEqual(Object.keys(urls).sort(), [...shape.layers].sort());
-    for (const url of Object.values(urls))
-      assert.ok(existsSync(fileURLToPath(url)), `${shape.id}: ${url}`);
+test("every item and each piece of it has its PNG", () => {
+  for (const item of items.values())
+    for (const id of [item.id, ...item.pieces.map((p) => p.id)]) {
+      const url = avatarItemUrls[id] ?? "";
+      assert.ok(existsSync(fileURLToPath(url)), `${id}: ${url}`);
+    }
+});
+
+test("every fit is for a picture, and every mask's file is there", () => {
+  for (const id of Object.keys(fits)) assert.ok(isPiece(id), id);
+  for (const [id, url] of Object.entries(fitMaskUrls)) {
+    assert.ok(isPiece(id), id);
+    assert.ok(existsSync(fileURLToPath(url)), `${id}: ${url}`);
   }
 });
 
-test("every item's shape is in its slot, and tints only if it can", () => {
-  for (const item of items.values()) {
-    const shape = shapes.get(item.shape);
-    assert.ok(shape, `${item.id}: no shape ${item.shape}`);
-    assert.equal(shape.slot, item.slot, item.id);
-    assert.equal(item.ramp !== null, shape.layers.includes("fill"), item.id);
-  }
+test("parseFits takes only boxes of pictures that exist", () => {
+  const box = { x: 1.26, y: -2, width: 3, height: 4 };
+  assert.deepEqual(parseFits({ "hair-01": box }), {
+    "hair-01": { ...box, x: 1.3 },
+  });
+  assert.equal(parseFits({ "../../etc": box }), null);
+  assert.equal(parseFits({ "hair-01": { ...box, width: 0 } }), null);
+  assert.equal(parseFits({ "hair-01": { ...box, x: "1" } }), null);
+  assert.equal(parseFits(null), null);
+});
+
+test("the fit files are written as source", () => {
+  assert.match(
+    fitsSource({ "hair-01": { x: 1, y: 2, width: 3, height: 4 } }),
+    /"hair-01": \{ x: 1, y: 2, width: 3, height: 4 \},/,
+  );
+  assert.match(
+    fitMasksSource(["shoes-05-left"]),
+    /art\/masks\/shoes-05-left\.png/,
+  );
 });
 
 test("the layer order draws every slot once", () => {
-  const slots = new Set([...shapes.values()].map((s) => s.slot));
+  const slots = new Set([...items.values()].map((i) => i.slot));
   assert.deepEqual([...layerOrder].sort(), [...slots].sort());
 });
 
@@ -47,40 +58,4 @@ test("isItem checks the slot as well as the ID", () => {
   assert.ok(!isItem("hair", "hair-99"));
   assert.ok(!isItem("hair", "toString"));
   assert.ok(!isItem("hair", null));
-});
-
-test("rampLookup puts the ramp's colours on its stops", () => {
-  const ramp: Ramp = ["#000000", "#808080", "#FFFFFF"];
-  const lut = rampLookup(ramp);
-  const at = (g: number) => [...lut.slice(g * 3, g * 3 + 3)];
-  // Within 2: the stops fall between grey levels.
-  const near = (g: number, want: number) =>
-    assert.ok(
-      at(g).every((v) => Math.abs(v - want) <= 2),
-      `${g}: ${at(g)}`,
-    );
-  const grey = (stop: number) => Math.round(stop * 255);
-  near(0, 0);
-  near(grey(rampStops[0]), 0);
-  near(grey(rampStops[1]), 128);
-  near(grey(rampStops[2]), 255);
-  near(255, 255);
-  const between = at(64)[0] ?? 0;
-  assert.ok(between > 0 && between < 128, `${between}`);
-});
-
-// WCAG 2.2 AA 1.4.11: outfit outlines are ink on the item's colour.
-test("ink keeps 3:1 against every palette ramp's base", () => {
-  for (const [id, [, base]] of Object.entries(paletteRamps)) {
-    const ratio = contrastRatio(color.ink.default, base);
-    assert.ok(ratio >= 3, `${id}: ${ratio.toFixed(2)}:1, needs 3:1`);
-  }
-});
-
-test("rampTables puts the ramp's colours on its stops", () => {
-  const [r] = rampTables(["#000000", "#808080", "#FFFFFF"]);
-  assert.equal(r.length, 51);
-  assert.equal(r[6], 0);
-  assert.equal(r[25], Math.round((128 / 255) * 1000) / 1000);
-  assert.equal(r[44], 1);
 });

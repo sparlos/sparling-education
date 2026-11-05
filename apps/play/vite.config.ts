@@ -4,6 +4,7 @@ import { voiceLines } from "@repo/voice/vite";
 import react from "@vitejs/plugin-react";
 import type { Plugin } from "vite";
 import { defineConfig } from "vitest/config";
+import { avatarFitSaver } from "./avatar-fit-server.ts";
 
 /** Puts the product's name into index.html, so it's set in one place. */
 const brandNameInHtml: Plugin = {
@@ -33,6 +34,7 @@ export default defineConfig(({ mode }) => ({
     react(),
     brandNameInHtml,
     voiceLines({ root: repoRoot }),
+    avatarFitSaver(repoRoot),
     ...(mode === "try" ? [tryPagesInDev] : []),
   ],
   // Bundled whole for prerendering, so packages resolve from wherever they live.
@@ -43,7 +45,7 @@ export default defineConfig(({ mode }) => ({
       rollupOptions: { input: "try.html" },
     }),
     // Avatar art stays as files, fetched as it's drawn, rather than inlined
-    // into the bundle: one avatar is a handful of its hundreds of layers.
+    // into the bundle: one avatar is a handful of its hundred-odd pictures.
     assetsInlineLimit: (file) =>
       file.includes("/packages/avatar/art/") ? false : undefined,
   },

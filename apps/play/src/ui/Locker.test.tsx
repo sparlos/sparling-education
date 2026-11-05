@@ -56,7 +56,7 @@ const student: Student = {
     hair: "hair-12",
     hat: "hat-07",
     top: "top-08",
-    bottom: "bottom-11",
+    bottom: "bottom-09",
     shoes: "shoes-05",
   },
   classes: [

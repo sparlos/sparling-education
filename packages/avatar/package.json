@@ -6,13 +6,15 @@
   "exports": {
     ".": "./src/index.ts",
     "./parts": "./src/parts.ts",
+    "./fit-file": "./src/fit-file.ts",
     "./art": "./src/art.ts",
+    "./layout": "./src/layout.ts",
     "./portrait": "./src/portrait.tsx"
   },
   "scripts": {
     "check-types": "tsc --noEmit",
     "test": "node --test 'src/**/*.test.ts'",
-    "slice-sheet": "uv run scripts/slice_sheet.py"
+    "cut-art": "uv run scripts/cut_art.py"
   },
   "dependencies": {
     "@repo/tokens": "workspace:*"

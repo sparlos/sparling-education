@@ -1,34 +1,26 @@
 # Avatar art
 
-`sheet.png` is a building sheet: placeholder art to build the avatar with until an illustrator draws the real parts. `scripts/slice_sheet.py` (`pnpm slice-sheet`, needs `uv`) cuts it into `shapes/` and writes the catalogue in `src/generated/`.
+`scripts/cut_art.py` (`pnpm cut-art`, needs `uv`) cuts the boards in `new-art/` into one PNG per item in `items/`, and writes the catalogue in `src/generated/`. An item is what a student picks or earns: a skin tone, a hairstyle, a top. It's drawn as its picture, with no colouring in code.
 
-## Shapes and items
+Looks store item IDs. An ID is its place on the board, so a redrawn board must keep every sprite where it was and only add new ones at the end of a slot.
 
-- A **shape** is one drawing: a beanie, a tee, a hairstyle, the body.
-- An **item** is what a student picks or earns: a shape plus a colour **ramp** (shadow, base, highlight). `beanie` in sky blue and `beanie` in ember are two items sharing one shape.
-- Some shapes are **fixed colour** art (stripes, camo, two-tone shoes), and their items have no ramp.
+## Boards
 
-Looks store item IDs. Item IDs never change meaning, so art can be redrawn freely underneath them.
-
-## Layers
-
-Every PNG of a shape covers the same box, aligned and trimmed alike.
-
-| File | What it holds | How it's drawn |
+| Board | Slots | Reading order |
 |---|---|---|
-| `<shape>.fill.png` | Greyscale shading. Grey 0.12 takes the ramp's shadow, 0.5 its base and 0.88 its highlight (`rampStops`). Alpha is the silhouette. | Each grey is looked up in the item's ramp (`rampLookup`) |
-| `<shape>.face.png` | Body only: cheeks, as colour to multiply, with alpha for strength. | Multiply, over the tinted fill |
-| `<shape>.ink.png` | Outline and drawn details in ink `#1F1F1F`, with alpha. Never tinted. | Normal, on top |
-| `<shape>.colour.png` | Fixed colour art, instead of the three above. | Normal |
+| `Chibi Character Skin Tone Grid.png` | `body` | 8 bodies |
+| `Chibi Avatar Hairstyle Selection Board.png` | `hair` | 40 hairstyles |
+| `Chibi Avatar Wardrobe Collection.png` | `top`, `bottom`, `shoes` | 16, then 16, then 8 pairs |
+| `hats-1.jpeg`, then `hat-2.jpeg` | `hat` | 16, then 16 |
 
-The body is drawn without eyes or a mouth: the slicer takes them off and records where they were (`sheetFace`, as `face` in `src/parts.ts`). `src/portrait.tsx` draws them for each expression, so a happy, thinking or cheering avatar works with any body art.
+Hats drawn showing their inside have it cut off (`OPENINGS` in the script), since it would really be behind the head. The astronaut's visor becomes glass (`VISOR`), so the face shows, and that helmet hides the hair.
 
-## Replacing art
+## Fitting
 
-Better art replaces a shape's files in place, at any resolution:
+`src/generated/items.ts` holds each picture's box as cut, set by `FITS`, `HAIR_NUDGES` and the shoe constants at the top of the script. Fit anything by hand with the tool at `/play/avatar-fit` (`pnpm --filter play dev`, on the Mac): drag and resize a picture on the avatar, and block out parts of it, such as a shoe's top so it sits under trousers. Saving writes `src/fits.ts`, `src/fit-masks.ts` and `masks/`. Commit them. They sit on top of the cut art, and re-running the script leaves them alone, though a mask assumes the picture keeps its size.
 
-1. Draw the shape in the same pose and proportions, so it fits the same body-frame box (its `width` × `height` in `src/generated/shapes.ts`). Renderers draw every layer at that box's size, so a 4× PNG simply looks sharper.
-2. For a tintable shape, deliver the fill as greys around the stops above, plus the ink, and the face for the body. Mid-grey (128) is the colour a student picked. Draw the body with a blank face, and update `face` with where its eyes and mouth go.
-3. If the new art's proportions differ, change the shape's box and, if needed, the slot's fit in `src/parts.ts`.
+Worn, each shoe is its own picture and box (`shoes-05-left`, `shoes-05-right`); the wardrobe shows the pair.
 
-Once real art replaces the sheet, the generated catalogue should become hand-maintained data, and this script retired.
+## The face
+
+The script takes the bodies' brows, eyes and mouth off, leaving the nose. `src/portrait.tsx` draws them for each expression (`src/faces.ts`), at the places in `face` in `src/parts.ts`.

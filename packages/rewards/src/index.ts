@@ -11,7 +11,6 @@
 import {
   baseSet,
   type ItemId,
-  items,
   itemsIn,
   type OutfitSlot,
   outfitSlots,
@@ -57,18 +56,9 @@ export type RewardKind = "outfit" | "sticker";
 
 const owned = new Set<string>(baseSet);
 
-/**
- * A slot's outfit pieces outside the base set, taking each shape in turn, so
- * one reward isn't just the last one in another colour.
- */
+/** A slot's outfit pieces outside the base set. */
 function earnable<S extends OutfitSlot>(slot: S): ItemId<S>[] {
-  const byShape = new Map<string, ItemId<S>[]>();
-  for (const id of itemsIn(slot)) {
-    if (owned.has(id)) continue;
-    const shape = items.get(id)?.shape ?? id;
-    byShape.set(shape, [...(byShape.get(shape) ?? []), id]);
-  }
-  return roundRobin([...byShape.values()]);
+  return itemsIn(slot).filter((id) => !owned.has(id));
 }
 
 function roundRobin<T>(queues: readonly (readonly T[])[]): T[] {

@@ -3,9 +3,7 @@
 // `@repo/avatar/portrait`. No art and no React, so the backend can validate
 // looks with it too.
 //
-// Provisional: the parts are placeholder art cut from a building sheet until
-// an illustrator draws the real ones. Looks store item IDs, which never change
-// meaning, so real art replaces the placeholders without changing stored looks.
+// Looks store item IDs, so art can be redrawn without changing stored looks.
 import {
   baseSet,
   type ItemId,

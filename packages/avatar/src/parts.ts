@@ -1,54 +1,78 @@
-// The full-body avatar's parts: shapes (drawings) and items (a shape in a
-// colour), made from the illustrated sheet by scripts/slice_sheet.py. Data
-// only, like index.ts, so the API can validate a look's item IDs too. Each
-// shape's layer PNGs come from `@repo/avatar/art`; art/README.md says what the
-// layers are and how to replace them.
+// The full-body avatar's parts: an item is one picture a student picks or
+// earns, cut from the art boards by scripts/cut_art.py. Data only, like
+// index.ts, so the API can validate a look's item IDs too. Each item's PNG comes
+// from `@repo/avatar/art`; art/README.md says how to change them.
 //
-// Body frame: parts are placed in a body's own units, x from its centre and
-// y from its top. A shape's width and height are in the same units, whatever
-// its PNGs' resolution, so sharper art drops in without moving anything.
-import { palette } from "@repo/tokens";
-import { sheetFace, sheetItems, sheetShapes } from "./generated/shapes.ts";
+// Body frame: parts are placed in a body's own units, x from its centre and y
+// from its top.
+import { fits } from "./fits.ts";
+import { avatarItems, avatarShoePieces } from "./generated/items.ts";
 
-export type PartSlot = keyof typeof sheetShapes;
+export type PartSlot = keyof typeof avatarItems;
 export type ItemId<S extends PartSlot = PartSlot> =
-  (typeof sheetItems)[S][number]["id"];
-export type ShapeId<S extends PartSlot = PartSlot> =
-  (typeof sheetShapes)[S][number]["id"];
-export type Layer = "fill" | "ink" | "face" | "colour";
+  (typeof avatarItems)[S][number]["id"];
 
-/** A tint's shadow, base and highlight colours. */
-export type Ramp = readonly [shadow: string, base: string, highlight: string];
-
-export interface Shape {
-  id: ShapeId;
-  slot: PartSlot;
-  /** In body-frame units. */
+/** Where a picture is drawn when worn, in body-frame units. */
+export interface Box {
+  x: number;
+  y: number;
   width: number;
   height: number;
-  /** Fixed colour art has only `colour`; tintable art has `fill` and `ink`. */
-  layers: readonly Layer[];
+}
+
+/** One picture of a worn item. Everything is one, but shoes are two. */
+export interface Piece extends Box {
+  id: string;
 }
 
 export interface Item {
   id: ItemId;
   slot: PartSlot;
-  shape: ShapeId;
-  /** Null for fixed colour art. */
-  ramp: Ramp | null;
+  pieces: readonly Piece[];
+  /** A bottom drawn over the top: overalls' bib. */
+  over?: boolean;
+  /** A hat that goes round the whole head, so no hair shows. */
+  hidesHair?: boolean;
 }
 
-const slots = Object.keys(sheetShapes) as PartSlot[];
+const slots = Object.keys(avatarItems) as PartSlot[];
 
-export const shapes: ReadonlyMap<string, Shape> = new Map(
+interface CutItem extends Piece {
+  over?: boolean;
+  hidesHair?: boolean;
+}
+
+const cutPieces = (i: CutItem): readonly Piece[] =>
+  (avatarShoePieces as Record<string, readonly Piece[]>)[i.id] ?? [i];
+
+/** Each picture's box as the art was cut, before any fitting by hand. */
+export const cutBoxes: Readonly<Record<string, Box>> = Object.fromEntries(
   slots.flatMap((slot) =>
-    sheetShapes[slot].map((s): [string, Shape] => [s.id, { ...s, slot }]),
+    (avatarItems[slot] as readonly CutItem[]).flatMap((i) =>
+      cutPieces(i).map((p) => [
+        p.id,
+        { x: p.x, y: p.y, width: p.width, height: p.height },
+      ]),
+    ),
   ),
 );
 
 export const items: ReadonlyMap<string, Item> = new Map(
   slots.flatMap((slot) =>
-    sheetItems[slot].map((i): [string, Item] => [i.id, { ...i, slot }]),
+    (avatarItems[slot] as readonly CutItem[]).map((i): [string, Item] => [
+      i.id,
+      {
+        id: i.id as ItemId,
+        slot,
+        // Fitted by hand with the avatar fit tool, if at all.
+        pieces: cutPieces(i).map((p) => ({
+          ...p,
+          ...(fits as Record<string, Box | undefined>)[p.id],
+        })),
+        over: i.over,
+        hidesHair: i.hidesHair,
+      },
+    ]),
   ),
 );
 
@@ -60,9 +84,9 @@ export function isItem<S extends PartSlot>(
   return typeof id === "string" && items.get(id)?.slot === slot;
 }
 
-/** The items in a slot, in the sheet's order. */
+/** The items in a slot, in the art board's order. */
 export function itemsIn<S extends PartSlot>(slot: S): ItemId<S>[] {
-  return sheetItems[slot].map((i) => i.id);
+  return avatarItems[slot].map((i) => i.id);
 }
 
 /** Slots a look can leave empty; the rest always hold an item. */
@@ -88,27 +112,26 @@ export const outfitSlots = [
 export type OutfitSlot = (typeof outfitSlots)[number];
 
 /**
- * The outfit pieces every student owns from the start: plain tees, shorts and
- * trousers, a few pairs of shoes and two beanies. Rewards add the rest.
- * Provisional, for the founder to review.
+ * The outfit pieces every student owns from the start: everyday tops,
+ * trousers, shorts and a skirt, a few pairs of shoes and two beanies. Rewards
+ * add the rest. Provisional, for the founder to review.
  */
 export const baseSet = [
   "top-01",
   "top-03",
-  "top-04",
-  "top-06",
   "top-08",
-  "top-12",
+  "top-09",
+  "top-10",
+  "top-11",
   "bottom-01",
   "bottom-03",
-  "bottom-08",
-  "bottom-11",
+  "bottom-04",
+  "bottom-09",
   "shoes-01",
+  "shoes-02",
   "shoes-05",
-  "shoes-10",
-  "shoes-15",
-  "hat-01",
   "hat-07",
+  "hat-11",
 ] as const satisfies readonly ItemId<OutfitSlot>[];
 
 /** Back to front. */
@@ -121,121 +144,16 @@ export const layerOrder = [
   "hat",
 ] as const satisfies PartSlot[];
 
-export interface PartFit {
-  /** Body-frame y the part's `edge` sits on. */
-  y: number;
-  edge: "top" | "bottom";
-  /** Applied to the shape's size. */
-  scale: number;
-  /**
-   * Drawn twice, this far either side of the centre line, the left copy
-   * mirrored. Shoes on the sheet are single shoes.
-   */
-  pair?: number;
-}
-
 /**
- * Where each slot's parts go on a body. Fitted by eye against a mix of bodies
- * and parts; some long-fringed hair still covers the eyes, which wants a
- * per-shape nudge or a redraw.
- */
-export const fits: Record<Exclude<PartSlot, "body">, PartFit> = {
-  bottom: { y: 81, edge: "top", scale: 0.95 },
-  shoes: { y: 125, edge: "bottom", scale: 0.55, pair: 7 },
-  top: { y: 50, edge: "top", scale: 0.95 },
-  hair: { y: -4, edge: "top", scale: 1 },
-  hat: { y: 24, edge: "bottom", scale: 1.05 },
-};
-
-/**
- * Where the face goes on the body, in body-frame units: each eye's centre,
- * the eyes' height and the mouth's centre. The body's art has no eyes or
+ * How the face is drawn on the body, in body-frame units: each eye's centre,
+ * the eye's radius, and the mouth's centre. The body's art has no eyes or
  * mouth, so a renderer draws them for each expression.
  */
 export const face = {
-  eyes: sheetFace.eyes.map(([x, y]) => ({ x: x - bodyHalfWidth(), y })),
-  eyeHeight: sheetFace.eyeHeight,
-  mouth: { x: sheetFace.mouth[0] - bodyHalfWidth(), y: sheetFace.mouth[1] },
+  eyes: [
+    { x: -38, y: 118 },
+    { x: 38, y: 118 },
+  ],
+  eyeRadius: 15,
+  mouth: { x: 0, y: 155 },
 };
-
-function bodyHalfWidth() {
-  return sheetShapes.body[0].width / 2;
-}
-
-/**
- * The grey levels (0–1) of a fill layer that take a ramp's shadow, base and
- * highlight. Darker greys hold the shadow and lighter ones the highlight.
- */
-export const rampStops = [0.12, 0.5, 0.88] as const;
-
-/**
- * Colour for each grey level 0–255 of a fill layer, as 256 RGB triples: the
- * ramp stretched over `rampStops`. A renderer tints a fill by looking up its
- * grey (the red channel), then draws the face layer with multiply and the ink
- * layer over it.
- */
-export function rampLookup(ramp: Ramp): Uint8ClampedArray {
-  const at = rampAt(ramp);
-  const out = new Uint8ClampedArray(256 * 3);
-  for (let g = 0; g < 256; g++) out.set(at(g / 255), g * 3);
-  return out;
-}
-
-/**
- * The ramp as an SVG `feComponentTransfer` table for each channel, red, green
- * and blue, 0–1. Its 51 entries put every stop on an entry, so a filter tints
- * a fill layer exactly as `rampLookup` does.
- */
-export function rampTables(ramp: Ramp): [number[], number[], number[]] {
-  const at = rampAt(ramp);
-  const tables: [number[], number[], number[]] = [[], [], []];
-  for (let k = 0; k <= 50; k++) {
-    const colour = at(k / 50);
-    for (const c of [0, 1, 2] as const)
-      tables[c].push(Math.round((colour[c] / 255) * 1000) / 1000);
-  }
-  return tables;
-}
-
-/** The ramp's colour at grey level `t` (0–1). */
-function rampAt(ramp: Ramp): (t: number) => RGB {
-  const [shadow, base, highlight] = ramp.map(rgb) as [RGB, RGB, RGB];
-  const [low, mid, high] = rampStops;
-  const segments = [
-    [0, shadow, low, shadow],
-    [low, shadow, mid, base],
-    [mid, base, high, highlight],
-    [high, highlight, 1, highlight],
-  ] as const;
-  return (t) => {
-    const [from, c0, to, c1] =
-      segments.find(([, , end]) => t <= end) ?? segments[3];
-    const u = (t - from) / (to - from);
-    return [
-      c0[0] + (c1[0] - c0[0]) * u,
-      c0[1] + (c1[1] - c0[1]) * u,
-      c0[2] + (c1[2] - c0[2]) * u,
-    ];
-  };
-}
-
-type RGB = [number, number, number];
-
-function rgb(hex: string): RGB {
-  const channel = (i: number) => Number.parseInt(hex.slice(i, i + 2), 16);
-  return [channel(1), channel(3), channel(5)];
-}
-
-/**
- * The platform's palette as ramps, for outfit colours beyond the sheet's own.
- * Each base keeps ink outlines at 3:1.
- */
-export const paletteRamps = {
-  ember: [palette.ember[6], palette.ember[4], palette.ember[3]],
-  sunshine: [palette.sunshine[5], palette.sunshine[3], palette.sunshine[2]],
-  leaf: [palette.leaf[6], palette.leaf[4], palette.leaf[3]],
-  teal: [palette.teal[5], palette.teal[3], palette.teal[2]],
-  sky: [palette.sky[6], palette.sky[4], palette.sky[3]],
-  berry: [palette.berry[6], palette.berry[4], palette.berry[3]],
-  sand: [palette.sand[4], palette.sand[2], palette.sand[1]],
-} as const satisfies Record<string, Ramp>;

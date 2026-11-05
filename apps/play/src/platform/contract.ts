@@ -355,7 +355,7 @@ export function homePortContract(name: string, harness: HomeHarness) {
       const { session, home } = await harness.newStudent();
       const look: AvatarLook = {
         ...defaultLook,
-        body: "skin-11",
+        body: "skin-07",
         hair: "hair-40",
         hat: "hat-07",
       };
@@ -369,7 +369,7 @@ export function homePortContract(name: string, harness: HomeHarness) {
       const changed: AvatarLook = {
         ...defaultLook,
         top: "top-08",
-        bottom: "bottom-11",
+        bottom: "bottom-09",
       };
       await home.wear(changed);
       expect((await session.current())?.look).toEqual(changed);
@@ -380,7 +380,7 @@ export function homePortContract(name: string, harness: HomeHarness) {
       const look: AvatarLook = {
         ...defaultLook,
         body: "skin-01",
-        hair: "hair-62",
+        hair: "hair-39",
       };
       expect(await home.wear(look)).toEqual(look);
     });

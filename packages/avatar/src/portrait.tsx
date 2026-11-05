@@ -2,18 +2,14 @@
 // with an expression. Games get it through the game contract's Avatar prop;
 // the shell uses it on its own screens, and the wardrobe draws single items.
 //
-// Plain SVG, so it draws at once and at any size. Each tintable layer is
-// coloured by an SVG filter that looks its grey up in the item's ramp (see
-// `rampTables`), the face layer is multiplied over it and the ink drawn on
-// top, as art/README.md describes. Every part is drawn at its body-frame size
-// (`./layout.ts`), whatever its PNGs' resolution, so sharper art drops in.
-import { color } from "@repo/tokens";
+// Plain SVG, so it draws at once and at any size: each item is its PNG, in its
+// box in the body frame (`./layout.ts`), and the face is drawn over the body.
 import { Fragment, useId } from "react";
-import { layerUrls } from "./art.ts";
+import { itemUrl, maskUrl } from "./art.ts";
 import { type Brow, faces } from "./faces.ts";
 import type { AvatarExpression, AvatarLook } from "./index.ts";
-import { frame, type Placement, placeLook } from "./layout.ts";
-import { face, items, type Ramp, rampTables, shapes } from "./parts.ts";
+import { frame, hairTop, type Placed, placeLook } from "./layout.ts";
+import { type Box, face, items, type Piece } from "./parts.ts";
 
 export interface PortraitProps {
   look: AvatarLook;
@@ -22,10 +18,30 @@ export interface PortraitProps {
   size: number;
   /** The accessible name, in the student's locale. */
   label: string;
+  /** Unsaved boxes and masks, for the avatar fit tool. Nothing else uses this. */
+  draft?: PortraitDraft;
 }
 
-export function Portrait({ look, expression, size, label }: PortraitProps) {
-  const id = useSvgId();
+export interface PortraitDraft {
+  boxes: Readonly<Record<string, Box>>;
+  /** A mask's image by piece ID; null for no mask, absent for the saved one. */
+  masks: Readonly<Record<string, string | null>>;
+}
+
+export function Portrait({
+  look,
+  expression,
+  size,
+  label,
+  draft,
+}: PortraitProps) {
+  const placed = placeLook(look).map(
+    (piece): Placed => ({ ...piece, ...draft?.boxes[piece.id] }),
+  );
+  const worn = placed.filter((piece) => piece.slot !== "hat");
+  const hats = placed.filter((piece) => piece.slot === "hat");
+  const mask = (id: string) =>
+    draft && id in draft.masks ? draft.masks[id] : maskUrl(id);
   return (
     <svg
       width={size}
@@ -34,15 +50,78 @@ export function Portrait({ look, expression, size, label }: PortraitProps) {
       role="img"
       aria-label={label}
       data-expression={expression}
+      style={draft ? { overflow: "visible" } : undefined}
     >
-      {placeLook(look).map((placement, i) => (
-        // Placements are back to front and never reorder for a look.
-        // biome-ignore lint/suspicious/noArrayIndexKey: see above
-        <Fragment key={i}>
-          <Part placement={placement} id={`${id}-${i}`} />
-          {placement.slot === "body" && <Face expression={expression} />}
-        </Fragment>
+      {worn.map((piece) => (
+        <WornPiece
+          key={piece.id}
+          piece={piece}
+          mask={mask(piece.id)}
+          top={piece.slot === "hair" ? hairTop(look) : null}
+        />
       ))}
+      {/* Over the hair, so a long fringe never hides how the avatar feels. */}
+      <Face expression={expression} />
+      {hats.map((piece) => (
+        <WornPiece key={piece.id} piece={piece} mask={mask(piece.id)} />
+      ))}
+    </svg>
+  );
+}
+
+/**
+ * A picture in its box, with any parts of it blocked out by `mask`, and cut
+ * off above `top` if that's within it.
+ */
+function WornPiece({
+  piece,
+  mask,
+  top = null,
+}: {
+  piece: Piece & Partial<Pick<Placed, "slot" | "item">>;
+  mask?: string | null;
+  top?: number | null;
+}) {
+  const id = `mask${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
+  const box = {
+    x: piece.x,
+    y: piece.y,
+    width: piece.width,
+    height: piece.height,
+  };
+  const image = (
+    <image
+      href={itemUrl(piece.id)}
+      {...box}
+      preserveAspectRatio="none"
+      data-slot={piece.slot}
+      data-item={piece.item}
+      mask={mask ? `url(#${id})` : undefined}
+    />
+  );
+  const drawn = mask ? (
+    <>
+      <mask id={id} maskUnits="userSpaceOnUse" {...box}>
+        <image href={mask} {...box} preserveAspectRatio="none" />
+      </mask>
+      {image}
+    </>
+  ) : (
+    image
+  );
+  if (top === null || top <= piece.y) return drawn;
+  const height = piece.y + piece.height - top;
+  // A nested svg clips to its own box.
+  return (
+    <svg
+      aria-hidden="true"
+      x={piece.x}
+      y={top}
+      width={piece.width}
+      height={height}
+      viewBox={`${piece.x} ${top} ${piece.width} ${height}`}
+    >
+      {drawn}
     </svg>
   );
 }
@@ -54,105 +133,45 @@ export interface ItemPictureProps {
   size: number;
 }
 
+/** The part of a body that shows its head, in body-frame units. */
+const head = { x: -118, y: 0, side: 236 };
+
 /**
  * One item on its own, for picking it: a skin tone as the head in that tone,
- * anything else as its drawing. Decorative; the button around it is named.
+ * anything else as its picture. Decorative; the button around it is named.
  */
 export function ItemPicture({ item: itemId, size }: ItemPictureProps) {
-  const id = useSvgId();
   const item = items.get(itemId);
-  const shape = item && shapes.get(item.shape);
-  if (!item || !shape) return null;
-  const { width, height } = shape;
-  const head = item.slot === "body";
-  // The body is shown from the top down to the neck, a square as wide as it is.
-  const side = head ? width : Math.max(width, height);
-  const viewBox = head
-    ? `${-width / 2} 0 ${side} ${side}`
-    : `${-side / 2} ${-side / 2} ${side} ${side}`;
-  const placement: Placement = {
-    slot: item.slot,
-    item,
-    shape,
-    x: -width / 2,
-    y: head ? 0 : -height / 2,
-    width,
-    height,
-    mirrored: false,
-  };
+  if (!item) return null;
+  const isHead = item.slot === "body";
   return (
     <svg
       width={size}
       height={size}
-      viewBox={viewBox}
+      viewBox={
+        isHead ? `${head.x} ${head.y} ${head.side} ${head.side}` : "0 0 100 100"
+      }
       aria-hidden="true"
       data-item={item.id}
     >
-      <Part placement={placement} id={id} />
-      {head && <Face expression="happy" />}
+      {isHead ? (
+        <>
+          {item.pieces[0] && <WornPiece piece={item.pieces[0]} />}
+          <Face expression="happy" />
+        </>
+      ) : (
+        <image href={itemUrl(item.id)} width={100} height={100} />
+      )}
     </svg>
   );
 }
 
-/** A unique ID that's safe inside `url(#…)`. */
-function useSvgId() {
-  return `avatar${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
-}
-
-function Part({ placement, id }: { placement: Placement; id: string }) {
-  const { slot, item, shape, mirrored } = placement;
-  const urls = layerUrls(shape.id);
-  const box = {
-    x: placement.x,
-    y: placement.y,
-    width: placement.width,
-    height: placement.height,
-    preserveAspectRatio: "none",
-  };
-  return (
-    <g
-      data-slot={slot}
-      data-item={item.id}
-      transform={mirrored ? "scale(-1 1)" : undefined}
-    >
-      {item.ramp ? (
-        <>
-          <Tint id={id} ramp={item.ramp} />
-          <image href={urls.fill} {...box} filter={`url(#${id})`} />
-          {urls.face && (
-            <image
-              href={urls.face}
-              {...box}
-              style={{ mixBlendMode: "multiply" }}
-            />
-          )}
-          <image href={urls.ink} {...box} />
-        </>
-      ) : (
-        <image href={urls.colour} {...box} />
-      )}
-    </g>
-  );
-}
-
-/** Colours a grey fill layer with a ramp. */
-function Tint({ id, ramp }: { id: string; ramp: Ramp }) {
-  const [r, g, b] = rampTables(ramp);
-  return (
-    <filter id={id} colorInterpolationFilters="sRGB">
-      <feComponentTransfer>
-        <feFuncR type="table" tableValues={r.join(" ")} />
-        <feFuncG type="table" tableValues={g.join(" ")} />
-        <feFuncB type="table" tableValues={b.join(" ")} />
-      </feComponentTransfer>
-    </filter>
-  );
-}
-
-const ink = color.ink.default;
+// Drawn to match the art's face: dark brown lines, big round eyes.
+const ink = "#2E1A12";
+const iris = "#2A140C";
 const line = {
   stroke: ink,
-  strokeWidth: 1.2,
+  strokeWidth: 3,
   strokeLinecap: "round",
   strokeLinejoin: "round",
   fill: "none",
@@ -160,41 +179,53 @@ const line = {
 
 function Face({ expression }: { expression: AvatarExpression }) {
   const { eyes, gaze, brows, mouth, mouthOpen } = faces[expression];
-  const ry = face.eyeHeight / 2;
-  const middle = (face.eyes[0]?.x ?? 0) / 2 + (face.eyes[1]?.x ?? 0) / 2;
+  const r = face.eyeRadius;
   return (
     <g data-face={expression}>
       {face.eyes.map(({ x, y }, i) => {
         // Which way is inward, towards the nose.
-        const inward = x < middle ? 1 : -1;
-        const brow = brows?.[i];
+        const inward = x < 0 ? 1 : -1;
+        const brow = brows[i];
         return (
           <Fragment key={x}>
             {eyes[i] === "shut" ? (
               // Shut in a smile.
               <path
-                d={`M${x - 2.6} ${y + 0.8} Q${x} ${y - 2.8} ${x + 2.6} ${y + 0.8}`}
+                d={`M${x - r} ${y + 4} Q${x} ${y - r} ${x + r} ${y + 4}`}
                 {...line}
+                strokeWidth={4}
               />
             ) : (
               <>
+                {/* White showing only on the outer side, under a heavy lash. */}
                 <ellipse
-                  cx={x + gaze.dx}
+                  cx={x - inward * 3}
+                  cy={y + 1}
+                  rx={r}
+                  ry={r - 2}
+                  fill="#FFFFFF"
+                />
+                <circle
+                  cx={x + inward * 3 + gaze.dx}
                   cy={y + gaze.dy}
-                  rx={ry * 0.8}
-                  ry={ry}
-                  fill={ink}
+                  r={r - 1}
+                  fill={iris}
                 />
                 {/* A catchlight, so the eyes look alive. */}
                 <circle
-                  cx={x + gaze.dx + 0.8}
-                  cy={y + gaze.dy - 1.1}
-                  r={0.75}
+                  cx={x + inward * 3 + gaze.dx + 3}
+                  cy={y + gaze.dy - 6}
+                  r={4}
                   fill="#FFFFFF"
+                />
+                <path
+                  d={`M${x - inward * 3 - r} ${y - 3} Q${x} ${y - r - 8} ${x + inward * 3 + r} ${y - 5}`}
+                  {...line}
+                  strokeWidth={4}
                 />
               </>
             )}
-            {brow && <path d={browPath(x, y - ry, inward, brow)} {...line} />}
+            {brow && <path d={browPath(x, y - r, inward, brow)} {...line} />}
           </Fragment>
         );
       })}
@@ -210,9 +241,9 @@ function Face({ expression }: { expression: AvatarExpression }) {
 
 /** A brow over the eye centred at `x` whose top is at `top`. */
 function browPath(x: number, top: number, inward: number, brow: Brow) {
-  const rest = top - 2.2 - brow.lift;
+  const rest = top - 16 - brow.lift;
   const [inner, outer] = [rest - brow.tilt / 2, rest + brow.tilt / 2];
   // The control point sits twice the arch up, so the curve peaks at the arch.
   const peak = (inner + outer) / 2 - 2 * brow.arch;
-  return `M${x + inward * 2.4} ${inner} Q${x} ${peak} ${x - inward * 2.4} ${outer}`;
+  return `M${x + inward * 16} ${inner} Q${x} ${peak} ${x - inward * 16} ${outer}`;
 }

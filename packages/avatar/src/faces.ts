@@ -22,8 +22,8 @@ export interface FaceDrawing {
   eyes: [EyeState, EyeState];
   /** Where open eyes look, from straight ahead. */
   gaze: { dx: number; dy: number };
-  /** Left then right, as for `eyes`; none for a relaxed face. */
-  brows?: [Brow, Brow];
+  /** Left then right, as for `eyes`. */
+  brows: [Brow, Brow];
   /** Path from the mouth's centre. */
   mouth: string;
   /** Filled: an open mouth. */
@@ -36,37 +36,39 @@ export const faces: Record<AvatarExpression, FaceDrawing> = {
   neutral: {
     eyes: ["open", "open"],
     gaze: { dx: 0, dy: 0 },
-    mouth: "M-2.4 0 Q0 0.9 2.4 0",
+    brows: [raised(0, 4), raised(0, 4)],
+    mouth: "M-13 0 Q0 6 13 0",
     mouthOpen: false,
   },
+  // As the art draws it.
   happy: {
     eyes: ["open", "open"],
     gaze: { dx: 0, dy: 0 },
-    brows: [raised(0.5, 0.7), raised(0.5, 0.7)],
-    mouth: "M-4.4 -1.4 Q0 4.6 4.4 -1.4",
+    brows: [raised(2, 5), raised(2, 5)],
+    mouth: "M-20 -5 Q0 15 20 -5",
     mouthOpen: false,
   },
   // One brow up, the other level, eyes off to the side, mouth pursed aside.
   thinking: {
     eyes: ["open", "open"],
-    gaze: { dx: 1, dy: -1 },
-    brows: [raised(-0.2, 0.2), raised(1.8, 0.9)],
-    mouth: "M-0.6 0.4 Q1.2 -0.3 3 0.2",
+    gaze: { dx: 4, dy: -4 },
+    brows: [raised(-2, 2), raised(9, 5)],
+    mouth: "M-3 2 Q6 -2 16 1",
     mouthOpen: false,
   },
   // Cheering's grin and raised brows, a little smaller, eyes open on the student.
   encouraging: {
     eyes: ["open", "open"],
     gaze: { dx: 0, dy: 0 },
-    brows: [raised(1.2, 0.9), raised(1.2, 0.9)],
-    mouth: "M-4 -1.4 Q0 5.2 4 -1.4 Z",
+    brows: [raised(5, 5), raised(5, 5)],
+    mouth: "M-18 -6 Q0 22 18 -6 Z",
     mouthOpen: true,
   },
   cheering: {
     eyes: ["shut", "shut"],
     gaze: { dx: 0, dy: 0 },
-    brows: [raised(1.6, 1), raised(1.6, 1)],
-    mouth: "M-4.6 -1.6 Q0 6.6 4.6 -1.6 Z",
+    brows: [raised(8, 6), raised(8, 6)],
+    mouth: "M-21 -7 Q0 28 21 -7 Z",
     mouthOpen: true,
   },
 };

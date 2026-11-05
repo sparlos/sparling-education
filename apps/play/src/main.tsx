@@ -18,12 +18,16 @@ import {
 import { StandInSignInScreen } from "./platform/stand-ins/SignInScreen.tsx";
 import { newId } from "./play/ids.ts";
 import { useBrowserRoute } from "./play/router.ts";
-import { isLabUrl } from "./play/routes.ts";
+import { isAvatarFitUrl, isLabUrl } from "./play/routes.ts";
 import { browserStorage } from "./play/storage.ts";
 import { App } from "./ui/App.tsx";
 
 // The prototype lab is dev only; production builds drop it entirely.
 const Lab = import.meta.env.DEV ? lazy(() => import("./lab/index.tsx")) : null;
+// So is the tool for fitting avatar art to the body.
+const AvatarFit = import.meta.env.DEV
+  ? lazy(() => import("./dev/AvatarFit.tsx"))
+  : null;
 
 // Pressable things show a press a child can see (@repo/ui's press.module.css).
 document.documentElement.dataset.press = "touch";
@@ -56,6 +60,12 @@ const platform = standIn
  */
 function Shell() {
   const { url, visit, navigate } = useBrowserRoute(base);
+  if (AvatarFit && isAvatarFitUrl(url, base))
+    return (
+      <Suspense key={visit}>
+        <AvatarFit />
+      </Suspense>
+    );
   if (Lab && isLabUrl(url, base))
     return (
       <Suspense key={visit}>

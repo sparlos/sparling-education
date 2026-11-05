@@ -38,15 +38,6 @@ test("starts with a sticker, then one piece for each outfit slot", () => {
     assert.ok(isItem(slot, rest[i]), `${slot}: ${rest[i]}`);
 });
 
-test("doesn't give the same shape twice in a row within a slot", () => {
-  for (const slot of outfitSlots) {
-    const shapes = catalogue
-      .filter((id) => isItem(slot, id))
-      .map((id) => items.get(id)?.shape);
-    assert.notEqual(shapes[0], shapes[1], slot);
-  }
-});
-
 test("grants the next rewards the student hasn't got, in order", () => {
   assert.deepEqual(nextRewards([], 2), catalogue.slice(0, 2));
   const [a = "", , c = ""] = catalogue;

@@ -71,7 +71,7 @@ function studentIn(...classes: Membership[]): Student {
       hair: "hair-12",
       hat: "hat-07",
       top: "top-08",
-      bottom: "bottom-11",
+      bottom: "bottom-09",
       shoes: "shoes-05",
     },
     classes,
@@ -395,11 +395,11 @@ describe("designing the avatar, the first time", () => {
 
   it("shows each pick on the avatar at once, then keeps the look and opens home", async () => {
     const { storage, user } = setUp({ signedIn: newcomer() });
-    await user.click(await screen.findByRole("button", { name: "Skin 12" }));
+    await user.click(await screen.findByRole("button", { name: "Skin 8" }));
     await user.click(screen.getByRole("button", { name: "Hair" }));
     await user.click(screen.getByRole("button", { name: "Hair 40" }));
     const avatar = screen.getByRole("img", { name: "Your avatar" });
-    expect(worn(avatar)).toMatchObject({ body: "skin-12", hair: "hair-40" });
+    expect(worn(avatar)).toMatchObject({ body: "skin-08", hair: "hair-40" });
     expect(screen.getByRole("button", { name: "Hair 40" })).toHaveAttribute(
       "aria-pressed",
       "true",
@@ -411,9 +411,9 @@ describe("designing the avatar, the first time", () => {
     ).toBeInTheDocument();
     expect(
       worn(screen.getByRole("img", { name: "Your avatar" })),
-    ).toMatchObject({ body: "skin-12", hair: "hair-40" });
+    ).toMatchObject({ body: "skin-08", hair: "hair-40" });
     expect(standInStudent(storage)?.look).toMatchObject({
-      body: "skin-12",
+      body: "skin-08",
       hair: "hair-40",
     });
   });
@@ -421,10 +421,10 @@ describe("designing the avatar, the first time", () => {
   it("offers every skin tone and hairstyle", async () => {
     const { user } = setUp({ signedIn: newcomer() });
     const skins = within(await screen.findByRole("list", { name: "Skin" }));
-    expect(skins.getAllByRole("button")).toHaveLength(12);
+    expect(skins.getAllByRole("button")).toHaveLength(8);
     await user.click(screen.getByRole("button", { name: "Hair" }));
     const hair = within(screen.getByRole("list", { name: "Hair" }));
-    expect(hair.getAllByRole("button")).toHaveLength(62);
+    expect(hair.getAllByRole("button")).toHaveLength(40);
   });
 
   it("starts each student from a look of their own", async () => {
@@ -464,8 +464,8 @@ describe("the wardrobe", () => {
     const hats = within(screen.getByRole("list", { name: "Hats" }));
     expect(hats.getAllByRole("button").map((b) => b.ariaLabel)).toEqual([
       "No hat",
-      "Hats 1",
       "Hats 7",
+      "Hats 11",
     ]);
   });
 

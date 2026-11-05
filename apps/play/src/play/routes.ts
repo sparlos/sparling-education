@@ -107,3 +107,8 @@ export function isLabUrl(url: URL, base: string): boolean {
   const lab = labPath(base);
   return url.pathname === lab || url.pathname.startsWith(`${lab}/`);
 }
+
+/** Whether a URL is the avatar fit tool. Dev only. */
+export function isAvatarFitUrl(url: URL, base: string): boolean {
+  return url.pathname === `${base}avatar-fit`;
+}

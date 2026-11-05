@@ -58,7 +58,7 @@ describe("home", () => {
 describe("dressing the avatar", () => {
   it("stores the look a student designs, and the session returns it", async () => {
     const headers = await signInAsStudent();
-    const look = { ...defaultLook, body: "skin-11", hair: "hair-40" } as const;
+    const look = { ...defaultLook, body: "skin-07", hair: "hair-40" } as const;
     const res = await wear(headers, look);
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual(look);
@@ -72,7 +72,7 @@ describe("dressing the avatar", () => {
     const changed = {
       ...defaultLook,
       top: "top-08",
-      bottom: "bottom-11",
+      bottom: "bottom-09",
       hat: "hat-07",
     } as const;
     await wear(headers, changed);
@@ -81,7 +81,7 @@ describe("dressing the avatar", () => {
 
   it("offers every skin tone and hairstyle, owned or not", async () => {
     const headers = await signInAsStudent();
-    const look = { ...defaultLook, body: "skin-01", hair: "hair-62" } as const;
+    const look = { ...defaultLook, body: "skin-01", hair: "hair-39" } as const;
     expect((await wear(headers, look)).status).toBe(200);
   });
 

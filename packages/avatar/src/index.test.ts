@@ -7,7 +7,7 @@ import {
   lookFromSeed,
   parseLook,
 } from "./index.ts";
-import { frame, placeLook } from "./layout.ts";
+import { frame, hairTop, placeLook } from "./layout.ts";
 import { baseSet, isItem, itemsIn, outfitSlots } from "./parts.ts";
 
 test("the default look is valid and wearable with the base set", () => {
@@ -35,7 +35,7 @@ test("parseLook rejects anything else", () => {
     { ...defaultLook, hair: "hair-99" },
     { ...defaultLook, hat: undefined },
     { ...defaultLook, top: null },
-    { ...defaultLook, shoes: "shoes-shape-01" },
+    { ...defaultLook, shoes: "shoes-99" },
     // The old placeholder look.
     { body: "sunshine", eyes: "round", headwear: null },
   ])
@@ -58,8 +58,8 @@ test("every base set item is an outfit piece", () => {
 test("canWear needs every outfit piece owned, but never skin or hair", () => {
   const look: AvatarLook = {
     ...defaultLook,
-    body: "skin-12",
-    hair: "hair-62",
+    body: "skin-08",
+    hair: "hair-40",
     hat: "hat-30",
   };
   assert.ok(!canWear(look, baseSet));
@@ -85,7 +85,7 @@ test("lookFromSeed varies every slot", () => {
   assert.ok(new Set(looks.map((l) => l.body)).size === itemsIn("body").length);
 });
 
-test("a look places every slot it fills once, and shoes as a pair", () => {
+test("a look places every slot it fills once, and shoes as two", () => {
   const slots = placeLook({ ...defaultLook, hat: "hat-07" }).map((p) => p.slot);
   assert.deepEqual(slots, [
     "body",
@@ -99,11 +99,28 @@ test("a look places every slot it fills once, and shoes as a pair", () => {
   assert.ok(!placeLook(defaultLook).some((p) => p.slot === "hat"));
 });
 
+test("overalls go over the top, under the hair", () => {
+  const slots = placeLook({ ...defaultLook, bottom: "bottom-11" }).map(
+    (p) => p.slot,
+  );
+  assert.deepEqual(slots, ["body", "shoes", "shoes", "top", "bottom", "hair"]);
+});
+
+test("a helmet round the whole head hides the hair", () => {
+  const slots = placeLook({ ...defaultLook, hat: "hat-25" }).map((p) => p.slot);
+  assert.ok(!slots.includes("hair"));
+});
+
+test("a wide hat cuts off hair that would poke through it, a small one doesn't", () => {
+  assert.equal(hairTop(defaultLook), null);
+  assert.notEqual(hairTop({ ...defaultLook, hat: "hat-28" }), null);
+  assert.equal(hairTop({ ...defaultLook, hat: "hat-23" }), null);
+});
+
 test("the frame holds every part of every look", () => {
   for (const look of [defaultLook, lookFromSeed("a"), lookFromSeed("b")])
     for (const p of placeLook(look)) {
-      const x0 = p.mirrored ? -(p.x + p.width) : p.x;
-      assert.ok(x0 >= frame.x && x0 + p.width <= frame.x + frame.size);
+      assert.ok(p.x >= frame.x && p.x + p.width <= frame.x + frame.size);
       assert.ok(p.y >= frame.y && p.y + p.height <= frame.y + frame.size);
     }
 });
