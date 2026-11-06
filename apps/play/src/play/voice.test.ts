@@ -445,6 +445,21 @@ describe("browser speech", () => {
 });
 
 describe("voice gate", () => {
+  it("stays closed until every close is undone", () => {
+    const gate = createVoiceGate();
+    const heard: boolean[] = [];
+    gate.listen((closed) => heard.push(closed));
+    gate.close();
+    gate.close();
+    gate.open();
+    expect(gate.closed).toBe(true);
+    gate.open();
+    expect(gate.closed).toBe(false);
+    gate.open();
+    expect(gate.closed).toBe(false);
+    expect(heard).toEqual([true, false]);
+  });
+
   it("stops what every voice behind it is saying when it closes", () => {
     const gate = createVoiceGate();
     const a = setUp({ gate });

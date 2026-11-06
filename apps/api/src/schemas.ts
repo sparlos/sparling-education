@@ -97,6 +97,16 @@ export const ClassGameSchema = z
   })
   .openapi("ClassGame");
 
+export const ClassTimerSchema = z
+  .object({
+    endsAt: z.iso.datetime().openapi({
+      description:
+        'When it runs out. Past it, students are shown "Time\'s up" for a while, until the timer is null again',
+      example: "2026-11-06T15:20:00.000Z",
+    }),
+  })
+  .openapi("ClassTimer");
+
 export const ClassSchema = z
   .object({
     id: z.string().openapi({ description: "Stable and opaque" }),
@@ -115,6 +125,10 @@ export const ClassSchema = z
     games: z.array(ClassGameSchema).openapi({
       description: "Every game the platform hosts, and whether it's on",
     }),
+    timer: z.union([ClassTimerSchema, z.null()]).openapi({
+      description:
+        "The class timer, running or run out; null when there's none, or it ran out long enough ago that students carry on",
+    }),
   })
   .openapi("Class");
 
@@ -123,6 +137,22 @@ export type Class = z.infer<typeof ClassSchema>;
 export const ClassColourChangeSchema = z
   .object({ colour: ClassColourSchema })
   .openapi("ClassColourChange");
+
+export const TimerStartSchema = z
+  .object({
+    minutes: z
+      .union([
+        z.literal(10),
+        z.literal(15),
+        z.literal(20),
+        z.literal(30),
+        z.literal(45),
+      ])
+      .openapi({ description: "How long students have, from now" }),
+  })
+  .openapi("TimerStart");
+
+export type ClassTimer = z.infer<typeof ClassTimerSchema>;
 
 export const GameSwitchSchema = z
   .object({
@@ -401,7 +431,10 @@ export const PlayEndRecordSchema = z
   .object({
     ...playRecordBase,
     kind: z.literal("end"),
-    ending: z.enum(["finished", "left", "crashed"]),
+    ending: z.enum(["finished", "left", "crashed", "timeUp"]).openapi({
+      description:
+        "timeUp: the class timer ran out partway, through no choice of the student's",
+    }),
   })
   .openapi("PlayEndRecord", {
     description: "How a play ended: at most one per play, after its attempts",
@@ -605,7 +638,7 @@ export const DashboardSchema = z
 export type Dashboard = z.infer<typeof DashboardSchema>;
 
 const EndingSchema = z
-  .union([z.enum(["finished", "left", "crashed"]), z.null()])
+  .union([z.enum(["finished", "left", "crashed", "timeUp"]), z.null()])
   .openapi({
     description:
       "How the play ended; null while it's going, or until its end arrives",

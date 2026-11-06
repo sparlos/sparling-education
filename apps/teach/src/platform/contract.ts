@@ -44,7 +44,7 @@ export interface TeacherPortHarness {
     classId: string,
     grade: number,
     tasks: Try[][],
-    ending?: "finished" | "left",
+    ending?: "finished" | "left" | "timeUp",
   ): string | Promise<string>;
   /** Sets the time it is now, for which term it is. */
   setNow(at: Date): void;
@@ -1195,6 +1195,114 @@ export function demoClassContract(
       const { port } = await make();
       await expect(port.deleteDemoClass()).rejects.toThrow();
       await expect(port.viewDemoAsStudent()).rejects.toThrow();
+    });
+  });
+}
+
+export function timerContract(
+  name: string,
+  make: () => TeacherPortHarness | Promise<TeacherPortHarness>,
+) {
+  describe(`${name}'s class timers`, () => {
+    const start = new Date("2026-11-06T14:00:00.000Z");
+    const minutes = (n: number) =>
+      new Date(start.getTime() + n * 60_000).toISOString();
+
+    async function classOfTeacher() {
+      const harness = await make();
+      harness.setNow(start);
+      await harness.port.signIn(
+        await harness.credentialFor(newGoogleAccount()),
+      );
+      const made = await harness.port.createClass({
+        name: "Room 12",
+        grades: [4],
+      });
+      return { ...harness, made };
+    }
+
+    it("has none until one is started", async () => {
+      const { made } = await classOfTeacher();
+      expect(made.timer).toBeNull();
+    });
+
+    it("runs out the minutes picked from now, for every read of the class", async () => {
+      const { port, made } = await classOfTeacher();
+      const started = await port.startTimer(made.id, 20);
+      expect(started).toEqual({ ...made, timer: { endsAt: minutes(20) } });
+      expect(await port.class(made.id)).toEqual(started);
+      expect(await port.classes()).toEqual([started]);
+    });
+
+    it("replaces a timer when another is started", async () => {
+      const { port, made } = await classOfTeacher();
+      await port.startTimer(made.id, 45);
+      expect((await port.startTimer(made.id, 10)).timer).toEqual({
+        endsAt: minutes(10),
+      });
+    });
+
+    it("gives 5 more minutes while running, and none once run out", async () => {
+      const { port, made, setNow } = await classOfTeacher();
+      await port.startTimer(made.id, 10);
+      expect((await port.addTime(made.id)).timer).toEqual({
+        endsAt: minutes(15),
+      });
+      setNow(new Date(minutes(15)));
+      await expect(port.addTime(made.id)).rejects.toThrow();
+    });
+
+    it("can't give more minutes when there's no timer", async () => {
+      const { port, made } = await classOfTeacher();
+      await expect(port.addTime(made.id)).rejects.toThrow();
+    });
+
+    it("stops, running or run out", async () => {
+      const { port, made, setNow } = await classOfTeacher();
+      await port.startTimer(made.id, 10);
+      expect((await port.stopTimer(made.id)).timer).toBeNull();
+      await port.startTimer(made.id, 10);
+      setNow(new Date(minutes(12)));
+      expect((await port.class(made.id)).timer).toEqual({
+        endsAt: minutes(10),
+      });
+      expect((await port.stopTimer(made.id)).timer).toBeNull();
+      expect((await port.class(made.id)).timer).toBeNull();
+    });
+
+    it("is gone by itself 15 minutes after it runs out", async () => {
+      const { port, made, setNow } = await classOfTeacher();
+      await port.startTimer(made.id, 10);
+      setNow(new Date(new Date(minutes(25)).getTime() - 1));
+      expect((await port.class(made.id)).timer).not.toBeNull();
+      setNow(new Date(minutes(25)));
+      expect((await port.class(made.id)).timer).toBeNull();
+    });
+
+    it("is only its teacher's", async () => {
+      const { port, credentialFor, made } = await classOfTeacher();
+      await port.signIn(await credentialFor(newGoogleAccount()));
+      await expect(port.startTimer(made.id, 10)).rejects.toBeInstanceOf(
+        NotFound,
+      );
+      await expect(port.stopTimer(made.id)).rejects.toBeInstanceOf(NotFound);
+      await expect(port.addTime(made.id)).rejects.toBeInstanceOf(NotFound);
+    });
+
+    it("shows a play the timer cut short as such, and not as finished", async () => {
+      const { port, made, joinClass, play } = await classOfTeacher();
+      const sam = { ...newGoogleAccount(), firstName: "Sam" };
+      await joinClass(sam, made.joinCode);
+      const expectation = await play(sam, made.id, 4, right(2), "timeUp");
+      const [student] = (await port.dashboard(made.id)).students;
+      if (!student) throw new Error("No student");
+      const { plays } = await port.evidence(made.id, student.id, expectation);
+      expect(plays.map((p) => p.ending)).toEqual(["timeUp"]);
+      const page = await port.studentPage(made.id, student.id);
+      const finished = page.effort
+        .flatMap((s) => s.evidence)
+        .find((e) => e.kind === "finishedPlays");
+      expect(finished?.count).toBe(0);
     });
   });
 }

@@ -265,11 +265,12 @@ export interface PlayEndRecord extends PlayRecordBase {
   /**
    * "finished": the game reached its end. "left": the student chose to stop.
    * "crashed": the game broke, through no choice of the student's.
+   * "timeUp": the class timer ran out partway, through no choice of theirs.
    */
   ending: PlayEnding;
 }
 
-export type PlayEnding = "finished" | "left" | "crashed";
+export type PlayEnding = "finished" | "left" | "crashed" | "timeUp";
 
 export type PlayRecord = AttemptRecord | PlayEndRecord;
 
@@ -291,6 +292,23 @@ export interface PlayRecordsPort {
   played(game: string): Promise<boolean>;
 }
 
+/** A class timer a teacher set: how long the student has. */
+export interface ClassTimer {
+  /** When it runs out, as an ISO date-time. */
+  endsAt: string;
+}
+
+export interface TimerPort {
+  /**
+   * The class timer the signed-in student is under: of their classes'
+   * timers, the one that ends soonest. Once it runs out, it stays until its
+   * teacher clears it or a while after (the student is shown "Time's up"
+   * meanwhile), then it's null. Null when none of their classes has one.
+   * Rejects when it can't be checked.
+   */
+  current(): Promise<ClassTimer | null>;
+}
+
 /** Where the shell sends the student in other apps. All URLs are absolute or root-relative. */
 export interface LinksPort {
   /** Sign-in, returning to `returnTo` (the game link the student opened) afterwards. */
@@ -310,6 +328,8 @@ export interface Platform {
   home: HomePort;
   records: PlayRecordsPort;
   links: LinksPort;
+  /** Class timers. A site with no classes (the try site) has none. */
+  timer?: TimerPort;
   /**
    * Google's sign-in button, for the shell's sign-in page, which
    * `links.signIn` leads to. Platforms with a sign-in page of their own (the

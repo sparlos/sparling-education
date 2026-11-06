@@ -14,6 +14,7 @@ import {
   startSession,
   viewingAs,
 } from "./accounts.ts";
+import { addTime, startTimer, stopTimer, studentTimer } from "./class-timer.ts";
 import {
   createClass,
   setClassColour,
@@ -50,6 +51,7 @@ import {
   ClassColourChangeSchema,
   ClassSchema,
   ClassStudentSchema,
+  ClassTimerSchema,
   DashboardSchema,
   DemoViewSchema,
   ErrorSchema,
@@ -79,6 +81,7 @@ import {
   StudentPageSchema,
   StudentSchema,
   StudentSignInSchema,
+  TimerStartSchema,
   UnhealthySchema,
   WalkthroughsSchema,
 } from "./schemas.ts";
@@ -452,6 +455,24 @@ const playedRoute = createRoute({
   },
 });
 
+const studentTimerRoute = createRoute({
+  method: "get",
+  path: "/timer",
+  operationId: "getStudentTimer",
+  summary: "The class timer the signed-in student is under",
+  description:
+    "Of the timers their teachers set for their classes, the one that ends soonest. Once it runs out, students are shown \"Time's up\" until it's null again: when the teacher clears it, or a while after it ran out.",
+  responses: {
+    200: {
+      description: "The timer, or null when none of their classes has one",
+      content: {
+        "application/json": { schema: z.union([ClassTimerSchema, z.null()]) },
+      },
+    },
+    ...studentOnly,
+  },
+});
+
 // Every teacher route answers these when the browser isn't a teacher's.
 const teacherOnly = {
   401: {
@@ -565,6 +586,74 @@ const classColourRoute = createRoute({
     400: {
       description: "Not one of the class colours",
       content: { "application/json": { schema: ErrorSchema } },
+    },
+    ...teacherOnly,
+    404: {
+      description: "No class of this teacher's has that ID",
+      content: { "application/json": { schema: ErrorSchema } },
+    },
+  },
+});
+
+const startTimerRoute = createRoute({
+  method: "put",
+  path: "/classes/{classId}/timer",
+  operationId: "startClassTimer",
+  summary: "Start a class timer",
+  description:
+    "Its students see how long they have left on every screen. When it runs out, any game they're in ends and they're shown \"Time's up\". Starting one replaces any the class had.",
+  request: {
+    params: z.object({ classId: z.uuid() }),
+    body: { content: { "application/json": { schema: TimerStartSchema } } },
+  },
+  responses: {
+    200: {
+      description: "The class, with its timer",
+      content: { "application/json": { schema: ClassSchema } },
+    },
+    ...teacherOnly,
+    404: {
+      description: "No class of this teacher's has that ID",
+      content: { "application/json": { schema: ErrorSchema } },
+    },
+  },
+});
+
+const moreTimeRoute = createRoute({
+  method: "post",
+  path: "/classes/{classId}/timer/more",
+  operationId: "addClassTimerTime",
+  summary: "Give a class 5 more minutes on its running timer",
+  request: { params: z.object({ classId: z.uuid() }) },
+  responses: {
+    200: {
+      description: "The class, with its timer ending later",
+      content: { "application/json": { schema: ClassSchema } },
+    },
+    ...teacherOnly,
+    404: {
+      description: "No class of this teacher's has that ID",
+      content: { "application/json": { schema: ErrorSchema } },
+    },
+    409: {
+      description: "The class has no timer running",
+      content: { "application/json": { schema: ErrorSchema } },
+    },
+  },
+});
+
+const stopTimerRoute = createRoute({
+  method: "delete",
+  path: "/classes/{classId}/timer",
+  operationId: "stopClassTimer",
+  summary: "Clear a class's timer, running or run out",
+  description:
+    'Its students carry on as if none was set. Stopping a running timer shows them no "Time\'s up".',
+  request: { params: z.object({ classId: z.uuid() }) },
+  responses: {
+    200: {
+      description: "The class, with no timer",
+      content: { "application/json": { schema: ClassSchema } },
     },
     ...teacherOnly,
     404: {
@@ -1114,11 +1203,17 @@ export function createApp({
       const { slug } = c.req.valid("param");
       return c.json({ played: await hasPlayed(db, student.id, slug) }, 200);
     })
+    .openapi(studentTimerRoute, async (c) => {
+      const student = await studentOf(c);
+      if (student === "signed-out") return c.json({ error: student }, 401);
+      if (student === "not-a-student") return c.json({ error: student }, 403);
+      return c.json(await studentTimer(db, student.id, clock()), 200);
+    })
     .openapi(classesRoute, async (c) => {
       const teacher = await teacherOf(c);
       if (teacher === "signed-out") return c.json({ error: teacher }, 401);
       if (teacher === "not-a-teacher") return c.json({ error: teacher }, 403);
-      return c.json(await teacherClasses(db, teacher.id), 200);
+      return c.json(await teacherClasses(db, teacher.id, clock()), 200);
     })
     .openapi(createClassRoute, async (c) => {
       const teacher = await teacherOf(c);
@@ -1137,6 +1232,7 @@ export function createApp({
         db,
         teacher.id,
         c.req.valid("param").classId,
+        clock(),
       );
       if (!found) return c.json({ error: "no-such-class" }, 404);
       return c.json(found, 200);
@@ -1152,6 +1248,7 @@ export function createApp({
         classId,
         slug,
         c.req.valid("json").on,
+        clock(),
       );
       if (!switched) return c.json({ error: "not-found" }, 404);
       return c.json(switched, 200);
@@ -1165,9 +1262,51 @@ export function createApp({
         teacher.id,
         c.req.valid("param").classId,
         c.req.valid("json").colour,
+        clock(),
       );
       if (!changed) return c.json({ error: "no-such-class" }, 404);
       return c.json(changed, 200);
+    })
+    .openapi(startTimerRoute, async (c) => {
+      const teacher = await teacherOf(c);
+      if (teacher === "signed-out") return c.json({ error: teacher }, 401);
+      if (teacher === "not-a-teacher") return c.json({ error: teacher }, 403);
+      const started = await startTimer(
+        db,
+        teacher.id,
+        c.req.valid("param").classId,
+        c.req.valid("json").minutes,
+        clock(),
+      );
+      if (!started) return c.json({ error: "no-such-class" }, 404);
+      return c.json(started, 200);
+    })
+    .openapi(moreTimeRoute, async (c) => {
+      const teacher = await teacherOf(c);
+      if (teacher === "signed-out") return c.json({ error: teacher }, 401);
+      if (teacher === "not-a-teacher") return c.json({ error: teacher }, 403);
+      const longer = await addTime(
+        db,
+        teacher.id,
+        c.req.valid("param").classId,
+        clock(),
+      );
+      if (!longer) return c.json({ error: "no-such-class" }, 404);
+      if (longer === "not-running") return c.json({ error: longer }, 409);
+      return c.json(longer, 200);
+    })
+    .openapi(stopTimerRoute, async (c) => {
+      const teacher = await teacherOf(c);
+      if (teacher === "signed-out") return c.json({ error: teacher }, 401);
+      if (teacher === "not-a-teacher") return c.json({ error: teacher }, 403);
+      const stopped = await stopTimer(
+        db,
+        teacher.id,
+        c.req.valid("param").classId,
+        clock(),
+      );
+      if (!stopped) return c.json({ error: "no-such-class" }, 404);
+      return c.json(stopped, 200);
     })
     .openapi(classStudentsRoute, async (c) => {
       const teacher = await teacherOf(c);

@@ -1,0 +1,64 @@
+/* On a shell page, the clock sits low in a corner, over the page. */
+.corner {
+  position: fixed;
+  bottom: var(--mantine-spacing-md);
+  left: var(--mantine-spacing-md);
+  z-index: 3;
+  pointer-events: none;
+}
+
+/* Small and quiet: the time left, never a target. */
+.clock {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background-color: var(--k-surface-raised);
+  box-shadow: var(--k-shadow-card);
+  color: var(--k-ink-muted);
+  font-family: var(--k-font-heading-stack);
+  font-size: var(--mantine-font-size-sm);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* In a game's rail, no wider than its buttons. */
+.clock[data-stacked] {
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 4px;
+  border-radius: var(--mantine-radius-md);
+  font-size: var(--mantine-font-size-xs);
+}
+
+/* The last minute reads stronger. */
+.clock[data-last-minute] {
+  color: var(--k-ink);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .clock[data-pulse] {
+    animation: heads-up 1.6s var(--k-ease-springy);
+  }
+}
+
+@keyframes heads-up {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  25%,
+  60% {
+    transform: scale(1.6);
+  }
+  45% {
+    transform: scale(1.4);
+  }
+}
+
+/* Over everything but the too-small block, and solid. */
+.timeUp {
+  z-index: 999;
+  background-color: var(--k-surface-page);
+}

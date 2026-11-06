@@ -24,6 +24,7 @@ import {
   type EffortSkill,
   type Evidence,
   type Misconception,
+  moreTimeMinutes,
   type NewClass,
   NotFound,
   type Play,
@@ -32,6 +33,8 @@ import {
   type Result,
   type StudentPage,
   type TeacherPort,
+  timerMinutes,
+  timeUpHoldMinutes,
   type Understanding,
 } from "../ports.ts";
 import {
@@ -262,6 +265,7 @@ export function fakeTeacherBackend(
         on: true,
         link: `${origin}/play/${slug}?join=${joinCode}`,
       })),
+      timer: null,
     };
     classes.push({ teacherId, class: made });
     return made;
@@ -565,6 +569,22 @@ export function fakeTeacherBackend(
     return { id, firstName, lastInitial, grade };
   }
 
+  /** The class as its teacher sees it now: a timer that ran out long enough ago is gone. */
+  function shown(cls: Class): Class {
+    const ends = cls.timer && Date.parse(cls.timer.endsAt);
+    if (ends && ends + timeUpHoldMinutes * minuteMs <= now().getTime())
+      return { ...cls, timer: null };
+    return cls;
+  }
+
+  /** Stores the class with its timer changed, resolving with it as shown. */
+  function retime(cls: Class, timer: Class["timer"]): Class {
+    const changed: Class = { ...cls, timer };
+    const entry = classes.find((c) => c.class === cls);
+    if (entry) entry.class = changed;
+    return shown(changed);
+  }
+
   function teachersClass(classId: string) {
     const { id } = signedInTeacher();
     const found = classes.find(
@@ -722,7 +742,9 @@ export function fakeTeacherBackend(
       async classes() {
         reachable();
         const { id } = signedInTeacher();
-        return classes.filter((c) => c.teacherId === id).map((c) => c.class);
+        return classes
+          .filter((c) => c.teacherId === id)
+          .map((c) => shown(c.class));
       },
       async createClass(draft) {
         reachable();
@@ -730,7 +752,7 @@ export function fakeTeacherBackend(
       },
       async class(classId) {
         reachable();
-        return teachersClass(classId);
+        return shown(teachersClass(classId));
       },
       async setClassColour(classId, colour) {
         reachable();
@@ -740,7 +762,7 @@ export function fakeTeacherBackend(
         const changed: Class = { ...cls, colour };
         const entry = classes.find((c) => c.class === cls);
         if (entry) entry.class = changed;
-        return changed;
+        return shown(changed);
       },
       async switchGame(classId, slug, on) {
         reachable();
@@ -752,7 +774,28 @@ export function fakeTeacherBackend(
         };
         const entry = classes.find((c) => c.class === cls);
         if (entry) entry.class = switched;
-        return switched;
+        return shown(switched);
+      },
+      async startTimer(classId, minutes) {
+        reachable();
+        const cls = teachersClass(classId);
+        if (!timerMinutes.includes(minutes))
+          throw new Error("Not a timer length on offer (fake)");
+        const endsAt = new Date(now().getTime() + minutes * minuteMs);
+        return retime(cls, { endsAt: endsAt.toISOString() });
+      },
+      async addTime(classId) {
+        reachable();
+        const cls = teachersClass(classId);
+        const ends = cls.timer ? Date.parse(cls.timer.endsAt) : 0;
+        if (ends <= now().getTime())
+          throw new Error("The class has no timer running (fake)");
+        const endsAt = new Date(ends + moreTimeMinutes * minuteMs);
+        return retime(cls, { endsAt: endsAt.toISOString() });
+      },
+      async stopTimer(classId) {
+        reachable();
+        return retime(teachersClass(classId), null);
       },
       async students(classId) {
         reachable();
@@ -918,7 +961,9 @@ export function fakeTeacherBackend(
 }
 
 /** How a fake play ends: it never crashes. */
-type FakeEnding = "finished" | "left";
+type FakeEnding = "finished" | "left" | "timeUp";
+
+const minuteMs = 60_000;
 
 interface FakePlay {
   id: string;

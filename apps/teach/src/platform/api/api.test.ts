@@ -12,6 +12,7 @@ import {
   recognitionContract,
   type TeacherPortHarness,
   teacherPortContract,
+  timerContract,
   walkthroughsContract,
 } from "../contract.ts";
 import { apiTeacherPort } from "./teacher.ts";
@@ -160,3 +161,4 @@ managingContract("API teacher port", harness);
 recognitionContract("API teacher port", harness);
 demoClassContract("API teacher port", () => harness(true));
 walkthroughsContract("API teacher port", harness);
+timerContract("API teacher port", harness);

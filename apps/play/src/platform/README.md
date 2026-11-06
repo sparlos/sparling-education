@@ -1,6 +1,6 @@
 # The platform seam
 
-The play shell needs six things from the rest of the platform. It reaches each one only through a port in [`ports.ts`](./ports.ts):
+The play shell needs seven things from the rest of the platform. It reaches each one only through a port in [`ports.ts`](./ports.ts):
 
 | Port | What it does | Real adapter (`api/`) | Stand-in (`stand-ins/`) |
 | --- | --- | --- | --- |
@@ -8,6 +8,7 @@ The play shell needs six things from the rest of the platform. It reaches each o
 | `MembershipsPort` | Joining a class by its join code, and picking a grade in a split class | `POST /memberships`, `PUT /memberships/{classId}/grade` | Adds stand-in classes to the stored student. Any join code names one: `G4` is Grade 4, `G45` a Grade 4/5 split, a code with no digits Grades 3–5, a code starting with `X` no class |
 | `HomePort` | The outfit pieces and stickers the student owns, the rewards and recognition they haven't seen yet, their locker (where their stickers are, and a keepsake for each game they've played), and dressing their avatar (designing it the first time, then the wardrobe) | `GET /home`, `PUT /home/look`, `POST /home/seen`, `POST /home/wardrobe-seen`, `PUT` and `DELETE /locker/stickers/{sticker}`, `POST /locker/keepsakes/seen` | Owns the base set, plus rewards granted with `standInGrant` or earned with `standInEarn` (each finished play earns the next one, with no effort rule or cap) and recognition given with `standInRecognise`, and the locker (sticker placements, and a keepsake for each game a stored record was for, or given with `standInGiveKeepsakes`), all kept in localStorage; the look is kept on the stored student |
 | `PlayRecordsPort` | Stores each play's records: its attempts, then how it ended; and whether the student has played a game before | `POST /play-records`, `GET /games/{slug}/played` | Kept in memory and logged to the console; the games each student has played are kept in localStorage (`stand-in.played`), so a reload knows a returning student |
+| `TimerPort` | The class timer the student is under: of their classes' timers, the one that ends soonest | `GET /timer` | Set with `standInSetTimer`, or `?stand-in-timer=<minutes>` on any page (`0` clears it), kept in localStorage by class |
 | `LinksPort.signIn` | The sign-in page, returning to where the student was headed | `/play/sign-in`: Google's button in redirect mode | `/play/__stand-in/sign-in` |
 | `LinksPort.home` | Where every game returns the student, naming the play | Home, `/play/?play=<play>` | The same |
 
@@ -119,13 +120,13 @@ plus, by `kind`:
 // How the play ended. At most one per play, after its attempts.
 {
   kind: "end";
-  ending: "finished" | "left" | "crashed";
+  ending: "finished" | "left" | "crashed" | "timeUp";
 }
 ```
 
 - **Idempotent by `id`.** The shell retries until it gets a 2xx, so a batch can arrive twice when a response is lost. Store each ID once and answer 2xx for duplicates.
 - **In order.** Within a play, records arrive in the order they were made, so a play's `end` comes after its attempts. A batch can hold records from more than one play when leftovers are sent.
-- **How a play ended is evidence.** `finished` means the game reached its end. `left` means the student chose to stop partway. `crashed` means the game broke, through no choice of the student's, so it must never count against their effort. A play with no `end` record was abandoned (the tab closed or the device died), and its `end` may still arrive later.
+- **How a play ended is evidence.** `finished` means the game reached its end. `left` means the student chose to stop partway. `crashed` means the game broke, through no choice of the student's, so it must never count against their effort. `timeUp` means the class timer ran out partway, also through no choice of theirs. A play with no `end` record was abandoned (the tab closed or the device died), and its `end` may still arrive later.
 - **Batches hold at most 25 records.** They can arrive late: the shell keeps unsent records on the device and sends them on the student's next play, even days later. Trust `at` for when something happened, not the arrival time.
 - **The adapter rejects only on failures where retrying can help:** network errors, timeouts, 5xx and 429. Those batches are retried. A 4xx means the batch will never be accepted, so the adapter logs it and resolves, and the shell doesn't retry it forever.
 - Validate `game`, `gameVersion`, `tier`, `expectation` and `misconception` against the game's manifest at that version (`attemptProblem` in `@repo/game-contract`, which the shell uses too). The shell already drops attempts its manifest doesn't allow, and attempts made after a play ended.
@@ -137,6 +138,13 @@ plus, by `kind`:
 - Whether the signed-in student has played the game before: true once any of their records for it is stored, from any class, at any tier, including a play that only crashed. Nothing new is stored for it.
 - The shell asks as the game loads, and passes the answer to the game as `firstPlay` when the student taps start. It never waits for it: an answer that hasn't come by then, or a failure, counts as a first play, since showing a tutorial again beats leaving a new student without one.
 - Records can arrive late, so a play on another device may not count yet. At worst, the tutorial plays one extra time.
+
+### `GET /timer` → `{ endsAt: string } | null`
+
+- The class timer the signed-in student is under: of the timers their teachers set for their classes, the one that ends soonest, so one that has run out wins over one still running. Null when none has one.
+- Once it runs out, it stays for 15 minutes (or until the teacher clears it), and then it's null. Meanwhile the shell shows "Time's up" over every page, and a game in progress ends as `timeUp`; one not started yet just goes home.
+- The shell asks as each page opens, every 20 seconds, and when the tab comes back or the connection does. A failed check keeps the last answer, so time's up still comes on time offline.
+- While it runs, a small clock shows the time left: in a game's rail, and low in the corner of every other page. At two minutes left the shell says so, between the game's lines.
 
 ### Links
 

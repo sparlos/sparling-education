@@ -8,6 +8,7 @@ import {
   sampleAttempt,
   sampleEnd,
   sessionPortContract,
+  timerPortContract,
 } from "../contract.ts";
 import type { Student } from "../ports.ts";
 import {
@@ -25,6 +26,7 @@ import {
 } from "./memberships.ts";
 import { standInRecords } from "./records.ts";
 import { standInSession, standInSignIn, standInSignOut } from "./session.ts";
+import { standInSetTimer, standInTimer } from "./timer.ts";
 
 playRecordsPortContract("Stand-in attempts", () => {
   const port = standInRecords({
@@ -216,4 +218,21 @@ describe("stand-in links", () => {
     expect(url.pathname).toBe("/play/");
     expect(url.searchParams.get("play")).toBe("p1");
   });
+});
+
+timerPortContract("Stand-in timer", {
+  newStudent: async () => {
+    const storage = memoryStorage();
+    const classes = ["class-a", "class-b"] as const;
+    return {
+      timer: standInTimer(storage),
+      start: async (which, minutes) =>
+        standInSetTimer(
+          storage,
+          new Date(Date.now() + minutes * 60_000),
+          classes[which],
+        ),
+      stop: async (which) => standInSetTimer(storage, null, classes[which]),
+    };
+  },
 });

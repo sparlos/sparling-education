@@ -1,5 +1,6 @@
 export { getBaseUrl, setBaseUrl, setFetch } from "./fetcher";
 export {
+  addClassTimerTime,
   createClass,
   deleteDemoClass,
   getAccount,
@@ -15,6 +16,7 @@ export {
   getSession,
   getStudentPage,
   getStudentQuickAssess,
+  getStudentTimer,
   getWalkthroughs,
   hasPlayed,
   joinClass,
@@ -31,6 +33,8 @@ export {
   setStudentGrade,
   signIn,
   signOut,
+  startClassTimer,
+  stopClassTimer,
   switchGame,
   takeOffSticker,
   viewDemoAsStudent,

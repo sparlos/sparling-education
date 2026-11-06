@@ -7,6 +7,7 @@ import { apiLinks } from "./links.ts";
 import { apiMemberships } from "./memberships.ts";
 import { apiRecords } from "./records.ts";
 import { apiSession } from "./session.ts";
+import { apiTimer } from "./timer.ts";
 
 export function createApiPlatform(options: {
   /** Where the API is served on this domain, e.g. "/api". */
@@ -25,6 +26,7 @@ export function createApiPlatform(options: {
     home: apiHome(),
     records: apiRecords(),
     links: apiLinks(options),
+    timer: apiTimer(),
     SignInButton: googleSignInButton({
       clientId: options.googleClientId,
       loginUri: new URL(`${options.apiBase}/sign-in/student`, options.origin)

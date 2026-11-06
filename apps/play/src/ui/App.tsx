@@ -7,6 +7,7 @@ import { parseRoute } from "../play/routes.ts";
 import type { KeyValueStore } from "../play/storage.ts";
 import type { VoiceOptions } from "../play/voice.ts";
 import type { LineMap } from "../play/voice-lines.ts";
+import { ClassTimer } from "./ClassTimer.tsx";
 import { GamePage, type GameSetup } from "./GamePage.tsx";
 import {
   GradePick,
@@ -49,6 +50,7 @@ export interface AppProps {
  * The shell: home, joining a class, sign-in, or a game, by the URL.
  * On a screen too small to play on, a block covers it all; the page stays
  * underneath as it was, inert and silent, until the screen is big enough.
+ * Once a class timer runs out, "Time's up" covers it all the same way.
  */
 export function App(props: AppProps) {
   return (
@@ -88,11 +90,18 @@ function RoutedScreen(props: AppProps) {
   // Everywhere but a game and sign-in, which has its own night sky, the
   // shell's pages sit on the light, glinting sky.
   const sky = route?.kind !== "game" && route?.kind !== "sign-in";
+  // Signed out, there's no student for a timer to be for.
+  const timer = route?.kind === "sign-in" ? undefined : props.platform.timer;
   return (
-    <>
+    <ClassTimer
+      port={timer}
+      storage={props.storage}
+      corner={route?.kind !== "game"}
+      speak={props.speak}
+    >
       {sky && <Sky variant="day" playful fixed />}
       {screen}
-    </>
+    </ClassTimer>
   );
 }
 

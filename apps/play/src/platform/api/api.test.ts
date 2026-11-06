@@ -14,6 +14,7 @@ import {
   sampleAttempt,
   sampleEnd,
   sessionPortContract,
+  timerPortContract,
 } from "../contract.ts";
 import {
   type AttemptRecord,
@@ -26,6 +27,7 @@ import { apiLinks } from "./links.ts";
 import { apiMemberships } from "./memberships.ts";
 import { apiRecords } from "./records.ts";
 import { apiSession } from "./session.ts";
+import { apiTimer } from "./timer.ts";
 
 const database = await createTestDatabase(inject("databaseUrl"));
 beforeEach(() => database.reset());
@@ -108,6 +110,54 @@ sessionPortContract("API session", {
       const { id, joinCode } = await res.json();
       return { classId: id, joinCode };
     }),
+});
+
+timerPortContract("API timer", {
+  newStudent: async () => {
+    // Two teachers' classes, each with its own browser.
+    const classes = await Promise.all(
+      [0, 1].map(async () => {
+        const teacher = browser();
+        await teacher.signInAsTeacher();
+        const res = await teacher.send("/classes", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ name: "Room 12", grades: [4] }),
+        });
+        const { id, joinCode } = (await res.json()) as {
+          id: string;
+          joinCode: string;
+        };
+        return { id, joinCode, send: teacher.send };
+      }),
+    );
+    const student = browser();
+    await student.signInAsStudent();
+    setFetch(student.send);
+    for (const { joinCode } of classes) await apiMemberships().join(joinCode);
+    const teacherOf = (which: 0 | 1) => {
+      const found = classes[which];
+      if (!found) throw new Error("No such class");
+      return found;
+    };
+    return {
+      timer: apiTimer(),
+      start: async (which, minutes) => {
+        const { id, send } = teacherOf(which);
+        const res = await send(`/classes/${id}/timer`, {
+          method: "PUT",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ minutes }),
+        });
+        if (!res.ok) throw new Error(`Timer failed: ${res.status}`);
+      },
+      stop: async (which) => {
+        const { id, send } = teacherOf(which);
+        const res = await send(`/classes/${id}/timer`, { method: "DELETE" });
+        if (!res.ok) throw new Error(`Timer failed: ${res.status}`);
+      },
+    };
+  },
 });
 
 homePortContract("API home", {

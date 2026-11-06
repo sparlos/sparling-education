@@ -26,6 +26,7 @@ import {
   type Platform,
   type Student,
 } from "../platform/ports.ts";
+import { timerMinutes } from "../play/class-timer.ts";
 import {
   homeGamePath,
   returnPath,
@@ -36,6 +37,7 @@ import { readJson, remove, writeJson } from "../play/storage.ts";
 import type { VoiceOptions } from "../play/voice.ts";
 import type { AppProps } from "./App.tsx";
 import classes from "./app.module.css";
+import { useClassTimer } from "./ClassTimer.tsx";
 import styles from "./home.module.css";
 import { HomeCardPicture } from "./home-art.tsx";
 import { Locker, SmallLocker } from "./Locker.tsx";
@@ -227,6 +229,7 @@ function Home({
   const voice = useShellVoice(student.locale, speak);
   const contents = useHomeContents(platform);
   const [revealed, setRevealed] = useState(false);
+  const [settingTimer, setSettingTimer] = useState(false);
   const unseen =
     contents === "loading" || contents === null ? [] : contents.unseen;
   const revealing = unseen.length > 0 && !revealed;
@@ -266,7 +269,7 @@ function Home({
 
   return (
     <>
-      <main className={styles.home} inert={revealing}>
+      <main className={styles.home} inert={revealing || settingTimer}>
         <VisuallyHidden>
           <h1>{shellT("home")}</h1>
         </VisuallyHidden>
@@ -301,6 +304,16 @@ function Home({
             onClick={() => void voice.say(line)}
           >
             <Icon name="speaker" size={32} />
+          </IconButton>
+          <IconButton
+            tone="neutral"
+            label={shellT("own-timer")}
+            onClick={() => {
+              voice.stop();
+              setSettingTimer(true);
+            }}
+          >
+            <Icon name="clock" size={32} />
           </IconButton>
         </div>
         {sections.map(({ membership, games }) => {
@@ -349,6 +362,13 @@ function Home({
           );
         })}
       </main>
+      {settingTimer && (
+        <OwnTimerPick
+          look={student.look}
+          speak={speak}
+          onDone={() => setSettingTimer(false)}
+        />
+      )}
       {revealing && (
         <Reveal
           rewards={unseen}
@@ -358,6 +378,69 @@ function Home({
         />
       )}
     </>
+  );
+}
+
+/**
+ * The student sets a timer for themselves, of the same lengths a teacher
+ * can pick, or has none. It's kept in this browser, and works as a
+ * teacher's does, except they can put its "Time's up" away. While a
+ * teacher's timer is on, they're told they can't set their own.
+ */
+function OwnTimerPick({
+  look,
+  speak,
+  onDone,
+}: {
+  look: DressedStudent["look"];
+  speak?: VoiceOptions["speak"];
+  onDone(): void;
+}) {
+  const { setOwn, teacherRunning } = useClassTimer();
+  if (teacherRunning)
+    return (
+      <Question
+        line="teacher-timer"
+        look={look}
+        speak={speak}
+        onCancel={onDone}
+      >
+        <IconButton tone="accent" label={shellT("time-up-ok")} onClick={onDone}>
+          <Icon name="check" size={32} />
+        </IconButton>
+      </Question>
+    );
+  return (
+    <Question
+      line="own-timer-question"
+      look={look}
+      speak={speak}
+      onCancel={onDone}
+    >
+      {timerMinutes.map((minutes) => (
+        <IconButton
+          key={minutes}
+          tone="accent"
+          label={shellT(`minutes-${minutes}`)}
+          onClick={() => {
+            setOwn(minutes);
+            onDone();
+          }}
+        >
+          <span className={styles.minutes}>{minutes}</span>
+        </IconButton>
+      ))}
+      <IconButton
+        tone="neutral"
+        label={shellT("no-timer")}
+        onClick={() => {
+          setOwn(null);
+          onDone();
+        }}
+      >
+        <Icon name="x" size={32} />
+      </IconButton>
+    </Question>
   );
 }
 

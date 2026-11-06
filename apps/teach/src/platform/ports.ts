@@ -55,7 +55,31 @@ export interface Class {
   joinLink: string;
   /** Every game the platform hosts, in the order teachers see them. */
   games: ClassGame[];
+  /**
+   * The class timer, running or run out. Null when there's none, or it ran
+   * out long enough ago (`timeUpHoldMinutes`) that its students carry on.
+   */
+  timer: ClassTimer | null;
 }
+
+/** How long a class has, which its students see on every screen. */
+export interface ClassTimer {
+  /**
+   * When it runs out, as an ISO date-time. Then any game a student is in
+   * ends, and they're shown "Time's up".
+   */
+  endsAt: string;
+}
+
+/** The lengths a class timer can be set for, in minutes. */
+export const timerMinutes = [10, 15, 20, 30, 45] as const;
+export type TimerMinutes = (typeof timerMinutes)[number];
+
+/** How many minutes "+5 min" gives a running timer. */
+export const moreTimeMinutes = 5;
+
+/** How long students are shown "Time's up" once a timer runs out, unless it's cleared first. */
+export const timeUpHoldMinutes = 15;
 
 export interface ClassGame {
   /** The game's slug, e.g. "fraction-hop". */
@@ -118,6 +142,25 @@ export interface TeacherPort {
    * when the class isn't theirs or there's no such game.
    */
   switchGame(classId: string, slug: string, on: boolean): Promise<Class>;
+  /**
+   * Starts the class's timer, `minutes` from now, replacing any it had,
+   * resolving with the class. Rejects when no teacher is signed in, and with
+   * `NotFound` when the class isn't theirs.
+   */
+  startTimer(classId: string, minutes: TimerMinutes): Promise<Class>;
+  /**
+   * Gives the class's running timer `moreTimeMinutes` more, resolving with
+   * the class. Rejects when it has no timer running (none, or run out), when
+   * no teacher is signed in, and with `NotFound` when the class isn't theirs.
+   */
+  addTime(classId: string): Promise<Class>;
+  /**
+   * Clears the class's timer, running or run out, so its students carry on;
+   * stopping a running one shows them no "Time's up". Resolves with the
+   * class. Rejects when no teacher is signed in, and with `NotFound` when
+   * the class isn't theirs.
+   */
+  stopTimer(classId: string): Promise<Class>;
   /**
    * The class's students, by first name then last initial. Rejects when no
    * teacher is signed in, and with `NotFound` when the class isn't theirs.
@@ -392,7 +435,7 @@ export interface Evidence {
 }
 
 /** How a play ended; null while it's going, or until its end arrives. */
-export type Ending = "finished" | "left" | "crashed" | null;
+export type Ending = "finished" | "left" | "crashed" | "timeUp" | null;
 
 /** What every view of a play shows about it. */
 export interface PlaySummary {

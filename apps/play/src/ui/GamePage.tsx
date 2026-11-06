@@ -42,6 +42,7 @@ import { translator } from "../play/strings.ts";
 import { createVoice, type Voice, type VoiceOptions } from "../play/voice.ts";
 import { resolveLineUrl } from "../play/voice-lines.ts";
 import classes from "./app.module.css";
+import { TimerClock, useClassTimer } from "./ClassTimer.tsx";
 import { ErrorBoundary } from "./ErrorBoundary.tsx";
 import {
   Message,
@@ -213,6 +214,7 @@ export function GamePage(props: GamePageProps) {
           ending={screen.kind === "ending"}
           onEnd={end}
           navigate={navigate}
+          home={base}
           speak={props.speak}
           storage={storage}
         />
@@ -228,6 +230,7 @@ function PlayScreen({
   ending,
   onEnd,
   navigate,
+  home,
   speak,
   storage,
 }: {
@@ -235,6 +238,8 @@ function PlayScreen({
   ending: boolean;
   onEnd(ready: ReadyPlay, ending: Ending): void;
   navigate(url: string): void;
+  /** The student's home, for leaving a play that never started. */
+  home: string;
   speak?: VoiceOptions["speak"];
   storage: KeyValueStore | null;
 }) {
@@ -287,6 +292,22 @@ function PlayScreen({
     },
     [onEnd, ready],
   );
+  // Time's up ends the play where it is, and the student goes home. A game
+  // not started yet has nothing to keep: the student just goes home.
+  const timer = useClassTimer();
+  const timeUp = timer.phase.kind === "up";
+  const ownTimeUp = timer.phase.kind === "up" && timer.phase.own;
+  useEffect(() => timer.hearGame(voice), [timer.hearGame, voice]);
+  useEffect(() => {
+    if (!timeUp || ended.current) return;
+    // The student's own timer is their choice to stop, made ahead of time.
+    if (started) endOnce(ownTimeUp ? "left" : "timeUp");
+    else {
+      ended.current = true;
+      navigate(home);
+    }
+  }, [timeUp, ownTimeUp, started, endOnce, navigate, home]);
+
   const props = useMemo<GameProps<GameManifest>>(
     () => ({
       tier,
@@ -327,6 +348,7 @@ function PlayScreen({
         >
           <Icon name="leave" size={32} />
         </IconButton>
+        <TimerClock stacked />
         <div className={classes.soundControls}>
           {/* A game with no sounds has nothing for it to turn off. */}
           {game.sounds && (

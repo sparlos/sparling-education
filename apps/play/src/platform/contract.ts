@@ -18,6 +18,7 @@ import {
   type PlayRecord,
   type PlayRecordsPort,
   type SessionPort,
+  type TimerPort,
 } from "./ports.ts";
 
 let sequence = 0;
@@ -568,6 +569,61 @@ export function homePortContract(name: string, harness: HomeHarness) {
       for (const sticker of stickers)
         await home.place(sticker, { surface: "front", x: 0.5, y: 0.5 });
       expect(lockerGlows(await home.current())).toBe(false);
+    });
+  });
+}
+
+export interface TimerHarness {
+  /**
+   * A signed-in student in two classes: the timer port as them, and
+   * starting or clearing each class's timer, as its teacher would.
+   */
+  newStudent(): Promise<{
+    timer: TimerPort;
+    /** Starts class `which`'s timer, `minutes` from now. */
+    start(which: 0 | 1, minutes: 10 | 15 | 20 | 30 | 45): Promise<void>;
+    /** Clears class `which`'s timer. */
+    stop(which: 0 | 1): Promise<void>;
+  }>;
+}
+
+/** The class timer a student is under. */
+export function timerPortContract(name: string, harness: TimerHarness) {
+  describe(`${name} meets the timer contract`, () => {
+    const soon = (minutes: number) => Date.now() + minutes * 60_000;
+    const endsAtOf = async (timer: TimerPort) => {
+      const current = await timer.current();
+      return current && Date.parse(current.endsAt);
+    };
+
+    it("has none until a teacher starts one", async () => {
+      const { timer } = await harness.newStudent();
+      expect(await timer.current()).toBeNull();
+    });
+
+    it("runs out when the teacher set it to", async () => {
+      const { timer, start } = await harness.newStudent();
+      const before = soon(20);
+      await start(0, 20);
+      const endsAt = await endsAtOf(timer);
+      expect(endsAt).toBeGreaterThanOrEqual(before - 1000);
+      expect(endsAt).toBeLessThanOrEqual(soon(20) + 1000);
+    });
+
+    it("is the one that ends soonest, of all their classes'", async () => {
+      const { timer, start, stop } = await harness.newStudent();
+      await start(0, 30);
+      await start(1, 10);
+      expect(await endsAtOf(timer)).toBeLessThanOrEqual(soon(10) + 1000);
+      await stop(1);
+      expect(await endsAtOf(timer)).toBeGreaterThan(soon(25));
+    });
+
+    it("is gone once the teacher clears it", async () => {
+      const { timer, start, stop } = await harness.newStudent();
+      await start(0, 10);
+      await stop(0);
+      expect(await timer.current()).toBeNull();
     });
   });
 }

@@ -82,6 +82,7 @@ describe("creating a class", () => {
           path: `/play/dart-towers?join=${created.joinCode}`,
         },
       ],
+      timer: null,
     });
   });
 

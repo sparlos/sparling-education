@@ -20,6 +20,7 @@ export const endingLabels: Record<Exclude<Ending, null>, string> = {
   finished: "Finished",
   left: "Left before the end",
   crashed: "Stopped by a technical problem",
+  timeUp: "Stopped when the class timer ran out",
 };
 
 /** A play with no ending yet. */

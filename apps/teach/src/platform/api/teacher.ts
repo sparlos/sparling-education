@@ -1,6 +1,7 @@
 // The teacher port over the platform's API, through the generated client.
 import {
   type Class as ApiClass,
+  addClassTimerTime,
   createClass,
   deleteDemoClass,
   getAccount,
@@ -22,6 +23,8 @@ import {
   setStudentGrade,
   signIn,
   signOut,
+  startClassTimer,
+  stopClassTimer,
   switchGame,
   viewDemoAsStudent,
 } from "@repo/api-client";
@@ -91,6 +94,23 @@ export function apiTeacherPort(options: {
     async switchGame(classId, slug, on) {
       const res = await switchGame(classId, slug, { on });
       if (res.status !== 200) throw unexpected("switch game", res.status);
+      return toClass(res.data);
+    },
+    async startTimer(classId, minutes) {
+      const res = await startClassTimer(classId, { minutes });
+      if (res.status !== 200) throw unexpected("start timer", res.status);
+      return toClass(res.data);
+    },
+    async addTime(classId) {
+      const res = await addClassTimerTime(classId);
+      if (res.status === 409)
+        throw new Error("[teach] The class has no timer running");
+      if (res.status !== 200) throw unexpected("more time", res.status);
+      return toClass(res.data);
+    },
+    async stopTimer(classId) {
+      const res = await stopClassTimer(classId);
+      if (res.status !== 200) throw unexpected("stop timer", res.status);
       return toClass(res.data);
     },
     async students(classId) {

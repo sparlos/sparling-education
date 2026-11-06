@@ -97,6 +97,21 @@ export const shellStrings = {
     "recognition-perseverance":
       "Your teacher gave you a sticker for never giving up!",
     "recognition-leadership": "Your teacher gave you a sticker for leadership!",
+    // The class timer a teacher set.
+    "time-left": "Time left",
+    "two-minutes-left": "Two minutes left!",
+    "time-up": "Time's up! Great work today.",
+    "time-up-ok": "OK",
+    // A timer the student sets for themselves, from home.
+    "own-timer": "Set a timer",
+    "own-timer-question": "How long do you want to play?",
+    "minutes-10": "10 minutes",
+    "minutes-15": "15 minutes",
+    "minutes-20": "20 minutes",
+    "minutes-30": "30 minutes",
+    "minutes-45": "45 minutes",
+    "no-timer": "No timer",
+    "teacher-timer": "Your teacher set a timer. You can't set your own.",
   },
 } satisfies { "en-CA": Record<string, string> };
 

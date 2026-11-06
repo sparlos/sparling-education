@@ -262,3 +262,11 @@
     transform: scale(1);
   }
 }
+
+/* A timer length, on its button: the number of minutes. */
+.minutes {
+  font-family: var(--k-font-heading-stack);
+  font-size: var(--mantine-font-size-xl);
+  font-weight: 700;
+  line-height: 1;
+}

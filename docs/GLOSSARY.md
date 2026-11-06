@@ -28,6 +28,10 @@ _Avoid_: Invite link
 A direct link to one game for one class, usually shared by a teacher in a class stream. A full entry point for students: opening it joins the student to that class if they aren't in it yet, and their results go to that class exactly as if the game were opened from their home.
 _Avoid_: Deep link, assignment link
 
+**Class timer**:
+A countdown a teacher sets for a class, usually as they share links, saying how long students have. While it runs, every student in the class sees a small clock on every screen. When it hits zero, a "Time's up" screen covers everything: any game in progress ends, and the tasks finished so far count as a play. The screen stays for a short while so late arrivals see it too, then clears by itself. A student with timers from more than one teacher sees the one ending soonest.
+_Avoid_: Session, countdown, time limit
+
 **Class colour**:
 The colour a teacher picks for a class, from a fixed set, which every screen for that class takes its hue from. Never shown to students as a choice.
 _Avoid_: Theme, class theme, skin

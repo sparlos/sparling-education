@@ -104,6 +104,7 @@ export const endingIcons: Record<Exclude<Ending, null>, IconName> = {
   finished: "flag",
   left: "leave",
   crashed: "problem",
+  timeUp: "hourglass",
 };
 
 /** How a play ended, as a quiet pill. */

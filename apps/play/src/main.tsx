@@ -16,6 +16,7 @@ import {
   standInGames,
 } from "./platform/stand-ins/memberships.ts";
 import { StandInSignInScreen } from "./platform/stand-ins/SignInScreen.tsx";
+import { standInSetTimer } from "./platform/stand-ins/timer.ts";
 import { newId } from "./play/ids.ts";
 import { useBrowserRoute } from "./play/router.ts";
 import { isAvatarFitUrl, isLabUrl } from "./play/routes.ts";
@@ -43,6 +44,18 @@ const standInClassGames = standInGames(Object.keys(games));
 // Add ?stand-in-offline to a game link to watch attempts wait and retry.
 const offline = () =>
   new URL(window.location.href).searchParams.has("stand-in-offline");
+
+// Add ?stand-in-timer=<minutes> to any page to start a class timer (0 clears it).
+const timerMinutes = new URL(window.location.href).searchParams.get(
+  "stand-in-timer",
+);
+if (standIn && timerMinutes !== null) {
+  const minutes = Number(timerMinutes);
+  standInSetTimer(
+    storage,
+    minutes > 0 ? new Date(Date.now() + minutes * 60_000) : null,
+  );
+}
 
 const platform = standIn
   ? createStandInPlatform({ storage, base, games: standInClassGames, offline })

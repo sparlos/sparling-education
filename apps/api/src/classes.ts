@@ -10,6 +10,7 @@ import {
   isClassColour,
   nextClassColour,
 } from "@repo/tokens";
+import { liveTimer } from "./class-timer.ts";
 import { hostedGames } from "./games.ts";
 import type { Class, NewClass } from "./schemas.ts";
 
@@ -31,12 +32,13 @@ export function gamePath(slug: string, joinCode: string) {
 export async function teacherClasses(
   db: Db,
   teacherId: string,
+  now = new Date(),
 ): Promise<Class[]> {
   const rows = await db.class.findMany({
     where: { teacherId },
     orderBy: { createdAt: "asc" },
   });
-  return rows.map(toClass);
+  return rows.map((row) => toClass(row, now));
 }
 
 /** The class, or null when it isn't one of this teacher's. */
@@ -44,9 +46,10 @@ export async function teacherClass(
   db: Db,
   teacherId: string,
   classId: string,
+  now = new Date(),
 ): Promise<Class | null> {
   const row = await db.class.findFirst({ where: { id: classId, teacherId } });
-  return row && toClass(row);
+  return row && toClass(row, now);
 }
 
 /**
@@ -75,7 +78,7 @@ export async function createClass(
       const row = await db.class.create({
         data: { ...data, joinCode: newJoinCode() },
       });
-      return toClass(row);
+      return toClass(row, new Date());
     } catch (error) {
       if (tries >= 2 || !isUniqueViolation(error)) throw error;
     }
@@ -93,6 +96,7 @@ export async function setGameOn(
   classId: string,
   slug: string,
   on: boolean,
+  now = new Date(),
 ): Promise<Class | null> {
   if (!hostedGames.some((g) => g.slug === slug)) return null;
   const found = await db.class.findFirst({ where: { id: classId, teacherId } });
@@ -102,7 +106,7 @@ export async function setGameOn(
     where: { id: classId },
     data: { gamesOff: on ? others : [...others, slug] },
   });
-  return toClass(row);
+  return toClass(row, now);
 }
 
 /**
@@ -114,13 +118,14 @@ export async function setClassColour(
   teacherId: string,
   classId: string,
   colour: ClassColourSlug,
+  now = new Date(),
 ): Promise<Class | null> {
   const { count } = await db.class.updateMany({
     where: { id: classId, teacherId },
     data: { colour },
   });
   if (count === 0) return null;
-  return teacherClass(db, teacherId, classId);
+  return teacherClass(db, teacherId, classId, now);
 }
 
 /** A stored colour, as a slug in the set: one dropped from it reads as the default. */
@@ -139,15 +144,20 @@ function isUniqueViolation(error: unknown) {
   return (error as { code?: unknown } | null)?.code === "P2002";
 }
 
-export function toClass(row: {
-  id: string;
-  name: string;
-  grades: number[];
-  joinCode: string;
-  gamesOff: string[];
-  demo: boolean;
-  colour: string;
-}): Class {
+/** The class as its teacher sees it `now`, which decides whether its timer is still live. */
+export function toClass(
+  row: {
+    id: string;
+    name: string;
+    grades: number[];
+    joinCode: string;
+    gamesOff: string[];
+    demo: boolean;
+    colour: string;
+    timerEndsAt: Date | null;
+  },
+  now: Date,
+): Class {
   const { id, name, grades, joinCode, gamesOff, demo, colour } = row;
   return {
     id,
@@ -163,5 +173,6 @@ export function toClass(row: {
       on: !gamesOff.includes(slug),
       path: gamePath(slug, joinCode),
     })),
+    timer: liveTimer(row.timerEndsAt, now),
   };
 }

@@ -93,6 +93,10 @@ model Class {
   // The class colour's slug, from `classColours` in @repo/tokens. The API
   // only ever stores one that's in the set.
   colour      String       @default("teal")
+  // When the class timer the teacher set runs out; null when there's none.
+  // Students are shown "Time's up" for a while after, then it's as if none
+  // was set (the API's class-timer module).
+  timerEndsAt DateTime?
   createdAt   DateTime     @default(now())
   demoStudents Account[]   @relation("DemoStudents")
   memberships  Membership[]
@@ -132,6 +136,9 @@ enum PlayEnding {
   finished
   left
   crashed
+  // The class timer ran out partway: neither the student's choice nor the
+  // game's end.
+  timeUp
 }
 
 // One record of one play, stored as the play shell sent it: an attempt at a

@@ -269,6 +269,51 @@ describe("sharing a class", () => {
     ).toBeInTheDocument();
   });
 
+  it("sets a class timer, gives it more time, and stops it", async () => {
+    const { user, panel } = await openShare();
+    await user.click(
+      within(panel).getByRole("button", { name: "Set a class timer" }),
+    );
+    await user.click(
+      await screen.findByRole("menuitem", { name: "20 minutes" }),
+    );
+    expect(await within(panel).findByText(/^20 min left/)).toBeInTheDocument();
+
+    await user.click(within(panel).getByRole("button", { name: "+5 min" }));
+    expect(await within(panel).findByText(/^25 min left/)).toBeInTheDocument();
+
+    await user.click(within(panel).getByRole("button", { name: "Stop timer" }));
+    expect(
+      await within(panel).findByRole("button", { name: "Set a class timer" }),
+    ).toBeInTheDocument();
+  });
+
+  it("says when time's up, until the teacher lets students carry on", async () => {
+    const { user, panel } = await openShare();
+    await user.click(
+      within(panel).getByRole("button", { name: "Set a class timer" }),
+    );
+    await user.click(
+      await screen.findByRole("menuitem", { name: "10 minutes" }),
+    );
+    await within(panel).findByText(/^10 min left/);
+    // Past the timer, for the screen and the fake platform alike.
+    vi.useFakeTimers({ toFake: ["Date"], now: Date.now() + 11 * 60_000 });
+    try {
+      expect(
+        await within(panel).findByText(/^Time's up\. Students see it until/),
+      ).toBeInTheDocument();
+      await user.click(
+        within(panel).getByRole("button", { name: "Let students carry on" }),
+      );
+      expect(
+        await within(panel).findByRole("button", { name: "Set a class timer" }),
+      ).toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("says when a game's switch didn't save", async () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
     let offline = false;

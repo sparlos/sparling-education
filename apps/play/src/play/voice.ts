@@ -54,7 +54,8 @@ export interface VoiceOptions {
 
 /**
  * Silences every voice that shares it, for a line that must be heard over
- * everything else (the too-small screen's). While it's closed, a voice drops
+ * everything else (the too-small screen's, or "Time's up"). Each `close`
+ * needs its own `open`, so two screens can hold it closed at once. While it's closed, a voice drops
  * what it's asked to say rather than queueing it, and the instruction settles
  * only when the gate opens, so a game awaiting it waits instead of racing
  * ahead in silence.
@@ -63,6 +64,7 @@ export interface VoiceGate {
   readonly closed: boolean;
   /** Stops whatever is being said, and keeps every voice silent until `open`. */
   close(): void;
+  /** Undoes one `close`; the gate opens once every close is undone. */
   open(): void;
   /** For voices: an instruction has started; closing stops it. Returns its untracking. */
   track(stop: () => void): () => void;
@@ -73,21 +75,23 @@ export interface VoiceGate {
 }
 
 export function createVoiceGate(): VoiceGate {
-  let closed = false;
+  let closes = 0;
   const playing = new Set<() => void>();
   let waiting: (() => void)[] = [];
   const listeners = new Set<(closed: boolean) => void>();
   return {
     get closed() {
-      return closed;
+      return closes > 0;
     },
     close() {
-      closed = true;
+      closes += 1;
       for (const stop of [...playing]) stop();
-      for (const listener of listeners) listener(true);
+      if (closes === 1) for (const listener of listeners) listener(true);
     },
     open() {
-      closed = false;
+      if (closes === 0) return;
+      closes -= 1;
+      if (closes > 0) return;
       for (const resolve of waiting) resolve();
       waiting = [];
       for (const listener of listeners) listener(false);
@@ -101,7 +105,7 @@ export function createVoiceGate(): VoiceGate {
       return () => playing.delete(stop);
     },
     opened() {
-      if (!closed) return Promise.resolve();
+      if (closes === 0) return Promise.resolve();
       return new Promise((resolve) => waiting.push(resolve));
     },
   };

@@ -20,6 +20,7 @@ import {
   NotAStudent,
   type PlayRecord,
   type Student,
+  type TimerPort,
 } from "../platform/ports.ts";
 import { standInEarn, standInHome } from "../platform/stand-ins/home.ts";
 import { standInLinks } from "../platform/stand-ins/links.ts";
@@ -92,6 +93,8 @@ function setUp({
   storage = memoryStorage() as KeyValueStore,
   // In place of the stand-in's answer to whether they've played the game before.
   played = undefined as ((game: string) => Promise<boolean>) | undefined,
+  // The class timer the student is under, if any.
+  timer = undefined as TimerPort | undefined,
 } = {}) {
   if (signedIn) standInSignIn(storage, signedIn);
   let isOffline = offline;
@@ -129,6 +132,7 @@ function setUp({
           memberships: standInMemberships(storage, classes),
           records,
           links: standInLinks({ base: "/play/" }),
+          timer,
         }}
         games={games}
         storage={storage}
@@ -953,5 +957,217 @@ describe("a screen too small to play on", () => {
     await user.click(dialog);
     await user.click(dialog);
     expect(spoken).toEqual([tooSmallLine, tooSmallLine]);
+  });
+});
+
+describe("a class timer", () => {
+  /** A timer that runs out `ms` from now. */
+  const endingIn = (ms: number): TimerPort => {
+    const endsAt = new Date(Date.now() + ms).toISOString();
+    return { current: async () => ({ endsAt }) };
+  };
+  // The clock ticks each second, so time's up shows within one.
+  const timeUp = () =>
+    screen.findByRole(
+      "alertdialog",
+      { name: "Time's up! Great work today." },
+      { timeout: 4000 },
+    );
+
+  it("shows the time left beside the game, clear of it", async () => {
+    setUp({ timer: endingIn(12 * 60_000) });
+    await game();
+    const clock = await screen.findByRole("timer");
+    expect(clock).toHaveAccessibleName("Time left: 12 min");
+    expect(screen.getByRole("main")).toContainElement(clock);
+  });
+
+  it("shows the time left on home too", async () => {
+    setUp({ path: "/play/", timer: endingIn(20 * 60_000) });
+    expect(await screen.findByRole("timer")).toHaveAccessibleName(
+      "Time left: 20 min",
+    );
+  });
+
+  it("says when there are two minutes left", async () => {
+    const { spoken } = setUp({ timer: endingIn(2 * 60_000 - 1000) });
+    await game();
+    await waitFor(() => expect(spoken).toContain("Two minutes left!"));
+  });
+
+  it("ends the game when time's up, keeping what was done, and says so over everything", async () => {
+    const { user, records, navigate, spoken } = setUp({
+      timer: endingIn(1500),
+    });
+    await game();
+    await user.click(screen.getByRole("button", { name: "Right" }));
+    expect(await timeUp()).toBeInTheDocument();
+    await waitFor(() => expect(navigate).toHaveBeenCalled());
+    expect(attemptsIn(records.stored)).toHaveLength(1);
+    expect(endsIn(records.stored)).toEqual([
+      expect.objectContaining({ ending: "timeUp" }),
+    ]);
+    expect(sentTo(navigate).pathname).toBe("/play/");
+    await waitFor(() =>
+      expect(spoken).toContain("Time's up! Great work today."),
+    );
+    // Nothing behind it can be used.
+    expect(screen.getByRole("main").closest("[inert]")).not.toBeNull();
+  });
+
+  it("sends a student home without a play when time's up before they start", async () => {
+    const { records, navigate } = setUp({ timer: endingIn(1200) });
+    await screen.findByRole("button", { name: "Start" });
+    await timeUp();
+    await waitFor(() => expect(navigate).toHaveBeenCalledWith("/play/"));
+    expect(records.stored).toEqual([]);
+  });
+
+  it("covers home once time's up, and goes when the timer is cleared", async () => {
+    let endsAt: string | null = new Date(Date.now() - 1000).toISOString();
+    setUp({
+      path: "/play/",
+      timer: { current: async () => (endsAt ? { endsAt } : null) },
+    });
+    expect(await timeUp()).toBeInTheDocument();
+    endsAt = null;
+    // The shell asks again when the student comes back to the tab.
+    document.dispatchEvent(new Event("visibilitychange"));
+    await waitFor(() =>
+      expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument(),
+    );
+  });
+});
+
+describe("a student's own timer", () => {
+  const timeUp = () =>
+    screen.findByRole(
+      "alertdialog",
+      { name: "Time's up! Great work today." },
+      { timeout: 4000 },
+    );
+
+  it("is set from home, with the same lengths a teacher has, and kept in this browser", async () => {
+    const { user, spoken, storage } = setUp({ path: "/play/" });
+    await user.click(
+      await screen.findByRole("button", { name: "Set a timer" }),
+    );
+    const question = screen.getByRole("dialog");
+    expect(spoken).toContain("How long do you want to play?");
+    expect(
+      within(question)
+        .getAllByRole("button")
+        .map((b) => b.getAttribute("aria-label")),
+    ).toEqual([
+      "Hear it again",
+      "10 minutes",
+      "15 minutes",
+      "20 minutes",
+      "30 minutes",
+      "45 minutes",
+      "No timer",
+    ]);
+    await user.click(
+      within(question).getByRole("button", { name: "15 minutes" }),
+    );
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(await screen.findByRole("timer")).toHaveAccessibleName(
+      "Time left: 15 min",
+    );
+    expect(Number(storage.getItem("own-timer.ends-at"))).toBeGreaterThan(
+      Date.now(),
+    );
+  });
+
+  it("can't be set while a teacher's timer is on", async () => {
+    const { user, spoken } = setUp({
+      path: "/play/",
+      timer: {
+        current: async () => ({
+          endsAt: new Date(Date.now() + 10 * 60_000).toISOString(),
+        }),
+      },
+    });
+    await screen.findByRole("timer");
+    await user.click(screen.getByRole("button", { name: "Set a timer" }));
+    const question = screen.getByRole("dialog");
+    expect(question).toHaveTextContent(
+      "Your teacher set a timer. You can't set your own.",
+    );
+    expect(spoken).toContain(
+      "Your teacher set a timer. You can't set your own.",
+    );
+    expect(
+      within(question).queryByRole("button", { name: "10 minutes" }),
+    ).not.toBeInTheDocument();
+    await user.click(within(question).getByRole("button", { name: "OK" }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("is cancelled when a teacher's timer starts", async () => {
+    const storage = memoryStorage();
+    storage.setItem("own-timer.ends-at", String(Date.now() + 5 * 60_000));
+    setUp({
+      path: "/play/",
+      storage,
+      timer: {
+        current: async () => ({
+          endsAt: new Date(Date.now() + 30 * 60_000).toISOString(),
+        }),
+      },
+    });
+    expect(
+      await screen.findByRole("timer", { name: "Time left: 30 min" }),
+    ).toBeInTheDocument();
+    expect(storage.getItem("own-timer.ends-at")).toBeNull();
+  });
+
+  it("stops with no timer", async () => {
+    const storage = memoryStorage();
+    storage.setItem("own-timer.ends-at", String(Date.now() + 10 * 60_000));
+    const { user } = setUp({ path: "/play/", storage });
+    expect(await screen.findByRole("timer")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Set a timer" }));
+    await user.click(screen.getByRole("button", { name: "No timer" }));
+    await waitFor(() =>
+      expect(screen.queryByRole("timer")).not.toBeInTheDocument(),
+    );
+    expect(storage.getItem("own-timer.ends-at")).toBeNull();
+  });
+
+  it("ends the game as the student's own choice when it runs out", async () => {
+    const storage = memoryStorage();
+    storage.setItem("own-timer.ends-at", String(Date.now() + 1500));
+    const { navigate, records } = setUp({ storage });
+    await game();
+    await timeUp();
+    await waitFor(() => expect(navigate).toHaveBeenCalled());
+    expect(endsIn(records.stored)).toEqual([
+      expect.objectContaining({ ending: "left" }),
+    ]);
+  });
+
+  it("can be put away once it's up, unlike a teacher's", async () => {
+    const storage = memoryStorage();
+    storage.setItem("own-timer.ends-at", String(Date.now() - 1000));
+    const { user } = setUp({ path: "/play/", storage });
+    const up = await timeUp();
+    await user.click(within(up).getByRole("button", { name: "OK" }));
+    await waitFor(() =>
+      expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument(),
+    );
+
+    cleanup();
+    setUp({
+      path: "/play/",
+      timer: {
+        current: async () => ({
+          endsAt: new Date(Date.now() - 1000).toISOString(),
+        }),
+      },
+    });
+    expect(
+      within(await timeUp()).queryByRole("button", { name: "OK" }),
+    ).not.toBeInTheDocument();
   });
 });

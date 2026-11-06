@@ -8,6 +8,7 @@ import { standInLinks } from "./links.ts";
 import { standInClasses, standInMemberships } from "./memberships.ts";
 import { standInRecords } from "./records.ts";
 import { standInSession, standInStudent } from "./session.ts";
+import { standInTimer } from "./timer.ts";
 
 export function createStandInPlatform(options: {
   storage: KeyValueStore | null;
@@ -18,7 +19,7 @@ export function createStandInPlatform(options: {
   offline?: () => boolean;
 }): Platform {
   console.warn(
-    "[play] Running on the STAND-IN platform: sign-in, classes, home and play-record storage are simulated in this browser. See apps/play/src/platform/README.md.",
+    "[play] Running on the STAND-IN platform: sign-in, classes, home, class timers and play-record storage are simulated in this browser. See apps/play/src/platform/README.md.",
   );
   return {
     name: "stand-in",
@@ -36,5 +37,6 @@ export function createStandInPlatform(options: {
       onStored: (fresh) => standInEarn(options.storage, fresh),
     }),
     links: standInLinks(options),
+    timer: standInTimer(options.storage),
   };
 }
