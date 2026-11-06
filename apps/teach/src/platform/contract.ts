@@ -1234,6 +1234,18 @@ export function timerContract(
       expect(await port.classes()).toEqual([started]);
     });
 
+    it("takes whole minutes from 1 to 120", async () => {
+      const { port, made } = await classOfTeacher();
+      expect((await port.startTimer(made.id, 1)).timer).toEqual({
+        endsAt: minutes(1),
+      });
+      expect((await port.startTimer(made.id, 120)).timer).toEqual({
+        endsAt: minutes(120),
+      });
+      for (const wrong of [0, 7.5, 121])
+        await expect(port.startTimer(made.id, wrong)).rejects.toThrow();
+    });
+
     it("replaces a timer when another is started", async () => {
       const { port, made } = await classOfTeacher();
       await port.startTimer(made.id, 45);
@@ -1270,12 +1282,12 @@ export function timerContract(
       expect((await port.class(made.id)).timer).toBeNull();
     });
 
-    it("is gone by itself 15 minutes after it runs out", async () => {
+    it("is gone by itself 5 minutes after it runs out", async () => {
       const { port, made, setNow } = await classOfTeacher();
       await port.startTimer(made.id, 10);
-      setNow(new Date(new Date(minutes(25)).getTime() - 1));
+      setNow(new Date(new Date(minutes(15)).getTime() - 1));
       expect((await port.class(made.id)).timer).not.toBeNull();
-      setNow(new Date(minutes(25)));
+      setNow(new Date(minutes(15)));
       expect((await port.class(made.id)).timer).toBeNull();
     });
 

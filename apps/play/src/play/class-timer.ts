@@ -5,14 +5,22 @@
 /** How often the shell asks whether a teacher set, changed or cleared a timer. */
 export const timerPollMs = 20_000;
 
-/** The lengths a timer can be set for, in minutes: the teacher's choices, and the student's. */
-export const timerMinutes = [10, 15, 20, 30, 45] as const;
+/** The longest a timer can be set for, in whole minutes from 1: a teacher's, or the student's own. */
+export const timerMaxMinutes = 120;
+
+/** The whole minutes typed, or null when it isn't a length a timer can have. */
+export function parseMinutes(typed: string): number | null {
+  const trimmed = typed.trim();
+  if (!/^\d+$/.test(trimmed)) return null;
+  const minutes = Number(trimmed);
+  return minutes >= 1 && minutes <= timerMaxMinutes ? minutes : null;
+}
 
 /**
  * How long "Time's up" stays for a timer the student set themselves, unless
  * they put it away first: as long as the platform keeps a teacher's.
  */
-export const ownTimeUpHoldMs = 15 * 60_000;
+export const ownTimeUpHoldMs = 5 * 60_000;
 
 /** When the student hears that time's nearly up. */
 export const warnAtMs = 2 * 60_000;

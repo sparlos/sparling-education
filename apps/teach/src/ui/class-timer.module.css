@@ -1,0 +1,39 @@
+.bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--mantine-spacing-sm) var(--mantine-spacing-md);
+}
+
+.text {
+  min-width: 0;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--mantine-spacing-sm) var(--mantine-spacing-md);
+}
+
+.minutes {
+  width: 8rem;
+}
+
+/* The time left, big enough to read across the room. */
+.countdown {
+  align-self: center;
+  font-family: var(--k-font-heading-stack);
+  font-size: var(--mantine-font-size-xl);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--k-ink);
+}
+
+.left {
+  font-family: var(--k-font-body-stack);
+  font-size: var(--mantine-font-size-sm);
+  font-weight: 400;
+  color: var(--k-ink-muted);
+}

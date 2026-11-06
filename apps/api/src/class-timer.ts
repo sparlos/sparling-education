@@ -7,14 +7,14 @@ import type { Db } from "@repo/db";
 import { teacherClass } from "./classes.ts";
 import type { Class, ClassTimer } from "./schemas.ts";
 
-/** The lengths a teacher can set a timer for, in minutes. */
-export const timerMinutes = [10, 15, 20, 30, 45] as const;
+/** The longest a timer can be set for, in whole minutes from 1. */
+export const timerMaxMinutes = 120;
 
 /** How much "+5 min" adds to a running timer, in minutes. */
 export const moreTimeMinutes = 5;
 
 /** How long students are shown "Time's up" after a timer runs out. */
-export const timeUpHoldMs = 15 * 60_000;
+export const timeUpHoldMs = 5 * 60_000;
 
 const minuteMs = 60_000;
 

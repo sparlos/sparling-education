@@ -10,7 +10,7 @@ import type { ClassTimer, TimerPort } from "../ports.ts";
 const key = "stand-in.timers";
 
 /** How long a timer that has run out stays, as the platform's does. */
-export const standInTimeUpHoldMs = 15 * 60_000;
+export const standInTimeUpHoldMs = 5 * 60_000;
 
 /** When each class's timer runs out, by class ID, in ms. */
 function stored(storage: KeyValueStore | null): Record<string, number> {

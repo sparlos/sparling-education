@@ -581,7 +581,7 @@ export interface TimerHarness {
   newStudent(): Promise<{
     timer: TimerPort;
     /** Starts class `which`'s timer, `minutes` from now. */
-    start(which: 0 | 1, minutes: 10 | 15 | 20 | 30 | 45): Promise<void>;
+    start(which: 0 | 1, minutes: number): Promise<void>;
     /** Clears class `which`'s timer. */
     stop(which: 0 | 1): Promise<void>;
   }>;

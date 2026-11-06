@@ -190,7 +190,7 @@ export function Question({
   // Read while rendering, before the screen behind goes inert and drops focus.
   const opener = useRef(document.activeElement);
   useEffect(() => {
-    answers.current?.querySelector("button")?.focus();
+    answers.current?.querySelector<HTMLElement>("input, button")?.focus();
     const back = opener.current;
     return () => {
       if (back instanceof HTMLElement) back.focus();

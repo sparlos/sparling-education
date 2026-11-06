@@ -30,6 +30,7 @@ import type {
   Result,
   Understanding,
 } from "../platform/ports.ts";
+import { type TimerActions, TimerBar } from "./ClassTimer.tsx";
 import { type DemoActions, DemoCard } from "./Demo.tsx";
 import classes from "./dashboard.module.css";
 import { FindStudent, matchesName, noMatch } from "./FindStudent.tsx";
@@ -62,6 +63,7 @@ export function DashboardScreen({
   onRecognise,
   demo,
   share,
+  timer,
 }: {
   cls: Class;
   /** All the teacher's classes, to switch between. */
@@ -74,6 +76,7 @@ export function DashboardScreen({
   /** What can be done with the demo class, on its dashboard. */
   demo: DemoActions;
   share: ShareActions;
+  timer: TimerActions;
 }) {
   const [sharing, setSharing] = useState(false);
   const [query, setQuery] = useState("");
@@ -128,6 +131,7 @@ export function DashboardScreen({
           </Collapse>
         )}
       </div>
+      {!cls.demo && <TimerBar timer={cls.timer} actions={timer} />}
       {cls.demo && <DemoCard actions={demo} />}
       {dashboard.students.length === 0 ? (
         <Card variant="soft" tone="accent">

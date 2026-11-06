@@ -10,7 +10,9 @@ interface IconButtonProps {
   children: ReactNode;
   /** What the button does, for screen readers and as a tooltip. */
   label: string;
-  onClick(): void;
+  /** A submit button sends its form; it needs no click of its own. */
+  onClick?(): void;
+  type?: "button" | "submit";
   tone?: Tone | "neutral";
   /** `lg` is 48 px, the smallest touch target; `xl` is 64 px, for Grades 1–2. */
   size?: "lg" | "xl";
@@ -22,6 +24,7 @@ export function IconButton({
   children,
   label,
   onClick,
+  type = "button",
   tone = "accent",
   size = "xl",
   disabled,
@@ -29,7 +32,7 @@ export function IconButton({
 }: IconButtonProps) {
   return (
     <UnstyledButton
-      type="button"
+      type={type}
       aria-label={label}
       title={label}
       onClick={onClick}

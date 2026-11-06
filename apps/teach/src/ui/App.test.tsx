@@ -2,7 +2,14 @@ import { expectation } from "@repo/curriculum";
 import { brandName } from "@repo/tokens";
 import { UIProvider } from "@repo/ui/provider";
 import { createMemoryHistory } from "@tanstack/react-router";
-import { act, cleanup, render, screen, within } from "@testing-library/react";
+import {
+  act,
+  cleanup,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Try } from "../platform/contract.ts";
@@ -203,6 +210,76 @@ describe("opening the app", () => {
   });
 });
 
+describe("a class timer", () => {
+  async function openTimer() {
+    const user = renderApp({
+      classes: [{ draft: { name: "Room 12", grades: [4] }, students: [] }],
+    });
+    await user.click(await signInButton());
+    await screen.findByRole("heading", { level: 1, name: "Room 12" });
+    // On the dashboard itself, not behind Share.
+    return { user, bar: screen.getByRole("region", { name: "Class timer" }) };
+  }
+
+  it("starts for the minutes typed, counts down to the second, gets more time, and stops", async () => {
+    const { user, bar } = await openTimer();
+    await user.type(within(bar).getByLabelText("Minutes"), "20");
+    await user.click(within(bar).getByRole("button", { name: "Start timer" }));
+    const clock = await within(bar).findByRole("timer");
+    expect(clock).toHaveTextContent(/^(20:00|19:5\d) left$/);
+
+    await user.click(within(bar).getByRole("button", { name: "+5 min" }));
+    await waitFor(() =>
+      expect(within(bar).getByRole("timer")).toHaveTextContent(
+        /^2[45]:\d\d left$/,
+      ),
+    );
+
+    await user.click(within(bar).getByRole("button", { name: "Stop timer" }));
+    expect(
+      await within(bar).findByRole("button", { name: "Start timer" }),
+    ).toBeInTheDocument();
+  });
+
+  it("asks again for a length it can't take", async () => {
+    const { user, bar } = await openTimer();
+    for (const typed of ["0", "121", "2.5"]) {
+      const minutes = within(bar).getByLabelText("Minutes");
+      await user.clear(minutes);
+      await user.type(minutes, typed);
+      await user.click(
+        within(bar).getByRole("button", { name: "Start timer" }),
+      );
+      expect(
+        within(bar).getByText("Type a whole number of minutes, from 1 to 120."),
+      ).toBeInTheDocument();
+    }
+    expect(within(bar).queryByRole("timer")).not.toBeInTheDocument();
+  });
+
+  it("says when time's up, until the teacher lets students carry on", async () => {
+    const { user, bar } = await openTimer();
+    await user.type(within(bar).getByLabelText("Minutes"), "10");
+    await user.click(within(bar).getByRole("button", { name: "Start timer" }));
+    await within(bar).findByRole("timer");
+    // Past the timer, for the screen and the fake platform alike.
+    vi.useFakeTimers({ toFake: ["Date"], now: Date.now() + 11 * 60_000 });
+    try {
+      expect(
+        await within(bar).findByText(/^Students see "Time's up" until/),
+      ).toBeInTheDocument();
+      await user.click(
+        within(bar).getByRole("button", { name: "Let students carry on" }),
+      );
+      expect(
+        await within(bar).findByRole("button", { name: "Start timer" }),
+      ).toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+});
+
 describe("sharing a class", () => {
   async function openShare(options?: FakePlatformOptions) {
     const user = renderApp({
@@ -267,51 +344,6 @@ describe("sharing a class", () => {
         name: /Copy game link for Fraction Hop/,
       }),
     ).toBeInTheDocument();
-  });
-
-  it("sets a class timer, gives it more time, and stops it", async () => {
-    const { user, panel } = await openShare();
-    await user.click(
-      within(panel).getByRole("button", { name: "Set a class timer" }),
-    );
-    await user.click(
-      await screen.findByRole("menuitem", { name: "20 minutes" }),
-    );
-    expect(await within(panel).findByText(/^20 min left/)).toBeInTheDocument();
-
-    await user.click(within(panel).getByRole("button", { name: "+5 min" }));
-    expect(await within(panel).findByText(/^25 min left/)).toBeInTheDocument();
-
-    await user.click(within(panel).getByRole("button", { name: "Stop timer" }));
-    expect(
-      await within(panel).findByRole("button", { name: "Set a class timer" }),
-    ).toBeInTheDocument();
-  });
-
-  it("says when time's up, until the teacher lets students carry on", async () => {
-    const { user, panel } = await openShare();
-    await user.click(
-      within(panel).getByRole("button", { name: "Set a class timer" }),
-    );
-    await user.click(
-      await screen.findByRole("menuitem", { name: "10 minutes" }),
-    );
-    await within(panel).findByText(/^10 min left/);
-    // Past the timer, for the screen and the fake platform alike.
-    vi.useFakeTimers({ toFake: ["Date"], now: Date.now() + 11 * 60_000 });
-    try {
-      expect(
-        await within(panel).findByText(/^Time's up\. Students see it until/),
-      ).toBeInTheDocument();
-      await user.click(
-        within(panel).getByRole("button", { name: "Let students carry on" }),
-      );
-      expect(
-        await within(panel).findByRole("button", { name: "Set a class timer" }),
-      ).toBeInTheDocument();
-    } finally {
-      vi.useRealTimers();
-    }
   });
 
   it("says when a game's switch didn't save", async () => {

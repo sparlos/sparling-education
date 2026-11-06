@@ -12,6 +12,7 @@ import { Loader } from "@repo/ui/loader";
 import { SignInStage } from "@repo/ui/marketing/sign-in-stage";
 import { Stack } from "@repo/ui/stack";
 import { Text } from "@repo/ui/text";
+import { TextInput } from "@repo/ui/text-input";
 import { ThemeIcon } from "@repo/ui/theme-icon";
 import { Title } from "@repo/ui/title";
 import { VisuallyHidden } from "@repo/ui/visually-hidden";
@@ -26,7 +27,7 @@ import {
   type Platform,
   type Student,
 } from "../platform/ports.ts";
-import { timerMinutes } from "../play/class-timer.ts";
+import { parseMinutes, timerMaxMinutes } from "../play/class-timer.ts";
 import {
   homeGamePath,
   returnPath,
@@ -382,8 +383,8 @@ function Home({
 }
 
 /**
- * The student sets a timer for themselves, of the same lengths a teacher
- * can pick, or has none. It's kept in this browser, and works as a
+ * The student sets a timer for themselves, typing its minutes as a teacher
+ * does, or has none. It's kept in this browser, and works as a
  * teacher's does, except they can put its "Time's up" away. While a
  * teacher's timer is on, they're told they can't set their own.
  */
@@ -397,6 +398,9 @@ function OwnTimerPick({
   onDone(): void;
 }) {
   const { setOwn, teacherRunning } = useClassTimer();
+  const voice = useShellVoice("en-CA", speak);
+  const [typed, setTyped] = useState("");
+  const [wrong, setWrong] = useState(false);
   if (teacherRunning)
     return (
       <Question
@@ -417,29 +421,62 @@ function OwnTimerPick({
       speak={speak}
       onCancel={onDone}
     >
-      {timerMinutes.map((minutes) => (
-        <IconButton
-          key={minutes}
-          tone="accent"
-          label={shellT(`minutes-${minutes}`)}
-          onClick={() => {
-            setOwn(minutes);
-            onDone();
-          }}
-        >
-          <span className={styles.minutes}>{minutes}</span>
-        </IconButton>
-      ))}
-      <IconButton
-        tone="neutral"
-        label={shellT("no-timer")}
-        onClick={() => {
-          setOwn(null);
+      <form
+        noValidate
+        className={styles.timerForm}
+        onSubmit={(event) => {
+          event.preventDefault();
+          const minutes = parseMinutes(typed);
+          if (minutes === null) {
+            setWrong(true);
+            void voice.say("own-timer-wrong");
+            return;
+          }
+          setOwn(minutes);
           onDone();
         }}
       >
-        <Icon name="x" size={32} />
-      </IconButton>
+        {/* One row, all one height: "[15] minutes ▶ ✕". */}
+        <div className={styles.timerRow}>
+          <TextInput
+            label={shellT("timer-minutes")}
+            hideLabel
+            placeholder=""
+            name="minutes"
+            type="number"
+            inputMode="numeric"
+            min={1}
+            max={timerMaxMinutes}
+            className={styles.minutes}
+            value={typed}
+            onChange={(value) => {
+              setTyped(value);
+              setWrong(false);
+            }}
+          />
+          <Text size="xl" aria-hidden="true">
+            {shellT("timer-minutes")}
+          </Text>
+          <IconButton type="submit" tone="accent" label={shellT("start-timer")}>
+            <Icon name="play" size={32} />
+          </IconButton>
+          <IconButton
+            tone="neutral"
+            label={shellT("no-timer")}
+            onClick={() => {
+              setOwn(null);
+              onDone();
+            }}
+          >
+            <Icon name="x" size={32} />
+          </IconButton>
+        </div>
+        {wrong && (
+          <div role="alert">
+            <Text size="lg">{shellT("own-timer-wrong")}</Text>
+          </div>
+        )}
+      </form>
     </Question>
   );
 }

@@ -1047,28 +1047,18 @@ describe("a student's own timer", () => {
       { timeout: 4000 },
     );
 
-  it("is set from home, with the same lengths a teacher has, and kept in this browser", async () => {
+  it("is set from home for the minutes typed, and kept in this browser", async () => {
     const { user, spoken, storage } = setUp({ path: "/play/" });
     await user.click(
       await screen.findByRole("button", { name: "Set a timer" }),
     );
     const question = screen.getByRole("dialog");
     expect(spoken).toContain("How long do you want to play?");
-    expect(
-      within(question)
-        .getAllByRole("button")
-        .map((b) => b.getAttribute("aria-label")),
-    ).toEqual([
-      "Hear it again",
-      "10 minutes",
-      "15 minutes",
-      "20 minutes",
-      "30 minutes",
-      "45 minutes",
-      "No timer",
-    ]);
+    const minutes = within(question).getByLabelText("minutes");
+    expect(minutes).toHaveFocus();
+    await user.type(minutes, "15");
     await user.click(
-      within(question).getByRole("button", { name: "15 minutes" }),
+      within(question).getByRole("button", { name: "Start the timer" }),
     );
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     expect(await screen.findByRole("timer")).toHaveAccessibleName(
@@ -1077,6 +1067,19 @@ describe("a student's own timer", () => {
     expect(Number(storage.getItem("own-timer.ends-at"))).toBeGreaterThan(
       Date.now(),
     );
+  });
+
+  it("asks again, out loud, for minutes it can't take", async () => {
+    const { user, spoken } = setUp({ path: "/play/" });
+    await user.click(
+      await screen.findByRole("button", { name: "Set a timer" }),
+    );
+    const question = screen.getByRole("dialog");
+    await user.type(within(question).getByLabelText("minutes"), "500");
+    await user.keyboard("{Enter}");
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(spoken).toContain("Type a number of minutes, from 1 to 120.");
+    expect(screen.queryByRole("timer")).not.toBeInTheDocument();
   });
 
   it("can't be set while a teacher's timer is on", async () => {

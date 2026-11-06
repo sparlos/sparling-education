@@ -142,7 +142,7 @@ plus, by `kind`:
 ### `GET /timer` → `{ endsAt: string } | null`
 
 - The class timer the signed-in student is under: of the timers their teachers set for their classes, the one that ends soonest, so one that has run out wins over one still running. Null when none has one.
-- Once it runs out, it stays for 15 minutes (or until the teacher clears it), and then it's null. Meanwhile the shell shows "Time's up" over every page, and a game in progress ends as `timeUp`; one not started yet just goes home.
+- Once it runs out, it stays for 5 minutes (or until the teacher clears it), and then it's null. Meanwhile the shell shows "Time's up" over every page, and a game in progress ends as `timeUp`; one not started yet just goes home.
 - The shell asks as each page opens, every 20 seconds, and when the tab comes back or the connection does. A failed check keeps the last answer, so time's up still comes on time offline.
 - While it runs, a small clock shows the time left: in a game's rail, and low in the corner of every other page. At two minutes left the shell says so, between the game's lines.
 

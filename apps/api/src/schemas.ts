@@ -140,15 +140,10 @@ export const ClassColourChangeSchema = z
 
 export const TimerStartSchema = z
   .object({
-    minutes: z
-      .union([
-        z.literal(10),
-        z.literal(15),
-        z.literal(20),
-        z.literal(30),
-        z.literal(45),
-      ])
-      .openapi({ description: "How long students have, from now" }),
+    minutes: z.number().int().min(1).max(120).openapi({
+      description: "How long students have from now, in whole minutes",
+      example: 20,
+    }),
   })
   .openapi("TimerStart");
 

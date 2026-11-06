@@ -71,15 +71,14 @@ export interface ClassTimer {
   endsAt: string;
 }
 
-/** The lengths a class timer can be set for, in minutes. */
-export const timerMinutes = [10, 15, 20, 30, 45] as const;
-export type TimerMinutes = (typeof timerMinutes)[number];
+/** The longest a class timer can be set for, in whole minutes from 1. */
+export const timerMaxMinutes = 120;
 
 /** How many minutes "+5 min" gives a running timer. */
 export const moreTimeMinutes = 5;
 
 /** How long students are shown "Time's up" once a timer runs out, unless it's cleared first. */
-export const timeUpHoldMinutes = 15;
+export const timeUpHoldMinutes = 5;
 
 export interface ClassGame {
   /** The game's slug, e.g. "fraction-hop". */
@@ -144,10 +143,11 @@ export interface TeacherPort {
   switchGame(classId: string, slug: string, on: boolean): Promise<Class>;
   /**
    * Starts the class's timer, `minutes` from now, replacing any it had,
-   * resolving with the class. Rejects when no teacher is signed in, and with
+   * resolving with the class. Rejects when `minutes` isn't a whole number
+   * from 1 to `timerMaxMinutes`, when no teacher is signed in, and with
    * `NotFound` when the class isn't theirs.
    */
-  startTimer(classId: string, minutes: TimerMinutes): Promise<Class>;
+  startTimer(classId: string, minutes: number): Promise<Class>;
   /**
    * Gives the class's running timer `moreTimeMinutes` more, resolving with
    * the class. Rejects when it has no timer running (none, or run out), when

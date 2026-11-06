@@ -33,7 +33,7 @@ import {
   type Result,
   type StudentPage,
   type TeacherPort,
-  timerMinutes,
+  timerMaxMinutes,
   timeUpHoldMinutes,
   type Understanding,
 } from "../ports.ts";
@@ -779,8 +779,12 @@ export function fakeTeacherBackend(
       async startTimer(classId, minutes) {
         reachable();
         const cls = teachersClass(classId);
-        if (!timerMinutes.includes(minutes))
-          throw new Error("Not a timer length on offer (fake)");
+        if (
+          !Number.isInteger(minutes) ||
+          minutes < 1 ||
+          minutes > timerMaxMinutes
+        )
+          throw new Error("Not a timer length (fake)");
         const endsAt = new Date(now().getTime() + minutes * minuteMs);
         return retime(cls, { endsAt: endsAt.toISOString() });
       },

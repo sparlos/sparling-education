@@ -211,7 +211,9 @@ const dashboardRoute = createRoute({
             await teacher.switchGame(cls.id, slug, on);
             await router.invalidate();
           },
-          startTimer: async (minutes) => {
+        }}
+        timer={{
+          start: async (minutes) => {
             await teacher.startTimer(cls.id, minutes);
             await router.invalidate();
           },
@@ -219,7 +221,7 @@ const dashboardRoute = createRoute({
             await teacher.addTime(cls.id);
             await router.invalidate();
           },
-          stopTimer: async () => {
+          stop: async () => {
             await teacher.stopTimer(cls.id);
             await router.invalidate();
           },

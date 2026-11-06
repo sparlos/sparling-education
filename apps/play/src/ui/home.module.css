@@ -263,10 +263,29 @@
   }
 }
 
-/* A timer length, on its button: the number of minutes. */
+/* The student's own timer: the minutes they type, and its start button. */
+.timerForm {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--mantine-spacing-sm);
+}
+
+.timerRow {
+  display: flex;
+  align-items: center;
+  gap: var(--mantine-spacing-md);
+}
+
+/* As tall as the buttons beside it, with big digits to read. */
 .minutes {
+  width: 6.5rem;
+}
+
+.minutes input {
+  height: 64px;
   font-family: var(--k-font-heading-stack);
   font-size: var(--mantine-font-size-xl);
   font-weight: 700;
-  line-height: 1;
+  text-align: center;
 }

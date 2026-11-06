@@ -4,7 +4,12 @@ import { inputClassNames } from "./input";
 interface TextInputProps {
   label: string;
   name: string;
-  type?: "text" | "email" | "search";
+  type?: "text" | "email" | "search" | "number";
+  /** For a number: the smallest and largest it takes. */
+  min?: number;
+  max?: number;
+  /** The on-screen keyboard to offer, e.g. "numeric". */
+  inputMode?: "text" | "numeric";
   placeholder?: string;
   /** Only a screen reader says the label; the box shows it as its placeholder. */
   hideLabel?: boolean;
@@ -27,6 +32,9 @@ export function TextInput({
   required,
   autoComplete,
   maxLength,
+  min,
+  max,
+  inputMode,
   error,
   className,
   value,
@@ -42,6 +50,9 @@ export function TextInput({
       required={required}
       autoComplete={autoComplete}
       maxLength={maxLength}
+      min={min}
+      max={max}
+      inputMode={inputMode}
       error={error}
       className={className}
       value={value}

@@ -47,11 +47,7 @@ async function studentIn(...joinCodes: string[]) {
 }
 
 function start(headers: Headers, classId: string, n: number) {
-  // Lengths not on offer are what's under test.
-  return timer.$put(
-    { param: { classId }, json: { minutes: n as 10 } },
-    { headers },
-  );
+  return timer.$put({ param: { classId }, json: { minutes: n } }, { headers });
 }
 
 /** The class a teacher route answered with. */
@@ -91,11 +87,14 @@ describe("a class timer", () => {
     });
   });
 
-  it("takes only the lengths on offer", async () => {
+  it("takes whole minutes from 1 to 120", async () => {
     const headers = await teacher();
     const made = await classOf(headers);
-    expect((await start(headers, made.id, 7)).status).toBe(400);
+    expect((await start(headers, made.id, 1)).status).toBe(200);
+    expect((await start(headers, made.id, 120)).status).toBe(200);
+    expect((await start(headers, made.id, 7.5)).status).toBe(400);
     expect((await start(headers, made.id, 0)).status).toBe(400);
+    expect((await start(headers, made.id, 121)).status).toBe(400);
   });
 
   it("gets 5 more minutes while it's running, and not once it has run out", async () => {
