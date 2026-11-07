@@ -164,12 +164,32 @@ test("initials are readable on their tints, the same each time for a student", (
   assert.ok(used.size > 4, "initial tints barely vary");
 });
 
-test("the sparkle's gold stands out on dark surfaces, and is never text", () => {
+test("the logo's gold stands out on dark surfaces, and is never text", () => {
   expectContrast(color.sparkle, color.surface.inverse, UI, "sparkle/inverse");
   // Too light for text on any light surface: keep it to shapes.
   for (const bg of Object.values(lightSurfaces)) {
     assert.ok(contrastRatio(color.sparkle, bg) < TEXT);
   }
+});
+
+test("the logo's byline reads at logo sizes, on light and dark", () => {
+  // Large text (the byline only appears at logo sizes): 3:1.
+  for (const [name, bg] of Object.entries(lightSurfaces)) {
+    expectContrast(color.logo.byline, bg, UI, `logo byline/${name}`);
+    expectContrast(color.logo.book, bg, UI, `logo book/${name}`);
+  }
+  expectContrast(
+    color.logo.bylineOnDark,
+    color.surface.inverse,
+    TEXT,
+    "logo byline/inverse",
+  );
+  expectContrast(
+    color.logo.bookOnDark,
+    color.surface.inverse,
+    UI,
+    "logo book/inverse",
+  );
 });
 
 test("status colours are readable as text", () => {

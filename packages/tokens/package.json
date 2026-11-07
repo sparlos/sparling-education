@@ -7,6 +7,7 @@
     ".": "./src/index.ts",
     "./color": "./src/color.ts",
     "./custom-media.css": "./src/generated/custom-media.css",
+    "./wordmark": "./src/wordmark.ts",
     "./mark": "./src/mark.ts"
   },
   "scripts": {

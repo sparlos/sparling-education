@@ -16,7 +16,7 @@ import { Container } from "@repo/ui/container";
 import { Icon } from "@repo/ui/icon";
 import { ComparisonTable } from "@repo/ui/marketing/comparison-table";
 import { CtaBand } from "@repo/ui/marketing/cta-band";
-import { Glint, Shard, Sparkle } from "@repo/ui/marketing/decor";
+import { Glint, Sparkle, Wing } from "@repo/ui/marketing/decor";
 import { EmailCapture } from "@repo/ui/marketing/email-capture";
 import { Faq } from "@repo/ui/marketing/faq";
 import { FeatureGrid, PillarRow } from "@repo/ui/marketing/feature-grid";
@@ -292,7 +292,7 @@ export default function DesignPage() {
           </SimpleGrid>
           <div className={classes.row} style={{ position: "relative" }}>
             <span style={{ position: "relative", width: 120, height: 120 }}>
-              <Shard size={120} color="brand" opacity={0.6} />
+              <Wing size={120} color="brand" opacity={0.6} />
             </span>
             <span style={{ position: "relative", width: 40, height: 40 }}>
               <Sparkle size={40} />

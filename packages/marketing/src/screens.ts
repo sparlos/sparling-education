@@ -27,11 +27,11 @@ export interface Screenshot {
 
 export const screens = {
   /** Room 12's dashboard, the whole page. */
-  "teach-dashboard": { src: teachDashboard, width: 2880, height: 2798 },
+  "teach-dashboard": { src: teachDashboard, width: 2880, height: 3262 },
   /** Ben T.'s page, the whole page. */
-  "teach-student": { src: teachStudent, width: 2880, height: 2370 },
+  "teach-student": { src: teachStudent, width: 2880, height: 2514 },
   /** Every answer from one of Ben T.'s games, the whole page. */
-  "teach-answers": { src: teachAnswers, width: 2880, height: 2990 },
+  "teach-answers": { src: teachAnswers, width: 2880, height: 3624 },
   /** Quick assess as it prints: every student, one after another. */
   "teach-quick-assess-print": {
     src: teachQuickAssessPrint,

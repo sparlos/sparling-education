@@ -1,12 +1,13 @@
-import { brandByline, brandName } from "@repo/tokens";
+import { brandByline, brandName, color } from "@repo/tokens";
 import {
-  gemFacets,
-  gemOutline,
-  gemSeams,
+  logoLayout,
   markBox,
-  sparkleGapStroke,
-  sparkleOutline,
+  markGoldRun,
+  markParts,
+  markSpine,
+  type Placed,
 } from "@repo/tokens/mark";
+import { bylineOutline, nameOutline } from "@repo/tokens/wordmark";
 import { useId } from "react";
 import classes from "./wordmark.module.css";
 
@@ -20,88 +21,121 @@ interface WordmarkProps {
   byline?: boolean;
 }
 
-/** The logo: the gem mark beside the product name. */
+const words = { name: nameOutline, byline: bylineOutline };
+const at = (p: Placed) => `translate(${p.x} ${p.y}) scale(${p.scale})`;
+
+/** The logo: the mark beside the product name, drawn as one picture. */
 export function Wordmark({
   href,
   size = "md",
   inverse,
   byline,
 }: WordmarkProps) {
-  const content = (
-    <>
-      <Mark />
-      <span className={classes.text}>
-        <span className={classes.name}>{brandName}</span>
-        {byline && <span className={classes.byline}>{brandByline}</span>}
-      </span>
-    </>
+  const layout = logoLayout(words, "horizontal", Boolean(byline));
+  const picture = (
+    <svg
+      className={classes.logo}
+      viewBox={`0 0 ${layout.width} ${layout.height}`}
+      role={href ? undefined : "img"}
+      aria-label={
+        href ? undefined : byline ? `${brandName} ${brandByline}` : brandName
+      }
+      aria-hidden={href ? "true" : undefined}
+    >
+      <g transform={at(layout.mark)}>
+        <MarkShapes inverse={inverse} />
+      </g>
+      <path
+        transform={at(layout.name)}
+        d={nameOutline.d}
+        fill={inverse ? "var(--k-ink-inverse)" : "var(--k-ink)"}
+      />
+      {layout.byline && (
+        <path
+          transform={at(layout.byline)}
+          d={bylineOutline.d}
+          fill={inverse ? color.logo.bylineOnDark : color.logo.byline}
+        />
+      )}
+    </svg>
   );
   const shared = {
     className: classes.root,
     "data-size": size,
-    "data-inverse": inverse || undefined,
     "data-byline": byline || undefined,
   };
   return href ? (
     <a href={href} aria-label={`${brandName} home`} {...shared}>
-      {content}
+      {picture}
     </a>
   ) : (
-    <span {...shared}>{content}</span>
+    <span {...shared}>{picture}</span>
   );
 }
 
-/** The gem with its sparkle, on its own. */
-export function Mark({ mono }: { mono?: boolean }) {
-  const id = useId();
-  const sparkleFill = mono ? "currentColor" : "var(--k-sparkle)";
+/** The mark on its own: gold wings over an open book. */
+export function Mark({ mono, inverse }: { mono?: boolean; inverse?: boolean }) {
   return (
     <svg
       className={classes.mark}
-      viewBox={`${markBox.x} ${markBox.y} ${markBox.width} ${markBox.height}`}
+      viewBox={`0 0 ${markBox.width} ${markBox.height}`}
       aria-hidden="true"
     >
-      <mask
-        id={`${id}-cut`}
-        maskUnits="userSpaceOnUse"
-        x="-10"
-        y="-40"
-        width="160"
-        height="150"
-      >
-        <path d={gemOutline} fill="#fff" />
-        {mono && (
-          <path
-            d={gemSeams}
-            fill="none"
-            stroke="#000"
-            strokeWidth="3"
-            strokeLinejoin="round"
-          />
-        )}
-        <path
-          d={sparkleOutline}
-          fill="#000"
-          stroke="#000"
-          strokeWidth={sparkleGapStroke}
-          strokeLinejoin="round"
-        />
-      </mask>
-      <clipPath id={`${id}-clip`}>
-        <path d={gemOutline} />
-      </clipPath>
-      <g mask={`url(#${id}-cut)`}>
-        {mono ? (
-          <path d={gemOutline} fill="currentColor" />
-        ) : (
-          <g clipPath={`url(#${id}-clip)`}>
-            {gemFacets.map((facet) => (
-              <path key={facet.name} d={facet.d} fill={facet.fill} />
-            ))}
-          </g>
-        )}
-      </g>
-      <path d={sparkleOutline} fill={sparkleFill} />
+      <MarkShapes mono={mono} inverse={inverse} />
     </svg>
+  );
+}
+
+/** The mark's shapes, in mark units, for placing inside another SVG. */
+function MarkShapes({ mono, inverse }: { mono?: boolean; inverse?: boolean }) {
+  const id = useId();
+  const gold = mono ? "currentColor" : `url(#${id}-gold)`;
+  const book = mono
+    ? "currentColor"
+    : inverse
+      ? color.logo.bookOnDark
+      : color.logo.book;
+  return (
+    <>
+      <defs>
+        {!mono && (
+          <linearGradient
+            id={`${id}-gold`}
+            gradientUnits="userSpaceOnUse"
+            x1={markGoldRun.x1}
+            y1={markGoldRun.y1}
+            x2={markGoldRun.x2}
+            y2={markGoldRun.y2}
+          >
+            <stop offset="0" stopColor={color.logo.goldLight} />
+            <stop offset="1" stopColor={color.logo.gold} />
+          </linearGradient>
+        )}
+        <clipPath id={`${id}-left`}>
+          <rect
+            x="-40"
+            y="-40"
+            width={markSpine.leftEdge + 40}
+            height={markBox.height + 80}
+          />
+        </clipPath>
+        <clipPath id={`${id}-right`}>
+          <rect
+            x={markSpine.rightEdge}
+            y="-40"
+            width={markBox.width - markSpine.rightEdge + 40}
+            height={markBox.height + 80}
+          />
+        </clipPath>
+      </defs>
+      {markParts.map((part) => (
+        <path
+          key={part.d.slice(0, 32)}
+          d={part.d}
+          fill={part.colour === "gold" ? gold : book}
+          clipPath={part.side ? `url(#${id}-${part.side})` : undefined}
+        />
+      ))}
+    </>
   );
 }

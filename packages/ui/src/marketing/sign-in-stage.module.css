@@ -26,8 +26,8 @@
   );
 }
 
-/* The student side's gem, big, with light behind it. */
-.gem {
+/* The student side's mark, big, with light behind it. */
+.emblem {
   position: relative;
   display: grid;
   place-items: center;
@@ -35,11 +35,10 @@
   margin-bottom: calc(var(--mantine-spacing-md) * -1);
 }
 
-.gem svg {
+.emblem svg {
   position: relative;
-  height: 1.12em;
+  height: 0.85em;
   width: auto;
-  aspect-ratio: 126 / 123;
   filter: drop-shadow(0 14px 22px rgba(0, 0, 0, 0.35));
 }
 
@@ -132,11 +131,11 @@
 
 @media (prefers-reduced-motion: no-preference) {
   .logo,
-  .gem {
+  .emblem {
     animation: drop-in 700ms var(--k-ease-springy) backwards;
   }
 
-  .gem svg {
+  .emblem svg {
     animation: bob 4.5s ease-in-out 700ms infinite alternate;
   }
 

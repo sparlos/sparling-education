@@ -9,7 +9,7 @@ declare module "opentype.js" {
   }
   export interface Font {
     unitsPerEm: number;
-    tables: { os2: { sCapHeight: number } };
+    tables: { os2: { sCapHeight: number; sTypoDescender: number } };
     stringToGlyphs(text: string): Glyph[];
     getKerningValue(left: Glyph, right: Glyph): number;
   }

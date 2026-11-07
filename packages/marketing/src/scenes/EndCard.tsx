@@ -52,7 +52,7 @@ export function EndCard({ headline, note, cta, url }: Props) {
       }}
     >
       <div style={{ transform: `scale(${mark})` }}>
-        <Wordmark size={unit * 2.6} byline />
+        <Wordmark size={unit * 5} byline />
       </div>
       <div
         style={{

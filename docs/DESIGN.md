@@ -20,12 +20,12 @@ Free for teachers. Students and parents never pay.
 
 ## Brand
 
-The product's name isn't chosen yet. Everywhere a user reads or hears it, the code uses `brandName` from `@repo/tokens`, which says "Placeholder" for now; [RENAME.md](./RENAME.md) lists everything else a rename touches. The logo is a faceted violet gem with a gold sparkle on its top-right corner, beside the name, with "by Sparling Education" under it where it's big enough to read. `@repo/brand` generates the logo files.
+The product is **Kestrel**, by Sparling Education. Everywhere a user reads or hears the name, the code uses `brandName` from `@repo/tokens`, so a rename stays cheap; [RENAME.md](./RENAME.md) lists everything else one touches. The logo is a kestrel's gold wings spread over an open violet book, beside or above the name, with "by Sparling Education" under it where it's big enough to read. The designer's artwork is the source: the mark's shapes are in `packages/tokens/src/mark.ts`, and `@repo/brand` generates the logo files from them.
 
-- **Colours.** Violet (`#6D45FF`) for buttons, links and the educator audience; deep indigo (`#1B1259`) for text and dark bands; a lavender-white page (`#F7F5FF`); neutrals tinted toward indigo. Every text and fill pairing passes WCAG AA, checked by `packages/tokens/src/contrast.test.ts`.
-- **Gold is for sparkle, not meaning.** The sparkle's gold (`#F6B93B`) is never text. In the apps it appears only in the logo, because amber on teacher screens means a misconception. On the marketing site it's free to use: the parent audience, sparkles and decoration.
-- **Type.** Plus Jakarta Sans throughout, ExtraBold for headings and the wordmark.
-- **Decoration.** Faceted crystal shards, small gem glints and gold sparkles. Decorative shapes are hidden from screen readers and hold still for reduced motion.
+- **Colours.** Violet (`#6D45FF`) for buttons, links, the educator audience and the logo's book; deep indigo (`#1B1259`) for text, dark bands and the logo's name; a lavender-white page (`#F7F5FF`); neutrals tinted toward indigo. Every text and fill pairing passes WCAG AA, checked by `packages/tokens/src/contrast.test.ts`.
+- **Gold is for the logo and sparkle, not meaning.** The logo's gold (`#DDB042`, running from `#F3D98C` in the wings) is never text. In the teacher app it appears only in the logo, because amber on teacher screens means a misconception. On the student side it's also the sparkles, and on the marketing site it's free to use: the parent audience, sparkles and decoration. The darker byline gold (`#A98226`) is only for "by Sparling Education" at logo sizes.
+- **Type.** Plus Jakarta Sans throughout, ExtraBold for headings. The logo's name is Poppins ExtraBold and its byline Poppins Medium, drawn as outlines so no app loads Poppins.
+- **Decoration.** Big faint wings, taken from the logo, beating slowly off the corners; small glints; gold sparkles. Decorative shapes are hidden from screen readers and hold still for reduced motion.
 
 ## Guiding principles
 

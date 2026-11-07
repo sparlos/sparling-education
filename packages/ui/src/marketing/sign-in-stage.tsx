@@ -6,11 +6,11 @@ import { Mark, Wordmark } from "./wordmark";
 
 /*
  * The full-screen welcome before someone is signed in: a deep indigo night
- * with slow aurora light, big gem shards turning off the corners and small
+ * with slow aurora light, big wings beating slowly off the corners and small
  * glints drifting, and a bright card in the middle holding what to do.
  *
- * `playful` is the student side: a big floating gem over the card and gold
- * sparkles. Without it (the teacher app) the logo sits over the card and the
+ * `playful` is the student side: the logo's mark, big and floating, over the
+ * card, and gold sparkles. Without it (the teacher app) the logo sits over the card and the
  * glints stay violet, since gold there means a misconception.
  */
 interface SignInStageProps {
@@ -44,9 +44,9 @@ export function SignInStage({
 
       <div className={classes.column}>
         {playful ? (
-          <div className={classes.gem} aria-hidden="true">
+          <div className={classes.emblem} aria-hidden="true">
             <span className={classes.halo} />
-            <Mark />
+            <Mark inverse />
           </div>
         ) : (
           <div className={classes.logo}>

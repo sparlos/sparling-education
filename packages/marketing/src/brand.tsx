@@ -1,22 +1,19 @@
 // The brand in video: the site's tokens (lavender paper, indigo ink, violet,
-// Plus Jakarta Sans), its 3D "press" edge, and the gem logo. Every scene
+// Plus Jakarta Sans), its 3D "press" edge, and the Kestrel logo. Every scene
 // builds on these, so every video carries the brand.
+
 import { loadFont } from "@remotion/google-fonts/PlusJakartaSans";
+import { loadFont as loadLogoFont } from "@remotion/google-fonts/Poppins";
+import { color, font, palette, press } from "@repo/tokens";
 import {
-  brandByline,
-  brandName,
-  color,
-  font,
-  palette,
-  press,
-} from "@repo/tokens";
-import {
-  gemFacets,
-  gemOutline,
+  logoLayout,
   markBox,
-  sparkleGapStroke,
-  sparkleOutline,
+  markGoldRun,
+  markParts,
+  markSpine,
+  type Placed,
 } from "@repo/tokens/mark";
+import { bylineOutline, nameOutline } from "@repo/tokens/wordmark";
 import { type CSSProperties, useId } from "react";
 import type { Tone } from "./brief.ts";
 
@@ -25,9 +22,16 @@ const family = loadFont("normal", {
   subsets: ["latin"],
 }).fontFamily;
 
+const logoFamily = loadLogoFont("normal", {
+  weights: ["800"],
+  subsets: ["latin"],
+}).fontFamily;
+
 export const fonts = {
   heading: `${family}, ${font.heading.fallback}`,
   body: `${family}, ${font.body.fallback}`,
+  /** The logo's typeface, for animating the name letter by letter. */
+  logo: `${logoFamily}, ${font.heading.fallback}`,
 };
 
 export { color, palette };
@@ -53,94 +57,111 @@ export function pressStyle(
   };
 }
 
-/** The gem with its sparkle, `size` px tall (sparkle included). */
-export function Mark({ size }: { size: number }) {
+/** The mark: gold wings over an open book, `size` px wide. */
+export function Mark({ size, inverse }: { size: number; inverse?: boolean }) {
   const id = useId();
+  const book = inverse ? color.logo.bookOnDark : color.logo.book;
   return (
     <svg
-      height={size}
-      width={(size * markBox.width) / markBox.height}
-      viewBox={`${markBox.x} ${markBox.y} ${markBox.width} ${markBox.height}`}
+      width={size}
+      height={(size * markBox.height) / markBox.width}
+      viewBox={`0 0 ${markBox.width} ${markBox.height}`}
       aria-hidden="true"
     >
-      <mask
-        id={`${id}-cut`}
-        maskUnits="userSpaceOnUse"
-        x="-10"
-        y="-40"
-        width="160"
-        height="150"
-      >
-        <path d={gemOutline} fill="#fff" />
-        <path
-          d={sparkleOutline}
-          fill="#000"
-          stroke="#000"
-          strokeWidth={sparkleGapStroke}
-          strokeLinejoin="round"
-        />
-      </mask>
-      <clipPath id={`${id}-clip`}>
-        <path d={gemOutline} />
-      </clipPath>
-      <g mask={`url(#${id}-cut)`}>
-        <g clipPath={`url(#${id}-clip)`}>
-          {gemFacets.map((facet) => (
-            <path key={facet.name} d={facet.d} fill={facet.fill} />
-          ))}
-        </g>
-      </g>
-      <path d={sparkleOutline} fill={color.sparkle} />
+      <MarkShapes id={id} book={book} />
     </svg>
   );
 }
 
-/** The gem plus the product name, as on the site's header. */
+function MarkShapes({ id, book }: { id: string; book: string }) {
+  return (
+    <>
+      <defs>
+        <linearGradient
+          id={`${id}-gold`}
+          gradientUnits="userSpaceOnUse"
+          x1={markGoldRun.x1}
+          y1={markGoldRun.y1}
+          x2={markGoldRun.x2}
+          y2={markGoldRun.y2}
+        >
+          <stop offset="0" stopColor={color.logo.goldLight} />
+          <stop offset="1" stopColor={color.logo.gold} />
+        </linearGradient>
+        <clipPath id={`${id}-left`}>
+          <rect
+            x="-40"
+            y="-40"
+            width={markSpine.leftEdge + 40}
+            height={markBox.height + 80}
+          />
+        </clipPath>
+        <clipPath id={`${id}-right`}>
+          <rect
+            x={markSpine.rightEdge}
+            y="-40"
+            width={markBox.width - markSpine.rightEdge + 40}
+            height={markBox.height + 80}
+          />
+        </clipPath>
+      </defs>
+      {markParts.map((part) => (
+        <path
+          key={part.d.slice(0, 32)}
+          d={part.d}
+          fill={part.colour === "gold" ? `url(#${id}-gold)` : book}
+          clipPath={part.side ? `url(#${id}-${part.side})` : undefined}
+        />
+      ))}
+    </>
+  );
+}
+
+const at = (p: Placed) => `translate(${p.x} ${p.y}) scale(${p.scale})`;
+
+/** The logo as on the site's header: the mark beside the name, `size` px tall. */
 export function Wordmark({
   size,
   inverse,
   byline,
 }: {
-  /** Font size of the name, in px. */
+  /** Height of the logo, in px (the mark's height). */
   size: number;
   inverse?: boolean;
   /** Adds "by Sparling Education" under the name. */
   byline?: boolean;
 }) {
+  const id = useId();
+  const layout = logoLayout(
+    { name: nameOutline, byline: bylineOutline },
+    "horizontal",
+    Boolean(byline),
+  );
   return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: byline ? "flex-start" : "center",
-        gap: size * 0.4,
-        fontFamily: fonts.heading,
-        fontWeight: 800,
-        fontSize: size,
-        lineHeight: 1,
-        letterSpacing: -size * 0.025,
-        color: inverse ? color.ink.inverse : color.ink.default,
-      }}
+    <svg
+      height={size}
+      width={(size * layout.width) / layout.height}
+      viewBox={`0 0 ${layout.width} ${layout.height}`}
+      aria-hidden="true"
     >
-      <div style={{ marginTop: -size * 0.2 }}>
-        <Mark size={size * 1.12} />
-      </div>
-      <div
-        style={{ display: "flex", flexDirection: "column", gap: size * 0.3 }}
-      >
-        <span>{brandName}</span>
-        {byline && (
-          <span
-            style={{
-              fontWeight: 500,
-              fontSize: size * 0.4,
-              letterSpacing: size * 0.004,
-              color: inverse ? color.ink.inverseMuted : color.ink.muted,
-            }}
-          >
-            {brandByline}
-          </span>
-        )}
-      </div>
-    </div>
+      <g transform={at(layout.mark)}>
+        <MarkShapes
+          id={id}
+          book={inverse ? color.logo.bookOnDark : color.logo.book}
+        />
+      </g>
+      <path
+        transform={at(layout.name)}
+        d={nameOutline.d}
+        fill={inverse ? color.ink.inverse : color.ink.default}
+      />
+      {layout.byline && (
+        <path
+          transform={at(layout.byline)}
+          d={bylineOutline.d}
+          fill={inverse ? color.logo.bylineOnDark : color.logo.byline}
+        />
+      )}
+    </svg>
   );
 }

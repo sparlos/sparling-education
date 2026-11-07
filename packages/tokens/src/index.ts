@@ -5,10 +5,10 @@
 // Pixel values are numbers; consumers convert to rem or world units.
 
 /**
- * The product's name, everywhere a user reads or hears it. A stand-in until
- * the real name is chosen: docs/RENAME.md lists what else changes with it.
+ * The product's name, everywhere a user reads or hears it. Code reads it from
+ * here so a rename stays cheap: docs/RENAME.md lists what else changes with it.
  */
-export const brandName = "Placeholder";
+export const brandName = "Kestrel";
 
 /** Who makes the product, shown under the full logo. */
 export const brandByline = "by Sparling Education";
@@ -145,7 +145,7 @@ export const palette = {
     "#342B68",
     "#1B1259",
   ],
-  /** Brand violet: buttons, links and the gem. */
+  /** Brand violet: buttons, links and the book in the logo. */
   violet: [
     "#F3EFFF",
     "#E7DFFE",
@@ -496,11 +496,31 @@ export const color = {
     text: violet[7],
   },
   /**
-   * The gold of the logo's sparkle. Never text: it fails contrast on light
-   * surfaces. In the apps it appears only in the logo, since amber there
-   * means a misconception; the marketing site uses it freely.
+   * The logo's gold, also the decorative sparkles'. Never text: it fails
+   * contrast on light surfaces. In the apps it appears only in the logo and
+   * the student side's sparkles, since amber in the teacher app means a
+   * misconception; the marketing site uses it freely.
    */
-  sparkle: "#F6B93B",
+  sparkle: "#DDB042",
+  /** The logo's own colours. */
+  logo: {
+    /** The wings' gold runs from this… */
+    goldLight: "#F3D98C",
+    /** …to this. */
+    gold: "#DDB042",
+    /** The book on light backgrounds. */
+    book: violet[6],
+    /** The book on dark backgrounds. */
+    bookOnDark: violet[4],
+    /**
+     * "by Sparling Education" on light backgrounds, at logo sizes only (3:1).
+     * A shade darker than the designer's #B48A2C, which fell just short of
+     * 3:1 on the lavender page.
+     */
+    byline: "#A98226",
+    /** "by Sparling Education" on dark backgrounds. */
+    bylineOnDark: "#F3D98C",
+  },
   /** White, ink-edged secondary tone. */
   neutral: {
     fill: "#FFFFFF",
@@ -520,14 +540,14 @@ export const color = {
       soft: violet[0],
       text: violet[7],
     },
-    /** The sparkle's gold, as a fill under dark text. */
+    /** The logo's gold, as a fill under dark text. */
     parent: {
-      fill: "#F6B93B",
-      fillHover: "#EBAA25",
+      fill: "#DDB042",
+      fillHover: "#D1A131",
       onFill: slate[9],
-      edge: "#8A5A00",
-      soft: "#FEF3DC",
-      text: "#7A4E00",
+      edge: "#7B5600",
+      soft: "#FDF3D9",
+      text: "#795300",
     },
   },
   /** Fixed meanings, the same in every class. */

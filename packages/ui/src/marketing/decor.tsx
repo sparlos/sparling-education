@@ -1,8 +1,9 @@
+import { leftWing, leftWingBox } from "@repo/tokens/mark";
 import type { CSSProperties, ReactNode } from "react";
 import { cx } from "../cx";
 import classes from "./decor.module.css";
 
-/** Decorative colours: an audience/brand tone or the sparkle's gold. */
+/** Decorative colours: an audience/brand tone or the logo's gold. */
 type DecorColor =
   | "tone"
   | "tone-soft"
@@ -34,8 +35,10 @@ interface ShapeProps {
   float?: boolean;
   /** Wander slowly on a loose loop. */
   drift?: boolean;
-  /** Turn very slowly, for big shards. */
-  spin?: boolean;
+  /** A slow wingbeat: rocks back and forth from the shape's root. */
+  sway?: boolean;
+  /** Mirror it, e.g. a right wing from the left one. */
+  flip?: boolean;
   /** Seconds into its motion it starts, so neighbours don't move in step. */
   delay?: number;
   hideOnMobile?: boolean;
@@ -61,7 +64,7 @@ function shapeClass(p: ShapeProps) {
     classes.shape,
     p.float && classes.float,
     p.drift && classes.drift,
-    p.spin && classes.spin,
+    p.sway && classes.sway,
     p.hideOnMobile && classes.hideMobile,
     p.hideOnTablet && classes.hideTablet,
   );
@@ -77,58 +80,33 @@ export function DecorLayer({ children }: { children: ReactNode }) {
 }
 
 /**
- * Light and shade laid over a crystal's base colour, facet by facet, so one
- * fill reads as a faceted gem in any tone.
+ * The logo's left wing on its own (its long sweep, tip and two feathers),
+ * big and faint, best bleeding off a band's corner. `flip` makes it a right
+ * wing; `sway` rocks it slowly from its root, like a wingbeat.
  */
-const facetShades = [
-  "rgba(255, 255, 255, 0.45)",
-  "rgba(255, 255, 255, 0.2)",
-  "rgba(27, 18, 89, 0.12)",
-  "rgba(27, 18, 89, 0.22)",
-  "rgba(255, 255, 255, 0.3)",
-];
-
-/** A large faceted crystal shard, best bleeding off a band's edge. */
-export function Shard(props: ShapeProps) {
-  // An irregular five-sided crystal, cut into facets that meet off-centre.
-  const rim = [
-    [18, 118],
-    [92, 8],
-    [184, 52],
-    [158, 192],
-    [36, 178],
-  ] as const;
-  const core = [104, 96] as const;
+export function Wing(props: ShapeProps) {
+  const { x, y, width, height } = leftWingBox;
   return (
     <svg
       aria-hidden="true"
       className={shapeClass(props)}
-      style={shapeStyle(props)}
-      viewBox="0 0 200 200"
+      style={{
+        ...shapeStyle(props),
+        // Rock from where the wing meets the body.
+        transformOrigin: props.flip ? "6% 92%" : "94% 92%",
+      }}
+      viewBox={`${x} ${y} ${width} ${height}`}
     >
-      <g fill={fills[props.color ?? "tone"]}>
-        {rim.map((point, i) => {
-          const next = rim[(i + 1) % rim.length] ?? rim[0];
-          return (
-            <path
-              // biome-ignore lint/suspicious/noArrayIndexKey: fixed geometry
-              key={i}
-              d={`M${core.join(",")}L${point.join(",")}L${next.join(",")}Z`}
-            />
-          );
-        })}
+      <g
+        fill={fills[props.color ?? "tone"]}
+        transform={
+          props.flip ? `matrix(-1 0 0 1 ${2 * x + width} 0)` : undefined
+        }
+      >
+        {leftWing.map((d) => (
+          <path key={d.slice(0, 32)} d={d} />
+        ))}
       </g>
-      {rim.map((point, i) => {
-        const next = rim[(i + 1) % rim.length] ?? rim[0];
-        return (
-          <path
-            // biome-ignore lint/suspicious/noArrayIndexKey: fixed geometry
-            key={i}
-            d={`M${core.join(",")}L${point.join(",")}L${next.join(",")}Z`}
-            fill={facetShades[i]}
-          />
-        );
-      })}
     </svg>
   );
 }
@@ -150,7 +128,7 @@ export function Sparkle(props: ShapeProps) {
   );
 }
 
-/** A small glint: a gem facet, lit on one side. */
+/** A small glint: a diamond of light, lit on one side. */
 export function Glint(props: ShapeProps) {
   return (
     <svg

@@ -1,55 +1,37 @@
 .root {
   display: inline-flex;
   align-items: center;
-  gap: 0.4em;
   color: var(--k-ink);
   text-decoration: none;
-  font-family: var(--k-font-heading-stack);
-  font-weight: 800;
-  letter-spacing: -0.025em;
-  line-height: 1;
+  line-height: 0;
 }
 
-.root[data-inverse] {
-  color: var(--k-ink-inverse);
+/* The logo's height is the mark's. The name's capitals are about 0.4 of it. */
+.logo {
+  display: block;
+  width: auto;
 }
 
-.root[data-size="md"] {
-  font-size: 1.5rem;
+.root[data-size="md"] .logo {
+  height: 2.5rem;
 }
 
-.root[data-size="lg"] {
-  font-size: 2.25rem;
+.root[data-size="lg"] .logo {
+  height: 3.75rem;
 }
 
-/* With a byline, the gem lines up with the name, not the pair. */
-.root[data-byline] {
-  align-items: flex-start;
+/* With the byline, taller, so its small text stays readable. */
+.root[data-byline][data-size="md"] .logo {
+  height: 4.5rem;
+}
+
+.root[data-byline][data-size="lg"] .logo {
+  height: 6rem;
 }
 
 .mark {
-  flex-shrink: 0;
-  /* The gem's height matches the name's caps; the sparkle pokes above. */
-  height: 1.12em;
+  display: block;
+  height: 1em;
   width: auto;
-  aspect-ratio: 126 / 123;
-  margin-top: -0.2em;
-}
-
-.text {
-  display: inline-flex;
-  flex-direction: column;
-  gap: 0.3em;
-}
-
-.byline {
-  font-family: var(--k-font-body-stack);
-  font-weight: 500;
-  font-size: max(0.4em, 0.8125rem);
-  letter-spacing: 0.01em;
-  color: var(--k-ink-muted);
-}
-
-.root[data-inverse] .byline {
-  color: var(--k-ink-inverse-muted);
+  aspect-ratio: 946 / 588;
 }

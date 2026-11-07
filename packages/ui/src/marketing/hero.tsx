@@ -4,7 +4,7 @@ import { Container } from "../container";
 import type { LinkItem } from "../link-item";
 import { Title } from "../title";
 import type { Tone } from "../tone";
-import { DecorLayer, Glint, Shard, Sparkle } from "./decor";
+import { DecorLayer, Glint, Sparkle, Wing } from "./decor";
 import classes from "./hero.module.css";
 import { HeroVideo, type HeroVideoProps } from "./hero-video";
 import { ImageSlot, type ImageSlotImage } from "./image-slot";
@@ -36,19 +36,20 @@ export function Hero({
   return (
     <section className={classes.root} data-tone={tone}>
       <DecorLayer>
-        <Shard
-          size={440}
-          right="-150px"
-          top="-150px"
-          rotate={-12}
-          opacity={0.22}
-          spin
+        <Wing
+          size={420}
+          right="-40px"
+          top="-230px"
+          flip
+          opacity={0.2}
+          sway
+          hideOnMobile
         />
-        <Shard
-          size={220}
-          left="-90px"
-          bottom="-80px"
-          rotate={24}
+        <Wing
+          size={230}
+          left="-60px"
+          bottom="-60px"
+          rotate={10}
           opacity={0.14}
           hideOnMobile
         />

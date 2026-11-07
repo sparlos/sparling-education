@@ -121,7 +121,7 @@ function Corner() {
           opacity: Math.min(1, frame / 10) * 0.9,
         }}
       >
-        <Wordmark size={unit * 1.1} />
+        <Wordmark size={unit * 1.9} />
       </div>
     </Sequence>
   );

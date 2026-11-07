@@ -1,5 +1,5 @@
-// The reveal: the gem bounces in, sparkles burst off it, the name lands
-// letter by letter and the tagline rises under it.
+// The reveal: the mark bounces in, sparkles burst off it, the name lands
+// letter by letter in the logo's typeface and the tagline rises under it.
 // Cues: the product's name (the mark lands just before it).
 import { Star } from "@remotion/shapes";
 import { brandName } from "@repo/tokens";
@@ -70,16 +70,15 @@ export function Logo({ tagline }: Props) {
               opacity: frame < at ? 0 : 1,
             }}
           >
-            <Mark size={size} />
+            <Mark size={size * 1.4} />
           </div>
         </div>
         <div
           style={{
             display: "flex",
-            fontFamily: fonts.heading,
+            fontFamily: fonts.logo,
             fontWeight: 800,
-            fontSize: size * 0.95,
-            letterSpacing: -size * 0.03,
+            fontSize: size * 0.62,
             color: color.ink.default,
           }}
         >

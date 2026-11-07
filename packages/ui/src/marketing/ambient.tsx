@@ -2,13 +2,13 @@
 
 import { type CSSProperties, useEffect, useRef, useState } from "react";
 import classes from "./ambient.module.css";
-import { Glint, Shard, Sparkle } from "./decor";
+import { Glint, Sparkle, Wing } from "./decor";
 
 /*
  * A few sparkles and glints scattered through a section's white space: beside
  * its heading and down its side margins. They rise in, one after another, the
  * first time the section scrolls into view, then drift and twinkle. On tinted
- * bands a big faint shard turns slowly off one corner. Without script or with
+ * bands a big faint wing beats slowly off one corner. Without script or with
  * reduced motion they're simply there, still.
  */
 
@@ -20,7 +20,7 @@ interface Bit {
   kind: "sparkle" | "glint";
   size: number;
   at: Placement;
-  /** `tone` follows the section's audience; otherwise the sparkle's gold. */
+  /** `tone` follows the section's audience; otherwise the logo's gold. */
   color: "tone" | "sparkle";
   opacity: number;
   delay: number;
@@ -167,7 +167,7 @@ export function Ambient({
   const n = pick(seed);
   const bits = layouts[n % layouts.length] ?? [];
   const tinted = surface === "sunken" || surface === "tone";
-  const shardOnLeft = n % 2 === 0;
+  const wingOnLeft = n % 2 === 0;
 
   useEffect(() => {
     const layer = ref.current;
@@ -201,15 +201,15 @@ export function Ambient({
       aria-hidden="true"
     >
       {tinted && (
-        <Shard
-          size={360}
+        <Wing
+          size={380}
           color="tone"
-          opacity={0.07}
-          spin
+          opacity={0.08}
+          sway
           hideOnMobile
-          {...(shardOnLeft
-            ? { left: "-160px", top: "-140px" }
-            : { right: "-160px", bottom: "-160px" })}
+          {...(wingOnLeft
+            ? { left: "-110px", top: "-100px" }
+            : { right: "-110px", bottom: "-120px", flip: true })}
         />
       )}
       {bits.map((bit, i) => {

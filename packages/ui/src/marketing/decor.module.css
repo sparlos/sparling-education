@@ -27,8 +27,8 @@
       twinkle 4.6s ease-in-out infinite;
   }
 
-  .spin {
-    animation: spin 90s linear infinite;
+  .sway {
+    animation: sway 9s ease-in-out infinite alternate;
   }
 }
 
@@ -64,9 +64,12 @@
   }
 }
 
-@keyframes spin {
+@keyframes sway {
+  from {
+    transform: rotate(-4deg);
+  }
   to {
-    transform: rotate(360deg);
+    transform: rotate(5deg);
   }
 }
 

@@ -1,11 +1,11 @@
 import { useEffect, useRef } from "react";
 import { cx } from "../cx";
-import { Glint, Shard, Sparkle } from "./decor";
+import { Glint, Sparkle, Wing } from "./decor";
 import classes from "./sky.module.css";
 
 /*
- * A backdrop of slow aurora light, big gem shards turning off the corners and
- * small glints drifting. `night` is deep indigo, for a screen with one bright
+ * A backdrop of slow aurora light, big wings beating slowly off the corners
+ * and small glints drifting. `night` is deep indigo, for a screen with one bright
  * card on it; `day` is the pale page, lightly lit, for screens whose text
  * sits on the page. It fills its positioned parent, or with `fixed` the
  * screen, behind everything.
@@ -46,29 +46,30 @@ export function Sky({
       <span className={cx(classes.aurora, classes.auroraB)} />
       <span className={cx(classes.aurora, classes.auroraC)} />
       <span className={classes.stars} />
-      <Shard
-        size={520}
-        opacity={night ? 0.32 : 0.1}
-        spin
-        left="-200px"
-        top="-180px"
+      <Wing
+        size={560}
+        opacity={night ? 0.3 : 0.11}
+        sway
+        left="-150px"
+        top="-120px"
       />
-      <Shard
-        size={440}
-        opacity={night ? 0.26 : 0.08}
-        spin
-        rotate={140}
-        delay={40}
-        right="-170px"
-        bottom="-170px"
+      <Wing
+        size={480}
+        opacity={night ? 0.24 : 0.09}
+        sway
+        flip
+        delay={4}
+        right="-130px"
+        bottom="-150px"
       />
-      <Shard
-        size={180}
-        opacity={night ? 0.22 : 0.07}
+      <Wing
+        size={190}
+        opacity={night ? 0.22 : 0.08}
         float
-        rotate={30}
-        right="9%"
-        top="11%"
+        flip
+        rotate={-8}
+        right="8%"
+        top="10%"
         hideOnMobile
       />
       <Sparkle
