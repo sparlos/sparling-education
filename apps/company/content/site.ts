@@ -18,7 +18,7 @@ export const productSiteUrl = (
 ).replace(/\/$/, "");
 
 /** The public site where anyone can try the games (apps/play). */
-export const tryGamesUrl = "https://tryplaceholder.sparlingeducation.ca/";
+export const tryGamesUrl = "https://trykestrel.sparlingeducation.ca/";
 
 export const site = {
   title: `${companyName}: learning games for Canadian classrooms`,
